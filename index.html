@@ -3,290 +3,352 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 釜山慶州・秋色之旅</title>
+    <title>2026 BUSAN & GYEONGJU - Autumn Trip</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --autumn-red: #A52A2A;
-            --ginkgo-gold: #E9C46A;
-            --deep-gray: #264653;
-            --soft-bg: #FCF8F3;
-            --white: #FFFFFF;
+            --primary-autumn: #8B0000; /* 深楓紅 */
+            --ginkgo-yellow: #DAA520; /* 銀杏金 */
+            --diplomat-beige: #F5F5DC; /* 外交官大衣米 */
+            --text-dark: #333333;
+            --white: #ffffff;
+            --card-shadow: 0 10px 20px rgba(0,0,0,0.08);
         }
 
         body {
             font-family: 'Noto Sans TC', sans-serif;
-            background-color: var(--soft-bg);
-            color: var(--deep-gray);
+            background-color: var(--diplomat-beige);
+            color: var(--text-dark);
             margin: 0;
             padding-bottom: 80px;
+            line-height: 1.6;
         }
 
-        /* Header */
-        .hero {
-            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1578662996442-48f60103fc96?auto=format&fit=crop&w=800&q=80');
+        /* 頂部橫幅 - 延續東京版的大圖氣勢 */
+        header {
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1541754030-24420bc31b9c?auto=format&fit=crop&w=1200&q=80');
             background-size: cover;
             background-position: center;
-            height: 220px;
+            height: 300px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            color: white;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            color: var(--white);
+            text-align: center;
         }
 
-        /* 導航列 */
-        .nav-bar {
+        header h1 { font-size: 2.2rem; margin: 0; letter-spacing: 2px; }
+        header p { font-size: 1rem; opacity: 0.9; margin-top: 10px; }
+
+        /* 功能導航列 - 延續東京版設計 */
+        nav {
             display: flex;
-            overflow-x: auto;
             background: var(--white);
-            sticky: top;
             position: sticky;
             top: 0;
             z-index: 1000;
+            overflow-x: auto;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
 
-        .nav-item {
-            flex: 0 0 auto;
-            padding: 15px 20px;
+        .nav-link {
+            flex: 1;
+            min-width: 80px;
+            text-align: center;
+            padding: 15px 0;
             cursor: pointer;
-            font-weight: 500;
-            color: #888;
+            font-weight: bold;
+            color: #999;
+            font-size: 0.9rem;
+            transition: 0.3s;
             border-bottom: 3px solid transparent;
         }
 
-        .nav-item.active {
-            color: var(--autumn-red);
-            border-bottom: 3px solid var(--autumn-red);
+        .nav-link.active {
+            color: var(--primary-autumn);
+            border-bottom: 3px solid var(--primary-autumn);
         }
 
-        /* 內容區 */
-        .container {
-            padding: 20px;
-            max-width: 500px;
-            margin: auto;
+        .container { padding: 20px; max-width: 600px; margin: auto; }
+        .page { display: none; }
+        .page.active { display: block; animation: fadeIn 0.5s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 行程卡片美化 */
+        .day-header {
+            background: var(--primary-autumn);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 50px;
+            display: inline-block;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            font-weight: bold;
         }
 
-        .section { display: none; }
-        .section.active { display: block; }
-
-        /* 卡片樣式 */
-        .card {
+        .itinerary-card {
             background: var(--white);
             border-radius: 15px;
-            padding: 18px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: var(--card-shadow);
+            border-left: 6px solid var(--ginkgo-yellow);
         }
 
-        h2 { color: var(--autumn-red); font-size: 1.2rem; margin-top: 0; }
+        .spot-item { display: flex; margin-bottom: 15px; }
+        .spot-time { min-width: 60px; font-weight: bold; color: var(--primary-autumn); }
+        .spot-detail h4 { margin: 0; color: #000; }
+        .spot-detail p { margin: 5px 0 0 0; font-size: 0.85rem; color: #666; }
+
+        /* 分帳功能 - 針對 2 人設計 */
+        .bill-card { background: var(--white); border-radius: 15px; padding: 20px; box-shadow: var(--card-shadow); }
+        .bill-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        input, select { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; }
+        .btn-add { background: var(--primary-autumn); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; }
 
         /* 清單樣式 (行李/購物) */
-        .check-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            font-size: 0.95rem;
+        .list-card { background: var(--white); border-radius: 15px; padding: 20px; box-shadow: var(--card-shadow); }
+        .checkbox-item { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .checkbox-item input { width: 20px; height: 20px; margin-right: 15px; accent-color: var(--primary-autumn); }
+        .strikethrough { text-decoration: line-through; color: #ccc; }
+
+        /* 外部連結連結按鈕 */
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .info-btn { 
+            background: var(--white); border: 1px solid #ddd; padding: 20px; border-radius: 12px; 
+            text-align: center; text-decoration: none; color: var(--text-dark); font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03); transition: 0.3s;
         }
-
-        .check-item input { margin-right: 12px; width: 18px; height: 18px; accent-color: var(--autumn-red); }
-
-        .checked { text-decoration: line-through; color: #bbb; }
-
-        /* 分帳功能樣式 */
-        .bill-input-group { display: flex; flex-direction: column; gap: 10px; }
-        input, select { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; }
-        .btn {
-            background: var(--autumn-red); color: white; border: none; padding: 12px;
-            border-radius: 8px; font-weight: bold; cursor: pointer;
-        }
-
-        /* 連結按鈕 (像東京版那樣) */
-        .link-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .link-card {
-            background: var(--ginkgo-gold); color: white; padding: 15px;
-            text-align: center; border-radius: 10px; text-decoration: none; font-weight: bold;
-        }
-
-        /* 底部浮動標籤 */
-        .footer-info { text-align: center; font-size: 0.8rem; color: #999; margin-top: 20px; }
+        .info-btn:active { background: #eee; }
 
     </style>
 </head>
 <body>
 
-<div class="hero">
-    <h1 style="margin:0;">釜山慶州・秋之旅</h1>
-    <p style="margin:5px 0 0 0;">Nov 12 - Nov 16, 2026</p>
-</div>
+<header>
+    <h1>2026 BUSAN & GYEONGJU</h1>
+    <p>11/12 — 11/16 楓金秋色之旅</p>
+</header>
 
-<div class="nav-bar">
-    <div class="nav-item active" onclick="tab(event, 'itinerary')">行程</div>
-    <div class="nav-item" onclick="tab(event, 'split')">分帳</div>
-    <div class="nav-item" onclick="tab(event, 'packing')">行李</div>
-    <div class="nav-item" onclick="tab(event, 'shopping')">購物</div>
-    <div class="nav-item" onclick="tab(event, 'info')">資訊</div>
-</div>
+<nav>
+    <div class="nav-link active" onclick="showPage('itinerary', event)">行程</div>
+    <div class="nav-link" onclick="showPage('bill', event)">分帳</div>
+    <div class="nav-link" onclick="showPage('packing', event)">行李</div>
+    <div class="nav-link" onclick="showPage('shopping', event)">購物</div>
+    <div class="nav-link" onclick="showPage('info', event)">資訊</div>
+</nav>
 
 <div class="container">
     
-    <div id="itinerary" class="section active">
-        <div class="card" style="border-left: 5px solid var(--ginkgo-gold);">
-            <h2>11/12 (四) 抵達與古都</h2>
-            <p>16:30 抵達金海機場 ➔ 慶州</p>
-            <p>20:00 東宮與月池 (夜楓絕景)</p>
-        </div>
-        <div class="card" style="border-left: 5px solid var(--autumn-red);">
-            <h2>11/13 (五) 銀杏與轉場</h2>
-            <p>10:30 大陵苑石牆路 (銀杏地毯)</p>
-            <p>13:30 皇理團路 Solsot 釜飯</p>
-            <p>17:30 廣安里 H Avenue 入住</p>
-        </div>
-        <div class="card" style="border-left: 5px solid var(--ginkgo-gold);">
-            <h2>11/14 (六) 梵魚寺與海景</h2>
-            <p>10:30 梵魚寺 (釜山紅葉首選)</p>
-            <p>14:00 Thrill On The Mug 咖啡</p>
-            <p>19:00 廣安里 M 無人機秀</p>
-        </div>
-        <div class="card" style="border-left: 5px solid var(--autumn-red);">
-            <h2>11/15 (日) 掃貨與放鬆</h2>
-            <p>14:30 藍線公園膠囊列車</p>
-            <p>16:30 Olive Young & Spa Land</p>
-        </div>
-    </div>
-
-    <div id="split" class="section">
-        <div class="card">
-            <h2>公積金結算</h2>
-            <div class="bill-input-group">
-                <input type="text" id="billName" placeholder="項目 (如：鰻魚飯)">
-                <input type="number" id="billAmount" placeholder="金額 (KRW)">
-                <select id="payer">
-                    <option value="Me">我付的</option>
-                    <option value="A">朋友 A 付的</option>
-                    <option value="B">朋友 B 付的</option>
-                </select>
-                <button class="btn" onclick="addBill()">新增帳目</button>
+    <div id="itinerary" class="page active">
+        <div class="day-header">DAY 1 - 11/12 (Thu)</div>
+        <div class="itinerary-card">
+            <div class="spot-item">
+                <div class="spot-time">16:30</div>
+                <div class="spot-detail">
+                    <h4>抵達金海機場</h4>
+                    <p>搭乘豪華直達巴士前往慶州，車程約 1 小時。</p>
+                </div>
             </div>
-            <div id="billList" style="margin-top:20px;"></div>
-            <div id="result" style="margin-top:15px; padding-top:15px; border-top:2px solid #eee; font-weight:bold;"></div>
-            <button onclick="clearBills()" style="background:none; border:none; color:gray; font-size:0.8rem; margin-top:10px;">清空全部紀錄</button>
-        </div>
-    </div>
-
-    <div id="packing" class="section">
-        <div class="card">
-            <h2>行李檢查清單</h2>
-            <div id="packingList">
+            <div class="spot-item">
+                <div class="spot-time">20:00</div>
+                <div class="spot-detail">
+                    <h4>東宮與月池</h4>
+                    <p>夜楓全盛期。米色大衣配古建築倒影拍攝最美。</p>
                 </div>
+            </div>
         </div>
-    </div>
 
-    <div id="shopping" class="section">
-        <div class="card">
-            <h2>必買清單</h2>
-            <div id="shoppingList">
+        <div class="day-header">DAY 2 - 11/13 (Fri)</div>
+        <div class="itinerary-card">
+            <div class="spot-item">
+                <div class="spot-time">10:30</div>
+                <div class="spot-detail">
+                    <h4>大陵苑石牆路</h4>
+                    <p><b>私房攝影：</b>金黃銀杏地毯路段。自行拍攝外交官氣場大片。</p>
                 </div>
+            </div>
+            <div class="spot-item">
+                <div class="spot-time">17:30</div>
+                <div class="spot-detail">
+                    <h4>廣安里 H Avenue</h4>
+                    <p>入住海景房。SCENTICA 挑選屬於釜山的香水記憶。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="day-header">DAY 3 - 11/14 (Sat)</div>
+        <div class="itinerary-card">
+            <div class="spot-item">
+                <div class="spot-time">10:30</div>
+                <div class="spot-detail">
+                    <h4>梵魚寺</h4>
+                    <p>釜山紅葉第一名所。古寺階梯是絕佳構圖點。</p>
+                </div>
+            </div>
+            <div class="spot-item">
+                <div class="spot-time">14:00</div>
+                <div class="spot-detail">
+                    <h4>Thrill On The Mug</h4>
+                    <p>影島海景咖啡廳，享受週六海景爵士樂氛圍。</p>
+                </div>
+            </div>
+            <div class="spot-item">
+                <div class="spot-time">19:00</div>
+                <div class="spot-detail">
+                    <h4>廣安里 M 無人機秀</h4>
+                    <p>避開煙火節人潮，在房間享受極致科技燈光秀。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="day-header">DAY 4 - 11/15 (Sun)</div>
+        <div class="itinerary-card">
+            <div class="spot-item">
+                <div class="spot-time">12:00</div>
+                <div class="spot-detail">
+                    <h4>海木鰻魚飯</h4>
+                    <p>海雲台必吃美食。建議提早透過候位系統掛號。</p>
+                </div>
+            </div>
+            <div class="spot-item">
+                <div class="spot-time">16:30</div>
+                <div class="spot-detail">
+                    <h4>Olive Young 終極掃貨</h4>
+                    <p>Centum City 旗艦店。掃完後直接回飯店打包行李。</p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div id="info" class="section">
-        <div class="link-grid">
-            <a href="https://www.kweather.co.kr/main/main.php" class="link-card" target="_blank">韓國氣象預報</a>
-            <a href="https://map.naver.com/" class="link-card" target="_blank">Naver Map</a>
-            <a href="#" class="link-card" style="background:#333;">Zimcarry 查詢</a>
-            <a href="#" class="link-card" style="background:#555;">匯率換算</a>
+    <div id="bill" class="page">
+        <div class="bill-card">
+            <h3>💸 旅費支出結算</h3>
+            <div class="bill-row">
+                <input type="text" id="billItem" placeholder="項目: 如 釜飯">
+            </div>
+            <div class="bill-row">
+                <input type="number" id="billAmt" placeholder="金額 (KRW)">
+                <select id="payer">
+                    <option value="我">我付的</option>
+                    <option value="旅伴">旅伴付的</option>
+                </select>
+            </div>
+            <button class="btn-add" onclick="addRecord()">新增帳目</button>
+            <div id="recordList" style="margin-top:20px; font-size:0.9rem;"></div>
+            <div id="finalSettlement" style="margin-top:15px; font-weight:bold; color:var(--primary-autumn); border-top:2px solid #eee; padding-top:15px;"></div>
+            <p style="text-align:center;"><button onclick="clearAllBills()" style="border:none; background:none; color:#ccc; font-size:0.8rem;">清空所有資料</button></p>
         </div>
-        <div class="footer-info">
-            <p>Travel App v2.0 - Busan Edition</p>
-            <p>專為 2026 外交官夫人氣場行程打造</p>
+    </div>
+
+    <div id="packing" class="page">
+        <div class="list-card">
+            <h3>🧳 行李檢查清單</h3>
+            <div id="pList"></div>
         </div>
+    </div>
+
+    <div id="shopping" class="page">
+        <div class="list-card">
+            <h3>🛒 必買清單</h3>
+            <div id="sList"></div>
+        </div>
+    </div>
+
+    <div id="info" class="page">
+        <div class="info-grid">
+            <a href="https://m.kweather.co.kr/" class="info-btn" target="_blank">🌡️ 韓國氣象預報</a>
+            <a href="https://m.map.naver.com/" class="info-btn" target="_blank">📍 Naver Map</a>
+            <a href="https://www.zimcarry.net/" class="info-btn" target="_blank">📦 Zimcarry 查詢</a>
+            <a href="https://search.naver.com/search.naver?query=환율" class="info-btn" target="_blank">💰 匯率換算</a>
+        </div>
+        <p style="text-align:center; color:#999; font-size:0.8rem; margin-top:30px;">
+            Diplomat Style Travel App v3.0<br>Designed for 2026 Autumn
+        </p>
     </div>
 
 </div>
 
 <script>
-    // --- 頁面切換 ---
-    function tab(e, id) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    // 頁面切換
+    function showPage(id, e) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         e.currentTarget.classList.add('active');
+        window.scrollTo(0,0);
     }
 
-    // --- 資料初始化 ---
-    const defaultPacking = ["護照/簽證", "米色大衣", "Sky Navigator 行李箱", "轉接頭", "韓幣現金", "保濕面膜"];
-    const defaultShopping = ["Olive Young 精華液", "護髮油", "Torriden 面膜", "Gentle Monster 墨鏡", "限定口味海苔"];
+    // --- 1. 2人分帳邏輯 ---
+    let bills = JSON.parse(localStorage.getItem('busan_bills_2p')) || [];
 
-    // --- 清單渲染與儲存 ---
-    function renderList(type, items) {
-        const container = document.getElementById(type + 'List');
-        let saved = JSON.parse(localStorage.getItem('busan_' + type)) || {};
-        
-        container.innerHTML = items.map(item => `
-            <div class="check-item">
-                <input type="checkbox" ${saved[item] ? 'checked' : ''} onchange="saveCheck('${type}', '${item}', this.checked)">
-                <span class="${saved[item] ? 'checked' : ''}">${item}</span>
-            </div>
-        `).join('');
-    }
-
-    function saveCheck(type, item, status) {
-        let saved = JSON.parse(localStorage.getItem('busan_' + type)) || {};
-        saved[item] = status;
-        localStorage.setItem('busan_' + type, JSON.stringify(saved));
-        renderList(type, (type === 'packing' ? defaultPacking : defaultShopping));
-    }
-
-    // --- 分帳邏輯 ---
-    let bills = JSON.parse(localStorage.getItem('busan_bills')) || [];
-
-    function addBill() {
-        const name = document.getElementById('billName').value;
-        const amt = parseFloat(document.getElementById('billAmount').value);
+    function addRecord() {
+        const item = document.getElementById('billItem').value;
+        const amt = parseFloat(document.getElementById('billAmt').value);
         const payer = document.getElementById('payer').value;
-        if (!name || !amt) return;
-        bills.push({ name, amt, payer });
-        localStorage.setItem('busan_bills', JSON.stringify(bills));
-        document.getElementById('billName').value = '';
-        document.getElementById('billAmount').value = '';
+        if(!item || !amt) return;
+        bills.push({ item, amt, payer });
+        localStorage.setItem('busan_bills_2p', JSON.stringify(bills));
+        document.getElementById('billItem').value = '';
+        document.getElementById('billAmt').value = '';
         renderBills();
     }
 
     function renderBills() {
-        const list = document.getElementById('billList');
-        const res = document.getElementById('result');
+        const list = document.getElementById('recordList');
+        const res = document.getElementById('finalSettlement');
         let total = 0;
-        let paid = { Me: 0, A: 0, B: 0 };
-        
+        let paidByMe = 0;
+        let paidByFriend = 0;
+
         list.innerHTML = bills.map(b => {
             total += b.amt;
-            paid[b.payer] += b.amt;
-            return `<div style="display:flex; justify-content:space-between; font-size:0.9rem; margin-bottom:5px;">
-                        <span>${b.name} (${b.payer})</span>
+            if(b.payer === '我') paidByMe += b.amt; else paidByFriend += b.amt;
+            return `<div style="display:flex;justify-content:space-between;margin-bottom:5px;color:#666;">
+                        <span>${b.item} (${b.payer})</span>
                         <span>${b.amt.toLocaleString()} ₩</span>
                     </div>`;
         }).join('');
 
-        const avg = total / 3;
-        let html = `總額: ${total.toLocaleString()} ₩ (人均: ${Math.round(avg).toLocaleString()} ₩)<br><br>`;
-        for (let p in paid) {
-            let diff = paid[p] - avg;
-            html += `${p}: ${diff >= 0 ? '<span style="color:green">可收回 +' + Math.round(diff) : '<span style="color:red">應支付 ' + Math.round(diff)} ₩</span><br>`;
-        }
-        res.innerHTML = html;
+        const perPerson = total / 2;
+        let diff = paidByMe - perPerson; // 如果是正數，代表旅伴要還我錢
+        let text = diff >= 0 ? `旅伴應支付給我: ${Math.round(diff).toLocaleString()} ₩` : `我應支付給旅伴: ${Math.round(Math.abs(diff)).toLocaleString()} ₩`;
+        res.innerHTML = `總花費: ${total.toLocaleString()} ₩<br>人均: ${perPerson.toLocaleString()} ₩<br><span style="color:var(--primary-autumn)">${text}</span>`;
     }
 
-    function clearBills() {
-        if(confirm('確定清空？')) { bills = []; localStorage.removeItem('busan_bills'); renderBills(); }
+    function clearAllBills() { if(confirm('確定清除？')) { bills=[]; localStorage.removeItem('busan_bills_2p'); renderBills(); } }
+
+    // --- 2. 行李 & 購物清單 (LocalStorage 持久化) ---
+    const pData = ["護照/簽證", "米色大衣/發熱衣", "Sky Navigator 行李箱", "韓國轉接頭", "NAMANE卡/現金", "保濕面膜/護唇膏"];
+    const sData = ["Olive Young 精華液", "UNOVE 護髮油", "海苔/限定泡麵", "Gentle Monster 墨鏡", "田浦選物店文具"];
+
+    function renderChecklist(id, data, storageKey) {
+        const container = document.getElementById(id);
+        let saved = JSON.parse(localStorage.getItem(storageKey)) || {};
+        container.innerHTML = data.map(item => `
+            <div class="checkbox-item">
+                <input type="checkbox" ${saved[item] ? 'checked' : ''} onchange="toggleCheck('${id}','${data}','${storageKey}','${item}', this.checked)">
+                <span class="${saved[item] ? 'strikethrough' : ''}">${item}</span>
+            </div>
+        `).join('');
     }
 
-    // 啟動
-    renderList('packing', defaultPacking);
-    renderList('shopping', defaultShopping);
+    function toggleCheck(id, dataStr, storageKey, item, status) {
+        let saved = JSON.parse(localStorage.getItem(storageKey)) || {};
+        saved[item] = status;
+        localStorage.setItem(storageKey, JSON.stringify(saved));
+        // 重新渲染該區塊
+        const dataArr = id === 'pList' ? pData : sData;
+        renderChecklist(id, dataArr, storageKey);
+    }
+
+    // 初始化
     renderBills();
+    renderChecklist('pList', pData, 'busan_packing');
+    renderChecklist('sList', sData, 'busan_shopping');
+
 </script>
 
 </body>
