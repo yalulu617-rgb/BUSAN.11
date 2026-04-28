@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 釜山慶州秋末楓情之旅</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-red: #8B0000; /* 楓葉紅 */
+            --golden-yellow: #DAA520; /* 銀杏金 */
+            --dark-gray: #2F2F2F;
+            --bg-color: #FDF5E6; /* 米色大衣氛圍底色 */
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--dark-gray);
+            margin: 0;
+            padding-bottom: 70px; /* 為底部導航留白 */
+        }
+
+        /* Header & Hero Section */
+        header {
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1541754030-24420bc31b9c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'); /* 暫替圖：秋日景色 */
+            background-size: cover;
+            background-position: center;
+            height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+
+        /* 導航按鈕 */
+        .nav-tabs {
+            display: flex;
+            justify-content: space-around;
+            background: white;
+            padding: 10px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .tab-btn {
+            border: none;
+            background: none;
+            color: #888;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+
+        .tab-btn.active {
+            color: var(--primary-red);
+            border-bottom: 2px solid var(--primary-red);
+        }
+
+        /* 內容區塊 */
+        .content-section {
+            display: none;
+            padding: 20px;
+            max-width: 600px;
+            margin: auto;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        /* 行程卡片樣式 */
+        .itinerary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--golden-yellow);
+        }
+
+        .itinerary-card h3 {
+            margin: 0 0 10px 0;
+            color: var(--primary-red);
+            font-size: 18px;
+        }
+
+        .itinerary-time {
+            font-weight: bold;
+            color: #666;
+            margin-right: 10px;
+        }
+
+        /* 分帳功能樣式 */
+        .bill-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .primary-btn {
+            background-color: var(--primary-red);
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #expenseList {
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+
+        .expense-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #eee;
+        }
+
+        /* 底部導航 (Mobile Style) */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <h1>2026 Busan & Gyeongju</h1>
+        <p>11.12 - 11.16 晚秋全盛之旅</p>
+    </div>
+</header>
+
+<nav class="nav-tabs">
+    <button class="tab-btn active" onclick="showSection('itinerary')">詳細行程</button>
+    <button class="tab-btn" onclick="showSection('split-bill')">公積金分帳</button>
+    <button class="tab-btn" onclick="showSection('spots')">攝影點/掃貨</button>
+</nav>
+
+<section id="itinerary" class="content-section active">
+    <div id="itineraryContent"></div>
+</section>
+
+<section id="split-bill" class="content-section">
+    <div class="bill-container">
+        <h3>記帳小助手</h3>
+        <input type="text" id="expenseName" placeholder="支出項目 (例：Solsot 釜飯)">
+        <input type="number" id="expenseAmount" placeholder="金額 (KRW)">
+        <select id="paidBy">
+            <option value="A">朋友 A (付款人)</option>
+            <option value="B">朋友 B (付款人)</option>
+            <option value="Me">我 (付款人)</option>
+        </select>
+        <button class="primary-btn" onclick="addExpense()">加入帳目</button>
+
+        <div id="expenseList"></div>
+        <div id="settlement" style="margin-top:20px; font-weight:bold; color:var(--primary-red);"></div>
+        <button class="primary-btn" style="background:#666; margin-top:10px;" onclick="clearExpenses()">清空帳目</button>
+    </div>
+</section>
+
+<section id="spots" class="content-section">
+    <div class="itinerary-card">
+        <h3>📸 攝影點：慶州石牆路</h3>
+        <p>地點：대릉원 돌담길</p>
+        <p>建議：10:30 抵達，利用石牆延伸感拍攝金黃銀杏地毯。</p>
+    </div>
+    <div class="itinerary-card">
+        <h3>🛍️ 掃貨點：Olive Young Centum City</h3>
+        <p>旗艦店貨源最齊，推薦入手：面膜、護髮油、精華液。</p>
+    </div>
+</section>
+
+<script>
+    // 行程數據 JSON
+    const travelData = [
+        { day: "Day 1 (11/12)", items: [
+            { time: "16:30", event: "抵達金海機場" },
+            { time: "20:00", event: "東宮與月池 (夜楓倒影)" }
+        ]},
+        { day: "Day 2 (11/13)", items: [
+            { time: "10:30", event: "大陵苑石牆路 (銀杏地毯/自行拍照)" },
+            { time: "13:30", event: "皇理團路 Solsot 釜飯" },
+            { time: "17:30", event: "入住廣安里 H Avenue" }
+        ]},
+        { day: "Day 3 (11/14)", items: [
+            { time: "10:30", event: "梵魚寺賞楓 (釜山第一賞楓地)" },
+            { time: "14:00", event: "影島 Thrill On The Mug 爵士海景咖啡" },
+            { time: "19:00", event: "廣安里無人機秀 (房間內觀看)" }
+        ]},
+        { day: "Day 4 (11/15)", items: [
+            { time: "12:00", event: "海雲台 海木鰻魚飯" },
+            { time: "14:30", event: "藍線公園膠囊列車" },
+            { time: "16:30", event: "Olive Young 終極掃貨 & Spa Land 汗蒸幕" }
+        ]},
+        { day: "Day 5 (11/16)", items: [
+            { time: "10:00", event: "Zimcarry 行李直寄機場" },
+            { time: "11:30", event: "東萊蔘雞湯" },
+            { time: "18:00", event: "搭機回台" }
+        ]}
+    ];
+
+    // 初始化行程
+    function initItinerary() {
+        const container = document.getElementById('itineraryContent');
+        travelData.forEach(dayInfo => {
+            let html = `<h2 style="color:var(--dark-gray); border-bottom:1px solid #ccc;">${dayInfo.day}</h2>`;
+            dayInfo.items.forEach(item => {
+                html += `
+                    <div class="itinerary-card">
+                        <span class="itinerary-time">${item.time}</span>
+                        <span>${item.event}</span>
+                    </div>
+                `;
+            });
+            container.innerHTML += html;
+        });
+    }
+
+    // 頁面切換邏輯
+    function showSection(id) {
+        document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    // --- 分帳功能實作 ---
+    let expenses = JSON.parse(localStorage.getItem('busan_expenses')) || [];
+
+    function addExpense() {
+        const name = document.getElementById('expenseName').value;
+        const amount = parseFloat(document.getElementById('expenseAmount').value);
+        const paidBy = document.getElementById('paidBy').value;
+
+        if (!name || !amount) return alert('請輸入完整資訊');
+
+        expenses.push({ name, amount, paidBy });
+        localStorage.setItem('busan_expenses', JSON.stringify(expenses));
+        renderExpenses();
+        
+        // 清空輸入框
+        document.getElementById('expenseName').value = '';
+        document.getElementById('expenseAmount').value = '';
+    }
+
+    function renderExpenses() {
+        const list = document.getElementById('expenseList');
+        const settlement = document.getElementById('settlement');
+        list.innerHTML = '<h4>支出清單：</h4>';
+        
+        let total = 0;
+        let balances = { A: 0, B: 0, Me: 0 };
+
+        expenses.forEach(exp => {
+            total += exp.amount;
+            balances[exp.paidBy] += exp.amount;
+            list.innerHTML += `
+                <div class="expense-item">
+                    <span>${exp.name} (${exp.paidBy} 付)</span>
+                    <span>${exp.amount.toLocaleString()} ₩</span>
+                </div>
+            `;
+        });
+
+        // 計算分帳 (假設 3 人均分)
+        const perPerson = total / 3;
+        settlement.innerHTML = `總支出：${total.toLocaleString()} ₩<br>`;
+        settlement.innerHTML += `每人應分擔：${perPerson.toFixed(0).toLocaleString()} ₩<hr>`;
+        
+        for (let person in balances) {
+            let diff = balances[person] - perPerson;
+            let status = diff >= 0 ? `<span style="color:green">可收回 ${diff.toFixed(0)}</span>` : `<span style="color:red">需支付 ${Math.abs(diff).toFixed(0)}</span>`;
+            settlement.innerHTML += `${person}: ${status} ₩<br>`;
+        }
+    }
+
+    function clearExpenses() {
+        if(confirm('確定要清除所有帳目嗎？')) {
+            expenses = [];
+            localStorage.removeItem('busan_expenses');
+            renderExpenses();
+        }
+    }
+
+    // 初始化執行
+    initItinerary();
+    renderExpenses();
+
+</script>
+
+</body>
+</html>
