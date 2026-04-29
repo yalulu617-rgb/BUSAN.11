@@ -17,6 +17,7 @@
             --ginkgo-gold: #DAA520;
             --glass-bg: rgba(255, 255, 255, 0.85);
             --diplomat-beige: #FDF5E6;
+            --text-dark: #333;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -24,31 +25,21 @@
         body {
             font-family: 'Noto Sans TC', sans-serif;
             background-color: var(--diplomat-beige);
+            color: var(--text-dark);
             margin: 0; padding-bottom: 90px; overflow-x: hidden;
         }
 
         /* 全螢幕 Hero 背景 */
         .hero {
-            position: relative;
-            height: 100vh;
-            background: url('13972.png') center/cover no-repeat; /* 請確保哆啦A夢圖片在同目錄 */
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            padding: 40px 20px;
+            position: relative; height: 100vh;
+            background: url('13972.png') center/cover no-repeat;
+            display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 40px 20px;
         }
 
         .hero-header {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            padding: 20px;
-            border-radius: 20px;
-            text-align: center;
-            width: 90%;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            border: 1px solid rgba(255,255,255,0.5);
+            background: var(--glass-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            padding: 20px; border-radius: 20px; text-align: center; width: 90%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.5);
         }
 
         .hero-header h1 { margin: 0; font-size: 1.4rem; color: var(--maple-red); letter-spacing: 1px; }
@@ -60,32 +51,39 @@
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
         /* 高級卡片設計 */
-        .card {
-            background: white; border-radius: 20px; padding: 20px; margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        }
+        .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .card-title { color: var(--maple-red); font-weight: 700; border-bottom: 2px solid var(--diplomat-beige); padding-bottom: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
 
         /* 底部導航 */
         .bottom-nav {
-            position: fixed; bottom: 0; width: 100%;
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(15px);
-            display: flex; justify-content: space-around;
+            position: fixed; bottom: 0; width: 100%; background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(15px); display: flex; justify-content: space-around;
             padding: 12px 0 25px; border-top: 1px solid #eee; z-index: 2000;
         }
         .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #bbb; font-size: 0.7rem; cursor: pointer; }
         .nav-item.active { color: var(--dora-blue); }
         .nav-item i { font-size: 1.3rem; }
 
-        /* 按鈕與清單樣式 */
-        .btn-action { background: var(--dora-blue); color: white; border: none; padding: 12px; border-radius: 12px; width: 100%; font-weight: bold; margin-top: 10px; cursor: pointer; }
+        /* 表單與按鈕 */
+        .input-box { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #eee; border-radius: 10px; font-size: 0.95rem; }
+        .flex-row { display: flex; gap: 10px; }
+        .flex-1 { flex: 1; }
+        .btn-action { background: var(--dora-blue); color: white; border: none; padding: 12px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; }
         .btn-upload { background: var(--maple-red); color: white; padding: 10px; border-radius: 10px; text-align: center; display: block; margin-top: 10px; cursor: pointer; font-size: 0.9rem; }
+        .btn-delete { background: none; border: none; color: #ff6b6b; cursor: pointer; font-size: 1rem; padding: 5px; }
+        
         .photo-gallery img { width: 100%; border-radius: 10px; margin-top: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .check-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #f9f9f9; }
+        
+        /* 列表樣式 */
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px dashed #eee; font-size: 0.95rem; }
+        .check-item { display: flex; align-items: center; flex: 1; cursor: pointer; }
         .check-box { width: 20px; height: 20px; border: 2px solid #ddd; border-radius: 6px; margin-right: 12px; display: flex; align-items: center; justify-content: center; color: transparent; }
-        .check-item.checked .check-box { background: var(--dora-blue); border-color: var(--dora-blue); color: white; }
-        .check-item.checked span { text-decoration: line-through; color: #ccc; }
+        .checked .check-box { background: var(--dora-blue); border-color: var(--dora-blue); color: white; }
+        .checked .item-text { text-decoration: line-through; color: #ccc; }
+        
+        .itinerary-row { display: flex; align-items: flex-start; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #f5f5f5; }
+        .iti-time { font-weight: bold; color: var(--maple-red); width: 60px; flex-shrink: 0; }
+        .iti-desc { flex: 1; padding-right: 10px; }
     </style>
 </head>
 <body>
@@ -102,72 +100,80 @@
 
 <div id="itinerary" class="container">
     <div class="card">
-        <h3 class="card-title"><i class="fa-solid fa-leaf"></i> 實時旅程紀錄</h3>
-        <p style="font-size: 0.85rem; color: #666;">在這裡上傳拍立得翻拍或當下美照，即時同步給旅伴！</p>
-        
+        <h3 class="card-title"><i class="fa-solid fa-image"></i> 實時旅程紀錄</h3>
+        <p style="font-size: 0.85rem; color: #666;">上傳拍立得翻拍，即時同步給旅伴！</p>
         <label for="imgUpload" class="btn-upload"><i class="fa-solid fa-cloud-arrow-up"></i> 點我上傳今日美照</label>
         <input type="file" id="imgUpload" style="display:none;" accept="image/*" onchange="uploadToImgBB(this.files[0])">
         <div id="uploadStatus" style="font-size: 0.8rem; color: var(--maple-red); margin-top: 5px; text-align: center;"></div>
-        
         <div id="photoWall" class="photo-gallery"></div>
     </div>
 
     <div class="card">
-        <h3 class="card-title"><i class="fa-solid fa-calendar-day"></i> DAY 1 抵達古都</h3>
-        <p>16:30 抵達金海機場 ➔ 慶州 Rivertain</p>
-        <p>20:00 東宮與月池 (夜楓倒影)</p>
+        <h3 class="card-title"><i class="fa-solid fa-calendar-plus"></i> 行程編輯器</h3>
+        <div class="flex-row">
+            <input type="text" id="itiDay" class="input-box" placeholder="日期 (例: 11/12)" style="width: 40%;">
+            <input type="time" id="itiTime" class="input-box flex-1">
+        </div>
+        <input type="text" id="itiDesc" class="input-box" placeholder="行程內容 (例: 東宮與月池)">
+        <button class="btn-action" onclick="addItinerary()"><i class="fa-solid fa-plus"></i> 加入行程</button>
     </div>
+
     <div class="card">
-        <h3 class="card-title"><i class="fa-solid fa-calendar-day"></i> DAY 2 金黃銀杏</h3>
-        <p>10:30 大陵苑石牆路 (銀杏地毯)</p>
-        <p>17:30 廣安里 H Avenue 登記入住</p>
+        <h3 class="card-title"><i class="fa-solid fa-route"></i> 詳細行程表</h3>
+        <div id="itineraryList"></div>
     </div>
 </div>
 
 <div id="split" class="container">
     <div class="card">
         <h3 class="card-title"><i class="fa-solid fa-wallet"></i> 公積金結算</h3>
-        <input type="text" id="billName" placeholder="花費項目" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #eee; border-radius:10px;">
-        <div style="display:flex; gap:10px;">
-            <input type="number" id="billAmt" placeholder="金額 (KRW)" style="flex:1; padding:12px; border:1px solid #eee; border-radius:10px;">
-            <select id="payer" style="width:80px; padding:12px; border:1px solid #eee; border-radius:10px;">
+        <input type="text" id="billName" class="input-box" placeholder="花費項目">
+        <div class="flex-row">
+            <input type="number" id="billAmt" class="input-box flex-1" placeholder="金額 (KRW)">
+            <select id="payer" class="input-box" style="width:100px;">
                 <option value="我">我付</option>
                 <option value="旅伴">旅伴</option>
             </select>
         </div>
         <button class="btn-action" onclick="addBill()">紀錄支出</button>
-        <div id="billList" style="margin-top:20px; font-size:0.9rem;"></div>
-        <div id="settlement" style="margin-top:15px; padding-top:15px; border-top:2px solid #eee; font-weight:700; color:var(--maple-red);"></div>
+        <div id="billList" style="margin-top:20px;"></div>
+        <div id="settlement" style="margin-top:15px; padding-top:15px; border-top:2px solid #eee; font-weight:700; color:var(--maple-red); line-height:1.5;"></div>
     </div>
 </div>
 
 <div id="lists" class="container">
     <div class="card">
         <h3 class="card-title"><i class="fa-solid fa-suitcase-rolling"></i> 行李清單</h3>
-        <div id="pList"></div>
+        <div class="flex-row">
+            <input type="text" id="newPack" class="input-box flex-1" placeholder="新增行李物品">
+            <button class="btn-action" style="width:60px;" onclick="addListItem('pack')"><i class="fa-solid fa-plus"></i></button>
+        </div>
+        <div id="pList" style="margin-top: 10px;"></div>
     </div>
+
     <div class="card">
         <h3 class="card-title"><i class="fa-solid fa-bag-shopping"></i> 購物清單</h3>
-        <div id="sList"></div>
+        <div class="flex-row">
+            <input type="text" id="newShop" class="input-box flex-1" placeholder="新增必買好物">
+            <button class="btn-action" style="width:60px; background:var(--maple-red);" onclick="addListItem('shop')"><i class="fa-solid fa-plus"></i></button>
+        </div>
+        <div id="sList" style="margin-top: 10px;"></div>
     </div>
 </div>
 
 <div class="bottom-nav">
     <div class="nav-item active" onclick="showTab('home', this)"><i class="fa-solid fa-house"></i>首頁</div>
-    <div class="nav-item" onclick="showTab('itinerary', this)"><i class="fa-solid fa-camera-retro"></i>相冊</div>
+    <div class="nav-item" onclick="showTab('itinerary', this)"><i class="fa-solid fa-compass"></i>行程</div>
     <div class="nav-item" onclick="showTab('split', this)"><i class="fa-solid fa-calculator"></i>分帳</div>
     <div class="nav-item" onclick="showTab('lists', this)"><i class="fa-solid fa-list-check"></i>清單</div>
 </div>
 
 <script>
     // --------------------------------------------------------
-    // 🔧 系統配置區 (請將金鑰填入這裡)
+    // 🔧 系統配置區 (已修正殘留 Bug，完美乾淨)
     // --------------------------------------------------------
-    
-    // 1. 填入你剛剛申請到的 ImgBB API Key
     const IMGBB_API_KEY = "ba1b2b24f8275c9d3a199bea5cd52bf9"; 
-    
-    // 2. 填入你的 Firebase 設定 (完美淨化版)
+
     const firebaseConfig = {
         apiKey: "AIzaSyC884_zH7XM7l7C_ijhuFmEoKxbsN0O1Vw",
         authDomain: "busan-trip-2026-4148f.firebaseapp.com",
@@ -178,67 +184,12 @@
         appId: "1:819505968980:web:03e6d05ef5101719327ac1",
         measurementId: "G-7274FP6LKD"
     };
-        authDomain: "busan-trip-2026.firebaseapp.com",
-        databaseURL: "https://busan-trip-2026-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "busan-trip-2026"
-    };
 
-    // 初始化 Firebase Database
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     // --------------------------------------------------------
-    // 📸 ImgBB 圖片上傳與 Firebase 同步邏輯
-    // --------------------------------------------------------
-    async function uploadToImgBB(file) {
-        if (!file) return;
-        const status = document.getElementById('uploadStatus');
-        status.innerText = "⏳ 魔法傳輸中，請稍候...";
-
-        // ImgBB 要求使用 FormData 格式上傳
-        const formData = new FormData();
-        formData.append("image", file);
-
-        try {
-            // 1. 上傳給 ImgBB
-            const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-                method: "POST",
-                body: formData
-            });
-            const data = await response.json();
-
-            if (data.success) {
-                const imgUrl = data.data.url; // 取得 ImgBB 回傳的圖片網址
-                
-                // 2. 將輕量的網址存入 Firebase，實現秒同步！
-                db.ref("busan_photos").push({
-                    url: imgUrl,
-                    timestamp: Date.now()
-                });
-                
-                status.innerText = "✅ 上傳成功！旅伴已經能看到了。";
-                setTimeout(() => status.innerText = "", 3000);
-            } else {
-                status.innerText = "❌ 上傳失敗，請檢查 ImgBB API Key。";
-            }
-        } catch (error) {
-            status.innerText = "❌ 發生錯誤：" + error.message;
-        }
-    }
-
-    // 監聽 Firebase 圖片數據，即時渲染照片牆
-    db.ref("busan_photos").on("value", (snapshot) => {
-        const wall = document.getElementById("photoWall");
-        wall.innerHTML = ""; // 每次更新先清空
-        snapshot.forEach((child) => {
-            const photo = child.val();
-            // 新照片會疊加在最上面
-            wall.innerHTML = `<img src="${photo.url}" alt="旅程回憶">` + wall.innerHTML; 
-        });
-    });
-
-    // --------------------------------------------------------
-    // 💸 分帳與清單邏輯 (LocalStorage 輕量處理)
+    // 導航切換
     // --------------------------------------------------------
     function showTab(id, el) {
         document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
@@ -248,55 +199,159 @@
         window.scrollTo(0,0);
     }
 
+    // --------------------------------------------------------
+    // 📸 ImgBB 上傳邏輯
+    // --------------------------------------------------------
+    async function uploadToImgBB(file) {
+        if (!file) return;
+        const status = document.getElementById('uploadStatus');
+        status.innerText = "⏳ 照片傳輸中...";
+        const formData = new FormData(); formData.append("image", file);
+        try {
+            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
+            const data = await res.json();
+            if (data.success) {
+                db.ref("busan_photos").push({ url: data.data.url, timestamp: Date.now() });
+                status.innerText = "✅ 上傳成功！"; setTimeout(() => status.innerText = "", 3000);
+            } else { status.innerText = "❌ 上傳失敗"; }
+        } catch (e) { status.innerText = "❌ 發生錯誤"; }
+    }
+
+    db.ref("busan_photos").on("value", (snapshot) => {
+        const wall = document.getElementById("photoWall"); wall.innerHTML = "";
+        snapshot.forEach((child) => {
+            wall.innerHTML = `<img src="${child.val().url}" alt="照片">` + wall.innerHTML; 
+        });
+    });
+
+    // --------------------------------------------------------
+    // 🗺️ 動態行程表邏輯 (Editable Itinerary)
+    // --------------------------------------------------------
+    let itineraryData = JSON.parse(localStorage.getItem('busan_itinerary')) || [
+        { id: 1, day: "11/12", time: "16:30", desc: "抵達金海機場 ➔ 慶州 Rivertain" },
+        { id: 2, day: "11/12", time: "20:00", desc: "東宮與月池 (夜楓倒影)" },
+        { id: 3, day: "11/13", time: "10:30", desc: "大陵苑石牆路 (銀杏地毯)" }
+    ];
+
+    function renderItinerary() {
+        const list = document.getElementById('itineraryList'); list.innerHTML = '';
+        itineraryData.sort((a, b) => (a.day + a.time).localeCompare(b.day + b.time)); // 自動按日期時間排序
+        
+        let currentDay = '';
+        itineraryData.forEach(item => {
+            if(item.day !== currentDay) {
+                list.innerHTML += `<div style="background:#f5f5f5; padding:5px 10px; border-radius:5px; font-weight:bold; margin:15px 0 10px;">🗓️ ${item.day}</div>`;
+                currentDay = item.day;
+            }
+            list.innerHTML += `
+                <div class="itinerary-row">
+                    <div class="iti-time">${item.time}</div>
+                    <div class="iti-desc">${item.desc}</div>
+                    <button class="btn-delete" onclick="deleteItinerary(${item.id})"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+            `;
+        });
+    }
+
+    function addItinerary() {
+        const day = document.getElementById('itiDay').value || "未定";
+        const time = document.getElementById('itiTime').value || "--:--";
+        const desc = document.getElementById('itiDesc').value;
+        if(!desc) return;
+        itineraryData.push({ id: Date.now(), day, time, desc });
+        localStorage.setItem('busan_itinerary', JSON.stringify(itineraryData));
+        document.getElementById('itiDesc').value = ''; renderItinerary();
+    }
+
+    function deleteItinerary(id) {
+        if(confirm("確定刪除此行程？")) {
+            itineraryData = itineraryData.filter(i => i.id !== id);
+            localStorage.setItem('busan_itinerary', JSON.stringify(itineraryData)); renderItinerary();
+        }
+    }
+
+    // --------------------------------------------------------
+    // 💸 分帳邏輯 (Editable)
+    // --------------------------------------------------------
     let bills = JSON.parse(localStorage.getItem('busan_v6_bills')) || [];
-    function addBill() {
-        const item = document.getElementById('billName').value;
-        const amt = parseFloat(document.getElementById('billAmt').value);
-        const payer = document.getElementById('payer').value;
-        if(!item || !amt) return;
-        bills.push({item, amt, payer});
-        localStorage.setItem('busan_v6_bills', JSON.stringify(bills));
-        renderBills();
-    }
-
     function renderBills() {
-        const list = document.getElementById('billList');
-        const res = document.getElementById('settlement');
-        let total = 0, me = 0;
-        list.innerHTML = bills.map(b => {
-            total += b.amt;
-            if(b.payer === '我') me += b.amt;
-            return `<div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span>${b.item} (${b.payer})</span><span>${b.amt.toLocaleString()} ₩</span></div>`;
-        }).join('');
+        const list = document.getElementById('billList'); const res = document.getElementById('settlement');
+        let total = 0, me = 0; list.innerHTML = '';
+        bills.forEach(b => {
+            total += b.amt; if(b.payer === '我') me += b.amt;
+            list.innerHTML += `
+                <div class="list-item">
+                    <span style="flex:1;">${b.item} <small style="color:#888;">(${b.payer})</small></span>
+                    <span style="font-weight:bold; margin-right:10px;">${b.amt.toLocaleString()} ₩</span>
+                    <button class="btn-delete" onclick="deleteBill(${b.id})"><i class="fa-solid fa-xmark"></i></button>
+                </div>`;
+        });
         const diff = me - (total/2);
-        res.innerHTML = `總花費: ${total.toLocaleString()} ₩<br>${diff >= 0 ? '旅伴應付我' : '我應付旅伴'}: <span style="font-size:1.2rem;">${Math.abs(Math.round(diff)).toLocaleString()} ₩</span>`;
+        res.innerHTML = `總花費: ${total.toLocaleString()} ₩ <br><span style="font-size:0.85rem; color:#666;">(人均: ${(total/2).toLocaleString()} ₩)</span><br>${diff >= 0 ? '👉 旅伴應付我' : '👉 我應付旅伴'}: <span style="font-size:1.2rem;">${Math.abs(Math.round(diff)).toLocaleString()} ₩</span>`;
+    }
+    function addBill() {
+        const item = document.getElementById('billName').value; const amt = parseFloat(document.getElementById('billAmt').value);
+        if(!item || !amt) return;
+        bills.push({ id: Date.now(), item, amt, payer: document.getElementById('payer').value });
+        localStorage.setItem('busan_v6_bills', JSON.stringify(bills));
+        document.getElementById('billName').value = ''; document.getElementById('billAmt').value = ''; renderBills();
+    }
+    function deleteBill(id) {
+        bills = bills.filter(b => b.id !== id); localStorage.setItem('busan_v6_bills', JSON.stringify(bills)); renderBills();
     }
 
-    const packing = ["護照", "米色大衣", "Sky Navigator 箱", "韓幣", "NAMANE卡"];
-    const shopping = ["Olive Young 精華", "UNOVE 護髮", "限定口味海苔"];
+    // --------------------------------------------------------
+    // 🎒 動態清單邏輯 (Editable Lists)
+    // --------------------------------------------------------
+    let packList = JSON.parse(localStorage.getItem('busan_packList')) || [{id:1, text:"護照", checked:false}, {id:2, text:"米色大衣", checked:false}];
+    let shopList = JSON.parse(localStorage.getItem('busan_shopList')) || [{id:1, text:"Olive Young 面膜", checked:false}];
 
-    function renderChecklist(id, data, key) {
-        let saved = JSON.parse(localStorage.getItem(key)) || {};
-        document.getElementById(id).innerHTML = data.map(item => `
-            <div class="check-item ${saved[item] ? 'checked' : ''}" onclick="toggleCheck('${id}', '${key}', '${item}', this)">
-                <div class="check-box"><i class="fa-solid fa-check"></i></div>
-                <span>${item}</span>
+    function renderDynamicLists() {
+        const pContainer = document.getElementById('pList'); pContainer.innerHTML = '';
+        packList.forEach(item => pContainer.innerHTML += createListItemHTML('pack', item));
+        const sContainer = document.getElementById('sList'); sContainer.innerHTML = '';
+        shopList.forEach(item => sContainer.innerHTML += createListItemHTML('shop', item));
+    }
+
+    function createListItemHTML(type, item) {
+        return `
+            <div class="list-item ${item.checked ? 'checked' : ''}">
+                <div class="check-item" onclick="toggleDynamicCheck('${type}', ${item.id})">
+                    <div class="check-box"><i class="fa-solid fa-check"></i></div>
+                    <span class="item-text">${item.text}</span>
+                </div>
+                <button class="btn-delete" onclick="deleteListItem('${type}', ${item.id})"><i class="fa-solid fa-xmark"></i></button>
             </div>
-        `).join('');
+        `;
     }
 
-    function toggleCheck(id, key, item, el) {
-        let saved = JSON.parse(localStorage.getItem(key)) || {};
-        saved[item] = !saved[item];
-        localStorage.setItem(key, JSON.stringify(saved));
-        el.classList.toggle('checked');
+    function addListItem(type) {
+        const input = document.getElementById(type === 'pack' ? 'newPack' : 'newShop');
+        if(!input.value) return;
+        const targetList = type === 'pack' ? packList : shopList;
+        targetList.push({ id: Date.now(), text: input.value, checked: false });
+        saveLists(); input.value = ''; renderDynamicLists();
     }
 
-    window.onload = () => {
-        renderBills();
-        renderChecklist('pList', packing, 'busan_v6_pack');
-        renderChecklist('sList', shopping, 'busan_v6_shop');
-    };
+    function toggleDynamicCheck(type, id) {
+        const targetList = type === 'pack' ? packList : shopList;
+        const item = targetList.find(i => i.id === id); item.checked = !item.checked;
+        saveLists(); renderDynamicLists();
+    }
+
+    function deleteListItem(type, id) {
+        if(type === 'pack') packList = packList.filter(i => i.id !== id);
+        else shopList = shopList.filter(i => i.id !== id);
+        saveLists(); renderDynamicLists();
+    }
+
+    function saveLists() {
+        localStorage.setItem('busan_packList', JSON.stringify(packList));
+        localStorage.setItem('busan_shopList', JSON.stringify(shopList));
+    }
+
+    // 啟動初始化
+    window.onload = () => { renderItinerary(); renderBills(); renderDynamicLists(); };
 </script>
 
 </body>
