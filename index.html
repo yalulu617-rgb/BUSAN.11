@@ -4,96 +4,101 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>2026 釜山慶州・哆啦A夢秋之旅</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <style>
         :root {
-            --primary: #D35400; --accent: #F39C12; --dora: #2980B9;
-            --bg-color: #FFF9F2; --card-bg: #FFFFFF; --text-dark: #2C3E50;
+            --primary: #C0392B;     /* 高級楓葉紅 */
+            --accent: #F39C12;      /* 銀杏金 */
+            --dora: #2980B9;        /* 哆啦質感藍 */
+            --bg-gradient: linear-gradient(135deg, #FFF9F2 0%, #F5F7FA 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-dark: #2C3E50;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Nunito', 'Noto Sans TC', sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-dark); margin: 0; padding-bottom: 100px; overflow-x: hidden; }
+        body { background: var(--bg-gradient); background-attachment: fixed; color: var(--text-dark); margin: 0; padding-bottom: 110px; overflow-x: hidden; }
 
         /* 啟動頁 */
-        #splash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; background: url('13972.png') center/cover no-repeat; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 60px 20px; transition: 0.6s cubic-bezier(0.8, 0, 0.2, 1); }
-        .splash-card { background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); padding: 30px 20px; border-radius: 25px; text-align: center; width: 90%; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
-        .splash-card h1 { margin: 0; color: var(--primary); letter-spacing: 1px; font-weight: 900; }
-        .btn-enter { background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; border: none; padding: 15px 40px; border-radius: 30px; font-size: 1.1rem; font-weight: bold; cursor: pointer; animation: pulse 2s infinite; margin-bottom: 20px;}
+        #splash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; background: url('13972.png') center/cover no-repeat; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 60px 20px; transition: 0.8s cubic-bezier(0.8, 0, 0.2, 1); }
+        .splash-card { background: rgba(255,255,255,0.85); backdrop-filter: blur(15px); padding: 35px 25px; border-radius: 30px; text-align: center; width: 92%; box-shadow: 0 20px 40px rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.5); }
+        .splash-card h1 { margin: 0; color: var(--primary); letter-spacing: 2px; font-weight: 900; font-size: 1.8rem;}
+        .btn-enter { background: linear-gradient(135deg, var(--primary), #E74C3C); color: white; border: none; padding: 16px 45px; border-radius: 40px; font-size: 1.15rem; font-weight: 900; cursor: pointer; animation: pulse 2s infinite; margin-bottom: 30px; box-shadow: 0 8px 20px rgba(192, 57, 43, 0.4);}
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
-        /* 主容器與動畫 */
+        /* 模組切換動畫 */
         #mainApp { display: none; opacity: 0; transition: 0.5s ease; }
-        .container { display: none; padding: 20px; animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .container { display: none; padding: 20px; animation: slideUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .container.active { display: block; }
-        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* 卡片美化 */
-        .card { background: var(--card-bg); border-radius: 24px; padding: 20px; margin-bottom: 20px; box-shadow: 0 8px 20px rgba(211, 84, 0, 0.08); border: 1px solid rgba(243, 156, 18, 0.1); }
-        .card-title { color: var(--primary); font-weight: 700; border-bottom: 2px dashed #f0f0f0; padding-bottom: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; font-size: 1.1rem;}
+        /* 卡片美化 (Glassmorphism 2.0) */
+        .card { background: var(--card-bg); backdrop-filter: blur(10px); border-radius: 28px; padding: 22px; margin-bottom: 22px; box-shadow: var(--shadow); border: 1px solid rgba(255, 255, 255, 0.8); }
+        .card-title { color: var(--primary); font-weight: 900; border-bottom: 2px dashed rgba(243, 156, 18, 0.3); padding-bottom: 12px; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; font-size: 1.15rem;}
 
-        /* 霸氣置中導航列 */
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(255,255,255,0.95); backdrop-filter: blur(15px); display: flex; justify-content: space-around; align-items: center; padding: 10px 0 20px; border-top: 1px solid #eee; z-index: 2000; box-shadow: 0 -5px 25px rgba(0,0,0,0.05); }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #a0a0a0; font-size: 0.7rem; cursor: pointer; width: 18%; font-weight: 700; transition: 0.3s; }
-        .nav-item.active { color: var(--dora); }
-        .nav-item i { font-size: 1.3rem; transition: 0.3s; }
-        .nav-center { position: relative; top: -20px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: white !important; width: 65px; height: 65px; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 8px 20px rgba(211, 84, 0, 0.4); border: 4px solid var(--bg-color); }
+        /* C 位霸氣導航列 */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(255,255,255,0.92); backdrop-filter: blur(20px); display: flex; justify-content: space-around; align-items: center; padding: 10px 0 25px; border-top: 1px solid rgba(0,0,0,0.05); z-index: 2000; box-shadow: 0 -10px 30px rgba(0,0,0,0.04); }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: #a5b1c2; font-size: 0.75rem; cursor: pointer; width: 18%; font-weight: 800; transition: 0.3s; }
+        .nav-item.active { color: var(--dora); transform: translateY(-4px); }
+        .nav-item i { font-size: 1.35rem; transition: 0.3s; }
+        .nav-center { position: relative; top: -25px; background: linear-gradient(135deg, var(--dora), #3498DB); color: white !important; width: 70px; height: 70px; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 10px 25px rgba(41, 128, 185, 0.4); border: 5px solid #FDFbfb; }
         .nav-center i { font-size: 1.8rem; margin-bottom: 2px; }
-        .nav-center span { font-size: 0.75rem; }
+        .nav-center span { font-size: 0.8rem; font-weight: 900; }
 
         /* 表單與按鈕 */
-        .input-box { width: 100%; padding: 12px 15px; margin-bottom: 10px; border: 2px solid #f0f0f0; border-radius: 12px; font-size: 0.95rem; background:#fafafa; transition: 0.3s; }
-        .input-box:focus { border-color: var(--accent); outline: none; background: #fff; }
+        .input-box { width: 100%; padding: 14px 16px; margin-bottom: 12px; border: 2px solid #f1f2f6; border-radius: 16px; font-size: 0.95rem; background:#f8f9fa; transition: 0.3s; color: var(--text-dark); font-weight: 500;}
+        .input-box:focus { border-color: var(--accent); outline: none; background: #fff; box-shadow: 0 0 0 4px rgba(243, 156, 18, 0.1); }
         .flex-row { display: flex; gap: 10px; align-items: center; }
         .flex-1 { flex: 1; }
-        .btn-action { background: var(--dora); color: white; border: none; padding: 12px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-action:active { transform: scale(0.95); }
-        .btn-delete { background: #ffeeee; border: none; color: #ff6b6b; cursor: pointer; font-size: 0.9rem; padding: 8px 12px; border-radius: 8px; }
-        
-        /* 圖片與相冊 */
-        .photo-gallery img { width: 100%; border-radius: 12px; margin-top: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .album-date { font-weight: 900; color: var(--primary); font-size: 1.2rem; margin: 20px 0 10px; padding-bottom: 5px; border-bottom: 3px solid var(--accent); display: inline-block; }
-        .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .photo-grid img { width: 100%; height: 150px; object-fit: cover; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .btn-action { background: linear-gradient(135deg, var(--primary), #E74C3C); color: white; border: none; padding: 14px; border-radius: 16px; width: 100%; font-weight: 900; font-size: 1rem; cursor: pointer; transition: 0.2s; box-shadow: 0 5px 15px rgba(192, 57, 43, 0.2); }
+        .btn-action:active { transform: scale(0.96); }
+        .btn-delete { background: #fee; border: none; color: #e74c3c; cursor: pointer; font-size: 0.9rem; padding: 10px 14px; border-radius: 12px; transition: 0.2s; }
+        .btn-delete:active { background: #fcc; }
 
-        /* 懸浮行程標籤 */
-        .day-tabs { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; scrollbar-width: none; margin-bottom: 15px; }
+        /* 行程懸浮標籤 */
+        .day-tabs { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 12px; scrollbar-width: none; margin-bottom: 10px; }
         .day-tabs::-webkit-scrollbar { display: none; }
-        .day-tab { padding: 8px 20px; background: #f0f0f0; border-radius: 20px; font-weight: bold; color: #888; border: none; white-space: nowrap; transition: 0.3s; cursor: pointer;}
-        .day-tab.active { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(211, 84, 0, 0.3); }
-        .iti-row { display: flex; align-items: flex-start; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed #eee; }
-        .iti-time { font-weight: 900; color: var(--dora); width: 60px; flex-shrink: 0; font-size: 1.1rem; }
-        .iti-desc { flex: 1; padding-right: 10px; line-height: 1.5; font-size: 0.95rem; }
+        .day-tab { padding: 10px 22px; background: #fff; border-radius: 25px; font-weight: 900; color: #95a5a6; border: 2px solid #f1f2f6; white-space: nowrap; transition: 0.3s; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.02);}
+        .day-tab.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 6px 15px rgba(192, 57, 43, 0.3); transform: translateY(-2px);}
+        .iti-row { display: flex; align-items: flex-start; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #ecf0f1; }
+        .iti-time { font-weight: 900; color: var(--dora); width: 65px; flex-shrink: 0; font-size: 1.15rem; }
+        .iti-desc { flex: 1; padding-right: 12px; line-height: 1.6; font-size: 0.95rem; font-weight: 500;}
 
-        /* 工具台按鈕與天氣穿搭 */
-        .tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .tool-btn { background: #fff; border: 1px solid #eee; padding: 15px; border-radius: 16px; text-align: center; text-decoration: none; color: var(--text-dark); font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.02); display: flex; flex-direction: column; align-items: center; gap: 8px; }
-        .tool-btn i { font-size: 1.8rem; color: var(--primary); }
-        .outfit-box { background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); border-radius: 12px; padding: 15px; margin-top: 15px; border-left: 5px solid var(--accent); box-shadow: 0 4px 10px rgba(0,0,0,0.05); animation: floatOutfit 3s ease-in-out infinite; }
-        @keyframes floatOutfit { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
-
-        /* 票券卡片與指南卡片 */
-        .ticket-card { border: 1px solid #eee; border-left: 5px solid var(--dora); border-radius: 12px; padding: 15px; margin-bottom: 12px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.02);}
-        .ticket-title { font-weight: bold; font-size: 1.05rem; margin-bottom: 5px; color: var(--text-dark); }
-        .ticket-desc { font-size: 0.85rem; color: #666; margin-bottom: 10px; }
-        .btn-link { display: inline-block; background: var(--accent); color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: bold; }
-        
-        /* 清單與自訂導遊圖文 */
-        .list-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px dashed #eee; font-size: 0.95rem; }
-        .check-box { width: 24px; height: 24px; border: 2px solid #ccc; border-radius: 8px; margin-right: 12px; display: flex; align-items: center; justify-content: center; color: transparent; transition: 0.3s; flex-shrink:0; cursor:pointer;}
+        /* 清單與項目 */
+        .list-item { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px dashed #ecf0f1; font-size: 0.95rem; font-weight: 500;}
+        .check-box { width: 26px; height: 26px; border: 2.5px solid #bdc3c7; border-radius: 8px; margin-right: 14px; display: flex; align-items: center; justify-content: center; color: transparent; transition: 0.3s; flex-shrink:0; cursor:pointer;}
         .checked .check-box { background: var(--dora); border-color: var(--dora); color: white; }
-        .checked .item-content { opacity: 0.5; text-decoration: line-through; }
-        .item-img { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; margin-right: 10px; border: 1px solid #eee;}
+        .checked .item-content { opacity: 0.4; text-decoration: line-through; }
+        .item-img { width: 50px; height: 50px; border-radius: 12px; object-fit: cover; margin-right: 12px; border: 2px solid #f1f2f6;}
         
-        .guide-card { border: 1px solid #eee; border-radius: 12px; overflow: hidden; margin-bottom: 15px; background: #fff; box-shadow: 0 3px 10px rgba(0,0,0,0.03);}
-        .guide-img { width: 100%; height: 140px; object-fit: cover; background: #f5f5f5; }
-        .guide-content { padding: 12px; }
-        .guide-content h4 { margin: 0 0 5px 0; color: var(--text-dark); font-size: 1.05rem;}
-        .guide-content p { margin: 0 0 10px 0; color: #777; font-size: 0.85rem;}
+        /* 支付小標籤 */
+        .pay-badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 900; color: #fff; margin-right: 6px; }
+        .bg-cash { background: #27AE60; } .bg-card { background: #8E44AD; } .bg-wow { background: #E67E22; } .bg-krw { background: #34495E; } .bg-twd { background: #16A085; }
+
+        /* 相冊 */
+        .album-date { font-weight: 900; color: var(--primary); font-size: 1.25rem; margin: 25px 0 12px; padding-bottom: 8px; border-bottom: 3px solid var(--accent); display: inline-block; }
+        .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .photo-grid img { width: 100%; height: 160px; object-fit: cover; border-radius: 18px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); border: 2px solid #fff;}
+
+        /* 圖文地圖卡 */
+        .guide-card { border: 1px solid #f1f2f6; border-radius: 18px; overflow: hidden; margin-bottom: 18px; background: #fff; box-shadow: 0 6px 15px rgba(0,0,0,0.04);}
+        .guide-img { width: 100%; height: 160px; object-fit: cover; background: #f8f9fa; }
+        .guide-content { padding: 15px; }
+        .guide-content h4 { margin: 0 0 6px 0; color: var(--text-dark); font-size: 1.1rem; font-weight: 900;}
+        .guide-content p { margin: 0 0 12px 0; color: #7f8c8d; font-size: 0.85rem; line-height: 1.5;}
+        .map-btn { background: #03C75A; color: white; padding: 8px 14px; border-radius: 10px; text-decoration: none; font-size: 0.8rem; font-weight: 900; display: inline-block;}
+        
+        /* 工具按鈕 */
+        .tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .tool-btn { background: #fff; border: 2px solid #f1f2f6; padding: 18px; border-radius: 20px; text-align: center; text-decoration: none; color: var(--text-dark); font-weight: 900; box-shadow: 0 4px 12px rgba(0,0,0,0.02); display: flex; flex-direction: column; align-items: center; gap: 10px; transition: 0.3s;}
+        .tool-btn:active { transform: scale(0.96); }
+        .tool-btn i { font-size: 2rem; color: var(--primary); }
     </style>
 </head>
 <body>
@@ -102,20 +107,19 @@
 <div id="splash">
     <div class="splash-card">
         <h1>2026 BUSAN</h1>
-        <h2 style="margin:5px 0; color:var(--text-dark);">慶州釜山賞楓</h2>
-        <p>V11 全能旗艦版</p>
+        <h2 style="margin:8px 0; color:var(--text-dark); font-weight:900;">慶州釜山賞楓</h2>
+        <p style="color:var(--dora); font-weight:700;">V13 皇家全雲端特仕版</p>
     </div>
-    <button class="btn-enter" onclick="enterApp()">開啟專屬旅程 <i class="fa-solid fa-plane-departure"></i></button>
+    <button class="btn-enter" onclick="enterApp()">進入專屬旅程 <i class="fa-solid fa-arrow-right"></i></button>
 </div>
 
-<!-- 📦 主程式區塊 -->
+<!-- 📦 主程式 -->
 <div id="mainApp">
     
-    <!-- 1. 首頁工具台 (含天氣、穿搭、票夾) -->
+    <!-- 1. 實用工具台 -->
     <div id="tools" class="container active">
-        <!-- 實用控制台 -->
         <div class="card">
-            <h3 class="card-title"><i class="fa-solid fa-toolbox"></i> 韓國實用控制台</h3>
+            <h3 class="card-title"><i class="fa-solid fa-toolbox"></i> 實用控制台</h3>
             <div class="tools-grid">
                 <a href="https://papago.naver.com/" target="_blank" class="tool-btn"><i class="fa-solid fa-language" style="color:#03C75A;"></i><span>Papago 翻譯</span></a>
                 <a href="https://www.hikorea.go.kr/" target="_blank" class="tool-btn"><i class="fa-solid fa-passport" style="color:var(--primary);"></i><span>K-ETA/入境</span></a>
@@ -124,36 +128,34 @@
             </div>
         </div>
         
-        <!-- 雙城天氣與動態穿搭 -->
         <div class="card">
             <h3 class="card-title"><i class="fa-solid fa-cloud-sun"></i> 即時天氣與穿搭顧問</h3>
-            <div class="flex-row" style="margin-bottom: 10px;">
-                <iframe src="https://wttr.in/Busan?format=1" style="width:50%; height:40px; border:none; border-radius:8px; background:#fafafa;" scrolling="no"></iframe>
-                <iframe src="https://wttr.in/Gyeongju?format=1" style="width:50%; height:40px; border:none; border-radius:8px; background:#fafafa;" scrolling="no"></iframe>
+            <div class="flex-row" style="margin-bottom: 12px;">
+                <iframe src="https://wttr.in/Busan?format=1" style="width:50%; height:45px; border:none; border-radius:12px; background:#f8f9fa;" scrolling="no"></iframe>
+                <iframe src="https://wttr.in/Gyeongju?format=1" style="width:50%; height:45px; border:none; border-radius:12px; background:#f8f9fa;" scrolling="no"></iframe>
             </div>
-            <div class="outfit-box">
-                <div style="font-weight:bold; color:var(--primary); margin-bottom:5px;"><i class="fa-solid fa-shirt fa-bounce"></i> 外交官夫人秋季洋蔥式穿搭</div>
-                <div style="font-size:0.85rem; color:#555; line-height:1.5;">早晚溫差大 (約 8℃~16℃)。<br>✨ <b>建議：</b>發熱衣打底 + 輕薄針織衫/毛衣 + <span style="color:var(--dora); font-weight:bold;">米色防風大衣</span>。方便在有暖氣的室內隨時穿脫！</div>
+            <div style="background: linear-gradient(135deg, #fdfbfb, #ebedee); border-radius: 16px; padding: 18px; border-left: 6px solid var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                <div style="font-weight:900; color:var(--primary); margin-bottom:8px;"><i class="fa-solid fa-shirt fa-bounce"></i> 外交官夫人秋季洋蔥穿搭</div>
+                <div style="font-size:0.9rem; color:#555; line-height:1.6; font-weight:500;">早晚溫差大 (約 8℃~16℃)。<br>✨ <b>建議：</b>發熱衣打底 + 輕薄針織衫 + <span style="color:var(--dora); font-weight:900;">米色防風大衣</span>。室內暖氣強，方便隨時穿脫！</div>
             </div>
         </div>
 
-        <!-- 票夾與住宿庫 (從指南移過來) -->
         <div class="card">
-            <h3 class="card-title"><i class="fa-solid fa-ticket"></i> 票券與住宿金庫</h3>
+            <h3 class="card-title"><i class="fa-solid fa-ticket"></i> 票券與住宿金庫 (雲端同步)</h3>
             <div class="flex-row">
-                <select id="tkType" class="input-box" style="width:100px;">
+                <select id="tkType" class="input-box" style="width:110px;">
                     <option value="✈️ 機票">機票</option><option value="🏨 住宿">住宿</option><option value="🚆 車票">車票</option><option value="🎫 門票">門票</option>
                 </select>
                 <input type="text" id="tkTitle" class="input-box flex-1" placeholder="標題 (例: 慶州 Rivertain)">
             </div>
             <input type="text" id="tkDesc" class="input-box" placeholder="時間與備註 (例: 15:00 Check-in)">
             <input type="url" id="tkLink" class="input-box" placeholder="憑證/地圖網址 (選填)">
-            <button class="btn-action" onclick="addTicket()">收進票夾</button>
-            <div id="ticketList" style="margin-top: 15px;"></div>
+            <button class="btn-action" style="background:var(--dora);" onclick="addTicket()">收進雲端票夾</button>
+            <div id="ticketList" style="margin-top: 18px;"></div>
         </div>
     </div>
 
-    <!-- 2. 行程懸浮日記 -->
+    <!-- 2. 全雲端行程表 -->
     <div id="itinerary" class="container">
         <div class="day-tabs">
             <button class="day-tab active" onclick="filterIti('11/12')">Day 1 (12日)</button>
@@ -164,7 +166,7 @@
         </div>
         <div class="card"><div id="itiContent"></div></div>
         <div class="card">
-            <h3 class="card-title"><i class="fa-solid fa-pen"></i> 新增/修改行程</h3>
+            <h3 class="card-title"><i class="fa-solid fa-pen"></i> 編輯雲端行程</h3>
             <div class="flex-row">
                 <select id="itiDay" class="input-box" style="width: 45%;">
                     <option value="11/12">11/12 (四)</option><option value="11/13">11/13 (五)</option><option value="11/14">11/14 (六)</option><option value="11/15">11/15 (日)</option><option value="11/16">11/16 (一)</option>
@@ -172,100 +174,128 @@
                 <input type="time" id="itiTime" class="input-box flex-1">
             </div>
             <input type="text" id="itiDesc" class="input-box" placeholder="行程或餐點 (例: 【午餐】豬肉湯飯)">
-            <button class="btn-action" onclick="addItinerary()">加入手帳</button>
+            <button class="btn-action" onclick="addItinerary()">同步至行程表</button>
         </div>
     </div>
 
-    <!-- 3. 按日相冊 -->
-    <div id="photo" class="container">
-        <div class="card">
-            <h3 class="card-title"><i class="fa-solid fa-camera-retro"></i> 每日回憶相簿</h3>
-            <label for="imgUpload" class="btn-action" style="text-align:center; display:block; background:var(--primary);"><i class="fa-solid fa-cloud-arrow-up"></i> 上傳今日美照</label>
-            <input type="file" id="imgUpload" style="display:none;" accept="image/*" onchange="uploadToImgBB(this.files[0], 'photo')">
-            <div id="uploadStatus" style="font-size: 0.8rem; color: var(--primary); margin-top: 8px; text-align: center;"></div>
-            <div id="albumContainer"></div>
-        </div>
-    </div>
-
-    <!-- 4. 公私混合記帳引擎 -->
+    <!-- 3. 多幣別記帳系統 -->
     <div id="split" class="container">
+        <div class="card" style="background: #fdfdfd;">
+            <h3 class="card-title" style="font-size: 1.05rem;"><i class="fa-solid fa-users"></i> 設定專屬記帳成員</h3>
+            <div class="flex-row">
+                <input type="text" id="mem1" class="input-box flex-1" placeholder="成員 1" value="溫" onchange="updateMembers()">
+                <input type="text" id="mem2" class="input-box flex-1" placeholder="成員 2" value="鴨" onchange="updateMembers()">
+            </div>
+        </div>
+
         <div class="card">
-            <h3 class="card-title"><i class="fa-solid fa-wallet"></i> 記帳結算助手</h3>
-            <p style="font-size:0.8rem; color:#888;">☁️ 公費：即時雲端同步<br>🔒 私帳：本地軍規加密，絕對隱私</p>
+            <h3 class="card-title"><i class="fa-solid fa-wallet"></i> 雙幣別結算助手</h3>
+            <p style="font-size:0.85rem; color:#888; font-weight:700;">☁️ 公費：即時雲端同步 | 🔒 私帳：本地軍規加密</p>
+            
             <input type="text" id="billName" class="input-box" placeholder="花費項目 (例: 鰻魚飯或私購彩妝)">
             <div class="flex-row">
-                <input type="number" id="billAmt" class="input-box flex-1" placeholder="金額 (KRW)">
-                <select id="billType" class="input-box" style="width:100px;">
-                    <option value="公費">兩人平分</option><option value="私帳">個人私帳</option>
+                <input type="number" id="billAmt" class="input-box flex-1" placeholder="輸入金額">
+                <select id="billCurrency" class="input-box" style="width:90px;">
+                    <option value="KRW">KRW ₩</option><option value="TWD">TWD $</option>
                 </select>
-                <select id="payer" class="input-box" style="width:80px;">
-                    <option value="我">我付</option><option value="旅伴">旅伴</option>
+                <select id="billType" class="input-box" style="width:85px;">
+                    <option value="公費">平分</option><option value="私帳">私帳</option>
                 </select>
             </div>
+            
+            <div class="flex-row">
+                <select id="payMethod" class="input-box flex-1">
+                    <option value="現金">💵 現金</option><option value="信用卡">💳 信用卡</option><option value="WOWPASS">🪪 WOWPASS</option><option value="T-money">🚌 T-money</option>
+                </select>
+                <select id="payer" class="input-box flex-1"></select>
+            </div>
+            
             <button class="btn-action" onclick="addBill()">紀錄支出</button>
             <div id="billList" style="margin-top:20px;"></div>
-            <div id="settlement" style="margin-top:15px; padding-top:15px; border-top:2px solid #eee; font-weight:700; color:var(--primary); line-height:1.6;"></div>
+            <div id="settlement" style="margin-top:20px; padding:18px; border-radius:16px; background:#fff5f5; border:1px solid #fcdcdc; font-weight:700; color:var(--text-dark); line-height:1.8;"></div>
         </div>
     </div>
 
-    <!-- 5. 專屬圖文導遊地圖 & 購物清單 -->
+    <!-- 4. 購物清單 & 導遊圖文庫 -->
     <div id="guide" class="container">
-        <!-- 動態導遊推薦 (支援上傳圖片) -->
+        
         <div class="card">
-            <h3 class="card-title"><i class="fa-solid fa-map-location-dot"></i> 專屬導遊圖文地圖庫</h3>
-            <p style="font-size:0.8rem; color:#888;">建立你們專屬的打卡點！上傳網美照並附上地圖。</p>
+            <h3 class="card-title"><i class="fa-solid fa-map-location-dot"></i> 導遊私藏圖文地圖 (雲端)</h3>
+            <p style="font-size:0.85rem; color:#7f8c8d; font-weight:700;">自訂您的網美打卡點！上傳圖片並附上 Naver Map。</p>
             <div class="flex-row">
-                <select id="gdType" class="input-box" style="width:100px;">
+                <select id="gdType" class="input-box" style="width:105px;">
                     <option value="美食">🍽️ 美食</option><option value="景點">📸 景點</option><option value="超商">🏪 超商</option>
                 </select>
                 <input type="text" id="gdTitle" class="input-box flex-1" placeholder="店名/景點名稱">
             </div>
             <input type="text" id="gdDesc" class="input-box" placeholder="推薦理由 (例: 必吃蟹膏飯糰)">
             <input type="url" id="gdLink" class="input-box" placeholder="Naver Map 網址 (選填)">
-            
             <div class="flex-row" style="margin-top:5px;">
-                <label for="guideImgUpload" style="background:#f0f0f0; padding:10px 15px; border-radius:10px; cursor:pointer;"><i class="fa-solid fa-camera"></i> 上傳預覽圖</label>
+                <label for="guideImgUpload" style="background:#f1f2f6; padding:12px 18px; border-radius:12px; cursor:pointer; font-weight:900;"><i class="fa-solid fa-camera"></i> 上傳預覽圖</label>
                 <input type="file" id="guideImgUpload" style="display:none;" accept="image/*" onchange="uploadToImgBB(this.files[0], 'guide')">
-                <div id="guideUploadStatus" style="font-size: 0.8rem; color: var(--primary); flex:1;"></div>
+                <div id="guideUploadStatus" style="font-size: 0.85rem; color: var(--primary); flex:1; font-weight:900;"></div>
             </div>
             <input type="hidden" id="tempGuideImg" value="">
-            <button class="btn-action" style="margin-top:10px;" onclick="addGuideItem()">新增私房推薦</button>
+            <button class="btn-action" style="margin-top:15px; background:var(--dora);" onclick="addGuideItem()">同步至雲端攻略</button>
             
-            <div id="guideList" style="margin-top: 20px;"></div>
+            <div id="guideList" style="margin-top: 25px;"></div>
+
+            <!-- 超商必買 (靜態完美排版) -->
+            <h4 style="color:var(--primary); margin:25px 0 10px; font-weight:900; font-size:1.1rem;"><i class="fa-solid fa-store"></i> 韓國超商必買戰力榜</h4>
+            <div style="background:#f8f9fa; padding:15px; border-radius:16px; border:1px solid #eee;">
+                <p style="margin:0 0 8px; font-weight:900; color:#2980B9;">🏪 GS25</p>
+                <ul style="margin:0 0 15px; padding-left:22px; font-size:0.9rem; color:#555;"><li>蟹膏醬飯糰 (神級早餐)</li><li>Omori 泡菜豬肉鍋泡麵</li><li>濟州濟州橘子冰棒</li></ul>
+                <p style="margin:0 0 8px; font-weight:900; color:#8E44AD;">🏪 CU</p>
+                <ul style="margin:0 0 15px; padding-left:22px; font-size:0.9rem; color:#555;"><li>延世大學生乳包 (必搶)</li><li>冰塊杯 + 袋裝榛果咖啡</li><li>辣炒年糕起司熱狗</li></ul>
+                <p style="margin:0 0 8px; font-weight:900; color:#27AE60;">🏪 7-11</p>
+                <ul style="margin:0; padding-left:22px; font-size:0.9rem; color:#555;"><li>養樂多軟糖</li><li>濟州牛奶冰淇淋</li><li>辣味魷魚拌飯三角飯糰</li></ul>
+            </div>
         </div>
 
         <div class="card">
-            <h3 class="card-title"><i class="fa-solid fa-bag-shopping"></i> 購物代購清單</h3>
+            <h3 class="card-title"><i class="fa-solid fa-bag-shopping"></i> 購物代購清單 (雲端)</h3>
             <div class="flex-row">
                 <input type="text" id="newShop" class="input-box flex-1" placeholder="新增必買好物">
-                <label for="shopImgUpload" style="background:#f0f0f0; padding:10px 15px; border-radius:10px; cursor:pointer;"><i class="fa-solid fa-camera"></i></label>
+                <label for="shopImgUpload" style="background:#f1f2f6; padding:12px 18px; border-radius:12px; cursor:pointer;"><i class="fa-solid fa-camera"></i></label>
                 <input type="file" id="shopImgUpload" style="display:none;" accept="image/*" onchange="uploadToImgBB(this.files[0], 'shop')">
-                <button class="btn-action" style="width:60px;" onclick="addShopItem()"><i class="fa-solid fa-plus"></i></button>
+                <button class="btn-action" style="width:65px;" onclick="addShopItem()"><i class="fa-solid fa-plus"></i></button>
             </div>
-            <div id="shopUploadStatus" style="font-size: 0.8rem; color: var(--primary); text-align: right;"></div>
+            <div id="shopUploadStatus" style="font-size: 0.85rem; color: var(--primary); text-align: right; font-weight:900;"></div>
             <input type="hidden" id="tempShopImg" value="">
-            <div id="sList" style="margin-top: 10px;"></div>
+            <div id="sList" style="margin-top: 15px;"></div>
+        </div>
+    </div>
+
+    <!-- 5. 每日相冊 -->
+    <div id="photo" class="container">
+        <div class="card">
+            <h3 class="card-title"><i class="fa-solid fa-camera-retro"></i> 每日回憶相簿</h3>
+            <label for="photoImgUpload" class="btn-action" style="text-align:center; display:block;"><i class="fa-solid fa-cloud-arrow-up"></i> 上傳今日美照</label>
+            <input type="file" id="photoImgUpload" style="display:none;" accept="image/*" onchange="uploadToImgBB(this.files[0], 'photo')">
+            <div id="photoUploadStatus" style="font-size: 0.85rem; color: var(--primary); margin-top: 10px; text-align: center; font-weight:900;"></div>
+            <div id="albumContainer"></div>
         </div>
     </div>
 
     <!-- C位底部導航 -->
     <div class="bottom-nav">
         <div class="nav-item active" onclick="showTab('tools', this)"><i class="fa-solid fa-toolbox"></i>工具</div>
-        <div class="nav-item" onclick="showTab('photo', this)"><i class="fa-solid fa-images"></i>相冊</div>
-        <div class="nav-item nav-center" onclick="showTab('itinerary', this)">
-            <i class="fa-solid fa-plane"></i><span>行程</span>
+        <div class="nav-item" onclick="showTab('itinerary', this)"><i class="fa-solid fa-book"></i>手帳</div>
+        <div class="nav-item nav-center" onclick="showTab('split', this)">
+            <i class="fa-solid fa-wallet"></i><span>記帳</span>
         </div>
-        <div class="nav-item" onclick="showTab('split', this)"><i class="fa-solid fa-calculator"></i>記帳</div>
         <div class="nav-item" onclick="showTab('guide', this)"><i class="fa-solid fa-star"></i>指南</div>
+        <div class="nav-item" onclick="showTab('photo', this)"><i class="fa-solid fa-images"></i>相冊</div>
     </div>
 
 </div>
 
 <script>
+    // --- 介面控制 ---
     function enterApp() {
         const splash = document.getElementById('splash'); const app = document.getElementById('mainApp');
         splash.style.transform = 'translateY(-100%)'; splash.style.opacity = '0';
-        setTimeout(() => { splash.style.display = 'none'; app.style.display = 'block'; setTimeout(() => app.style.opacity = '1', 50); }, 600);
+        setTimeout(() => { splash.style.display = 'none'; app.style.display = 'block'; setTimeout(() => app.style.opacity = '1', 50); }, 800);
     }
     function showTab(id, el) {
         document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
@@ -275,15 +305,24 @@
         window.scrollTo(0,0);
     }
 
+    // --- Firebase 初始化 ---
     const IMGBB_API_KEY = "ba1b2b24f8275c9d3a199bea5cd52bf9"; 
     const firebaseConfig = { apiKey: "AIzaSyC884_zH7XM7l7C_ijhuFmEoKxbsN0O1Vw", authDomain: "busan-trip-2026-4148f.firebaseapp.com", databaseURL: "https://busan-trip-2026-4148f-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "busan-trip-2026-4148f", storageBucket: "busan-trip-2026-4148f.firebasestorage.app", messagingSenderId: "819505968980", appId: "1:819505968980:web:03e6d05ef5101719327ac1" };
     firebase.initializeApp(firebaseConfig); const db = firebase.database();
 
-    // 萬用圖片上傳 (相冊/購物/指南 共用)
+    // Firebase 參考點 (V13 全面雲端化)
+    const itiRef = db.ref("busan_v13_iti");
+    const ticketRef = db.ref("busan_v13_tickets");
+    const shopRef = db.ref("busan_v13_shop");
+    const guideRef = db.ref("busan_v13_guide");
+    const billRef = db.ref("busan_v13_bills");
+    const photoRef = db.ref("busan_v13_photos");
+
+    // --- 圖片上傳模組 ---
     async function uploadToImgBB(file, target) {
         if (!file) return;
-        let statusId = target === 'photo' ? 'uploadStatus' : (target === 'shop' ? 'shopUploadStatus' : 'guideUploadStatus');
-        const status = document.getElementById(statusId); status.innerText = "⏳ 圖片上傳中...";
+        let statusId = target === 'photo' ? 'photoUploadStatus' : (target === 'shop' ? 'shopUploadStatus' : 'guideUploadStatus');
+        const status = document.getElementById(statusId); status.innerText = "⏳ 魔法傳輸中...";
         const formData = new FormData(); formData.append("image", file);
         try {
             const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
@@ -291,19 +330,19 @@
             if (data.success) {
                 if(target === 'photo') {
                     let today = new Date(); let dateStr = (today.getMonth()+1) + "/" + today.getDate();
-                    db.ref("busan_v11_photos").push({ url: data.data.url, date: dateStr, timestamp: Date.now() });
-                    status.innerText = "✅ 同步成功！"; setTimeout(() => status.innerText = "", 3000);
+                    photoRef.push({ url: data.data.url, date: dateStr, timestamp: Date.now() });
+                    status.innerText = "✅ 相片同步成功！"; setTimeout(() => status.innerText = "", 3000);
                 } else if(target === 'shop') {
-                    document.getElementById('tempShopImg').value = data.data.url; status.innerText = "📸 圖片就緒";
+                    document.getElementById('tempShopImg').value = data.data.url; status.innerText = "📸 圖片就緒，點擊 + 新增";
                 } else if(target === 'guide') {
-                    document.getElementById('tempGuideImg').value = data.data.url; status.innerText = "📸 圖片就緒";
+                    document.getElementById('tempGuideImg').value = data.data.url; status.innerText = "📸 圖片就緒，點擊新增";
                 }
             } else { status.innerText = "❌ 上傳失敗"; }
-        } catch (e) { status.innerText = "❌ 發生錯誤"; }
+        } catch (e) { status.innerText = "❌ 網路錯誤"; }
     }
 
-    // 相冊渲染
-    db.ref("busan_v11_photos").orderByChild("timestamp").on("value", (snapshot) => {
+    // --- 相冊雲端監聽 ---
+    photoRef.orderByChild("timestamp").on("value", (snapshot) => {
         const container = document.getElementById("albumContainer"); container.innerHTML = ""; let albums = {};
         snapshot.forEach((child) => { let photo = child.val(); let d = photo.date || "旅程回憶"; if(!albums[d]) albums[d] = []; albums[d].unshift(photo.url); });
         for(let date in albums) {
@@ -312,133 +351,183 @@
         }
     });
 
-    // --------------------------------------------------------
-    // 🎫 票券與住宿模組
-    // --------------------------------------------------------
-    let ticketData = JSON.parse(localStorage.getItem('busan_v11_tickets')) || [
-        { id: 1, type: "✈️ 機票", title: "去程航班", desc: "11/12 (四) 抵達金海 16:30", link: "" },
-        { id: 2, type: "🏨 住宿", title: "慶州 Rivertain Hotel", desc: "11/12 入住一晚", link: "https://map.naver.com/" }
-    ];
-    function renderTickets() {
-        const list = document.getElementById('ticketList'); list.innerHTML = '';
-        ticketData.forEach(t => {
-            let linkHTML = t.link ? `<a href="${t.link}" target="_blank" class="btn-link" style="margin-top:5px;">開啟連結 <i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : '';
-            list.innerHTML += `<div class="ticket-card"><div style="display:flex; justify-content:space-between; align-items:flex-start;"><div><div class="ticket-title">${t.type} | ${t.title}</div><div class="ticket-desc">${t.desc}</div>${linkHTML}</div><button class="btn-delete" onclick="deleteTicket(${t.id})"><i class="fa-solid fa-trash"></i></button></div></div>`;
-        });
-    }
-    function addTicket() {
-        const type = document.getElementById('tkType').value; const title = document.getElementById('tkTitle').value; const desc = document.getElementById('tkDesc').value; const link = document.getElementById('tkLink').value;
-        if(!title) return; ticketData.push({ id: Date.now(), type, title, desc, link });
-        localStorage.setItem('busan_v11_tickets', JSON.stringify(ticketData));
-        document.getElementById('tkTitle').value = ''; document.getElementById('tkDesc').value = ''; document.getElementById('tkLink').value = ''; renderTickets();
-    }
-    function deleteTicket(id) { ticketData = ticketData.filter(t => t.id !== id); localStorage.setItem('busan_v11_tickets', JSON.stringify(ticketData)); renderTickets(); }
-
-    // --------------------------------------------------------
-    // 🗺️ 懸浮行程表
-    // --------------------------------------------------------
-    let itineraryData = JSON.parse(localStorage.getItem('busan_v11_iti')) || [
-        { id: 1, day: "11/12", time: "16:30", desc: "抵達金海機場 ➔ 慶州 Rivertain Hotel" }, { id: 2, day: "11/12", time: "18:00", desc: "【晚餐】慶州大排檔/包飯" }, { id: 3, day: "11/12", time: "20:00", desc: "東宮與月池 (夜楓)" },
-        { id: 4, day: "11/13", time: "09:00", desc: "【早餐】飯店" }, { id: 5, day: "11/13", time: "10:30", desc: "大陵苑石牆路 & 換韓服" }, { id: 6, day: "11/13", time: "13:30", desc: "【午餐】Solsot 釜飯" }, { id: 7, day: "11/13", time: "16:00", desc: "搭 KTX 前往釜山" },
-        { id: 8, day: "11/14", time: "10:30", desc: "梵魚寺 (賞楓名所)" }, { id: 9, day: "11/14", time: "13:00", desc: "【午餐】山菜定食" }, { id: 10, day: "11/14", time: "15:00", desc: "影島 Thrill On The Mug" }, { id: 11, day: "11/14", time: "18:30", desc: "【晚餐】廣安里周邊烤肉" },
-        { id: 12, day: "11/15", time: "10:00", desc: "甘川洞文化村" }, { id: 13, day: "11/15", time: "12:30", desc: "【午餐】海雲台 海木鰻魚飯" }, { id: 14, day: "11/15", time: "15:00", desc: "藍線公園膠囊列車" },
-        { id: 15, day: "11/16", time: "11:00", desc: "退房 ➔ 行李 Zimcarry" }, { id: 16, day: "11/16", time: "12:00", desc: "【午餐】東萊蔘雞湯" }, { id: 17, day: "11/16", time: "16:00", desc: "機場領行李" }
-    ];
+    // --- 全雲端行程表 ---
     let currentFilterDay = "11/12";
+    let itineraryData = [];
+    itiRef.on("value", (snapshot) => {
+        if(!snapshot.exists()) {
+            // 初次載入預設資料
+            const defaultIti = [{ d: "11/12", t: "16:30", txt: "抵達金海機場 ➔ 慶州 Rivertain Hotel" }, { d: "11/12", t: "18:00", txt: "【晚餐】慶州大排檔" }, { d: "11/12", t: "20:00", txt: "東宮與月池 (夜楓)" },{ d: "11/13", t: "10:30", txt: "大陵苑石牆路 & 換韓服" }, { d: "11/13", t: "13:30", txt: "【午餐】Solsot 釜飯" }, { d: "11/13", t: "16:00", txt: "搭 KTX 前往釜山" },{ d: "11/14", t: "10:30", txt: "梵魚寺 (賞楓名所)" }, { d: "11/14", t: "15:00", txt: "影島 Thrill On The Mug" }, { d: "11/14", t: "18:30", txt: "【晚餐】廣安里周邊烤肉" },{ d: "11/15", t: "10:00", txt: "甘川洞文化村" }, { d: "11/15", t: "12:30", txt: "【午餐】海雲台 海木鰻魚飯" }, { d: "11/15", t: "15:00", txt: "藍線公園膠囊列車" },{ d: "11/16", t: "11:00", txt: "退房 ➔ 行李 Zimcarry" }, { d: "11/16", t: "12:00", txt: "【午餐】東萊蔘雞湯" }, { d: "11/16", t: "16:00", txt: "機場領行李" }];
+            defaultIti.forEach(i => itiRef.push({ day: i.d, time: i.t, desc: i.txt }));
+        } else {
+            itineraryData = []; snapshot.forEach(child => { itineraryData.push({ ...child.val(), key: child.key }); }); renderItinerary();
+        }
+    });
+
     function filterIti(day) { currentFilterDay = day; document.querySelectorAll('.day-tab').forEach(btn => { btn.classList.remove('active'); if(btn.innerText.includes(day)) btn.classList.add('active'); }); renderItinerary(); }
     function renderItinerary() {
         const list = document.getElementById('itiContent'); list.innerHTML = '';
         let filtered = itineraryData.filter(i => i.day === currentFilterDay).sort((a, b) => a.time.localeCompare(b.time)); 
-        if(filtered.length === 0) list.innerHTML = '<p style="color:#888;text-align:center;">這天還沒有排行程喔！</p>';
-        filtered.forEach(item => { list.innerHTML += `<div class="iti-row"><div class="iti-time">${item.time}</div><div class="iti-desc">${item.desc}</div><button class="btn-delete" onclick="deleteItinerary(${item.id})"><i class="fa-solid fa-trash"></i></button></div>`; });
+        if(filtered.length === 0) list.innerHTML = '<p style="color:#a5b1c2;text-align:center;font-weight:700;">這天還沒有排行程喔！</p>';
+        filtered.forEach(item => { list.innerHTML += `<div class="iti-row"><div class="iti-time">${item.time}</div><div class="iti-desc">${item.desc}</div><button class="btn-delete" onclick="deleteItinerary('${item.key}')"><i class="fa-solid fa-trash"></i></button></div>`; });
     }
     function addItinerary() {
         const day = document.getElementById('itiDay').value; const time = document.getElementById('itiTime').value || "12:00"; const desc = document.getElementById('itiDesc').value;
-        if(!desc) return; itineraryData.push({ id: Date.now(), day, time, desc }); localStorage.setItem('busan_v11_iti', JSON.stringify(itineraryData)); document.getElementById('itiDesc').value = ''; filterIti(day);
+        if(!desc) return; itiRef.push({ day, time, desc }); document.getElementById('itiDesc').value = ''; filterIti(day);
     }
-    function deleteItinerary(id) { itineraryData = itineraryData.filter(i => i.id !== id); localStorage.setItem('busan_v11_iti', JSON.stringify(itineraryData)); renderItinerary(); }
+    function deleteItinerary(key) { itiRef.child(key).remove(); }
 
-    // --------------------------------------------------------
-    // 💸 公私混合記帳引擎
-    // --------------------------------------------------------
-    let privateBills = JSON.parse(localStorage.getItem('busan_v11_private_bills')) || []; let sharedBills = [];
-    db.ref("busan_v11_shared_bills").on("value", (snapshot) => { sharedBills = []; snapshot.forEach(child => { sharedBills.push({ ...child.val(), fbKey: child.key }); }); renderBills(); });
-    function renderBills() {
-        const list = document.getElementById('billList'); const res = document.getElementById('settlement'); let sharedTotal = 0, sharedPaidByMe = 0, myPrivate = 0; list.innerHTML = '';
-        let allBills = [...sharedBills, ...privateBills].sort((a,b) => a.timestamp - b.timestamp);
-        allBills.forEach(b => {
-            let isShared = b.type === '公費'; let badge = isShared ? '<span style="background:var(--accent);color:white;padding:2px 6px;border-radius:4px;font-size:0.7rem;">公費</span>' : '<span style="background:#BDC3C7;color:white;padding:2px 6px;border-radius:4px;font-size:0.7rem;">私帳</span>';
-            if (isShared) { sharedTotal += b.amt; if(b.payer === '我') sharedPaidByMe += b.amt; } else { if(b.payer === '我') myPrivate += b.amt; }
-            let deleteAction = isShared ? `deleteSharedBill('${b.fbKey}')` : `deletePrivateBill(${b.id})`;
-            list.innerHTML += `<div class="list-item"><div style="flex:1;">${badge} ${b.item} <small style="color:#888;">(${b.payer}付)</small></div><div style="font-weight:bold; margin-right:10px;">${b.amt.toLocaleString()} ₩</div><button class="btn-delete" onclick="${deleteAction}"><i class="fa-solid fa-xmark"></i></button></div>`;
-        });
-        const diff = sharedPaidByMe - (sharedTotal/2);
-        res.innerHTML = `【雲端公費結算】共 ${sharedTotal.toLocaleString()} ₩ (人均 ${(sharedTotal/2).toLocaleString()})<br>${diff >= 0 ? '👉 旅伴應付我' : '👉 我應付旅伴'}: <span style="font-size:1.3rem;">${Math.abs(Math.round(diff)).toLocaleString()} ₩</span><br><hr style="border-top:1px dashed #ccc;margin:10px 0;">👜 【我的本地私帳總額】: ${myPrivate.toLocaleString()} ₩`;
-    }
-    function addBill() {
-        const item = document.getElementById('billName').value; const amt = parseFloat(document.getElementById('billAmt').value); const type = document.getElementById('billType').value; const payer = document.getElementById('payer').value;
-        if(!item||!amt) return; let newBill = { item, amt, type, payer, timestamp: Date.now() };
-        if(type === '公費') { db.ref("busan_v11_shared_bills").push(newBill); } else { newBill.id = Date.now(); privateBills.push(newBill); localStorage.setItem('busan_v11_private_bills', JSON.stringify(privateBills)); renderBills(); }
-        document.getElementById('billName').value = ''; document.getElementById('billAmt').value = '';
-    }
-    function deleteSharedBill(key) { db.ref("busan_v11_shared_bills").child(key).remove(); }
-    function deletePrivateBill(id) { privateBills = privateBills.filter(b => b.id !== id); localStorage.setItem('busan_v11_private_bills', JSON.stringify(privateBills)); renderBills(); }
-
-    // --------------------------------------------------------
-    // 🛍️ 購物清單 & 📍 動態導遊地圖庫
-    // --------------------------------------------------------
-    let shopList = JSON.parse(localStorage.getItem('busan_v11_shop')) || [];
-    function renderShop() {
-        const list = document.getElementById('sList'); list.innerHTML = '';
-        shopList.forEach(item => {
-            let imgHTML = item.img ? `<img src="${item.img}" class="item-img">` : '';
-            list.innerHTML += `<div class="list-item ${item.checked ? 'checked' : ''}"><div class="check-box" onclick="toggleShop(${item.id})"><i class="fa-solid fa-check"></i></div>${imgHTML}<div class="item-content flex-1" onclick="toggleShop(${item.id})">${item.text}</div><button class="btn-delete" onclick="deleteShop(${item.id})"><i class="fa-solid fa-trash"></i></button></div>`;
+    // --- 全雲端票券夾 ---
+    let ticketData = [];
+    ticketRef.on("value", (snapshot) => {
+        if(!snapshot.exists()) {
+            ticketRef.push({ type: "✈️ 機票", title: "去程航班", desc: "11/12 抵達金海 16:30", link: "" });
+            ticketRef.push({ type: "🏨 住宿", title: "慶州 Rivertain Hotel", desc: "11/12 入住一晚", link: "https://map.naver.com/" });
+        } else {
+            ticketData = []; snapshot.forEach(child => { ticketData.push({ ...child.val(), key: child.key }); }); renderTickets();
+        }
+    });
+    function renderTickets() {
+        const list = document.getElementById('ticketList'); list.innerHTML = '';
+        ticketData.forEach(t => {
+            let linkHTML = t.link ? `<a href="${t.link}" target="_blank" class="map-btn" style="margin-top:8px;">開啟憑證 <i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : '';
+            list.innerHTML += `<div class="card" style="padding:15px; border-left:5px solid var(--dora); margin-bottom:12px;"><div style="display:flex; justify-content:space-between; align-items:flex-start;"><div><div style="font-weight:900; font-size:1.05rem; margin-bottom:4px;">${t.type} | ${t.title}</div><div style="font-size:0.85rem; color:#7f8c8d; font-weight:700;">${t.desc}</div>${linkHTML}</div><button class="btn-delete" onclick="deleteTicket('${t.key}')"><i class="fa-solid fa-trash"></i></button></div></div>`;
         });
     }
-    function addShopItem() {
-        const text = document.getElementById('newShop').value; const img = document.getElementById('tempShopImg').value;
-        if(!text) return; shopList.push({ id: Date.now(), text, img, checked: false }); localStorage.setItem('busan_v11_shop', JSON.stringify(shopList));
-        document.getElementById('newShop').value = ''; document.getElementById('tempShopImg').value = ''; document.getElementById('shopUploadStatus').innerText = ''; renderShop();
+    function addTicket() {
+        const type = document.getElementById('tkType').value; const title = document.getElementById('tkTitle').value; const desc = document.getElementById('tkDesc').value; const link = document.getElementById('tkLink').value;
+        if(!title) return; ticketRef.push({ type, title, desc, link });
+        document.getElementById('tkTitle').value = ''; document.getElementById('tkDesc').value = ''; document.getElementById('tkLink').value = '';
     }
-    function toggleShop(id) { let item = shopList.find(i => i.id === id); item.checked = !item.checked; localStorage.setItem('busan_v11_shop', JSON.stringify(shopList)); renderShop(); }
-    function deleteShop(id) { shopList = shopList.filter(i => i.id !== id); localStorage.setItem('busan_v11_shop', JSON.stringify(shopList)); renderShop(); }
+    function deleteTicket(key) { ticketRef.child(key).remove(); }
 
-    let guideList = JSON.parse(localStorage.getItem('busan_v11_guide')) || [
-        { id: 1, type: "美食", title: "Solsot 釜飯", desc: "皇理團路排隊名店", link: "https://naver.me/", img: "" },
-        { id: 2, type: "美食", title: "海木鰻魚飯", desc: "海雲台米其林推薦", link: "https://naver.me/", img: "" },
-        { id: 3, type: "景點", title: "大陵苑石牆路", desc: "秋季銀杏大道", link: "https://naver.me/", img: "" },
-        { id: 4, type: "景點", title: "Thrill On The Mug", desc: "無死角海景咖啡", link: "https://naver.me/", img: "" },
-        { id: 5, type: "超商", title: "GS25 / CU 必買", desc: "蟹膏飯糰、延世奶油麵包", link: "", img: "" }
-    ];
+    // --- 全雲端導遊地圖 (預載5+5) ---
+    let guideData = [];
+    guideRef.on("value", (snapshot) => {
+        if(!snapshot.exists()) {
+            const defaults = [
+                { type: "美食", title: "Solsot 釜飯", desc: "皇理團路排隊名店", link: "https://naver.me/solsot", img: "" }, { type: "美食", title: "海木鰻魚飯", desc: "海雲台米其林推薦", link: "https://naver.me/haemok", img: "" }, { type: "美食", title: "東萊蔘雞湯", desc: "西面必吃補氣聖品", link: "https://naver.me/dongnae", img: "" }, { type: "美食", title: "味讚王鹽烤肉", desc: "專人代烤超厚豬五花", link: "https://naver.me/pork", img: "" }, { type: "美食", title: "密陽豬肉湯飯", desc: "24小時溫暖湯飯", link: "https://naver.me/soup", img: "" },
+                { type: "景點", title: "東宮與月池", desc: "越夜越美麗的千年遺跡", link: "https://naver.me/moon", img: "" }, { type: "景點", title: "大陵苑石牆路", desc: "秋季限定金黃銀杏大道", link: "https://naver.me/tree", img: "" }, { type: "景點", title: "Thrill On The Mug", desc: "無死角海景咖啡廳", link: "https://naver.me/mug", img: "" }, { type: "景點", title: "梵魚寺", desc: "釜山第一賞楓名剎", link: "https://naver.me/temple", img: "" }, { type: "景點", title: "藍線公園", desc: "尾浦至青沙浦夢幻列車", link: "https://naver.me/train", img: "" }
+            ];
+            defaults.forEach(g => guideRef.push(g));
+        } else {
+            guideData = []; snapshot.forEach(child => { guideData.push({ ...child.val(), key: child.key }); }); renderGuide();
+        }
+    });
     function renderGuide() {
         const list = document.getElementById('guideList'); list.innerHTML = '';
-        guideList.forEach(g => {
+        guideData.slice().reverse().forEach(g => {
             let imgHTML = g.img ? `<img src="${g.img}" class="guide-img">` : '';
-            let linkHTML = g.link ? `<a href="${g.link}" target="_blank" class="map-btn" style="display:inline-block; margin-top:5px;">看 Naver Map</a>` : '';
-            list.innerHTML += `
-                <div class="guide-card">
-                    ${imgHTML}
-                    <div class="guide-content">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                            <div>
-                                <h4>[${g.type}] ${g.title}</h4>
-                                <p>${g.desc}</p>
-                                ${linkHTML}
-                            </div>
-                            <button class="btn-delete" onclick="deleteGuide(${g.id})"><i class="fa-solid fa-trash"></i></button>
-                        </div>
-                    </div>
-                </div>`;
+            let linkHTML = g.link ? `<a href="${g.link}" target="_blank" class="map-btn" style="margin-top:8px;">開啟 Naver Map</a>` : '';
+            list.innerHTML += `<div class="guide-card">${imgHTML}<div class="guide-content"><div style="display:flex; justify-content:space-between; align-items:flex-start;"><div><h4>[${g.type}] ${g.title}</h4><p>${g.desc}</p>${linkHTML}</div><button class="btn-delete" onclick="deleteGuide('${g.key}')"><i class="fa-solid fa-trash"></i></button></div></div></div>`;
         });
     }
     function addGuideItem() {
         const type = document.getElementById('gdType').value; const title = document.getElementById('gdTitle').value; const desc = document.getElementById('gdDesc').value; const link = document.getElementById('gdLink').value; const img = document.getElementById('tempGuideImg').value;
-        if(!title) return; guideList.unshift({ id: Date.now(), type, title, desc, link, img }); localStorage.setItem('busan_v11_guide', JSON.stringify(guideList));
-        document.getElementById('gdTitle').value = ''; document.getElementById('gdDesc').value = ''; document.getElementById('gdLink').value = ''; document.getElementById('tempGuideImg').value = ''; document.getElementById('guideUploadStatus').innerText = ''; renderGuide();
+        if(!title) return; guideRef.push({ type, title, desc, link, img, timestamp: Date.now() });
+        document.getElementById('gdTitle').value = ''; document.getElementById('gdDesc').value = ''; document.getElementById('gdLink').value = ''; document.getElementById('tempGuideImg').value = ''; document.getElementById('guideUploadStatus').innerText = '';
     }
-    function deleteGuide(id) { guideList = guideList.filter(g => g.id !== id); localStorage.setItem('busan_v11_guide', JSON.stringify(guideList)); renderGuide(); }
+    function deleteGuide(key) { guideRef.child(key).remove(); }
 
-    window.onload = () => { filterIti("11/12"); renderTickets(); renderBills(); renderShop(); renderGuide(); };
+    // --- 全雲端購物清單 ---
+    let shopList = [];
+    shopRef.on("value", (snapshot) => { shopList = []; snapshot.forEach(child => { shopList.push({ ...child.val(), key: child.key }); }); renderShop(); });
+    function renderShop() {
+        const list = document.getElementById('sList'); list.innerHTML = '';
+        shopList.forEach(item => {
+            let imgHTML = item.img ? `<img src="${item.img}" class="item-img">` : '';
+            list.innerHTML += `<div class="list-item ${item.checked ? 'checked' : ''}"><div class="check-box" onclick="toggleShop('${item.key}', ${item.checked})"><i class="fa-solid fa-check"></i></div>${imgHTML}<div class="item-content flex-1" onclick="toggleShop('${item.key}', ${item.checked})">${item.text}</div><button class="btn-delete" onclick="deleteShop('${item.key}')"><i class="fa-solid fa-trash"></i></button></div>`;
+        });
+    }
+    function addShopItem() {
+        const text = document.getElementById('newShop').value; const img = document.getElementById('tempShopImg').value;
+        if(!text) return; shopRef.push({ text, img, checked: false });
+        document.getElementById('newShop').value = ''; document.getElementById('tempShopImg').value = ''; document.getElementById('shopUploadStatus').innerText = '';
+    }
+    function toggleShop(key, currentStatus) { shopRef.child(key).update({ checked: !currentStatus }); }
+    function deleteShop(key) { shopRef.child(key).remove(); }
+
+    // --- V13 多幣別記帳系統 (KRW & TWD) ---
+    let mem1 = localStorage.getItem('busan_v13_m1') || '溫';
+    let mem2 = localStorage.getItem('busan_v13_m2') || '鴨';
+    function updateMembers() { mem1 = document.getElementById('mem1').value || '溫'; mem2 = document.getElementById('mem2').value || '鴨'; localStorage.setItem('busan_v13_m1', mem1); localStorage.setItem('busan_v13_m2', mem2); updatePayerDropdown(); renderBills(); }
+    function updatePayerDropdown() { document.getElementById('payer').innerHTML = `<option value="${mem1}">${mem1}付</option><option value="${mem2}">${mem2}付</option>`; }
+
+    let privateBills = JSON.parse(localStorage.getItem('busan_v13_private_bills')) || []; 
+    let sharedBills = [];
+    billRef.on("value", (snapshot) => { sharedBills = []; snapshot.forEach(child => { sharedBills.push({ ...child.val(), fbKey: child.key }); }); renderBills(); });
+    
+    function renderBills() {
+        const list = document.getElementById('billList'); const res = document.getElementById('settlement'); 
+        let sTotalKRW = 0, sPaidByM1_KRW = 0, pTotalKRW = 0;
+        let sTotalTWD = 0, sPaidByM1_TWD = 0, pTotalTWD = 0;
+        list.innerHTML = '';
+        
+        let allBills = [...sharedBills, ...privateBills].sort((a,b) => a.timestamp - b.timestamp);
+        
+        allBills.forEach(b => {
+            let isShared = b.type === '公費'; 
+            let badge = isShared ? '<span class="pay-badge" style="background:var(--accent);">公費</span>' : '<span class="pay-badge" style="background:#BDC3C7;">私帳</span>';
+            let currClass = b.currency === 'TWD' ? 'bg-twd' : 'bg-krw';
+            let methodClass = "bg-cash"; if(b.method === "信用卡") methodClass = "bg-card"; if(b.method === "WOWPASS") methodClass = "bg-wow"; if(b.method === "T-money") methodClass = "bg-dora";
+            
+            let currencySymbol = b.currency === 'TWD' ? 'NT$' : '₩';
+            
+            if (isShared) { 
+                if(b.currency === 'KRW') { sTotalKRW += b.amt; if(b.payer === mem1) sPaidByM1_KRW += b.amt; }
+                else { sTotalTWD += b.amt; if(b.payer === mem1) sPaidByM1_TWD += b.amt; }
+            } else { 
+                if(b.payer === mem1) {
+                    if(b.currency === 'KRW') pTotalKRW += b.amt; else pTotalTWD += b.amt;
+                }
+            }
+            
+            let deleteAction = isShared ? `deleteSharedBill('${b.fbKey}')` : `deletePrivateBill(${b.id})`;
+            list.innerHTML += `
+                <div class="list-item" style="background:#fff; padding:12px; border-radius:12px; margin-bottom:8px; border:1px solid #eee;">
+                    <div style="flex:1;">
+                        <div style="font-weight:900;">${badge} ${b.item}</div>
+                        <div style="margin-top:6px;"><span class="pay-badge ${currClass}">${b.currency}</span><span class="pay-badge ${methodClass}">${b.method}</span><span style="font-size:0.75rem; color:#7f8c8d; font-weight:700;">(${b.payer}付)</span></div>
+                    </div>
+                    <div style="font-weight:900; font-size:1.1rem; color:var(--text-dark);">${b.amt.toLocaleString()} ${currencySymbol}</div>
+                    <button class="btn-delete" style="margin-left:10px;" onclick="${deleteAction}"><i class="fa-solid fa-trash"></i></button>
+                </div>`;
+        });
+        
+        let diffKRW = sPaidByM1_KRW - (sTotalKRW/2);
+        let diffTWD = sPaidByM1_TWD - (sTotalTWD/2);
+        
+        let settleKRW = diffKRW >= 0 ? `👉 ${mem2} 應付給 ${mem1}: <span style="font-size:1.2rem; color:var(--primary);">${Math.abs(Math.round(diffKRW)).toLocaleString()} ₩</span>` : `👉 ${mem1} 應付給 ${mem2}: <span style="font-size:1.2rem; color:var(--primary);">${Math.abs(Math.round(diffKRW)).toLocaleString()} ₩</span>`;
+        let settleTWD = diffTWD >= 0 ? `👉 ${mem2} 應付給 ${mem1}: <span style="font-size:1.2rem; color:var(--dora);">${Math.abs(Math.round(diffTWD)).toLocaleString()} NT$</span>` : `👉 ${mem1} 應付給 ${mem2}: <span style="font-size:1.2rem; color:var(--dora);">${Math.abs(Math.round(diffTWD)).toLocaleString()} NT$</span>`;
+        if(sTotalKRW === 0) settleKRW = "無韓元公費"; if(sTotalTWD === 0) settleTWD = "無台幣公費";
+
+        res.innerHTML = `
+            <div style="margin-bottom:10px; border-bottom:2px dashed #fcdcdc; padding-bottom:10px;">
+                <span style="color:var(--primary);"><i class="fa-solid fa-cloud"></i> 雲端公費結算 (韓元)</span><br>共 ${sTotalKRW.toLocaleString()} ₩ (人均 ${(sTotalKRW/2).toLocaleString()})<br>${settleKRW}
+            </div>
+            <div style="margin-bottom:10px; border-bottom:2px dashed #fcdcdc; padding-bottom:10px;">
+                <span style="color:var(--dora);"><i class="fa-solid fa-cloud"></i> 雲端公費結算 (台幣)</span><br>共 ${sTotalTWD.toLocaleString()} NT$ (人均 ${(sTotalTWD/2).toLocaleString()})<br>${settleTWD}
+            </div>
+            <div style="color:#7f8c8d;"><i class="fa-solid fa-lock"></i> ${mem1} 本地私帳: ${pTotalKRW.toLocaleString()} ₩ / ${pTotalTWD.toLocaleString()} NT$</div>
+        `;
+    }
+
+    function addBill() {
+        const item = document.getElementById('billName').value; const amt = parseFloat(document.getElementById('billAmt').value);
+        const type = document.getElementById('billType').value; const method = document.getElementById('payMethod').value; 
+        const payer = document.getElementById('payer').value; const currency = document.getElementById('billCurrency').value;
+        if(!item||!amt) return; 
+        let newBill = { item, amt, type, method, payer, currency, timestamp: Date.now() };
+        if(type === '公費') { billRef.push(newBill); } else { newBill.id = Date.now(); privateBills.push(newBill); localStorage.setItem('busan_v13_private_bills', JSON.stringify(privateBills)); renderBills(); }
+        document.getElementById('billName').value = ''; document.getElementById('billAmt').value = '';
+    }
+    function deleteSharedBill(key) { billRef.child(key).remove(); }
+    function deletePrivateBill(id) { privateBills = privateBills.filter(b => b.id !== id); localStorage.setItem('busan_v13_private_bills', JSON.stringify(privateBills)); renderBills(); }
+
+    window.onload = () => { 
+        document.getElementById('mem1').value = mem1; document.getElementById('mem2').value = mem2; updatePayerDropdown();
+        filterIti("11/12"); 
+    };
 </script>
 </body>
 </html>
