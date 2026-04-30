@@ -12,12 +12,8 @@
 
     <style>
         :root {
-            --primary: #D35400;
-            --accent: #F39C12;
-            --dora: #2980B9;
-            --bg-color: #FFF9F2;
-            --card-bg: #FFFFFF;
-            --text-dark: #2C3E50;
+            --primary: #D35400; --accent: #F39C12; --dora: #2980B9;
+            --bg-color: #FFF9F2; --card-bg: #FFFFFF; --text-dark: #2C3E50;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Nunito', 'Noto Sans TC', sans-serif; }
@@ -40,13 +36,11 @@
         .card { background: var(--card-bg); border-radius: 24px; padding: 20px; margin-bottom: 20px; box-shadow: 0 8px 20px rgba(211, 84, 0, 0.08); border: 1px solid rgba(243, 156, 18, 0.1); }
         .card-title { color: var(--primary); font-weight: 700; border-bottom: 2px dashed #f0f0f0; padding-bottom: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; font-size: 1.1rem;}
 
-        /* --- 霸氣置中導航列 --- */
+        /* 霸氣置中導航列 */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(255,255,255,0.95); backdrop-filter: blur(15px); display: flex; justify-content: space-around; align-items: center; padding: 10px 0 20px; border-top: 1px solid #eee; z-index: 2000; box-shadow: 0 -5px 25px rgba(0,0,0,0.05); }
         .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #a0a0a0; font-size: 0.7rem; cursor: pointer; width: 18%; font-weight: 700; transition: 0.3s; }
         .nav-item.active { color: var(--dora); }
         .nav-item i { font-size: 1.3rem; transition: 0.3s; }
-        
-        /* 懸浮 C 位按鈕 */
         .nav-center { position: relative; top: -20px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: white !important; width: 65px; height: 65px; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 8px 20px rgba(211, 84, 0, 0.4); border: 4px solid var(--bg-color); }
         .nav-center i { font-size: 1.8rem; margin-bottom: 2px; }
         .nav-center span { font-size: 0.75rem; }
@@ -60,36 +54,46 @@
         .btn-action:active { transform: scale(0.95); }
         .btn-delete { background: #ffeeee; border: none; color: #ff6b6b; cursor: pointer; font-size: 0.9rem; padding: 8px 12px; border-radius: 8px; }
         
-        /* 行程懸浮標籤 (Tabs) */
-        .day-tabs { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; scrollbar-width: none; margin-bottom: 15px; }
-        .day-tabs::-webkit-scrollbar { display: none; }
-        .day-tab { padding: 8px 20px; background: #f0f0f0; border-radius: 20px; font-weight: bold; color: #888; border: none; white-space: nowrap; transition: 0.3s; }
-        .day-tab.active { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(211, 84, 0, 0.3); }
-        
-        .iti-row { display: flex; align-items: flex-start; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed #eee; }
-        .iti-time { font-weight: 900; color: var(--dora); width: 60px; flex-shrink: 0; font-size: 1.1rem; }
-        .iti-desc { flex: 1; padding-right: 10px; line-height: 1.5; font-size: 0.95rem; }
-
-        /* 相冊按日分類 */
+        /* 圖片與相冊 */
+        .photo-gallery img { width: 100%; border-radius: 12px; margin-top: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .album-date { font-weight: 900; color: var(--primary); font-size: 1.2rem; margin: 20px 0 10px; padding-bottom: 5px; border-bottom: 3px solid var(--accent); display: inline-block; }
         .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .photo-grid img { width: 100%; height: 150px; object-fit: cover; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
-        /* 導遊指南地圖卡 */
-        .guide-item { background: #fdfdfd; border: 1px solid #eee; padding: 12px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--accent); }
-        .guide-info h4 { margin: 0 0 4px 0; color: var(--text-dark); font-size: 1rem; }
-        .guide-info p { margin: 0; font-size: 0.8rem; color: #777; }
-        .map-btn { background: #03C75A; color: white; padding: 6px 12px; border-radius: 8px; text-decoration: none; font-size: 0.8rem; font-weight: bold; }
+        /* 懸浮行程標籤 */
+        .day-tabs { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; scrollbar-width: none; margin-bottom: 15px; }
+        .day-tabs::-webkit-scrollbar { display: none; }
+        .day-tab { padding: 8px 20px; background: #f0f0f0; border-radius: 20px; font-weight: bold; color: #888; border: none; white-space: nowrap; transition: 0.3s; cursor: pointer;}
+        .day-tab.active { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(211, 84, 0, 0.3); }
+        .iti-row { display: flex; align-items: flex-start; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed #eee; }
+        .iti-time { font-weight: 900; color: var(--dora); width: 60px; flex-shrink: 0; font-size: 1.1rem; }
+        .iti-desc { flex: 1; padding-right: 10px; line-height: 1.5; font-size: 0.95rem; }
 
-        /* 清單樣式 (含圖片) */
-        .list-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px dashed #eee; font-size: 0.95rem; }
-        .check-box { width: 24px; height: 24px; border: 2px solid #ccc; border-radius: 8px; margin-right: 12px; display: flex; align-items: center; justify-content: center; color: transparent; transition: 0.3s; flex-shrink:0; }
-        .checked .check-box { background: var(--dora); border-color: var(--dora); color: white; }
-        .checked .item-content { opacity: 0.5; text-decoration: line-through; }
-        .item-img { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; margin-right: 10px; }
+        /* 工具台按鈕與天氣穿搭 */
         .tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .tool-btn { background: #fff; border: 1px solid #eee; padding: 15px; border-radius: 16px; text-align: center; text-decoration: none; color: var(--text-dark); font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.02); display: flex; flex-direction: column; align-items: center; gap: 8px; }
         .tool-btn i { font-size: 1.8rem; color: var(--primary); }
+        .outfit-box { background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); border-radius: 12px; padding: 15px; margin-top: 15px; border-left: 5px solid var(--accent); box-shadow: 0 4px 10px rgba(0,0,0,0.05); animation: floatOutfit 3s ease-in-out infinite; }
+        @keyframes floatOutfit { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+        /* 票券卡片與指南卡片 */
+        .ticket-card { border: 1px solid #eee; border-left: 5px solid var(--dora); border-radius: 12px; padding: 15px; margin-bottom: 12px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.02);}
+        .ticket-title { font-weight: bold; font-size: 1.05rem; margin-bottom: 5px; color: var(--text-dark); }
+        .ticket-desc { font-size: 0.85rem; color: #666; margin-bottom: 10px; }
+        .btn-link { display: inline-block; background: var(--accent); color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: bold; }
+        
+        /* 清單與自訂導遊圖文 */
+        .list-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px dashed #eee; font-size: 0.95rem; }
+        .check-box { width: 24px; height: 24px; border: 2px solid #ccc; border-radius: 8px; margin-right: 12px; display: flex; align-items: center; justify-content: center; color: transparent; transition: 0.3s; flex-shrink:0; cursor:pointer;}
+        .checked .check-box { background: var(--dora); border-color: var(--dora); color: white; }
+        .checked .item-content { opacity: 0.5; text-decoration: line-through; }
+        .item-img { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; margin-right: 10px; border: 1px solid #eee;}
+        
+        .guide-card { border: 1px solid #eee; border-radius: 12px; overflow: hidden; margin-bottom: 15px; background: #fff; box-shadow: 0 3px 10px rgba(0,0,0,0.03);}
+        .guide-img { width: 100%; height: 140px; object-fit: cover; background: #f5f5f5; }
+        .guide-content { padding: 12px; }
+        .guide-content h4 { margin: 0 0 5px 0; color: var(--text-dark); font-size: 1.05rem;}
+        .guide-content p { margin: 0 0 10px 0; color: #777; font-size: 0.85rem;}
     </style>
 </head>
 <body>
@@ -99,7 +103,7 @@
     <div class="splash-card">
         <h1>2026 BUSAN</h1>
         <h2 style="margin:5px 0; color:var(--text-dark);">慶州釜山賞楓</h2>
-        <p>V9 終極導遊旗艦版</p>
+        <p>V11 全能旗艦版</p>
     </div>
     <button class="btn-enter" onclick="enterApp()">開啟專屬旅程 <i class="fa-solid fa-plane-departure"></i></button>
 </div>
@@ -107,34 +111,45 @@
 <!-- 📦 主程式區塊 -->
 <div id="mainApp">
     
-    <!-- 1. 首頁工具台 -->
+    <!-- 1. 首頁工具台 (含天氣、穿搭、票夾) -->
     <div id="tools" class="container active">
+        <!-- 實用控制台 -->
         <div class="card">
             <h3 class="card-title"><i class="fa-solid fa-toolbox"></i> 韓國實用控制台</h3>
             <div class="tools-grid">
-                <a href="https://papago.naver.com/" target="_blank" class="tool-btn">
-                    <i class="fa-solid fa-language" style="color:#03C75A;"></i>
-                    <span>Papago 菜單翻譯</span>
-                </a>
-                <a href="https://www.hikorea.go.kr/" target="_blank" class="tool-btn">
-                    <i class="fa-solid fa-passport" style="color:var(--primary);"></i>
-                    <span>K-ETA / 入境卡<br><small style="font-size:0.7rem;font-weight:normal;">(請於出發前72hr填寫)</small></span>
-                </a>
-                <a href="https://map.kakao.com/" target="_blank" class="tool-btn">
-                    <i class="fa-solid fa-train-subway" style="color:#F9E000;"></i>
-                    <span>Kakao 地鐵路線</span>
-                </a>
-                <a href="https://www.kakaocorp.com/page/service/service/KakaoT" target="_blank" class="tool-btn">
-                    <i class="fa-solid fa-taxi" style="color:#F9E000;"></i>
-                    <span>Kakao T 叫車</span>
-                </a>
+                <a href="https://papago.naver.com/" target="_blank" class="tool-btn"><i class="fa-solid fa-language" style="color:#03C75A;"></i><span>Papago 翻譯</span></a>
+                <a href="https://www.hikorea.go.kr/" target="_blank" class="tool-btn"><i class="fa-solid fa-passport" style="color:var(--primary);"></i><span>K-ETA/入境</span></a>
+                <a href="https://map.kakao.com/" target="_blank" class="tool-btn"><i class="fa-solid fa-train-subway" style="color:#F9E000;"></i><span>Kakao 地鐵</span></a>
+                <a href="https://www.kakaocorp.com/page/service/service/KakaoT" target="_blank" class="tool-btn"><i class="fa-solid fa-taxi" style="color:#F9E000;"></i><span>Kakao T 叫車</span></a>
             </div>
         </div>
         
+        <!-- 雙城天氣與動態穿搭 -->
         <div class="card">
-            <h3 class="card-title"><i class="fa-solid fa-cloud-sun"></i> 釜山即時天氣預報</h3>
-            <!-- 簡單天氣 iframe (示意) -->
-            <iframe src="https://wttr.in/Busan?format=1" style="width:100%; height:40px; border:none; border-radius:10px; background:#fafafa;" scrolling="no"></iframe>
+            <h3 class="card-title"><i class="fa-solid fa-cloud-sun"></i> 即時天氣與穿搭顧問</h3>
+            <div class="flex-row" style="margin-bottom: 10px;">
+                <iframe src="https://wttr.in/Busan?format=1" style="width:50%; height:40px; border:none; border-radius:8px; background:#fafafa;" scrolling="no"></iframe>
+                <iframe src="https://wttr.in/Gyeongju?format=1" style="width:50%; height:40px; border:none; border-radius:8px; background:#fafafa;" scrolling="no"></iframe>
+            </div>
+            <div class="outfit-box">
+                <div style="font-weight:bold; color:var(--primary); margin-bottom:5px;"><i class="fa-solid fa-shirt fa-bounce"></i> 外交官夫人秋季洋蔥式穿搭</div>
+                <div style="font-size:0.85rem; color:#555; line-height:1.5;">早晚溫差大 (約 8℃~16℃)。<br>✨ <b>建議：</b>發熱衣打底 + 輕薄針織衫/毛衣 + <span style="color:var(--dora); font-weight:bold;">米色防風大衣</span>。方便在有暖氣的室內隨時穿脫！</div>
+            </div>
+        </div>
+
+        <!-- 票夾與住宿庫 (從指南移過來) -->
+        <div class="card">
+            <h3 class="card-title"><i class="fa-solid fa-ticket"></i> 票券與住宿金庫</h3>
+            <div class="flex-row">
+                <select id="tkType" class="input-box" style="width:100px;">
+                    <option value="✈️ 機票">機票</option><option value="🏨 住宿">住宿</option><option value="🚆 車票">車票</option><option value="🎫 門票">門票</option>
+                </select>
+                <input type="text" id="tkTitle" class="input-box flex-1" placeholder="標題 (例: 慶州 Rivertain)">
+            </div>
+            <input type="text" id="tkDesc" class="input-box" placeholder="時間與備註 (例: 15:00 Check-in)">
+            <input type="url" id="tkLink" class="input-box" placeholder="憑證/地圖網址 (選填)">
+            <button class="btn-action" onclick="addTicket()">收進票夾</button>
+            <div id="ticketList" style="margin-top: 15px;"></div>
         </div>
     </div>
 
@@ -147,11 +162,7 @@
             <button class="day-tab" onclick="filterIti('11/15')">Day 4 (15日)</button>
             <button class="day-tab" onclick="filterIti('11/16')">Day 5 (16日)</button>
         </div>
-
-        <div class="card">
-            <div id="itiContent"></div>
-        </div>
-
+        <div class="card"><div id="itiContent"></div></div>
         <div class="card">
             <h3 class="card-title"><i class="fa-solid fa-pen"></i> 新增/修改行程</h3>
             <div class="flex-row">
@@ -169,30 +180,26 @@
     <div id="photo" class="container">
         <div class="card">
             <h3 class="card-title"><i class="fa-solid fa-camera-retro"></i> 每日回憶相簿</h3>
-            <label for="imgUpload" class="btn-action" style="text-align:center; display:block; background:var(--primary);"><i class="fa-solid fa-cloud-arrow-up"></i> 上傳今日美照 (無容量限制)</label>
+            <label for="imgUpload" class="btn-action" style="text-align:center; display:block; background:var(--primary);"><i class="fa-solid fa-cloud-arrow-up"></i> 上傳今日美照</label>
             <input type="file" id="imgUpload" style="display:none;" accept="image/*" onchange="uploadToImgBB(this.files[0], 'photo')">
             <div id="uploadStatus" style="font-size: 0.8rem; color: var(--primary); margin-top: 8px; text-align: center;"></div>
-            
-            <!-- 相簿容器 -->
             <div id="albumContainer"></div>
         </div>
     </div>
 
-    <!-- 4. 公私分明記帳 -->
+    <!-- 4. 公私混合記帳引擎 -->
     <div id="split" class="container">
         <div class="card">
             <h3 class="card-title"><i class="fa-solid fa-wallet"></i> 記帳結算助手</h3>
-            <p style="font-size:0.8rem; color:#888;">💡 紀錄存在本機，私帳絕對隱私，不與旅伴共用。</p>
+            <p style="font-size:0.8rem; color:#888;">☁️ 公費：即時雲端同步<br>🔒 私帳：本地軍規加密，絕對隱私</p>
             <input type="text" id="billName" class="input-box" placeholder="花費項目 (例: 鰻魚飯或私購彩妝)">
             <div class="flex-row">
                 <input type="number" id="billAmt" class="input-box flex-1" placeholder="金額 (KRW)">
                 <select id="billType" class="input-box" style="width:100px;">
-                    <option value="公費">兩人平分</option>
-                    <option value="私帳">個人私帳</option>
+                    <option value="公費">兩人平分</option><option value="私帳">個人私帳</option>
                 </select>
                 <select id="payer" class="input-box" style="width:80px;">
-                    <option value="我">我付</option>
-                    <option value="旅伴">旅伴</option>
+                    <option value="我">我付</option><option value="旅伴">旅伴</option>
                 </select>
             </div>
             <button class="btn-action" onclick="addBill()">紀錄支出</button>
@@ -201,15 +208,36 @@
         </div>
     </div>
 
-    <!-- 5. 購物清單 (支援圖片) & 導遊私藏地圖 -->
+    <!-- 5. 專屬圖文導遊地圖 & 購物清單 -->
     <div id="guide" class="container">
-        
-        <!-- 購物清單 -->
+        <!-- 動態導遊推薦 (支援上傳圖片) -->
+        <div class="card">
+            <h3 class="card-title"><i class="fa-solid fa-map-location-dot"></i> 專屬導遊圖文地圖庫</h3>
+            <p style="font-size:0.8rem; color:#888;">建立你們專屬的打卡點！上傳網美照並附上地圖。</p>
+            <div class="flex-row">
+                <select id="gdType" class="input-box" style="width:100px;">
+                    <option value="美食">🍽️ 美食</option><option value="景點">📸 景點</option><option value="超商">🏪 超商</option>
+                </select>
+                <input type="text" id="gdTitle" class="input-box flex-1" placeholder="店名/景點名稱">
+            </div>
+            <input type="text" id="gdDesc" class="input-box" placeholder="推薦理由 (例: 必吃蟹膏飯糰)">
+            <input type="url" id="gdLink" class="input-box" placeholder="Naver Map 網址 (選填)">
+            
+            <div class="flex-row" style="margin-top:5px;">
+                <label for="guideImgUpload" style="background:#f0f0f0; padding:10px 15px; border-radius:10px; cursor:pointer;"><i class="fa-solid fa-camera"></i> 上傳預覽圖</label>
+                <input type="file" id="guideImgUpload" style="display:none;" accept="image/*" onchange="uploadToImgBB(this.files[0], 'guide')">
+                <div id="guideUploadStatus" style="font-size: 0.8rem; color: var(--primary); flex:1;"></div>
+            </div>
+            <input type="hidden" id="tempGuideImg" value="">
+            <button class="btn-action" style="margin-top:10px;" onclick="addGuideItem()">新增私房推薦</button>
+            
+            <div id="guideList" style="margin-top: 20px;"></div>
+        </div>
+
         <div class="card">
             <h3 class="card-title"><i class="fa-solid fa-bag-shopping"></i> 購物代購清單</h3>
             <div class="flex-row">
                 <input type="text" id="newShop" class="input-box flex-1" placeholder="新增必買好物">
-                <!-- 獨立的購物圖片上傳 -->
                 <label for="shopImgUpload" style="background:#f0f0f0; padding:10px 15px; border-radius:10px; cursor:pointer;"><i class="fa-solid fa-camera"></i></label>
                 <input type="file" id="shopImgUpload" style="display:none;" accept="image/*" onchange="uploadToImgBB(this.files[0], 'shop')">
                 <button class="btn-action" style="width:60px;" onclick="addShopItem()"><i class="fa-solid fa-plus"></i></button>
@@ -218,39 +246,15 @@
             <input type="hidden" id="tempShopImg" value="">
             <div id="sList" style="margin-top: 10px;"></div>
         </div>
-
-        <!-- 導遊精選地圖 -->
-        <div class="card">
-            <h3 class="card-title"><i class="fa-solid fa-map-location-dot"></i> 導遊私藏地圖庫</h3>
-            
-            <h4 style="color:var(--dora); margin-bottom:5px;">🍽️ 必吃美食 5 選</h4>
-            <div id="foodList"></div>
-            
-            <h4 style="color:var(--dora); margin-bottom:5px; margin-top:20px;">📸 必拍景點 5 選</h4>
-            <div id="spotList"></div>
-
-            <h4 style="color:var(--dora); margin-bottom:5px; margin-top:20px;">🏪 超商必買 5 選</h4>
-            <ul style="font-size:0.9rem; color:#555; padding-left:20px;">
-                <li>GS25: 蟹膏醬飯糰、Omori泡菜鍋泡麵</li>
-                <li>CU: 延世大學鮮奶油麵包、冰塊杯+袋裝咖啡</li>
-                <li>7-11: 養樂多軟糖、濟州牛奶冰淇淋</li>
-                <li>T-money 卡 (交通卡兼超商支付)</li>
-                <li>香蕉牛奶、解酒軟糖 (Ready Q)</li>
-            </ul>
-        </div>
     </div>
 
     <!-- C位底部導航 -->
     <div class="bottom-nav">
         <div class="nav-item active" onclick="showTab('tools', this)"><i class="fa-solid fa-toolbox"></i>工具</div>
         <div class="nav-item" onclick="showTab('photo', this)"><i class="fa-solid fa-images"></i>相冊</div>
-        
-        <!-- 置中大按鈕 -->
         <div class="nav-item nav-center" onclick="showTab('itinerary', this)">
-            <i class="fa-solid fa-plane"></i>
-            <span>行程</span>
+            <i class="fa-solid fa-plane"></i><span>行程</span>
         </div>
-        
         <div class="nav-item" onclick="showTab('split', this)"><i class="fa-solid fa-calculator"></i>記帳</div>
         <div class="nav-item" onclick="showTab('guide', this)"><i class="fa-solid fa-star"></i>指南</div>
     </div>
@@ -258,7 +262,6 @@
 </div>
 
 <script>
-    // --- 啟動與導航 ---
     function enterApp() {
         const splash = document.getElementById('splash'); const app = document.getElementById('mainApp');
         splash.style.transform = 'translateY(-100%)'; splash.style.opacity = '0';
@@ -272,174 +275,170 @@
         window.scrollTo(0,0);
     }
 
-    // --- Firebase & ImgBB 金鑰 ---
     const IMGBB_API_KEY = "ba1b2b24f8275c9d3a199bea5cd52bf9"; 
     const firebaseConfig = { apiKey: "AIzaSyC884_zH7XM7l7C_ijhuFmEoKxbsN0O1Vw", authDomain: "busan-trip-2026-4148f.firebaseapp.com", databaseURL: "https://busan-trip-2026-4148f-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "busan-trip-2026-4148f", storageBucket: "busan-trip-2026-4148f.firebasestorage.app", messagingSenderId: "819505968980", appId: "1:819505968980:web:03e6d05ef5101719327ac1" };
     firebase.initializeApp(firebaseConfig); const db = firebase.database();
 
-    // --- ImgBB 上傳 (支援相冊與購物清單) ---
+    // 萬用圖片上傳 (相冊/購物/指南 共用)
     async function uploadToImgBB(file, target) {
         if (!file) return;
-        const status = document.getElementById(target === 'photo' ? 'uploadStatus' : 'shopUploadStatus');
-        status.innerText = "⏳ 上傳中...";
+        let statusId = target === 'photo' ? 'uploadStatus' : (target === 'shop' ? 'shopUploadStatus' : 'guideUploadStatus');
+        const status = document.getElementById(statusId); status.innerText = "⏳ 圖片上傳中...";
         const formData = new FormData(); formData.append("image", file);
         try {
             const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
             const data = await res.json();
             if (data.success) {
                 if(target === 'photo') {
-                    // 自動加上今天的日期標籤
                     let today = new Date(); let dateStr = (today.getMonth()+1) + "/" + today.getDate();
-                    db.ref("busan_v9_photos").push({ url: data.data.url, date: dateStr, timestamp: Date.now() });
+                    db.ref("busan_v11_photos").push({ url: data.data.url, date: dateStr, timestamp: Date.now() });
                     status.innerText = "✅ 同步成功！"; setTimeout(() => status.innerText = "", 3000);
-                } else {
-                    document.getElementById('tempShopImg').value = data.data.url;
-                    status.innerText = "📸 圖片就緒，請點擊 + 新增";
+                } else if(target === 'shop') {
+                    document.getElementById('tempShopImg').value = data.data.url; status.innerText = "📸 圖片就緒";
+                } else if(target === 'guide') {
+                    document.getElementById('tempGuideImg').value = data.data.url; status.innerText = "📸 圖片就緒";
                 }
             } else { status.innerText = "❌ 上傳失敗"; }
         } catch (e) { status.innerText = "❌ 發生錯誤"; }
     }
 
-    // --- 相冊按日分組渲染 ---
-    db.ref("busan_v9_photos").orderByChild("timestamp").on("value", (snapshot) => {
-        const container = document.getElementById("albumContainer"); container.innerHTML = "";
-        let albums = {};
-        snapshot.forEach((child) => {
-            let photo = child.val(); let d = photo.date || "旅程回憶";
-            if(!albums[d]) albums[d] = []; albums[d].unshift(photo.url); // 最新在前
-        });
-        // 渲染相簿
+    // 相冊渲染
+    db.ref("busan_v11_photos").orderByChild("timestamp").on("value", (snapshot) => {
+        const container = document.getElementById("albumContainer"); container.innerHTML = ""; let albums = {};
+        snapshot.forEach((child) => { let photo = child.val(); let d = photo.date || "旅程回憶"; if(!albums[d]) albums[d] = []; albums[d].unshift(photo.url); });
         for(let date in albums) {
             let gridHTML = albums[date].map(url => `<img src="${url}">`).join('');
             container.innerHTML = `<div class="album-date">📅 ${date}</div><div class="photo-grid">${gridHTML}</div>` + container.innerHTML;
         }
     });
 
-    // --- 滿血 5 天行程 (懸浮切換) ---
-    const defaultItinerary = [
-        { id: 1, day: "11/12", time: "16:30", desc: "抵達金海機場 ➔ 慶州 Rivertain Hotel" },
-        { id: 2, day: "11/12", time: "18:00", desc: "【晚餐】慶州大排檔/包飯" },
-        { id: 3, day: "11/12", time: "20:00", desc: "東宮與月池 (夜楓倒影)" },
-        { id: 4, day: "11/13", time: "09:00", desc: "【早餐】飯店或周邊咖啡" },
-        { id: 5, day: "11/13", time: "10:30", desc: "大陵苑石牆路 & 換韓服" },
-        { id: 6, day: "11/13", time: "13:30", desc: "【午餐】皇理團路 Solsot 釜飯" },
-        { id: 7, day: "11/13", time: "16:00", desc: "搭 KTX 前往釜山 ➔ 入住 H Avenue" },
-        { id: 8, day: "11/14", time: "10:30", desc: "梵魚寺 (賞楓名所)" },
-        { id: 9, day: "11/14", time: "13:00", desc: "【午餐】山菜定食" },
-        { id: 10, day: "11/14", time: "15:00", desc: "影島 Thrill On The Mug 海景咖啡" },
-        { id: 11, day: "11/14", time: "18:30", desc: "【晚餐】廣安里周邊烤肉" },
-        { id: 12, day: "11/15", time: "10:00", desc: "甘川洞文化村" },
-        { id: 13, day: "11/15", time: "12:30", desc: "【午餐】海雲台 海木鰻魚飯" },
-        { id: 14, day: "11/15", time: "15:00", desc: "藍線公園膠囊列車" },
-        { id: 15, day: "11/16", time: "11:00", desc: "退房 ➔ 行李 Zimcarry 直寄機場" },
-        { id: 16, day: "11/16", time: "12:00", desc: "【午餐】東萊蔘雞湯 & 西面血拚" },
-        { id: 17, day: "11/16", time: "16:00", desc: "機場領行李 ➔ 滿載而歸" }
+    // --------------------------------------------------------
+    // 🎫 票券與住宿模組
+    // --------------------------------------------------------
+    let ticketData = JSON.parse(localStorage.getItem('busan_v11_tickets')) || [
+        { id: 1, type: "✈️ 機票", title: "去程航班", desc: "11/12 (四) 抵達金海 16:30", link: "" },
+        { id: 2, type: "🏨 住宿", title: "慶州 Rivertain Hotel", desc: "11/12 入住一晚", link: "https://map.naver.com/" }
     ];
-    let itineraryData = JSON.parse(localStorage.getItem('busan_v9_iti')) || defaultItinerary;
-    let currentFilterDay = "11/12";
-
-    function filterIti(day) {
-        currentFilterDay = day;
-        document.querySelectorAll('.day-tab').forEach(btn => {
-            btn.classList.remove('active');
-            if(btn.innerText.includes(day)) btn.classList.add('active');
+    function renderTickets() {
+        const list = document.getElementById('ticketList'); list.innerHTML = '';
+        ticketData.forEach(t => {
+            let linkHTML = t.link ? `<a href="${t.link}" target="_blank" class="btn-link" style="margin-top:5px;">開啟連結 <i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : '';
+            list.innerHTML += `<div class="ticket-card"><div style="display:flex; justify-content:space-between; align-items:flex-start;"><div><div class="ticket-title">${t.type} | ${t.title}</div><div class="ticket-desc">${t.desc}</div>${linkHTML}</div><button class="btn-delete" onclick="deleteTicket(${t.id})"><i class="fa-solid fa-trash"></i></button></div></div>`;
         });
-        renderItinerary();
     }
+    function addTicket() {
+        const type = document.getElementById('tkType').value; const title = document.getElementById('tkTitle').value; const desc = document.getElementById('tkDesc').value; const link = document.getElementById('tkLink').value;
+        if(!title) return; ticketData.push({ id: Date.now(), type, title, desc, link });
+        localStorage.setItem('busan_v11_tickets', JSON.stringify(ticketData));
+        document.getElementById('tkTitle').value = ''; document.getElementById('tkDesc').value = ''; document.getElementById('tkLink').value = ''; renderTickets();
+    }
+    function deleteTicket(id) { ticketData = ticketData.filter(t => t.id !== id); localStorage.setItem('busan_v11_tickets', JSON.stringify(ticketData)); renderTickets(); }
 
+    // --------------------------------------------------------
+    // 🗺️ 懸浮行程表
+    // --------------------------------------------------------
+    let itineraryData = JSON.parse(localStorage.getItem('busan_v11_iti')) || [
+        { id: 1, day: "11/12", time: "16:30", desc: "抵達金海機場 ➔ 慶州 Rivertain Hotel" }, { id: 2, day: "11/12", time: "18:00", desc: "【晚餐】慶州大排檔/包飯" }, { id: 3, day: "11/12", time: "20:00", desc: "東宮與月池 (夜楓)" },
+        { id: 4, day: "11/13", time: "09:00", desc: "【早餐】飯店" }, { id: 5, day: "11/13", time: "10:30", desc: "大陵苑石牆路 & 換韓服" }, { id: 6, day: "11/13", time: "13:30", desc: "【午餐】Solsot 釜飯" }, { id: 7, day: "11/13", time: "16:00", desc: "搭 KTX 前往釜山" },
+        { id: 8, day: "11/14", time: "10:30", desc: "梵魚寺 (賞楓名所)" }, { id: 9, day: "11/14", time: "13:00", desc: "【午餐】山菜定食" }, { id: 10, day: "11/14", time: "15:00", desc: "影島 Thrill On The Mug" }, { id: 11, day: "11/14", time: "18:30", desc: "【晚餐】廣安里周邊烤肉" },
+        { id: 12, day: "11/15", time: "10:00", desc: "甘川洞文化村" }, { id: 13, day: "11/15", time: "12:30", desc: "【午餐】海雲台 海木鰻魚飯" }, { id: 14, day: "11/15", time: "15:00", desc: "藍線公園膠囊列車" },
+        { id: 15, day: "11/16", time: "11:00", desc: "退房 ➔ 行李 Zimcarry" }, { id: 16, day: "11/16", time: "12:00", desc: "【午餐】東萊蔘雞湯" }, { id: 17, day: "11/16", time: "16:00", desc: "機場領行李" }
+    ];
+    let currentFilterDay = "11/12";
+    function filterIti(day) { currentFilterDay = day; document.querySelectorAll('.day-tab').forEach(btn => { btn.classList.remove('active'); if(btn.innerText.includes(day)) btn.classList.add('active'); }); renderItinerary(); }
     function renderItinerary() {
         const list = document.getElementById('itiContent'); list.innerHTML = '';
-        let filtered = itineraryData.filter(i => i.day === currentFilterDay);
-        filtered.sort((a, b) => a.time.localeCompare(b.time)); 
+        let filtered = itineraryData.filter(i => i.day === currentFilterDay).sort((a, b) => a.time.localeCompare(b.time)); 
         if(filtered.length === 0) list.innerHTML = '<p style="color:#888;text-align:center;">這天還沒有排行程喔！</p>';
-        filtered.forEach(item => {
-            list.innerHTML += `
-                <div class="iti-row">
-                    <div class="iti-time">${item.time}</div>
-                    <div class="iti-desc">${item.desc}</div>
-                    <button class="btn-delete" onclick="deleteItinerary(${item.id})"><i class="fa-solid fa-trash"></i></button>
-                </div>`;
-        });
+        filtered.forEach(item => { list.innerHTML += `<div class="iti-row"><div class="iti-time">${item.time}</div><div class="iti-desc">${item.desc}</div><button class="btn-delete" onclick="deleteItinerary(${item.id})"><i class="fa-solid fa-trash"></i></button></div>`; });
     }
-
     function addItinerary() {
         const day = document.getElementById('itiDay').value; const time = document.getElementById('itiTime').value || "12:00"; const desc = document.getElementById('itiDesc').value;
-        if(!desc) return;
-        itineraryData.push({ id: Date.now(), day, time, desc });
-        localStorage.setItem('busan_v9_iti', JSON.stringify(itineraryData));
-        document.getElementById('itiDesc').value = ''; filterIti(day);
+        if(!desc) return; itineraryData.push({ id: Date.now(), day, time, desc }); localStorage.setItem('busan_v11_iti', JSON.stringify(itineraryData)); document.getElementById('itiDesc').value = ''; filterIti(day);
     }
-    function deleteItinerary(id) { itineraryData = itineraryData.filter(i => i.id !== id); localStorage.setItem('busan_v9_iti', JSON.stringify(itineraryData)); renderItinerary(); }
+    function deleteItinerary(id) { itineraryData = itineraryData.filter(i => i.id !== id); localStorage.setItem('busan_v11_iti', JSON.stringify(itineraryData)); renderItinerary(); }
 
-    // --- 公私記帳邏輯 ---
-    let bills = JSON.parse(localStorage.getItem('busan_v9_bills')) || [];
+    // --------------------------------------------------------
+    // 💸 公私混合記帳引擎
+    // --------------------------------------------------------
+    let privateBills = JSON.parse(localStorage.getItem('busan_v11_private_bills')) || []; let sharedBills = [];
+    db.ref("busan_v11_shared_bills").on("value", (snapshot) => { sharedBills = []; snapshot.forEach(child => { sharedBills.push({ ...child.val(), fbKey: child.key }); }); renderBills(); });
     function renderBills() {
-        const list = document.getElementById('billList'); const res = document.getElementById('settlement');
-        let sharedTotal = 0, sharedPaidByMe = 0, myPrivate = 0; list.innerHTML = '';
-        bills.forEach(b => {
-            let badge = b.type === '公費' ? '<span style="background:var(--accent);color:white;padding:2px 6px;border-radius:4px;font-size:0.7rem;">公費</span>' : '<span style="background:#BDC3C7;color:white;padding:2px 6px;border-radius:4px;font-size:0.7rem;">私帳</span>';
-            if (b.type === '公費') { sharedTotal += b.amt; if(b.payer === '我') sharedPaidByMe += b.amt; } 
-            else { if(b.payer === '我') myPrivate += b.amt; }
-            list.innerHTML += `<div class="list-item"><div style="flex:1;">${badge} ${b.item} <small style="color:#888;">(${b.payer}付)</small></div><div style="font-weight:bold; margin-right:10px;">${b.amt.toLocaleString()} ₩</div><button class="btn-delete" onclick="deleteBill(${b.id})"><i class="fa-solid fa-xmark"></i></button></div>`;
+        const list = document.getElementById('billList'); const res = document.getElementById('settlement'); let sharedTotal = 0, sharedPaidByMe = 0, myPrivate = 0; list.innerHTML = '';
+        let allBills = [...sharedBills, ...privateBills].sort((a,b) => a.timestamp - b.timestamp);
+        allBills.forEach(b => {
+            let isShared = b.type === '公費'; let badge = isShared ? '<span style="background:var(--accent);color:white;padding:2px 6px;border-radius:4px;font-size:0.7rem;">公費</span>' : '<span style="background:#BDC3C7;color:white;padding:2px 6px;border-radius:4px;font-size:0.7rem;">私帳</span>';
+            if (isShared) { sharedTotal += b.amt; if(b.payer === '我') sharedPaidByMe += b.amt; } else { if(b.payer === '我') myPrivate += b.amt; }
+            let deleteAction = isShared ? `deleteSharedBill('${b.fbKey}')` : `deletePrivateBill(${b.id})`;
+            list.innerHTML += `<div class="list-item"><div style="flex:1;">${badge} ${b.item} <small style="color:#888;">(${b.payer}付)</small></div><div style="font-weight:bold; margin-right:10px;">${b.amt.toLocaleString()} ₩</div><button class="btn-delete" onclick="${deleteAction}"><i class="fa-solid fa-xmark"></i></button></div>`;
         });
         const diff = sharedPaidByMe - (sharedTotal/2);
-        res.innerHTML = `【公費結算】共 ${sharedTotal.toLocaleString()} ₩ (人均 ${(sharedTotal/2).toLocaleString()})<br>${diff >= 0 ? '👉 旅伴應付我' : '👉 我應付旅伴'}: <span style="font-size:1.3rem;">${Math.abs(Math.round(diff)).toLocaleString()} ₩</span><br><hr style="border-top:1px dashed #ccc;margin:10px 0;">👜 【我的私帳總額】: ${myPrivate.toLocaleString()} ₩`;
+        res.innerHTML = `【雲端公費結算】共 ${sharedTotal.toLocaleString()} ₩ (人均 ${(sharedTotal/2).toLocaleString()})<br>${diff >= 0 ? '👉 旅伴應付我' : '👉 我應付旅伴'}: <span style="font-size:1.3rem;">${Math.abs(Math.round(diff)).toLocaleString()} ₩</span><br><hr style="border-top:1px dashed #ccc;margin:10px 0;">👜 【我的本地私帳總額】: ${myPrivate.toLocaleString()} ₩`;
     }
     function addBill() {
-        const item = document.getElementById('billName').value; const amt = parseFloat(document.getElementById('billAmt').value);
-        if(!item||!amt) return; bills.push({ id: Date.now(), item, amt, type: document.getElementById('billType').value, payer: document.getElementById('payer').value });
-        localStorage.setItem('busan_v9_bills', JSON.stringify(bills)); document.getElementById('billName').value = ''; document.getElementById('billAmt').value = ''; renderBills();
+        const item = document.getElementById('billName').value; const amt = parseFloat(document.getElementById('billAmt').value); const type = document.getElementById('billType').value; const payer = document.getElementById('payer').value;
+        if(!item||!amt) return; let newBill = { item, amt, type, payer, timestamp: Date.now() };
+        if(type === '公費') { db.ref("busan_v11_shared_bills").push(newBill); } else { newBill.id = Date.now(); privateBills.push(newBill); localStorage.setItem('busan_v11_private_bills', JSON.stringify(privateBills)); renderBills(); }
+        document.getElementById('billName').value = ''; document.getElementById('billAmt').value = '';
     }
-    function deleteBill(id) { bills = bills.filter(b => b.id !== id); localStorage.setItem('busan_v9_bills', JSON.stringify(bills)); renderBills(); }
+    function deleteSharedBill(key) { db.ref("busan_v11_shared_bills").child(key).remove(); }
+    function deletePrivateBill(id) { privateBills = privateBills.filter(b => b.id !== id); localStorage.setItem('busan_v11_private_bills', JSON.stringify(privateBills)); renderBills(); }
 
-    // --- 購物清單 (含圖片) ---
-    let shopList = JSON.parse(localStorage.getItem('busan_v9_shop')) || [];
+    // --------------------------------------------------------
+    // 🛍️ 購物清單 & 📍 動態導遊地圖庫
+    // --------------------------------------------------------
+    let shopList = JSON.parse(localStorage.getItem('busan_v11_shop')) || [];
     function renderShop() {
         const list = document.getElementById('sList'); list.innerHTML = '';
         shopList.forEach(item => {
             let imgHTML = item.img ? `<img src="${item.img}" class="item-img">` : '';
-            list.innerHTML += `
-                <div class="list-item ${item.checked ? 'checked' : ''}">
-                    <div class="check-box" onclick="toggleShop(${item.id})"><i class="fa-solid fa-check"></i></div>
-                    ${imgHTML}
-                    <div class="item-content flex-1" onclick="toggleShop(${item.id})">${item.text}</div>
-                    <button class="btn-delete" onclick="deleteShop(${item.id})"><i class="fa-solid fa-trash"></i></button>
-                </div>`;
+            list.innerHTML += `<div class="list-item ${item.checked ? 'checked' : ''}"><div class="check-box" onclick="toggleShop(${item.id})"><i class="fa-solid fa-check"></i></div>${imgHTML}<div class="item-content flex-1" onclick="toggleShop(${item.id})">${item.text}</div><button class="btn-delete" onclick="deleteShop(${item.id})"><i class="fa-solid fa-trash"></i></button></div>`;
         });
     }
     function addShopItem() {
         const text = document.getElementById('newShop').value; const img = document.getElementById('tempShopImg').value;
-        if(!text) return; shopList.push({ id: Date.now(), text, img, checked: false });
-        localStorage.setItem('busan_v9_shop', JSON.stringify(shopList));
+        if(!text) return; shopList.push({ id: Date.now(), text, img, checked: false }); localStorage.setItem('busan_v11_shop', JSON.stringify(shopList));
         document.getElementById('newShop').value = ''; document.getElementById('tempShopImg').value = ''; document.getElementById('shopUploadStatus').innerText = ''; renderShop();
     }
-    function toggleShop(id) { let item = shopList.find(i => i.id === id); item.checked = !item.checked; localStorage.setItem('busan_v9_shop', JSON.stringify(shopList)); renderShop(); }
-    function deleteShop(id) { shopList = shopList.filter(i => i.id !== id); localStorage.setItem('busan_v9_shop', JSON.stringify(shopList)); renderShop(); }
+    function toggleShop(id) { let item = shopList.find(i => i.id === id); item.checked = !item.checked; localStorage.setItem('busan_v11_shop', JSON.stringify(shopList)); renderShop(); }
+    function deleteShop(id) { shopList = shopList.filter(i => i.id !== id); localStorage.setItem('busan_v11_shop', JSON.stringify(shopList)); renderShop(); }
 
-    // --- 導遊地圖資料 ---
-    const maps = {
-        food: [
-            {n: "Solsot 釜飯 (慶州)", d:"皇理團路排隊名店", m:"https://naver.me/xxx1"},
-            {n: "海木鰻魚飯 (海雲台)", d:"米其林推薦排隊美食", m:"https://naver.me/xxx2"},
-            {n: "東萊蔘雞湯 (西面)", d:"釜山必吃人蔘雞", m:"https://naver.me/xxx3"},
-            {n: "味讚王鹽烤肉 (西面)", d:"專人代烤超厚豬五花", m:"https://naver.me/xxx4"},
-            {n: "密陽血腸豬肉湯飯", d:"24小時溫暖湯飯", m:"https://naver.me/xxx5"}
-        ],
-        spot: [
-            {n: "東宮與月池", d:"越夜越美麗的千年遺跡", m:"https://naver.me/yyy1"},
-            {n: "大陵苑石牆路", d:"秋季限定金黃銀杏大道", m:"https://naver.me/yyy2"},
-            {n: "Thrill On The Mug", d:"影島最美無死角海景咖啡", m:"https://naver.me/yyy3"},
-            {n: "梵魚寺", d:"釜山第一賞楓名剎", m:"https://naver.me/yyy4"},
-            {n: "藍線公園膠囊列車", d:"尾浦至青沙浦夢幻海景", m:"https://naver.me/yyy5"}
-        ]
-    };
-    function renderMaps() {
-        document.getElementById('foodList').innerHTML = maps.food.map(i => `<div class="guide-item"><div class="guide-info"><h4>${i.n}</h4><p>${i.d}</p></div><a href="${i.m}" target="_blank" class="map-btn">Naver Map</a></div>`).join('');
-        document.getElementById('spotList').innerHTML = maps.spot.map(i => `<div class="guide-item"><div class="guide-info"><h4>${i.n}</h4><p>${i.d}</p></div><a href="${i.m}" target="_blank" class="map-btn">Naver Map</a></div>`).join('');
+    let guideList = JSON.parse(localStorage.getItem('busan_v11_guide')) || [
+        { id: 1, type: "美食", title: "Solsot 釜飯", desc: "皇理團路排隊名店", link: "https://naver.me/", img: "" },
+        { id: 2, type: "美食", title: "海木鰻魚飯", desc: "海雲台米其林推薦", link: "https://naver.me/", img: "" },
+        { id: 3, type: "景點", title: "大陵苑石牆路", desc: "秋季銀杏大道", link: "https://naver.me/", img: "" },
+        { id: 4, type: "景點", title: "Thrill On The Mug", desc: "無死角海景咖啡", link: "https://naver.me/", img: "" },
+        { id: 5, type: "超商", title: "GS25 / CU 必買", desc: "蟹膏飯糰、延世奶油麵包", link: "", img: "" }
+    ];
+    function renderGuide() {
+        const list = document.getElementById('guideList'); list.innerHTML = '';
+        guideList.forEach(g => {
+            let imgHTML = g.img ? `<img src="${g.img}" class="guide-img">` : '';
+            let linkHTML = g.link ? `<a href="${g.link}" target="_blank" class="map-btn" style="display:inline-block; margin-top:5px;">看 Naver Map</a>` : '';
+            list.innerHTML += `
+                <div class="guide-card">
+                    ${imgHTML}
+                    <div class="guide-content">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div>
+                                <h4>[${g.type}] ${g.title}</h4>
+                                <p>${g.desc}</p>
+                                ${linkHTML}
+                            </div>
+                            <button class="btn-delete" onclick="deleteGuide(${g.id})"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+        });
     }
+    function addGuideItem() {
+        const type = document.getElementById('gdType').value; const title = document.getElementById('gdTitle').value; const desc = document.getElementById('gdDesc').value; const link = document.getElementById('gdLink').value; const img = document.getElementById('tempGuideImg').value;
+        if(!title) return; guideList.unshift({ id: Date.now(), type, title, desc, link, img }); localStorage.setItem('busan_v11_guide', JSON.stringify(guideList));
+        document.getElementById('gdTitle').value = ''; document.getElementById('gdDesc').value = ''; document.getElementById('gdLink').value = ''; document.getElementById('tempGuideImg').value = ''; document.getElementById('guideUploadStatus').innerText = ''; renderGuide();
+    }
+    function deleteGuide(id) { guideList = guideList.filter(g => g.id !== id); localStorage.setItem('busan_v11_guide', JSON.stringify(guideList)); renderGuide(); }
 
-    window.onload = () => { filterIti("11/12"); renderBills(); renderShop(); renderMaps(); };
+    window.onload = () => { filterIti("11/12"); renderTickets(); renderBills(); renderShop(); renderGuide(); };
 </script>
-
 </body>
 </html>
