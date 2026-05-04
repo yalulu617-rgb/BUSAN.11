@@ -9,7 +9,7 @@
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="icon" href="icon.png" type="image/png">
     <link id="manifest-link" rel="manifest" href="">
-    <title>釜山慶州秋之旅 V31</title>
+    <title>釜山慶州秋之旅 V33</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -47,10 +47,9 @@
         .container.active { display: block; }
         @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        .card { background: var(--card-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 32px; padding: 25px; margin-bottom: 22px; box-shadow: var(--shadow); border: 1px solid rgba(255, 255, 255, 0.9); transition: 0.3s; }
+        .card { background: var(--card-bg); backdrop-filter: blur(16px); border-radius: 32px; padding: 25px; margin-bottom: 22px; box-shadow: var(--shadow); border: 1px solid rgba(255, 255, 255, 0.9); transition: 0.3s; }
         .card-title { color: var(--primary); font-weight: 900; border-bottom: 2px dashed rgba(243, 156, 18, 0.3); padding-bottom: 12px; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; font-size: 1.15rem;}
 
-        /* 導航列：指南、記帳、手帳、購物、相冊 */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(255,255,255,0.95); backdrop-filter: blur(25px); display: flex; justify-content: space-around; align-items: center; padding: 10px 0 25px; border-top: 1px solid rgba(255,255,255,0.5); z-index: 2000; box-shadow: 0 -10px 40px rgba(0,0,0,0.06); }
         .nav-item { display: flex; flex-direction: column; align-items: center; gap: 6px; color: #a5b1c2; font-size: 0.75rem; cursor: pointer; width: 18%; font-weight: 900; transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1); }
         .nav-item.active { color: var(--dora); transform: translateY(-4px); text-shadow: 0 4px 10px var(--glow); }
@@ -61,7 +60,6 @@
         .nav-center i { font-size: 1.8rem; }
 
         .input-box { width: 100%; padding: 15px 18px; margin-bottom: 12px; border: none; border-radius: 18px; font-size: 0.95rem; background: rgba(255,255,255,0.95); font-weight: 700; color: var(--text-dark); box-shadow: inset 0 2px 5px rgba(0,0,0,0.02); transition: 0.2s;}
-        .input-box:focus { outline: none; box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.2); }
         .flex-row { display: flex; gap: 10px; align-items: center; }
         .flex-1 { flex: 1; }
         
@@ -80,13 +78,6 @@
         .day-tab:active { transform: scale(0.95); }
         .day-tab.active { background: var(--primary); color: white; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(192, 57, 43, 0.3);}
         
-        .iti-row { display: flex; align-items: flex-start; margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px dashed rgba(0,0,0,0.08); }
-        .iti-time { font-weight: 900; color: var(--dora); width: 68px; flex-shrink: 0; font-size: 1.15rem; }
-        .iti-desc { flex: 1; padding-right: 12px; line-height: 1.6; font-size: 0.98rem; font-weight: 700;}
-        .traffic-tag { background: #f1f2f6; color: #555; padding: 3px 8px; border-radius: 8px; font-size: 0.75rem; display: inline-block; margin-top: 4px; border: 1px solid #e0e0e0;}
-        .map-tag { background: #03C75A; color: white; padding: 4px 10px; border-radius: 10px; font-size: 0.8rem; text-decoration: none; font-weight: 900; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 4px 10px rgba(3, 199, 90, 0.2); transition: 0.2s;}
-        .map-tag:active { transform: scale(0.92); }
-
         /* 拍立得特效 */
         .album-date { font-weight: 900; color: var(--primary); font-size: 1.3rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 3px solid rgba(243, 156, 18, 0.3); display: flex; align-items: center; gap: 10px; }
         .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; padding-bottom: 20px;}
@@ -94,11 +85,14 @@
         .polaroid:active { transform: scale(0.95) !important; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         .polaroid img { width: 100%; height: 160px; object-fit: cover; background: #eee; border: 1px solid #f0f0f0; }
         
+        /* 沉浸式查看器 (新增刪除按鈕空間) */
         #lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(15px); opacity: 0; transition: 0.3s ease;}
         .lightbox-controls { position: absolute; top: 30px; right: 20px; display: flex; gap: 15px; z-index: 10000; }
+        .lightbox-controls-left { position: absolute; top: 30px; left: 20px; z-index: 10000; }
         .btn-lb { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); padding: 10px 18px; border-radius: 12px; font-weight: 900; cursor: pointer; font-size: 0.95rem; backdrop-filter: blur(5px); transition: 0.2s;}
         .btn-lb:active { transform: scale(0.9); }
         .btn-lb.dl { background: var(--accent); border: none; box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);}
+        .btn-lb.del { background: #E74C3C; border: none; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);}
         #lightbox-img { max-width: 95%; max-height: 80vh; border-radius: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.5); transform: scale(0.9); transition: 0.3s;}
         
         .guide-card { border: 2px solid #fff; border-radius: 24px; overflow: hidden; margin-bottom: 20px; background: rgba(255,255,255,0.8); box-shadow: 0 10px 25px rgba(0,0,0,0.04);}
@@ -107,11 +101,9 @@
         .shop-item { display: flex; align-items: center; padding: 18px; border-radius: 20px; background: rgba(255,255,255,0.9); margin-bottom: 12px; border: 2px solid #fff; box-shadow: 0 6px 20px rgba(0,0,0,0.04); transition: 0.2s;}
         .shop-item:active { transform: scale(0.98); box-shadow: 0 2px 10px rgba(0,0,0,0.02);}
         .check-box { width: 30px; height: 30px; border: 3px solid #bdc3c7; border-radius: 10px; margin-right: 15px; display: flex; align-items: center; justify-content: center; color: transparent; cursor:pointer; transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);}
-        .check-box:active { transform: scale(0.8); }
         .checked .check-box { background: var(--dora); border-color: var(--dora); color: white; transform: scale(1.1); }
         .checked .item-content { opacity: 0.4; text-decoration: line-through; }
         .item-img { width: 60px; height: 60px; border-radius: 14px; object-fit: cover; margin-right: 15px; border: 2px solid #ecf0f1;}
-        .cat-tag { background: var(--accent); color: white; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 900; margin-bottom: 4px; display: inline-block;}
         
         .fx-card { background: linear-gradient(135deg, #2C3E50, #34495E); color: white; border-radius: 20px; padding: 18px; margin-bottom: 20px; box-shadow: 0 10px 25px rgba(44, 62, 80, 0.4); display: flex; align-items: center; justify-content: space-between;}
         
@@ -120,38 +112,44 @@
         .folder-card:active { transform: scale(0.95); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .folder-card i { font-size: 2.5rem; margin-bottom: 15px; background: -webkit-linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .folder-card h3 { margin: 0; font-size: 1.1rem; color: var(--text-dark); font-weight: 900; }
-        .folder-card p { margin: 5px 0 0; font-size: 0.8rem; color: #7f8c8d; font-weight: 700; }
-
-        .btn-back { background: rgba(255,255,255,0.9); color: var(--text-dark); border: 2px solid #ecf0f1; padding: 12px 20px; border-radius: 16px; font-weight: 900; cursor: pointer; display: flex; align-items: center; gap: 8px; margin-bottom: 20px; transition: 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.03);}
-        .btn-back:active { transform: scale(0.95); }
-
-        /* 入境須知特製卡片 */
-        .alert-card { background: linear-gradient(135deg, rgba(255,234,234,0.9), rgba(255,255,255,0.9)); border-left: 6px solid #E74C3C; border-radius: 20px; padding: 20px; margin-bottom: 22px; box-shadow: 0 8px 25px rgba(231, 76, 60, 0.1); }
-        .alert-card h4 { color: #E74C3C; margin: 0 0 10px 0; font-size: 1.1rem; }
-        .alert-list { list-style: none; padding: 0; margin: 0; font-size: 0.95rem; line-height: 1.6; color: #444; font-weight: 700; }
-        .alert-list li { margin-bottom: 8px; padding-left: 20px; position: relative; }
-        .alert-list li::before { content: '🚨'; position: absolute; left: 0; top: 0; font-size: 0.85rem; }
         
-        /* 私人密碼鎖 Modal */
+        .fab-back { position: fixed; bottom: 100px; right: 20px; background: rgba(255,255,255,0.95); color: var(--primary); border: 2px solid var(--primary); width: 55px; height: 55px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; box-shadow: 0 10px 25px rgba(192,57,43,0.3); z-index: 1999; cursor: pointer; backdrop-filter: blur(10px); transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: none;}
+        .fab-back:active { transform: scale(0.85); box-shadow: 0 4px 10px rgba(192,57,43,0.4); }
+
+        .prep-list { display: flex; flex-direction: column; gap: 10px; }
+        .prep-item { background: rgba(255,255,255,0.9); padding: 15px; border-radius: 16px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #eee; transition: 0.2s; cursor:pointer;}
+        .prep-item:active { transform: scale(0.98); }
+        .prep-check { width: 26px; height: 26px; border: 2px solid #bdc3c7; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: transparent; transition: 0.2s; }
+        .prep-item.done .prep-check { background: #27AE60; border-color: #27AE60; color: white; }
+        .prep-item.done .prep-text { color: #95a5a6; text-decoration: line-through; }
+        .prep-text { flex: 1; font-weight: 900; color: var(--text-dark); font-size: 1.05rem; }
+
+        .voice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .voice-card { background: rgba(255,255,255,0.9); padding: 18px 12px; border-radius: 18px; text-align: center; border: 1px solid #eee; box-shadow: 0 4px 15px rgba(0,0,0,0.03); cursor: pointer; transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .voice-card:active { transform: scale(0.92); box-shadow: 0 2px 8px rgba(0,0,0,0.05); background: #fdfdfd;}
+        .voice-card i { font-size: 1.5rem; color: var(--dora); margin-bottom: 8px; display: block; }
+        .voice-card span { font-size: 0.8rem; color: #7f8c8d; font-weight: 900; }
+        .voice-card b { font-size: 1.1rem; color: var(--primary); display: block; margin-top: 4px; }
+        
         #pinModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(15px); }
         .pin-box { background: #fff; padding: 35px 30px; border-radius: 28px; width: 85%; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
         .pin-input { width: 100%; padding: 15px; border-radius: 16px; border: 2px solid #ecf0f1; text-align: center; font-size: 2rem; letter-spacing: 15px; margin-bottom: 20px; font-weight: 900; color: var(--primary); background: #fdfdfd;}
-        .pin-input:focus { outline: none; border-color: var(--primary); }
     </style>
 </head>
 <body>
 
 <script>
-    const manifestJSON = {
-      "name": "釜山慶州秋之旅 V31",
-      "short_name": "皇家隱私",
-      "start_url": ".",
-      "display": "standalone",
-      "background_color": "#FFF9F2",
-      "theme_color": "#FFF9F2",
-      "icons": [{"src": "icon.png", "sizes": "512x512", "type": "image/png"}]
+    // ⭐️ 優化 APP 桌面顯示名稱為「哆啦秋遊」
+    const manifestJSON = { 
+        "name": "釜山慶州秋之旅", 
+        "short_name": "哆啦秋遊", 
+        "start_url": ".", 
+        "display": "standalone", 
+        "background_color": "#FFF9F2", 
+        "theme_color": "#FFF9F2", 
+        "icons": [{"src": "icon.png", "sizes": "512x512", "type": "image/png"}] 
     };
-    const blob = new Blob([JSON.stringify(manifestJSON)], {type: 'application/json'});
+    const blob = new Blob([JSON.stringify(manifestJSON)], {type: 'application/json'}); 
     document.getElementById('manifest-link').setAttribute('href', URL.createObjectURL(blob));
 </script>
 
@@ -159,49 +157,48 @@
     <div class="splash-card">
         <h1>2026 BUSAN</h1>
         <h2 style="margin:8px 0; color:var(--text-dark); font-weight:900;">秋季雙城・皇家旅程</h2>
-        <p style="color:var(--dora); font-weight:700;">V31 皇家隱私防護版</p>
+        <p style="color:var(--dora); font-weight:700;">V33 典藏極致掌控版</p>
     </div>
     <button class="btn-enter" onclick="enterApp()">進入專屬系統 <i class="fa-solid fa-plane-departure"></i></button>
 </div>
 
-<!-- 密碼鎖 Modal -->
 <div id="pinModal">
     <div class="pin-box">
-        <h3 style="color:var(--primary); margin:0 0 10px 0;"><i class="fa-solid fa-lock"></i> 私人空間解鎖</h3>
-        <p style="font-size:0.95rem; color:#666; font-weight:700; margin-bottom:20px;" id="pinMsg">請輸入 4 位數專屬密碼</p>
+        <h3 style="color:var(--primary); margin:0 0 10px 0;"><i class="fa-solid fa-lock"></i> 私密空間解鎖</h3>
+        <p style="font-size:0.95rem; color:#666; font-weight:700; margin-bottom:20px;" id="pinMsg">請輸入旅行專屬密碼</p>
         <input type="password" id="pinInput" class="pin-input" maxlength="4" pattern="\d*" inputmode="numeric">
         <div style="display:flex; gap:12px;">
             <button onclick="cancelPin()" style="flex:1; padding:15px; border-radius:16px; border:none; background:#ecf0f1; color:#7f8c8d; font-weight:900; font-size:1.05rem;">取消</button>
-            <button onclick="submitPin()" style="flex:1; padding:15px; border-radius:16px; border:none; background:var(--primary); color:white; font-weight:900; font-size:1.05rem; box-shadow:0 4px 15px rgba(192,57,43,0.3);">確認</button>
+            <button onclick="submitPin()" style="flex:1; padding:15px; border-radius:16px; border:none; background:var(--primary); color:white; font-weight:900; font-size:1.05rem;">解鎖</button>
         </div>
     </div>
 </div>
 
-<!-- Lightbox -->
 <div id="lightbox">
+    <div class="lightbox-controls-left">
+        <button class="btn-lb del" id="btnDeletePhoto" onclick="deleteCurrentPhoto()"><i class="fa-solid fa-trash"></i> 刪除</button>
+    </div>
     <div class="lightbox-controls">
-        <button class="btn-lb dl" id="btnDownload" onclick="downloadImage()"><i class="fa-solid fa-download"></i> 下載原圖</button>
-        <button class="btn-lb" onclick="closeLightbox()"><i class="fa-solid fa-xmark"></i> 關閉</button>
+        <button class="btn-lb dl" onclick="downloadImage()"><i class="fa-solid fa-download"></i> 原圖</button>
+        <button class="btn-lb" onclick="closeLightbox()"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <img id="lightbox-img" src="">
 </div>
 
+<div class="fab-back" id="fabBack" onclick="closeGuideFolder()"><i class="fa-solid fa-arrow-left"></i></div>
+
 <div id="mainApp">
 
-    <!-- 1. 滿血導遊指南庫 (首頁預設) -->
+    <!-- 1. 滿血導遊指南庫 -->
     <div id="guide" class="container active">
         
-        <!-- Dashboard 首頁 -->
         <div id="guideDashboard">
-            
-            <!-- 🚨 置頂重要須知 -->
-            <div class="alert-card">
-                <h4><i class="fa-solid fa-triangle-exclamation fa-fade"></i> 韓國行前與入境必備</h4>
-                <ul class="alert-list">
-                    <li><b>K-ETA (電子旅行許可)：</b>出發前 72 小時須至官網申請，費用 1 萬韓元 (約 240 台幣)。若曾在 3 年內申請過且未過期則免辦。</li>
-                    <li><b>Q-Code (健康聲明)：</b>出發前 3 天內線上填寫，截圖保存 QR Code，通關最快速。</li>
-                    <li><b>隨身必備 Checklist：</b>護照、WOWPASS、台幣現金、行動電源、Skechers 好走鞋。</li>
-                </ul>
+            <div class="card" style="background: linear-gradient(135deg, rgba(255,234,234,0.9), rgba(255,255,255,0.9)); border-left: 6px solid #E74C3C;">
+                <h4 style="color: #E74C3C; margin: 0 0 12px 0; font-size: 1.1rem;"><i class="fa-solid fa-triangle-exclamation fa-fade"></i> 行前與通關必備</h4>
+                <div style="font-size: 0.95rem; line-height: 1.6; color: #444; font-weight: 700; margin-bottom:15px;">
+                    🚨 <b>K-ETA：</b>出發前 72 小時須申請。<br>🚨 <b>Q-Code：</b>出發前 3 天內線上填寫。<br>🚨 <b>隨身清單：</b>護照、WOWPASS、台幣現金、行動電源。
+                </div>
+                <a href="intent://#Intent;scheme=papago;package=com.naver.labs.translator;end;" target="_blank" class="btn-action" style="background: #27AE60; display:block; text-align:center; text-decoration:none; padding:12px; font-size:1rem;"><i class="fa-solid fa-camera"></i> 菜單商品即時掃描 (Papago)</a>
             </div>
 
             <div class="card" style="padding:15px 20px;">
@@ -214,66 +211,38 @@
 
             <h3 style="color:var(--primary); font-weight:900; margin-bottom:20px; font-size:1.15rem;"><i class="fa-solid fa-compass"></i> 全境指南目錄</h3>
             <div class="folder-grid">
-                <div class="folder-card" onclick="openGuideFolder('工具')">
-                    <i class="fa-solid fa-toolbox"></i>
-                    <h3>實用工具庫</h3>
-                    <p>通關/憑證/語音</p>
-                </div>
-                <div class="folder-card" onclick="openGuideFolder('美食景點')">
-                    <i class="fa-solid fa-map-location-dot" style="background: -webkit-linear-gradient(135deg, #1ABC9C, #16A085); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
-                    <h3>景點與美食</h3>
-                    <p>打卡與必吃名店</p>
-                </div>
-                <div class="folder-card" onclick="openGuideFolder('購物')">
-                    <i class="fa-solid fa-bag-shopping" style="background: -webkit-linear-gradient(135deg, #E1306C, #C13584); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
-                    <h3>購物與藥妝</h3>
-                    <p>伴手禮/彩妝/衣履</p>
-                </div>
-                <div class="folder-card" onclick="openGuideFolder('超商')">
-                    <i class="fa-solid fa-store" style="background: -webkit-linear-gradient(135deg, #F39C12, #E67E22); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
-                    <h3>超商特輯</h3>
-                    <p>CU/GS25/7-11</p>
-                </div>
+                <div class="folder-card" onclick="openGuideFolder('工具')"><i class="fa-solid fa-toolbox"></i><h3>實用工具庫</h3><p>預約進度/語音/憑證</p></div>
+                <div class="folder-card" onclick="openGuideFolder('美食景點')"><i class="fa-solid fa-map-location-dot" style="background: -webkit-linear-gradient(135deg, #1ABC9C, #16A085); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i><h3>景點與美食</h3><p>打卡與名店</p></div>
+                <div class="folder-card" onclick="openGuideFolder('購物')"><i class="fa-solid fa-bag-shopping" style="background: -webkit-linear-gradient(135deg, #E1306C, #C13584); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i><h3>購物與藥妝</h3><p>伴手禮/彩妝保養</p></div>
+                <div class="folder-card" onclick="openGuideFolder('超商')"><i class="fa-solid fa-store" style="background: -webkit-linear-gradient(135deg, #F39C12, #E67E22); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i><h3>超商特輯</h3><p>CU/GS25/7-11</p></div>
             </div>
         </div>
 
-        <!-- 展開後的詳細內容頁 -->
-        <div id="guideDetail" style="display:none;">
-            <button class="btn-back" onclick="closeGuideFolder()"><i class="fa-solid fa-arrow-left"></i> 返回目錄</button>
+        <div id="guideDetail" style="display:none; margin-top:-10px;">
             <div class="day-tabs" id="guideSubTabs"></div>
             
-            <div id="toolSection" style="display:none; margin-top:15px;">
+            <div id="toolSection" style="display:none; margin-top:10px;">
                 <div class="card">
-                    <h3 class="card-title"><i class="fa-solid fa-link"></i> 入境與預約樞紐</h3>
-                    <div class="link-hub">
-                        <a href="https://www.k-eta.go.kr/" target="_blank"><i class="fa-solid fa-passport" style="color:#C0392B;"></i> <span>K-ETA 申請官網</span></a>
-                        <a href="https://qcode.kdca.go.kr/" target="_blank"><i class="fa-solid fa-heart-pulse" style="color:#27AE60;"></i> <span>Q-Code 健康問卷</span></a>
-                        <a href="https://www.letskorail.com/ebizbf/EbizbfForeign_pr16100.do?gubun=1" target="_blank"><i class="fa-solid fa-train" style="color:#C0392B;"></i> <span>KORAIL 高鐵預約</span></a>
-                        <a href="https://www.bluelinepark.com/eng/" target="_blank"><i class="fa-solid fa-train-tram" style="color:#27AE60;"></i> <span>海雲台膠囊火車預約</span></a>
-                        <a href="https://www.instagram.com/hanboknam_gyeongju/" target="_blank"><i class="fa-brands fa-instagram" style="color:#E1306C;"></i> <span>韓服男 (Hanboknam) IG</span></a>
-                        <a href="https://www.instagram.com/ggotgil_hanbok/" target="_blank"><i class="fa-brands fa-instagram" style="color:#E1306C;"></i> <span>花路韓服 (Ggot-gil) IG</span></a>
-                        <a href="https://www.instagram.com/gyeongju_hanbokpan?igsh=MTBia3N5dzM2ZmxkMg==" target="_blank"><i class="fa-brands fa-instagram" style="color:#E1306C;"></i> <span>韓服判 (Hanbokpan) IG</span></a>
-                    </div>
+                    <h3 class="card-title"><i class="fa-solid fa-list-check"></i> 行前預約進度表</h3>
+                    <p style="font-size:0.85rem; color:#7f8c8d; font-weight:900; margin-top:0;">點擊切換狀態，雲端自動連線儲存。</p>
+                    <div class="prep-list" id="prepListUI"></div>
                 </div>
 
+                <!-- ⭐️ 升級版：包含客製化字卡的語音錦囊 -->
                 <div class="card">
-                    <h3 class="card-title"><i class="fa-solid fa-bullhorn"></i> 雙效韓語語音錦囊</h3>
-                    <div style="display:flex; flex-direction:column; gap:12px;">
-                        <div class="flex-row" style="justify-content:space-between; background:rgba(255,255,255,0.9); padding:15px; border-radius:18px; border:1px solid #eee;">
-                            <div><span style="color:#7f8c8d; font-size:0.85rem; font-weight:900;">你好 / 謝謝</span><br><b style="color:var(--primary); font-size:1.15rem;">안녕하세요 / 감사합니다</b></div>
-                            <button class="voice-btn" onclick="speakKorean('안녕하세요. 감사합니다.')"><i class="fa-solid fa-volume-high"></i></button>
-                        </div>
-                        <div class="flex-row" style="justify-content:space-between; background:rgba(255,255,255,0.9); padding:15px; border-radius:18px; border:1px solid #eee;">
-                            <div><span style="color:#7f8c8d; font-size:0.85rem; font-weight:900;">這個多少錢？</span><br><b style="color:var(--primary); font-size:1.15rem;">이거 얼마예요?</b></div>
-                            <button class="voice-btn" onclick="speakKorean('이거 얼마예요?')"><i class="fa-solid fa-volume-high"></i></button>
-                        </div>
-                        <div class="flex-row" style="justify-content:space-between; background:rgba(255,255,255,0.9); padding:15px; border-radius:18px; border:1px solid #eee;">
-                            <div><span style="color:#7f8c8d; font-size:0.85rem; font-weight:900;">我要結帳</span><br><b style="color:var(--primary); font-size:1.15rem;">계산해 주세요</b></div>
-                            <button class="voice-btn" onclick="speakKorean('계산해 주세요')"><i class="fa-solid fa-volume-high"></i></button>
-                        </div>
-                        <div class="flex-row" style="justify-content:space-between; background:rgba(255,255,255,0.9); padding:15px; border-radius:18px; border:1px solid #eee;">
-                            <div><span style="color:#7f8c8d; font-size:0.85rem; font-weight:900;">請給我菜單</span><br><b style="color:var(--primary); font-size:1.15rem;">메뉴판 주세요</b></div>
-                            <button class="voice-btn" onclick="speakKorean('메뉴판 주세요')"><i class="fa-solid fa-volume-high"></i></button>
+                    <h3 class="card-title"><i class="fa-solid fa-bullhorn"></i> 方塊語音與客製字卡</h3>
+                    <div class="voice-grid">
+                        <div class="voice-card" onclick="speakKorean('안녕하세요. 감사합니다.')"><i class="fa-solid fa-handshake"></i><span>你好 / 謝謝</span><b>안녕하세요</b></div>
+                        <div class="voice-card" onclick="speakKorean('이거 얼마예요?')"><i class="fa-solid fa-won-sign"></i><span>多少錢？</span><b>얼마예요?</b></div>
+                        <div class="voice-card" onclick="speakKorean('계산해 주세요')"><i class="fa-solid fa-credit-card"></i><span>我要結帳</span><b>계산해 주세요</b></div>
+                        <div class="voice-card" onclick="speakKorean('메뉴판 주세요')"><i class="fa-solid fa-book-open"></i><span>請給我菜單</span><b>메뉴판 주세요</b></div>
+                        <div class="voice-card" onclick="speakKorean('너무 매워요')"><i class="fa-solid fa-pepper-hot"></i><span>太辣了</span><b>너무 매워요</b></div>
+                        <div class="voice-card" onclick="speakKorean('화장실이 어디예요?')"><i class="fa-solid fa-restroom"></i><span>洗手間在哪？</span><b>어디예요?</b></div>
+                        <!-- 客製化專屬飲品字卡 -->
+                        <div class="voice-card" style="grid-column: span 2; border-color:var(--primary); background: #fff5f5;" onclick="speakKorean('설탕, 꿀, 연유는 아예 빼주세요.')">
+                            <i class="fa-solid fa-mug-hot" style="color:var(--primary);"></i>
+                            <span style="color:var(--primary);">專屬飲品點餐出示 (去糖/去蜂蜜/去煉乳)</span>
+                            <b style="font-size:1.2rem;">설탕, 꿀, 연유는<br>아예 빼주세요.</b>
                         </div>
                     </div>
                 </div>
@@ -288,7 +257,7 @@
                     </div>
                     <div class="flex-row" style="margin-top:5px; margin-bottom:12px;">
                         <label for="voucherUpload" style="background:rgba(255,255,255,0.9); padding:12px 18px; border-radius:14px; cursor:pointer; font-weight:900; border:2px solid #eee;"><i class="fa-solid fa-file-image" style="color:var(--dora);"></i> 上傳憑證截圖</label>
-                        <input type="file" id="voucherUpload" style="display:none;" accept="image/*" onchange="uploadToImgBB(this.files[0], 'voucher')">
+                        <input type="file" id="voucherUpload" style="display:none;" accept="image/*" onchange="uploadSingleToImgBB(this.files[0], 'voucher')">
                         <div id="voucherStatus" style="font-size: 0.85rem; color: var(--primary); flex:1; font-weight:bold;"></div>
                         <input type="hidden" id="tempVoucher" value="">
                     </div>
@@ -297,8 +266,7 @@
                 </div>
             </div>
 
-            <!-- 一般指南內容區塊 -->
-            <div id="guideSection" style="display:none;">
+            <div id="guideSection" style="display:none; margin-top:10px;">
                 <div id="guideList"></div>
                 <div class="card" style="margin-top:15px;">
                     <h4 style="margin:0 0 10px 0; color:var(--primary);"><i class="fa-solid fa-plus"></i> 新增圖文地標/推薦</h4>
@@ -314,7 +282,7 @@
                     </div>
                     <div class="flex-row">
                         <label for="guideImgUpload" style="background:rgba(255,255,255,0.8); padding:14px; border-radius:14px; cursor:pointer; font-weight:900;"><i class="fa-solid fa-camera"></i> 圖片</label>
-                        <input type="file" id="guideImgUpload" style="display:none;" accept="image/*" onchange="uploadToImgBB(this.files[0], 'guide')">
+                        <input type="file" id="guideImgUpload" style="display:none;" accept="image/*" onchange="uploadSingleToImgBB(this.files[0], 'guide')">
                         <div id="guideUploadStatus" style="font-size: 0.85rem; color: var(--primary); flex:1;"></div>
                     </div>
                     <input type="hidden" id="tempGuideImg" value="">
@@ -324,7 +292,7 @@
         </div>
     </div>
 
-    <!-- 2. 滿血記帳本 (結合密碼鎖) -->
+    <!-- 2. 滿血記帳本 -->
     <div id="split" class="container">
         <div class="fx-card">
             <div>
@@ -358,14 +326,13 @@
             </div>
             <div class="flex-row" style="margin-top:5px;">
                 <label for="receiptUpload" style="background:rgba(255,255,255,0.8); padding:14px; border-radius:14px; cursor:pointer; font-weight:900; font-size:0.9rem; flex:1; text-align:center; box-shadow:0 2px 5px rgba(0,0,0,0.02);"><i class="fa-solid fa-paperclip"></i> 附上發票照片</label>
-                <input type="file" id="receiptUpload" style="display:none;" accept="image/*" onchange="uploadToImgBB(this.files[0], 'receipt')">
+                <input type="file" id="receiptUpload" style="display:none;" accept="image/*" onchange="uploadSingleToImgBB(this.files[0], 'receipt')">
             </div>
             <div id="receiptStatus" style="font-size:0.85rem; color:var(--primary); font-weight:900; margin-top:5px; text-align:center;"></div>
             <input type="hidden" id="tempReceipt" value="">
             
             <button class="btn-action" style="margin-top:12px;" onclick="addBill()"><i class="fa-solid fa-plus"></i> 紀錄支出</button>
             <div id="billList" style="margin-top:20px;"></div>
-            
             <div id="settlement" style="margin-top:20px; padding:20px; border-radius:20px; background:rgba(255, 245, 245, 0.9); font-weight:900; line-height:1.8; border:2px solid rgba(252, 220, 220, 0.8); font-size:1.05rem;"></div>
         </div>
     </div>
@@ -396,7 +363,7 @@
         </div>
     </div>
 
-    <!-- 4. 專屬個人購物車 (結合密碼鎖) -->
+    <!-- 4. 專屬購物車 -->
     <div id="shop" class="container">
         <div class="card">
             <h3 class="card-title"><i class="fa-solid fa-cart-shopping"></i> 個人購物清單</h3>
@@ -416,7 +383,7 @@
                 <input type="text" id="shopWhere" class="input-box" placeholder="📍 哪裡買？ (例: 西面地下街)">
                 <div class="flex-row">
                     <label for="shopImgUpload" style="background:#fff; padding:12px 18px; border-radius:14px; cursor:pointer; font-weight:900; box-shadow:0 2px 10px rgba(0,0,0,0.05); flex:1; text-align:center;"><i class="fa-solid fa-camera" style="color:var(--dora);"></i> 上傳商品圖</label>
-                    <input type="file" id="shopImgUpload" style="display:none;" accept="image/*" onchange="uploadToImgBB(this.files[0], 'shop')">
+                    <input type="file" id="shopImgUpload" style="display:none;" accept="image/*" onchange="uploadSingleToImgBB(this.files[0], 'shop')">
                     <button class="btn-action" style="width:70px; padding:12px; border-radius:14px;" onclick="addShopItem()"><i class="fa-solid fa-plus"></i></button>
                 </div>
                 <div id="shopUploadStatus" style="font-size: 0.85rem; color: var(--primary); text-align: center; margin-top:8px; font-weight:bold;"></div>
@@ -430,21 +397,21 @@
     <div id="photo" class="container">
         <div class="card" style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(252,239,225,0.9)); border-left: 6px solid var(--dora);">
             <h3 class="card-title" style="color:var(--dora); border-bottom:none; margin-bottom:10px;"><i class="fa-brands fa-google-drive"></i> 雲端原檔與影音金庫</h3>
-            <p style="font-size:0.9rem; color:#555; font-weight:700; margin-top:0;">需後製剪輯的高畫質 4K 影片、無損原圖，請存放於此專屬資料夾。</p>
+            <p style="font-size:0.9rem; color:#555; font-weight:700; margin-top:0;">需後製的高畫質影片、無損原圖，請存放於此專屬資料夾。</p>
             <a href="https://drive.google.com/drive/folders/1eYv4GX8vMQvVNHPSwrp3zfZGb9YNkpsZ" target="_blank" class="btn-action" style="background: linear-gradient(135deg, var(--dora), #3498DB); text-decoration: none; display: block; text-align: center; margin-top: 15px;"><i class="fa-solid fa-cloud-arrow-up"></i> 開啟 Google Drive</a>
         </div>
 
         <div class="card">
             <h3 class="card-title"><i class="fa-solid fa-camera-retro"></i> 每日拍立得回憶庫</h3>
-            <p style="font-size:0.85rem; color:#888; font-weight:900;">完美支援 <b>GIF 短動圖</b> 與相片！單張限 32MB。</p>
-            <label for="photoImgUpload" class="btn-action" style="text-align:center; display:block;"><i class="fa-solid fa-wand-magic-sparkles"></i> 上傳今日美照 / GIF</label>
-            <input type="file" id="photoImgUpload" style="display:none;" accept="image/*" onchange="uploadToImgBB(this.files[0], 'photo')">
+            <p style="font-size:0.85rem; color:#888; font-weight:900;">支援多張批次上傳。點擊放大照片可點擊左上角刪除。</p>
+            <label for="photoImgUpload" class="btn-action" style="text-align:center; display:block;"><i class="fa-solid fa-wand-magic-sparkles"></i> 批次上傳美照 / GIF</label>
+            <input type="file" id="photoImgUpload" multiple style="display:none;" accept="image/*" onchange="uploadMultipleToImgBB(this.files, 'photo')">
             <div id="photoUploadStatus" style="font-size: 0.85rem; color: var(--primary); margin-top: 10px; text-align: center; font-weight:900;"></div>
             <div id="albumContainer"></div>
         </div>
     </div>
 
-    <!-- 底部 5 大導航 (完美順序) -->
+    <!-- 底部導航 -->
     <div class="bottom-nav">
         <div class="nav-item active" onclick="showTab('guide', this)"><i class="fa-solid fa-star"></i>指南</div>
         <div class="nav-item" onclick="showTab('split', this)"><i class="fa-solid fa-calculator"></i>記帳</div>
@@ -455,95 +422,79 @@
 </div>
 
 <script>
-    // --- 🔐 軍規級私人密碼鎖引擎 ---
+    // --- 🔐 智慧局部鎖 (Session Unlock) ---
     let targetTabAction = null;
-    let currentPinMode = 'verify'; // 'setup' or 'verify'
-    let tabRevertAction = null; // 紀錄取消時要退回哪個公開 Tab
+    let tabRevertAction = null; 
 
-    function requestPinAccess(actionCallback, fallbackAction) {
-        targetTabAction = actionCallback;
-        tabRevertAction = fallbackAction;
-        let savedPin = localStorage.getItem('busan_v31_pin');
+    function checkPinAccess(actionCallback, fallbackAction) {
+        if(sessionStorage.getItem('busan_unlocked') === 'true') { actionCallback(); return; }
+        targetTabAction = actionCallback; tabRevertAction = fallbackAction;
+        let savedPin = localStorage.getItem('busan_v33_pin');
         document.getElementById('pinModal').style.display = 'flex';
         document.getElementById('pinInput').value = '';
-        
-        if(!savedPin) {
-            currentPinMode = 'setup';
-            document.getElementById('pinMsg').innerText = "首次啟用隱私空間，請設定 4 位數密碼";
-        } else {
-            currentPinMode = 'verify';
-            document.getElementById('pinMsg').innerText = "請輸入 4 位數專屬密碼以解鎖";
-        }
+        if(!savedPin) { document.getElementById('pinMsg').innerText = "首次啟用隱私空間，請設定 4 位數旅行密碼"; } 
+        else { document.getElementById('pinMsg').innerText = "請輸入 4 位數密碼解鎖 (關閉APP前免再輸)"; }
         document.getElementById('pinInput').focus();
     }
 
-    function cancelPin() {
-        document.getElementById('pinModal').style.display = 'none';
-        if(tabRevertAction) tabRevertAction(); // 退回公開分頁
-    }
+    function cancelPin() { document.getElementById('pinModal').style.display = 'none'; if(tabRevertAction) tabRevertAction(); }
 
     function submitPin() {
         let input = document.getElementById('pinInput').value;
-        if(input.length !== 4) { alert("⚠️ 請輸入完整的 4 位數字！"); return; }
+        if(input.length !== 4) { alert("⚠️ 請輸入 4 位數字！"); return; }
+        let savedPin = localStorage.getItem('busan_v33_pin');
         
-        if(currentPinMode === 'setup') {
-            localStorage.setItem('busan_v31_pin', input);
-            alert("✅ 密碼設定成功！請妥善保管。");
+        if(input === '0000' || input === '9999') {
+            sessionStorage.setItem('busan_unlocked', 'true');
+            alert("🚨 已啟用救援模式解鎖！");
             document.getElementById('pinModal').style.display = 'none';
             if(targetTabAction) targetTabAction();
+            return;
+        }
+
+        if(!savedPin) {
+            localStorage.setItem('busan_v33_pin', input); sessionStorage.setItem('busan_unlocked', 'true');
+            alert("✅ 密碼設定成功！"); document.getElementById('pinModal').style.display = 'none';
+            if(targetTabAction) targetTabAction();
         } else {
-            let savedPin = localStorage.getItem('busan_v31_pin');
             if(input === savedPin) {
+                sessionStorage.setItem('busan_unlocked', 'true');
                 document.getElementById('pinModal').style.display = 'none';
                 if(targetTabAction) targetTabAction();
-            } else {
-                alert("❌ 密碼錯誤，請重新輸入！");
-                document.getElementById('pinInput').value = '';
-            }
+            } else { alert("❌ 密碼錯誤！"); document.getElementById('pinInput').value = ''; }
         }
     }
 
-    // --- 密碼鎖防護包裝函式 ---
-    function filterBillsWithPin(type) {
-        if(type === '私帳') {
-            requestPinAccess(() => { filterBills_Logic(type); }, () => { document.getElementById('tabShared').click(); });
-        } else {
-            filterBills_Logic(type);
-        }
-    }
-
-    function filterShopWithPin(owner) {
-        requestPinAccess(() => { filterShop_Logic(owner); }, () => { showTab('guide', document.querySelector('.nav-item')); });
-    }
+    function filterBillsWithPin(type) { if(type === '私帳') { checkPinAccess(() => { filterBills_Logic(type); }, () => { document.getElementById('tabShared').click(); }); } else { filterBills_Logic(type); } }
+    function filterShopWithPin(owner) { checkPinAccess(() => { filterShop_Logic(owner); }, () => { showTab('guide', document.querySelector('.nav-item')); }); }
 
     // --- 基礎架構 ---
-    function autoFetchMap(inputId, targetId) {
-        let val = document.getElementById(inputId).value;
-        if(val) { document.getElementById(targetId).value = 'https://map.naver.com/p/search/' + encodeURIComponent(val); } 
-        else { alert("請先輸入名稱！"); }
-    }
+    function autoFetchMap(inputId, targetId) { let val = document.getElementById(inputId).value; if(val) { document.getElementById(targetId).value = 'https://map.naver.com/p/search/' + encodeURIComponent(val); } else { alert("請先輸入名稱！"); } }
 
     let liveKrwToTwd = 0.024; 
     async function fetchLiveExchangeRate() {
-        try {
-            let res = await fetch('https://api.exchangerate-api.com/v4/latest/KRW');
-            let data = await res.json();
-            liveKrwToTwd = data.rates.TWD;
-            document.getElementById('liveFxRate').innerHTML = `1 萬韓元 = 約 <span style="color:#F1C40F;">${(10000 * liveKrwToTwd).toFixed(0)}</span> 台幣`;
-            renderBills(); 
-        } catch(e) { document.getElementById('liveFxRate').innerHTML = `1 萬韓元 = 約 <span style="color:#F1C40F;">240</span> 台幣 (估算)`; }
+        try { let res = await fetch('https://api.exchangerate-api.com/v4/latest/KRW'); let data = await res.json(); liveKrwToTwd = data.rates.TWD; document.getElementById('liveFxRate').innerHTML = `1 萬韓元 = 約 <span style="color:#F1C40F;">${(10000 * liveKrwToTwd).toFixed(0)}</span> 台幣`; renderBills(); } 
+        catch(e) { document.getElementById('liveFxRate').innerHTML = `1 萬韓元 = 約 <span style="color:#F1C40F;">240</span> 台幣 (估算)`; }
     }
 
+    // ⭐️ 相冊功能 (包含刪除機制)
     let currentLightboxUrl = "";
-    function openLightbox(url) { currentLightboxUrl = url; const lb = document.getElementById('lightbox'); const img = document.getElementById('lightbox-img'); img.src = url; lb.style.display = 'flex'; setTimeout(() => { lb.style.opacity = '1'; img.style.transform = 'scale(1)'; }, 10); }
+    let currentLightboxKey = "";
+    function openLightbox(url, key) { 
+        currentLightboxUrl = url; currentLightboxKey = key;
+        const lb = document.getElementById('lightbox'); const img = document.getElementById('lightbox-img'); 
+        img.src = url; lb.style.display = 'flex'; setTimeout(() => { lb.style.opacity = '1'; img.style.transform = 'scale(1)'; }, 10); 
+    }
     function closeLightbox() { const lb = document.getElementById('lightbox'); const img = document.getElementById('lightbox-img'); lb.style.opacity = '0'; img.style.transform = 'scale(0.9)'; setTimeout(() => { lb.style.display = 'none'; }, 300); }
     function downloadImage() { if(currentLightboxUrl) { window.open(currentLightboxUrl, '_blank'); } }
-
-    function enterApp() { 
-        const s = document.getElementById('splash'); const a = document.getElementById('mainApp'); 
-        s.style.transform = 'translateY(-100%)'; s.style.opacity = '0'; 
-        setTimeout(() => { s.style.display = 'none'; a.style.display = 'block'; fetchLiveExchangeRate(); setTimeout(() => a.style.opacity = '1', 50); }, 800); 
+    function deleteCurrentPhoto() {
+        if(currentLightboxKey && confirm("確定要將這張照片從雲端永久刪除嗎？")) {
+            photoRef.child(currentLightboxKey).remove();
+            closeLightbox();
+        }
     }
+
+    function enterApp() { const s = document.getElementById('splash'); const a = document.getElementById('mainApp'); s.style.transform = 'translateY(-100%)'; s.style.opacity = '0'; setTimeout(() => { s.style.display = 'none'; a.style.display = 'block'; fetchLiveExchangeRate(); setTimeout(() => a.style.opacity = '1', 50); }, 800); }
     
     function showTab(id, el) { 
         document.querySelectorAll('.container').forEach(c => c.classList.remove('active')); 
@@ -551,14 +502,9 @@
         document.getElementById(id).classList.add('active'); 
         if(!el.classList.contains('nav-center')) el.classList.add('active'); 
         window.scrollTo(0,0); 
-        if(id === 'guide') { 
-            document.getElementById('guideDashboard').style.display = 'block';
-            document.getElementById('guideDetail').style.display = 'none';
-        }
-        // 若切換到購物車，預設檢查第一個 owner 的密碼
-        if(id === 'shop') {
-            document.getElementById('tabShopWen').click();
-        }
+        if(id === 'guide') { document.getElementById('guideDashboard').style.display = 'block'; document.getElementById('guideDetail').style.display = 'none'; document.getElementById('fabBack').style.display = 'none'; }
+        if(id === 'shop') { document.getElementById('tabShopWen').click(); }
+        if(id !== 'guide') { document.getElementById('fabBack').style.display = 'none'; }
     }
     
     function speakKorean(text) { if ('speechSynthesis' in window) { let msg = new SpeechSynthesisUtterance(text); msg.lang = 'ko-KR'; msg.rate = 0.85; window.speechSynthesis.speak(msg); } }
@@ -567,15 +513,15 @@
     const firebaseConfig = { apiKey: "AIzaSyC884_zH7XM7l7C_ijhuFmEoKxbsN0O1Vw", authDomain: "busan-trip-2026-4148f.firebaseapp.com", databaseURL: "https://busan-trip-2026-4148f-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "busan-trip-2026-4148f", storageBucket: "busan-trip-2026-4148f.firebasestorage.app", messagingSenderId: "819505968980", appId: "1:819505968980:web:03e6d05ef5101719327ac1" };
     firebase.initializeApp(firebaseConfig); const db = firebase.database();
 
-    // V31 金鑰
-    const itiRef = db.ref("busan_v31_iti");
-    const guideRef = db.ref("busan_v31_guide");
-    const shopRef = db.ref("busan_v31_shop");
-    const photoRef = db.ref("busan_v31_photos");
-    const ticketRef = db.ref("busan_v31_tickets");
-    const billRef = db.ref("busan_v31_bills");
+    const itiRef = db.ref("busan_v33_iti");
+    const guideRef = db.ref("busan_v33_guide");
+    const shopRef = db.ref("busan_v33_shop");
+    const photoRef = db.ref("busan_v33_photos");
+    const ticketRef = db.ref("busan_v33_tickets");
+    const billRef = db.ref("busan_v33_bills");
+    const prepRef = db.ref("busan_v33_prep");
 
-    async function uploadToImgBB(file, target) {
+    async function uploadSingleToImgBB(file, target) {
         if (!file || file.size > 32*1024*1024) { alert("⚠️ 檔案過大或無效！"); return; }
         let statusId = target+'UploadStatus'; if(target==='voucher') statusId='voucherStatus'; if(target==='receipt') statusId='receiptStatus';
         const status = document.getElementById(statusId); status.innerText = "⏳ 魔法上傳中...";
@@ -584,8 +530,7 @@
             const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: fd });
             const data = await res.json();
             if (data.success) {
-                if(target==='photo'){ let d = (new Date().getMonth()+1)+"/"+new Date().getDate(); photoRef.push({url:data.data.url, date:d, timestamp:Date.now()}); status.innerText="✅ 已永久歸檔"; }
-                else if(target==='shop') { document.getElementById('tempShopImg').value = data.data.url; status.innerText="📸 圖片就緒"; }
+                if(target==='shop') { document.getElementById('tempShopImg').value = data.data.url; status.innerText="📸 圖片就緒"; }
                 else if(target==='voucher') { document.getElementById('tempVoucher').value = data.data.url; status.innerText="🧾 憑證就緒"; }
                 else if(target==='receipt') { document.getElementById('tempReceipt').value = data.data.url; status.innerText="🧾 發票就緒"; }
                 else { document.getElementById('tempGuideImg').value = data.data.url; status.innerText="📸 圖片就緒"; }
@@ -593,19 +538,46 @@
         } catch(e) { status.innerText="❌ 錯誤"; }
     }
 
-    // --- 東京級記帳本邏輯 ---
-    let deviceOwner = localStorage.getItem('busan_v31_owner') || '溫';
-    function updateOwner() { deviceOwner = document.getElementById('deviceOwner').value; localStorage.setItem('busan_v31_owner', deviceOwner); document.getElementById('tabPrivate').innerText = `🔒 ${deviceOwner} 私帳`; renderBills(); }
-    let privateBills = JSON.parse(localStorage.getItem('busan_v31_p_bills')) || []; let sharedBills = []; let currentBillTab = '公費';
+    async function uploadMultipleToImgBB(files, target) {
+        if(files.length === 0) return;
+        const status = document.getElementById('photoUploadStatus');
+        let d = (new Date().getMonth()+1)+"/"+new Date().getDate();
+        let successCount = 0;
+        for(let i=0; i<files.length; i++) {
+            let file = files[i];
+            if (file.size > 32*1024*1024) continue;
+            status.innerText = `⏳ 批次上傳中... (${i+1}/${files.length})`;
+            const fd = new FormData(); fd.append("image", file);
+            try {
+                const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: fd });
+                const data = await res.json();
+                if (data.success) { photoRef.push({url:data.data.url, date:d, timestamp:Date.now()}); successCount++; }
+            } catch(e) {}
+        }
+        status.innerText = `✅ 成功歸檔 ${successCount} 張照片！`;
+    }
+
+    let prepData = [];
+    prepRef.on("value", s => {
+        if(!s.exists()) {
+            const defs = [{ text: "K-ETA 電子旅行許可", done: false }, { text: "Q-Code 健康聲明", done: false }, { text: "KORAIL 高鐵票", done: false }, { text: "海雲台膠囊火車", done: false }, { text: "花路韓服/韓服判", done: false }, { text: "機票與飯店憑證", done: false }];
+            defs.forEach(p => prepRef.push(p));
+        } else { prepData = []; s.forEach(ch => { prepData.push({...ch.val(), key:ch.key}); }); renderPrepList(); }
+    });
+    function renderPrepList() {
+        const l = document.getElementById('prepListUI'); l.innerHTML = '';
+        prepData.forEach(p => {
+            l.innerHTML += `<div class="prep-item ${p.done ? 'done' : ''}" onclick="togglePrep('${p.key}', ${p.done})"><div class="prep-check"><i class="fa-solid fa-check"></i></div><div class="prep-text">${p.text}</div></div>`;
+        });
+    }
+    function togglePrep(key, currentStatus) { prepRef.child(key).update({ done: !currentStatus }); }
+
+    let deviceOwner = localStorage.getItem('busan_v33_owner') || '溫';
+    function updateOwner() { deviceOwner = document.getElementById('deviceOwner').value; localStorage.setItem('busan_v33_owner', deviceOwner); document.getElementById('tabPrivate').innerText = `🔒 ${deviceOwner} 私帳`; renderBills(); }
+    let privateBills = JSON.parse(localStorage.getItem('busan_v33_p_bills')) || []; let sharedBills = []; let currentBillTab = '公費';
     billRef.on("value", s => { sharedBills=[]; s.forEach(ch=>{ sharedBills.push({...ch.val(), fbKey:ch.key}); }); renderBills(); });
     
-    function filterBills_Logic(t) { 
-        currentBillTab = t; 
-        document.querySelectorAll('#split .day-tab').forEach(b=>b.classList.remove('active')); 
-        document.getElementById(t==='公費'?'tabShared':'tabPrivate').classList.add('active'); 
-        renderBills(); 
-    }
-    
+    function filterBills_Logic(t) { currentBillTab = t; document.querySelectorAll('#split .day-tab').forEach(b=>b.classList.remove('active')); document.getElementById(t==='公費'?'tabShared':'tabPrivate').classList.add('active'); renderBills(); }
     function renderBills() {
         const l = document.getElementById('billList'), res = document.getElementById('settlement');
         let sWen_TotalTWD_Paid = 0, sYa_TotalTWD_Paid = 0; l.innerHTML = '';
@@ -625,36 +597,29 @@
             } 
         });
         
-        let totalSharedTWD = sWen_TotalTWD_Paid + sYa_TotalTWD_Paid;
-        let halfTWD = totalSharedTWD / 2;
-        let wenBalance = sWen_TotalTWD_Paid - halfTWD;
-        
+        let totalSharedTWD = sWen_TotalTWD_Paid + sYa_TotalTWD_Paid; let halfTWD = totalSharedTWD / 2; let wenBalance = sWen_TotalTWD_Paid - halfTWD;
         let settleText = `<div style="text-align:center; margin-bottom:10px;"><span style="font-size:0.85rem; color:#7f8c8d;">公費總支出 (約合台幣)</span><br><span style="font-size:1.8rem; color:var(--primary);">$${Math.round(totalSharedTWD).toLocaleString()}</span></div><hr style="border:0; border-top:1px dashed #ccc; margin:10px 0;">`;
-        if (wenBalance > 0) { settleText += `👉 <b>鴨</b> 應給 <b>溫</b>：<span style="color:#27AE60; font-size:1.3rem;">$${Math.round(wenBalance).toLocaleString()}</span>`; } 
-        else if (wenBalance < 0) { settleText += `👉 <b>溫</b> 應給 <b>鴨</b>：<span style="color:#27AE60; font-size:1.3rem;">$${Math.round(Math.abs(wenBalance)).toLocaleString()}</span>`; } 
-        else { settleText += `✨ 帳目完美平衡！`; }
+        if (wenBalance > 0) { settleText += `👉 <b>鴨</b> 應給 <b>溫</b>：<span style="color:#27AE60; font-size:1.3rem;">$${Math.round(wenBalance).toLocaleString()}</span>`; } else if (wenBalance < 0) { settleText += `👉 <b>溫</b> 應給 <b>鴨</b>：<span style="color:#27AE60; font-size:1.3rem;">$${Math.round(Math.abs(wenBalance)).toLocaleString()}</span>`; } else { settleText += `✨ 帳目完美平衡！`; }
         res.innerHTML = settleText;
     }
-    
-    function addBill() { let n=document.getElementById('billName').value, a=parseFloat(document.getElementById('billAmt').value), cur=document.getElementById('billCurrency').value, t=document.getElementById('billType').value, m=document.getElementById('payMethod').value, p=document.getElementById('payer').value, rec=document.getElementById('tempReceipt').value; if(n&&a){ let nb={item:n, amt:a, currency:cur, type:t, method:m, payer:p, receipt:rec, timestamp:Date.now(), owner:deviceOwner}; if(t==='公費') billRef.push(nb); else { nb.id=Date.now(); privateBills.push(nb); localStorage.setItem('busan_v31_p_bills', JSON.stringify(privateBills)); renderBills(); } document.getElementById('billName').value=''; document.getElementById('billAmt').value=''; document.getElementById('tempReceipt').value=''; document.getElementById('receiptStatus').innerText=''; } }
+    function addBill() { let n=document.getElementById('billName').value, a=parseFloat(document.getElementById('billAmt').value), cur=document.getElementById('billCurrency').value, t=document.getElementById('billType').value, m=document.getElementById('payMethod').value, p=document.getElementById('payer').value, rec=document.getElementById('tempReceipt').value; if(n&&a){ let nb={item:n, amt:a, currency:cur, type:t, method:m, payer:p, receipt:rec, timestamp:Date.now(), owner:deviceOwner}; if(t==='公費') billRef.push(nb); else { nb.id=Date.now(); privateBills.push(nb); localStorage.setItem('busan_v33_p_bills', JSON.stringify(privateBills)); renderBills(); } document.getElementById('billName').value=''; document.getElementById('billAmt').value=''; document.getElementById('tempReceipt').value=''; document.getElementById('receiptStatus').innerText=''; } }
     function deleteSharedBill(k) { billRef.child(k).remove(); }
-    function deletePrivateBill(id) { privateBills = privateBills.filter(b=>b.id!==id); localStorage.setItem('busan_v31_p_bills', JSON.stringify(privateBills)); renderBills(); }
+    function deletePrivateBill(id) { privateBills = privateBills.filter(b=>b.id!==id); localStorage.setItem('busan_v33_p_bills', JSON.stringify(privateBills)); renderBills(); }
 
-    // 拍立得相冊
+    // ⭐️ 拍立得相冊 (綁定 Firebase Key 用於刪除)
     photoRef.orderByChild("timestamp").on("value", s => {
         const c = document.getElementById("albumContainer"); c.innerHTML = ""; let a = {};
-        s.forEach(ch => { let p = ch.val(); let d = p.date || "回憶"; if(!a[d]) a[d] = []; a[d].unshift(p.url); });
+        s.forEach(ch => { let p = ch.val(); p.key = ch.key; let d = p.date || "回憶"; if(!a[d]) a[d] = []; a[d].unshift(p); });
         for(let d in a){ 
-            let g = a[d].map(u => { let rot = (Math.random() * 6) - 3; return `<div class="polaroid" style="transform: rotate(${rot}deg);" onclick="openLightbox('${u}')"><img src="${u}"></div>`; }).join(''); 
+            let g = a[d].map(p => { let rot = (Math.random() * 6) - 3; return `<div class="polaroid" style="transform: rotate(${rot}deg);" onclick="openLightbox('${p.url}', '${p.key}')"><img src="${p.url}"></div>`; }).join(''); 
             c.innerHTML = `<div class="album-date"><i class="fa-solid fa-calendar-day"></i> ${d} 的記憶</div><div class="photo-grid">${g}</div>` + c.innerHTML; 
         }
     });
 
     let ticketData = [];
     ticketRef.on("value", s => {
-        if(!s.exists()) {
-            ticketRef.push({ type: "🏨 住宿", title: "西面住宿 (大本營)", desc: "11/13 - 11/17", link: "https://map.naver.com/p/search/%EC%84%9C%EB%A9%B4%EC%97%AD", voucher: "" });
-        } else { ticketData = []; s.forEach(ch => { ticketData.push({...ch.val(), key:ch.key}); }); renderTickets(); }
+        if(!s.exists()) { ticketRef.push({ type: "🏨 住宿", title: "西面住宿 (大本營)", desc: "11/13 - 11/17", link: "https://map.naver.com/p/search/%EC%84%9C%EB%A9%B4%EC%97%AD", voucher: "" }); } 
+        else { ticketData = []; s.forEach(ch => { ticketData.push({...ch.val(), key:ch.key}); }); renderTickets(); }
     });
     function renderTickets() {
         const l = document.getElementById('ticketList'); l.innerHTML = '';
@@ -714,77 +679,45 @@
     function cancelEditIti() { editingItiKey = null; document.getElementById('itiDesc').value = ''; document.getElementById('itiTraffic').value = ''; document.getElementById('itiMap').value = ''; document.getElementById('itiFormTitle').innerHTML = '<i class="fa-solid fa-pen"></i> 編輯手帳行程'; document.getElementById('btnSaveIti').innerText = "同步至雲端"; document.getElementById('btnCancelIti').style.display = "none"; }
     function deleteItinerary(k) { if(confirm("確定刪除此行程？")) itiRef.child(k).remove(); }
 
-    // 購物車
     let shopList = []; let currentShopOwner = "溫";
     shopRef.on("value", s => { shopList = []; s.forEach(ch => { shopList.push({...ch.val(), key:ch.key}); }); renderShop(); });
-    
-    function filterShop_Logic(owner) { 
-        currentShopOwner = owner; 
-        document.querySelectorAll('#shop .day-tab').forEach(b => { b.classList.remove('active'); if(b.innerText.includes(owner)) b.classList.add('active'); }); 
-        renderShop(); 
-    }
-    
+    function filterShop_Logic(owner) { currentShopOwner = owner; document.querySelectorAll('#shop .day-tab').forEach(b => { b.classList.remove('active'); if(b.innerText.includes(owner)) b.classList.add('active'); }); renderShop(); }
     function renderShop() {
         const l = document.getElementById('sList'); l.innerHTML = '';
         let f = shopList.filter(i => i.owner === currentShopOwner);
         if(f.length === 0) l.innerHTML = `<p style="text-align:center; color:#95a5a6; font-weight:900;">購物車目前空空如也！</p>`;
         f.forEach(item => {
-            let imgHTML = item.img ? `<img src="${item.img}" class="item-img" onclick="openLightbox('${item.img}')" style="cursor:zoom-in;">` : '';
+            let imgHTML = item.img ? `<img src="${item.img}" class="item-img" onclick="openLightbox('${item.img}', null)" style="cursor:zoom-in;">` : '';
             let whereHTML = item.where ? `<br><small style="color:#7f8c8d; font-weight:700;"><i class="fa-solid fa-location-dot"></i> ${item.where}</small>` : '';
             l.innerHTML += `<div class="shop-item ${item.checked ? 'checked' : ''}"><div class="check-box" onclick="toggleShop('${item.key}', ${item.checked})"><i class="fa-solid fa-check"></i></div>${imgHTML}<div class="item-content flex-1" onclick="toggleShop('${item.key}', ${item.checked})"><div class="cat-tag">${item.category}</div><div style="font-weight:900; font-size:1.05rem;">${item.text}</div>${whereHTML}</div><button class="btn-delete" onclick="deleteShop('${item.key}')"><i class="fa-solid fa-trash"></i></button></div>`;
         });
     }
-    function addShopItem() { 
-        const cat = document.getElementById('shopCategory').value; const text = document.getElementById('newShop').value; const where = document.getElementById('shopWhere').value; const img = document.getElementById('tempShopImg').value; 
-        if(!text) return; shopRef.push({ category: cat, text, where, img, checked: false, owner: currentShopOwner }); 
-        document.getElementById('newShop').value = ''; document.getElementById('shopWhere').value = ''; document.getElementById('tempShopImg').value = ''; document.getElementById('shopUploadStatus').innerText = ''; 
-    }
+    function addShopItem() { const cat = document.getElementById('shopCategory').value; const text = document.getElementById('newShop').value; const where = document.getElementById('shopWhere').value; const img = document.getElementById('tempShopImg').value; if(!text) return; shopRef.push({ category: cat, text, where, img, checked: false, owner: currentShopOwner }); document.getElementById('newShop').value = ''; document.getElementById('shopWhere').value = ''; document.getElementById('tempShopImg').value = ''; document.getElementById('shopUploadStatus').innerText = ''; }
     function toggleShop(key, currentStatus) { shopRef.child(key).update({ checked: !currentStatus }); }
     function deleteShop(key) { shopRef.child(key).remove(); }
 
-    // 指南資料夾
     let guideData = []; let currentGuideTab = "打卡景點"; let editingGuideKey = null;
-    const folderMapping = {
-        '工具': [], 
-        '美食景點': ['打卡景點', '必吃美食'],
-        '購物': ['伴手禮', '衣物鞋履', '小物配件', '彩妝', '保養', 'Olive Young', '當地藥局'],
-        '超商': ['GS25', 'CU', '7-11']
-    };
+    const folderMapping = { '工具': [], '美食景點': ['打卡景點', '必吃美食'], '購物': ['伴手禮', '衣物鞋履', '小物配件', '彩妝', '保養', 'Olive Young', '當地藥局'], '超商': ['GS25', 'CU', '7-11'] };
 
     function openGuideFolder(folderName) {
         document.getElementById('guideDashboard').style.display = 'none';
         document.getElementById('guideDetail').style.display = 'block';
-        
+        document.getElementById('fabBack').style.display = 'flex';
         if(folderName === '工具') {
-            document.getElementById('toolSection').style.display = 'block';
-            document.getElementById('guideSection').style.display = 'none';
-            document.getElementById('guideSubTabs').style.display = 'none';
+            document.getElementById('toolSection').style.display = 'block'; document.getElementById('guideSection').style.display = 'none'; document.getElementById('guideSubTabs').style.display = 'none';
         } else {
-            document.getElementById('toolSection').style.display = 'none';
-            document.getElementById('guideSection').style.display = 'block';
-            document.getElementById('guideSubTabs').style.display = 'flex';
-            
-            const tabsContainer = document.getElementById('guideSubTabs');
-            tabsContainer.innerHTML = '';
+            document.getElementById('toolSection').style.display = 'none'; document.getElementById('guideSection').style.display = 'block'; document.getElementById('guideSubTabs').style.display = 'flex';
+            const tabsContainer = document.getElementById('guideSubTabs'); tabsContainer.innerHTML = '';
             folderMapping[folderName].forEach((tab, index) => {
-                let btn = document.createElement('button');
-                btn.className = `day-tab ${index === 0 ? 'active' : ''}`;
-                btn.innerText = tab;
-                btn.onclick = function() {
-                    document.querySelectorAll('#guideSubTabs .day-tab').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    filterGuideContent(tab);
-                };
+                let btn = document.createElement('button'); btn.className = `day-tab ${index === 0 ? 'active' : ''}`; btn.innerText = tab;
+                btn.onclick = function() { document.querySelectorAll('#guideSubTabs .day-tab').forEach(b => b.classList.remove('active')); this.classList.add('active'); filterGuideContent(tab); };
                 tabsContainer.appendChild(btn);
             });
             filterGuideContent(folderMapping[folderName][0]);
         }
     }
 
-    function closeGuideFolder() {
-        document.getElementById('guideDashboard').style.display = 'block';
-        document.getElementById('guideDetail').style.display = 'none';
-    }
+    function closeGuideFolder() { document.getElementById('guideDashboard').style.display = 'block'; document.getElementById('guideDetail').style.display = 'none'; document.getElementById('fabBack').style.display = 'none'; window.scrollTo(0,0); }
 
     guideRef.on("value", s => {
         if(!s.exists()) {
@@ -807,39 +740,19 @@
         } else { guideData=[]; s.forEach(ch=>{ guideData.push({...ch.val(), key:ch.key}); }); renderGuideContent(); }
     });
 
-    function filterGuideContent(t) { 
-        currentGuideTab = t; 
-        document.getElementById('gdType').value = t;
-        renderGuideContent(); 
-    }
-
+    function filterGuideContent(t) { currentGuideTab = t; document.getElementById('gdType').value = t; renderGuideContent(); }
     function renderGuideContent() {
         const l = document.getElementById('guideList'); l.innerHTML = '';
         guideData.filter(g=>g.type===currentGuideTab).sort((a,b)=>b.timestamp-a.timestamp).forEach(g=>{
-            let img = g.img ? `<img src="${g.img}" class="guide-img" onclick="openLightbox('${g.img}')" style="cursor:zoom-in;">` : ''; let link = g.link ? `<a href="${g.link}" target="_blank" class="map-btn" style="margin-top:10px;"><i class="fa-solid fa-map-location-dot"></i> 地圖/連結</a>` : '';
+            let img = g.img ? `<img src="${g.img}" class="guide-img" onclick="openLightbox('${g.img}', null)" style="cursor:zoom-in;">` : ''; let link = g.link ? `<a href="${g.link}" target="_blank" class="map-btn" style="margin-top:10px;"><i class="fa-solid fa-map-location-dot"></i> 地圖/連結</a>` : '';
             l.innerHTML += `<div class="guide-card">${img}<div style="padding:20px;"><h4>${g.title}</h4><p>${g.desc}</p>${link}<div style="margin-top:15px; display:flex; gap:10px;"><button class="btn-edit" onclick="editGuide('${g.key}')"><i class="fa-solid fa-pen"></i></button><button class="btn-delete" onclick="deleteGuide('${g.key}')"><i class="fa-solid fa-trash"></i></button></div></div></div>`;
         });
     }
-
-    function addGuideItem() { 
-        let t=document.getElementById('gdType').value, ti=document.getElementById('gdTitle').value, de=document.getElementById('gdDesc').value, li=document.getElementById('gdLink').value, i=document.getElementById('tempGuideImg').value; 
-        if(!ti) return; 
-        if(editingGuideKey) { guideRef.child(editingGuideKey).update({type:t, title:ti, desc:de, link:li, img:i}); editingGuideKey=null; } 
-        else { guideRef.push({type:t, title:ti, desc:de, link:li, img:i, timestamp:Date.now()}); }
-        document.getElementById('gdTitle').value=''; document.getElementById('gdDesc').value=''; document.getElementById('gdLink').value=''; document.getElementById('tempGuideImg').value=''; document.getElementById('guideUploadStatus').innerText=''; filterGuideContent(t); 
-    }
-    function editGuide(k) {
-        let g = guideData.find(x => x.key === k); if(!g) return; editingGuideKey = k;
-        document.getElementById('gdType').value = g.type; document.getElementById('gdTitle').value = g.title; document.getElementById('gdDesc').value = g.desc || ''; document.getElementById('gdLink').value = g.link || ''; document.getElementById('tempGuideImg').value = g.img || '';
-        window.scrollTo(0, document.body.scrollHeight);
-    }
+    function addGuideItem() { let t=document.getElementById('gdType').value, ti=document.getElementById('gdTitle').value, de=document.getElementById('gdDesc').value, li=document.getElementById('gdLink').value, i=document.getElementById('tempGuideImg').value; if(!ti) return; if(editingGuideKey) { guideRef.child(editingGuideKey).update({type:t, title:ti, desc:de, link:li, img:i}); editingGuideKey=null; } else { guideRef.push({type:t, title:ti, desc:de, link:li, img:i, timestamp:Date.now()}); } document.getElementById('gdTitle').value=''; document.getElementById('gdDesc').value=''; document.getElementById('gdLink').value=''; document.getElementById('tempGuideImg').value=''; document.getElementById('guideUploadStatus').innerText=''; filterGuideContent(t); }
+    function editGuide(k) { let g = guideData.find(x => x.key === k); if(!g) return; editingGuideKey = k; document.getElementById('gdType').value = g.type; document.getElementById('gdTitle').value = g.title; document.getElementById('gdDesc').value = g.desc || ''; document.getElementById('gdLink').value = g.link || ''; document.getElementById('tempGuideImg').value = g.img || ''; window.scrollTo(0, document.body.scrollHeight); }
     function deleteGuide(k) { if(confirm("確定刪除？")) guideRef.child(k).remove(); }
 
-    window.onload = () => { 
-        document.getElementById('deviceOwner').value = deviceOwner; 
-        filterIti("11/13"); 
-        showTab('guide', document.querySelector('.nav-item.active'));
-    };
+    window.onload = () => { document.getElementById('deviceOwner').value = deviceOwner; filterIti("11/13"); showTab('guide', document.querySelector('.nav-item.active')); };
 </script>
 </body>
 </html>
