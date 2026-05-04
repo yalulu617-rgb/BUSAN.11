@@ -9,7 +9,7 @@
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="icon" href="icon.png" type="image/png">
     <link id="manifest-link" rel="manifest" href="">
-    <title>釜山慶州秋之旅 V35</title>
+    <title>釜山慶州秋之旅 V36</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -99,11 +99,9 @@
         .folder-card h3 { margin: 0; font-size: 1.1rem; color: var(--text-dark); font-weight: 900; }
         
         .fab-back { position: fixed; bottom: 100px; right: 20px; background: rgba(255,255,255,0.95); color: var(--primary); border: 2px solid var(--primary); width: 55px; height: 55px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; box-shadow: 0 10px 25px rgba(192,57,43,0.3); z-index: 1999; cursor: pointer; backdrop-filter: blur(10px); transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: none;}
-        .fab-back:active { transform: scale(0.85); box-shadow: 0 4px 10px rgba(192,57,43,0.4); }
-
+        
         .prep-list { display: flex; flex-direction: column; gap: 10px; }
         .prep-item { background: rgba(255,255,255,0.9); padding: 15px; border-radius: 16px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #eee; transition: 0.2s; cursor:pointer;}
-        .prep-item:active { transform: scale(0.98); }
         .prep-check { width: 26px; height: 26px; border: 2px solid #bdc3c7; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: transparent; transition: 0.2s; }
         .prep-item.done .prep-check { background: #27AE60; border-color: #27AE60; color: white; }
         .prep-item.done .prep-text { color: #95a5a6; text-decoration: line-through; }
@@ -111,14 +109,12 @@
         .prep-link { color: var(--primary); font-size: 1.2rem; text-decoration: none; padding: 5px; }
 
         .voice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .voice-card { background: rgba(255,255,255,0.9); padding: 18px 12px; border-radius: 18px; text-align: center; border: 1px solid #eee; box-shadow: 0 4px 15px rgba(0,0,0,0.03); cursor: pointer; transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative;}
-        .voice-card:active { transform: scale(0.92); }
+        .voice-card { background: rgba(255,255,255,0.9); padding: 18px 12px; border-radius: 18px; text-align: center; border: 1px solid #eee; box-shadow: 0 4px 15px rgba(0,0,0,0.03); cursor: pointer; transition: 0.2s; position: relative;}
         .voice-card i { font-size: 1.5rem; color: var(--dora); margin-bottom: 8px; display: block; }
         .voice-card span { font-size: 0.8rem; color: #7f8c8d; font-weight: 900; }
         .voice-card b { font-size: 1.1rem; color: var(--primary); display: block; margin-top: 4px; }
         .del-voice { position: absolute; top: 5px; right: 5px; color: #e74c3c; font-size: 0.8rem; background: #fee; border-radius: 50%; width: 24px; height: 24px; display: flex; justify-content: center; align-items: center; }
 
-        /* 大字卡 Lightbox (含按鈕) */
         #flashcardModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 249, 242, 0.95); z-index: 10000; flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(20px); opacity: 0; transition: 0.3s ease;}
         .fc-box { background: white; padding: 50px 30px; border-radius: 30px; width: 85%; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.15); border: 2px solid var(--primary); }
         .fc-tw { font-size: 1.2rem; color: #7f8c8d; font-weight: 900; margin-bottom: 20px; }
@@ -140,12 +136,11 @@
     <div class="splash-card">
         <h1>2026 BUSAN</h1>
         <h2 style="margin:8px 0; color:var(--text-dark); font-weight:900;">秋季雙城・皇家旅程</h2>
-        <p style="color:var(--dora); font-weight:700;">V35 完美無瑕版</p>
+        <p style="color:var(--dora); font-weight:700;">V36 個人化真我版</p>
     </div>
     <button class="btn-enter" onclick="enterApp()">進入專屬系統 <i class="fa-solid fa-plane-departure"></i></button>
 </div>
 
-<!-- 密碼鎖 -->
 <div id="pinModal">
     <div class="pin-box">
         <h3 style="color:var(--primary); margin:0 0 10px 0;"><i class="fa-solid fa-lock"></i> 私密空間解鎖</h3>
@@ -158,24 +153,17 @@
     </div>
 </div>
 
-<!-- 照片 Lightbox (含刪除) -->
 <div id="lightbox">
-    <div class="lightbox-controls-left">
-        <button class="btn-lb del" id="btnDeletePhoto" onclick="deleteCurrentPhoto()"><i class="fa-solid fa-trash"></i> 刪除</button>
-    </div>
-    <div class="lightbox-controls">
-        <button class="btn-lb dl" onclick="downloadImage()"><i class="fa-solid fa-download"></i> 原圖</button>
-        <button class="btn-lb" onclick="closeLightbox()"><i class="fa-solid fa-xmark"></i></button>
-    </div>
+    <div class="lightbox-controls-left"><button class="btn-lb del" onclick="deleteCurrentPhoto()"><i class="fa-solid fa-trash"></i> 刪除</button></div>
+    <div class="lightbox-controls"><button class="btn-lb dl" onclick="downloadImage()"><i class="fa-solid fa-download"></i> 原圖</button><button class="btn-lb" onclick="closeLightbox()"><i class="fa-solid fa-xmark"></i></button></div>
     <img id="lightbox-img" src="">
 </div>
 
-<!-- ⭐️ 大字卡 Lightbox (含發音按鈕) -->
+<!-- ⭐️ 大字卡發音介面 -->
 <div id="flashcardModal" onclick="if(event.target.id === 'flashcardModal') closeFlashcard()">
     <div class="fc-box">
         <div class="fc-tw" id="fc-tw">中文</div>
         <div class="fc-kr" id="fc-kr">韓文</div>
-        <!-- 沉浸式播放發音按鈕 -->
         <button class="btn-action" style="margin-top:25px; width:auto; padding:12px 35px; border-radius:40px; font-size:1.2rem; box-shadow: 0 8px 25px rgba(192, 57, 43, 0.4);" onclick="speakKorean(document.getElementById('fc-kr').innerText)">
             <i class="fa-solid fa-volume-high fa-beat"></i> 播放發音
         </button>
@@ -183,29 +171,42 @@
     </div>
 </div>
 
+<!-- ⭐️ 使用者大頭貼設定介面 -->
+<div id="profileModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10001; justify-content:center; align-items:center; backdrop-filter:blur(15px);">
+    <div class="pin-box">
+        <h3 style="color:var(--dora); margin:0 0 15px 0;"><i class="fa-solid fa-user-astronaut"></i> 專屬頭像與名稱設定</h3>
+        <p style="font-size:0.85rem; color:#7f8c8d; font-weight:900; margin-top:0;">設定後將同步更新記帳本與購物車的顯示名稱。</p>
+        <div class="flex-row" style="margin-bottom:10px;">
+            <input type="text" id="editU1Avatar" class="input-box" style="width:60px; text-align:center; font-size:1.5rem; padding:10px;" placeholder="👩" value="👩">
+            <input type="text" id="editU1Name" class="input-box flex-1" placeholder="名稱 (原: 溫)" value="溫">
+        </div>
+        <div class="flex-row" style="margin-bottom:20px;">
+            <input type="text" id="editU2Avatar" class="input-box" style="width:60px; text-align:center; font-size:1.5rem; padding:10px;" placeholder="🦆" value="鴨">
+            <input type="text" id="editU2Name" class="input-box flex-1" placeholder="名稱 (原: 鴨)" value="鴨">
+        </div>
+        <div style="display:flex; gap:12px;">
+            <button onclick="document.getElementById('profileModal').style.display='none'" style="flex:1; padding:15px; border-radius:16px; border:none; background:#ecf0f1; color:#7f8c8d; font-weight:900; font-size:1.05rem;">取消</button>
+            <button onclick="saveProfiles()" style="flex:1; padding:15px; border-radius:16px; border:none; background:var(--dora); color:white; font-weight:900; font-size:1.05rem;">💾 儲存並同步</button>
+        </div>
+    </div>
+</div>
+
 <div class="fab-back" id="fabBack" onclick="closeGuideFolder()"><i class="fa-solid fa-arrow-left"></i></div>
 
 <div id="mainApp">
 
-    <!-- 1. 滿血導遊指南庫 -->
     <div id="guide" class="container active">
-        
         <div id="guideDashboard">
             
             <div class="card" style="background: linear-gradient(135deg, rgba(255,234,234,0.9), rgba(255,255,255,0.9)); border-left: 6px solid #E74C3C;">
                 <h4 style="color: #E74C3C; margin: 0 0 12px 0; font-size: 1.1rem;"><i class="fa-solid fa-triangle-exclamation fa-fade"></i> 行前必備與翻譯捷徑</h4>
-                <div style="font-size: 0.95rem; line-height: 1.6; color: #444; font-weight: 700; margin-bottom:15px;">
-                    🚨 <b>K-ETA：</b>出發前 72 小時申請。<br>🚨 <b>Q-Code：</b>出發前 3 天內填寫。<br>🚨 <b>隨身清單：</b>護照、WOWPASS、行動電源。
-                </div>
-                <!-- ⭐️ 強制喚醒 Android 原生 Papago APP 捷徑 -->
-                <a href="intent://#Intent;package=com.naver.labs.translator;scheme=papago;end;" class="btn-action" style="background: #27AE60; display:block; text-align:center; text-decoration:none; padding:12px; font-size:1rem;"><i class="fa-solid fa-camera"></i> 啟動 Papago 鏡頭掃描</a>
+                <div style="font-size: 0.95rem; line-height: 1.6; color: #444; font-weight: 700; margin-bottom:15px;">🚨 <b>K-ETA：</b>出發前 72 小時申請。<br>🚨 <b>Q-Code：</b>出發前 3 天內填寫。<br>🚨 <b>隨身清單：</b>護照、WOWPASS、行動電源。</div>
+                <!-- ⭐️ Papago 強制喚醒 APP -->
+                <button class="btn-action" style="background: #27AE60; padding:12px; font-size:1rem;" onclick="openPapago()"><i class="fa-solid fa-camera"></i> 喚醒 Papago 鏡頭翻譯</button>
             </div>
 
             <div class="card" style="padding:15px 20px;">
-                <h3 class="card-title" style="margin-bottom:10px; font-size:1rem; display:flex; justify-content:space-between; width:100%;">
-                    <span><i class="fa-solid fa-cloud-sun"></i> 氣候穿搭與賞楓預測</span>
-                    <span style="background:var(--primary); color:white; font-size:0.7rem; padding:4px 8px; border-radius:10px; font-weight:900;">🍁 紅葉極大期</span>
-                </h3>
+                <h3 class="card-title" style="margin-bottom:10px; font-size:1rem; display:flex; justify-content:space-between; width:100%;"><span><i class="fa-solid fa-cloud-sun"></i> 氣候穿搭與賞楓預測</span><span style="background:var(--primary); color:white; font-size:0.7rem; padding:4px 8px; border-radius:10px; font-weight:900;">🍁 紅葉極大期</span></h3>
                 <div class="flex-row" style="gap:10px;">
                     <div style="flex:1; background:rgba(255,255,255,0.8); border-radius:14px; padding:10px;"><div style="font-weight:900; text-align:center; color:var(--primary); font-size:0.85rem;">📍 釜山</div><iframe src="https://wttr.in/Busan?format=1" style="width:100%; height:30px; border:none;" scrolling="no"></iframe></div>
                     <div style="flex:1; background:rgba(255,255,255,0.8); border-radius:14px; padding:10px;"><div style="font-weight:900; text-align:center; color:var(--primary); font-size:0.85rem;">📍 慶州</div><iframe src="https://wttr.in/Gyeongju?format=1" style="width:100%; height:30px; border:none;" scrolling="no"></iframe></div>
@@ -218,37 +219,32 @@
 
             <h3 style="color:var(--primary); font-weight:900; margin-bottom:20px; font-size:1.15rem;"><i class="fa-solid fa-compass"></i> 全境指南目錄</h3>
             <div class="folder-grid">
-                <div class="folder-card" onclick="openGuideFolder('工具')"><i class="fa-solid fa-toolbox"></i><h3>實用工具庫</h3><p>預約進度/語音卡</p></div>
+                <div class="folder-card" onclick="openGuideFolder('工具')"><i class="fa-solid fa-toolbox"></i><h3>實用工具庫</h3><p>預約/語音卡/憑證</p></div>
                 <div class="folder-card" onclick="openGuideFolder('美食景點')"><i class="fa-solid fa-map-location-dot" style="background: -webkit-linear-gradient(135deg, #1ABC9C, #16A085); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i><h3>景點與美食</h3><p>打卡與名店</p></div>
                 <div class="folder-card" onclick="openGuideFolder('購物')"><i class="fa-solid fa-bag-shopping" style="background: -webkit-linear-gradient(135deg, #E1306C, #C13584); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i><h3>購物與藥妝</h3><p>伴手禮/彩妝保養</p></div>
                 <div class="folder-card" onclick="openGuideFolder('超商')"><i class="fa-solid fa-store" style="background: -webkit-linear-gradient(135deg, #F39C12, #E67E22); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i><h3>超商特輯</h3><p>CU/GS25/7-11</p></div>
             </div>
         </div>
 
-        <!-- 展開後的詳細內容頁 -->
         <div id="guideDetail" style="display:none; margin-top:-10px;">
             <div class="day-tabs" id="guideSubTabs" style="margin-bottom:5px;"></div>
             <p style="font-size:0.8rem; color:#bdc3c7; text-align:center; margin:0 0 10px 0;"><i class="fa-solid fa-arrow-right-arrow-left"></i> 畫面往右滑動可快速返回目錄</p>
             
             <div id="toolSection" style="display:none;">
                 
-                <!-- ⭐️ 韓服徹底分家的預約進度表 -->
                 <div class="card">
                     <h3 class="card-title"><i class="fa-solid fa-list-check"></i> 行前預約進度表</h3>
-                    <p style="font-size:0.85rem; color:#7f8c8d; font-weight:900; margin-top:0;">點擊切換狀態，雲端自動連線儲存。</p>
                     <div class="prep-list" id="prepListUI"></div>
                 </div>
 
                 <div class="card">
                     <h3 class="card-title"><i class="fa-solid fa-bullhorn"></i> 方塊大字卡與生成器</h3>
-                    <p style="font-size:0.85rem; color:#7f8c8d; font-weight:900; margin-top:0;">點擊卡片可放大顯示與發音。您也可以自行建立專屬字卡。</p>
-                    
+                    <p style="font-size:0.85rem; color:#7f8c8d; font-weight:900; margin-top:0;">點擊卡片可放大顯示與發音。</p>
                     <div style="background: #fdfdfd; padding: 15px; border-radius: 18px; border: 1px solid #eee; margin-bottom: 15px;">
                         <input type="text" id="newCardTw" class="input-box" placeholder="中文 (例: 我不要加蔥)" style="margin-bottom:8px;">
-                        <input type="text" id="newCardKr" class="input-box" placeholder="韓文 (請用翻譯軟體查好貼上)" style="margin-bottom:8px;">
+                        <input type="text" id="newCardKr" class="input-box" placeholder="韓文 (請查好貼上)" style="margin-bottom:8px;">
                         <button class="btn-action" style="padding:10px;" onclick="addVoiceCard()">新增專屬字卡</button>
                     </div>
-
                     <div class="voice-grid" id="voiceGridUI"></div>
                 </div>
 
@@ -261,7 +257,7 @@
                         <button class="btn-search" onclick="autoFetchMap('tkTitle', 'tkLink')">🔍 找地圖</button>
                     </div>
                     <div class="flex-row" style="margin-top:5px; margin-bottom:12px;">
-                        <label for="voucherUpload" style="background:rgba(255,255,255,0.9); padding:12px 18px; border-radius:14px; cursor:pointer; font-weight:900; border:2px solid #eee;"><i class="fa-solid fa-file-image" style="color:var(--dora);"></i> 上傳憑證截圖</label>
+                        <label for="voucherUpload" style="background:rgba(255,255,255,0.9); padding:12px 18px; border-radius:14px; cursor:pointer; font-weight:900; border:2px solid #eee;"><i class="fa-solid fa-file-image" style="color:var(--dora);"></i> 上傳憑證</label>
                         <input type="file" id="voucherUpload" style="display:none;" accept="image/*" onchange="uploadSingleToImgBB(this.files[0], 'voucher')">
                         <div id="voucherStatus" style="font-size: 0.85rem; color: var(--primary); flex:1; font-weight:bold;"></div>
                         <input type="hidden" id="tempVoucher" value="">
@@ -274,42 +270,38 @@
             <div id="guideSection" style="display:none;">
                 <div id="guideList"></div>
                 <div class="card" style="margin-top:15px;">
-                    <h4 style="margin:0 0 10px 0; color:var(--primary);"><i class="fa-solid fa-plus"></i> 新增圖文地標/推薦</h4>
+                    <h4 style="margin:0 0 10px 0; color:var(--primary);"><i class="fa-solid fa-plus"></i> 新增地標推薦</h4>
                     <div class="flex-row"><select id="gdType" class="input-box" style="width:110px;">
                         <option value="打卡景點">打卡景點</option><option value="必吃美食">必吃美食</option><option value="伴手禮">伴手禮</option><option value="衣物鞋履">衣物鞋履</option>
                         <option value="小物配件">小物配件</option><option value="彩妝">彩妝</option><option value="保養">保養</option><option value="Olive Young">Olive Young</option><option value="當地藥局">當地藥局</option>
                         <option value="GS25">GS25</option><option value="CU">CU</option><option value="7-11">7-11</option>
                     </select><input type="text" id="gdTitle" class="input-box flex-1" placeholder="名稱"></div>
                     <input type="text" id="gdDesc" class="input-box" placeholder="推薦理由/筆記">
-                    <div class="flex-row">
-                        <input type="url" id="gdLink" class="input-box flex-1" placeholder="Naver Map 網址">
-                        <button class="btn-search" onclick="autoFetchMap('gdTitle', 'gdLink')">🔍 找地圖</button>
-                    </div>
-                    <div class="flex-row">
-                        <label for="guideImgUpload" style="background:rgba(255,255,255,0.8); padding:14px; border-radius:14px; cursor:pointer; font-weight:900;"><i class="fa-solid fa-camera"></i> 圖片</label>
+                    <div class="flex-row"><input type="url" id="gdLink" class="input-box flex-1" placeholder="Naver Map 網址"><button class="btn-search" onclick="autoFetchMap('gdTitle', 'gdLink')">🔍 找地圖</button></div>
+                    <div class="flex-row"><label for="guideImgUpload" style="background:rgba(255,255,255,0.8); padding:14px; border-radius:14px; cursor:pointer; font-weight:900;"><i class="fa-solid fa-camera"></i> 圖片</label>
                         <input type="file" id="guideImgUpload" style="display:none;" accept="image/*" onchange="uploadSingleToImgBB(this.files[0], 'guide')">
                         <div id="guideUploadStatus" style="font-size: 0.85rem; color: var(--primary); flex:1;"></div>
                     </div>
                     <input type="hidden" id="tempGuideImg" value="">
-                    <button class="btn-action" style="margin-top:12px; background:var(--dora);" onclick="addGuideItem()">同步至雲端攻略庫</button>
+                    <button class="btn-action" style="margin-top:12px; background:var(--dora);" onclick="addGuideItem()">同步至雲端</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 2. 滿血記帳本 -->
+    <!-- 2. 滿血記帳本 (結合個人化大頭貼與身分同步) -->
     <div id="split" class="container">
         <div class="fx-card">
-            <div>
-                <div style="font-size:0.85rem; font-weight:900; opacity:0.8;">🌐 全球 API 即時匯率同步</div>
-                <div style="font-size:1.4rem; font-weight:900; margin-top:4px;" id="liveFxRate"><i class="fa-solid fa-spinner fa-spin"></i> 獲取中...</div>
-            </div>
+            <div><div style="font-size:0.85rem; font-weight:900; opacity:0.8;">🌐 即時匯率同步</div><div style="font-size:1.4rem; font-weight:900; margin-top:4px;" id="liveFxRate"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
             <i class="fa-solid fa-coins" style="font-size:2rem; opacity:0.5;"></i>
         </div>
 
         <div class="card" style="background: rgba(231, 76, 60, 0.1); border:none;">
-            <h3 class="card-title" style="color:#C0392B; margin-bottom:10px; font-size:1rem;"><i class="fa-solid fa-mobile-screen-button"></i> 本機使用者記憶體</h3>
-            <div class="flex-row"><span style="font-weight:900;">我是：</span><select id="deviceOwner" class="input-box flex-1" style="margin-bottom:0;" onchange="updateOwner()"><option value="溫">溫</option><option value="鴨">鴨</option></select></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h3 class="card-title" style="color:#C0392B; margin:0; font-size:1rem; border:none;"><i class="fa-solid fa-id-badge"></i> 本機使用者身分</h3>
+                <button class="btn-edit" style="background:none; border:1px solid #C0392B; color:#C0392B; padding:6px 12px; font-weight:900;" onclick="document.getElementById('profileModal').style.display='flex'"><i class="fa-solid fa-gear"></i> 設定</button>
+            </div>
+            <div class="flex-row"><span style="font-weight:900; color:#E74C3C;">我是：</span><select id="deviceOwner" class="input-box flex-1" style="margin-bottom:0;" onchange="updateOwner()"></select></div>
         </div>
 
         <div class="card">
@@ -323,12 +315,12 @@
             <div class="flex-row">
                 <input type="number" id="billAmt" class="input-box flex-1" placeholder="金額">
                 <select id="billCurrency" class="input-box" style="width:85px;"><option value="KRW">₩ 韓元</option><option value="TWD">$ 台幣</option></select>
-                <!-- ⭐️ 公私分離鎖死邏輯 -->
-                <select id="billType" class="input-box" style="width:85px;"><option value="公費">公費</option><option value="私帳">私帳</option></select>
+                <!-- ⭐️ 公私防呆監聽 -->
+                <select id="billType" class="input-box" style="width:85px;" onchange="togglePayerSelect()"><option value="公費">公費</option><option value="私帳">私帳</option></select>
             </div>
             <div class="flex-row" style="margin-top:-5px;">
                 <select id="payMethod" class="input-box flex-1"><option value="現金">💵 現金</option><option value="信用卡">💳 信用卡</option><option value="WOWPASS">🪪 WOWPASS</option></select>
-                <select id="payer" class="input-box flex-1"><option value="溫">溫 先代墊</option><option value="鴨">鴨 先代墊</option></select>
+                <select id="payer" class="input-box flex-1"></select> <!-- 動態載入使用者名稱 -->
             </div>
             <div class="flex-row" style="margin-top:5px;">
                 <label for="receiptUpload" style="background:rgba(255,255,255,0.8); padding:14px; border-radius:14px; cursor:pointer; font-weight:900; font-size:0.9rem; flex:1; text-align:center; box-shadow:0 2px 5px rgba(0,0,0,0.02);"><i class="fa-solid fa-paperclip"></i> 附上發票照片</label>
@@ -373,9 +365,8 @@
     <div id="shop" class="container">
         <div class="card">
             <h3 class="card-title"><i class="fa-solid fa-cart-shopping"></i> 個人購物清單</h3>
-            <div class="day-tabs">
-                <button class="day-tab active" onclick="filterShopWithPin('溫')" id="tabShopWen">🔒 溫的專屬車</button>
-                <button class="day-tab" onclick="filterShopWithPin('鴨')" id="tabShopYa">🔒 鴨的專屬車</button>
+            <div class="day-tabs" id="shopTabsUI">
+                <!-- 動態注入 User 1 和 User 2 -->
             </div>
             
             <div style="background: rgba(255,255,255,0.6); padding: 18px; border-radius: 22px; margin-bottom: 20px; border:1px solid #fff;">
@@ -402,11 +393,10 @@
     <!-- 5. 拍立得相冊 -->
     <div id="photo" class="container">
         <div class="card" style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(252,239,225,0.9)); border-left: 6px solid var(--dora);">
-            <h3 class="card-title" style="color:var(--dora); border-bottom:none; margin-bottom:10px;"><i class="fa-brands fa-google-drive"></i> 雲端原檔與影音金庫</h3>
+            <h3 class="card-title" style="color:var(--dora); border-bottom:none; margin-bottom:10px;"><i class="fa-brands fa-google-drive"></i> 雲端原檔金庫</h3>
             <p style="font-size:0.9rem; color:#555; font-weight:700; margin-top:0;">需後製的高畫質影片、無損原圖，請存放於此專屬資料夾。</p>
             <a href="https://drive.google.com/drive/folders/1eYv4GX8vMQvVNHPSwrp3zfZGb9YNkpsZ" target="_blank" class="btn-action" style="background: linear-gradient(135deg, var(--dora), #3498DB); text-decoration: none; display: block; text-align: center; margin-top: 15px;"><i class="fa-solid fa-cloud-arrow-up"></i> 開啟 Google Drive</a>
         </div>
-
         <div class="card">
             <h3 class="card-title"><i class="fa-solid fa-camera-retro"></i> 每日拍立得回憶庫</h3>
             <p style="font-size:0.85rem; color:#888; font-weight:900;">支援多張批次上傳。點擊放大照片可點擊左上角刪除。</p>
@@ -428,28 +418,83 @@
 </div>
 
 <script>
-    // --- 🔐 智慧局部鎖 (單次解鎖機制) ---
+    // --- ⭐️ 核心 Firebase 初始化 ---
+    const IMGBB_API_KEY = "ba1b2b24f8275c9d3a199bea5cd52bf9"; 
+    const firebaseConfig = { apiKey: "AIzaSyC884_zH7XM7l7C_ijhuFmEoKxbsN0O1Vw", authDomain: "busan-trip-2026-4148f.firebaseapp.com", databaseURL: "https://busan-trip-2026-4148f-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "busan-trip-2026-4148f", storageBucket: "busan-trip-2026-4148f.firebasestorage.app", messagingSenderId: "819505968980", appId: "1:819505968980:web:03e6d05ef5101719327ac1" };
+    firebase.initializeApp(firebaseConfig); const db = firebase.database();
+
+    const itiRef = db.ref("busan_v36_iti"); const guideRef = db.ref("busan_v36_guide"); const shopRef = db.ref("busan_v36_shop"); const photoRef = db.ref("busan_v36_photos"); const ticketRef = db.ref("busan_v36_tickets"); const billRef = db.ref("busan_v36_bills"); const prepRef = db.ref("busan_v36_prep"); const voiceRef = db.ref("busan_v36_voice"); const profileRef = db.ref("busan_v36_profiles");
+
+    // --- ⭐️ 個人化全域設定 (Avatar & Names) ---
+    let u1 = { key: 'user1', name: '溫', avatar: '👩' };
+    let u2 = { key: 'user2', name: '鴨', avatar: '🦆' };
+    let deviceOwner = localStorage.getItem('busan_v36_owner') || 'user1'; // 本機登入者
+
+    profileRef.on('value', s => {
+        if(s.exists()) { let data = s.val(); u1 = data.user1 || u1; u2 = data.user2 || u2; } 
+        else { profileRef.set({ user1: u1, user2: u2 }); }
+        updateProfileUI(); renderBills(); renderShop();
+    });
+
+    function updateProfileUI() {
+        // 更新選擇器
+        document.getElementById('deviceOwner').innerHTML = `<option value="user1" ${deviceOwner==='user1'?'selected':''}>${u1.avatar} ${u1.name}</option><option value="user2" ${deviceOwner==='user2'?'selected':''}>${u2.avatar} ${u2.name}</option>`;
+        document.getElementById('payer').innerHTML = `<option value="user1">${u1.name} 先代墊</option><option value="user2">${u2.name} 先代墊</option>`;
+        
+        // 更新私帳與購物車 Tab 文字
+        let ownerData = deviceOwner === 'user1' ? u1 : u2;
+        document.getElementById('tabPrivate').innerText = `🔒 ${ownerData.avatar} 私帳`;
+        
+        document.getElementById('shopTabsUI').innerHTML = `
+            <button class="day-tab ${currentShopOwner==='user1'?'active':''}" onclick="filterShopWithPin('user1')" id="tabShopU1">🔒 ${u1.avatar} ${u1.name}</button>
+            <button class="day-tab ${currentShopOwner==='user2'?'active':''}" onclick="filterShopWithPin('user2')" id="tabShopU2">🔒 ${u2.avatar} ${u2.name}</button>
+        `;
+        
+        // 更新編輯 Modal
+        document.getElementById('editU1Avatar').value = u1.avatar; document.getElementById('editU1Name').value = u1.name;
+        document.getElementById('editU2Avatar').value = u2.avatar; document.getElementById('editU2Name').value = u2.name;
+    }
+
+    function saveProfiles() {
+        u1.avatar = document.getElementById('editU1Avatar').value || '👩'; u1.name = document.getElementById('editU1Name').value || '溫';
+        u2.avatar = document.getElementById('editU2Avatar').value || '🦆'; u2.name = document.getElementById('editU2Name').value || '鴨';
+        profileRef.set({ user1: u1, user2: u2 });
+        document.getElementById('profileModal').style.display = 'none';
+    }
+
+    function updateOwner() { deviceOwner = document.getElementById('deviceOwner').value; localStorage.setItem('busan_v36_owner', deviceOwner); updateProfileUI(); }
+
+    // --- 🔐 智慧局部鎖 (Session Unlock 修正) ---
     let targetTabAction = null; let tabRevertAction = null; 
     function checkPinAccess(actionCallback, fallbackAction) {
         if(sessionStorage.getItem('busan_unlocked') === 'true') { actionCallback(); return; }
         targetTabAction = actionCallback; tabRevertAction = fallbackAction;
-        let savedPin = localStorage.getItem('busan_v35_pin');
+        let savedPin = localStorage.getItem('busan_v36_pin');
         document.getElementById('pinModal').style.display = 'flex'; document.getElementById('pinInput').value = '';
-        if(!savedPin) { document.getElementById('pinMsg').innerText = "首次啟用隱私空間，請設定 4 位數旅行密碼"; } 
+        if(!savedPin) { document.getElementById('pinMsg').innerText = "首次啟用隱私空間，請設定 4 位數密碼"; } 
         else { document.getElementById('pinMsg').innerText = "請輸入 4 位數密碼解鎖 (關閉APP前免再輸)"; }
         document.getElementById('pinInput').focus();
     }
     function cancelPin() { document.getElementById('pinModal').style.display = 'none'; if(tabRevertAction) tabRevertAction(); }
     function submitPin() {
-        let input = document.getElementById('pinInput').value;
-        if(input.length !== 4) { alert("⚠️ 請輸入 4 位數字！"); return; }
-        let savedPin = localStorage.getItem('busan_v35_pin');
+        let input = document.getElementById('pinInput').value; if(input.length !== 4) { alert("⚠️ 請輸入 4 位數字！"); return; }
+        let savedPin = localStorage.getItem('busan_v36_pin');
         if(input === '0000' || input === '9999') { sessionStorage.setItem('busan_unlocked', 'true'); alert("🚨 救援模式解鎖！"); document.getElementById('pinModal').style.display = 'none'; if(targetTabAction) targetTabAction(); return; }
-        if(!savedPin) { localStorage.setItem('busan_v35_pin', input); sessionStorage.setItem('busan_unlocked', 'true'); alert("✅ 密碼設定成功！"); document.getElementById('pinModal').style.display = 'none'; if(targetTabAction) targetTabAction(); } 
+        if(!savedPin) { localStorage.setItem('busan_v36_pin', input); sessionStorage.setItem('busan_unlocked', 'true'); alert("✅ 密碼設定成功！"); document.getElementById('pinModal').style.display = 'none'; if(targetTabAction) targetTabAction(); } 
         else { if(input === savedPin) { sessionStorage.setItem('busan_unlocked', 'true'); document.getElementById('pinModal').style.display = 'none'; if(targetTabAction) targetTabAction(); } else { alert("❌ 密碼錯誤！"); document.getElementById('pinInput').value = ''; } }
     }
     function filterBillsWithPin(type) { if(type === '私帳') { checkPinAccess(() => { filterBills_Logic(type); }, () => { document.getElementById('tabShared').click(); }); } else { filterBills_Logic(type); } }
     function filterShopWithPin(owner) { checkPinAccess(() => { filterShop_Logic(owner); }, () => { showTab('guide', document.querySelector('.nav-item')); }); }
+
+    // --- ⭐️ 強制喚醒 Papago APP ---
+    function openPapago() {
+        // 先嘗試透過 Intent 喚醒 Android APP
+        window.location.href = "intent://translator#Intent;scheme=papago;package=com.naver.labs.translator;end;";
+        // 設定 0.5 秒後如果沒反應，就跳回安全的網頁版
+        setTimeout(function() {
+            window.location.href = "https://papago.naver.com/";
+        }, 500);
+    }
 
     // --- 基礎架構 ---
     function autoFetchMap(inputId, targetId) { let val = document.getElementById(inputId).value; if(val) { document.getElementById(targetId).value = 'https://map.naver.com/p/search/' + encodeURIComponent(val); } else { alert("請先輸入名稱！"); } }
@@ -457,7 +502,7 @@
     let liveKrwToTwd = 0.024; 
     async function fetchLiveExchangeRate() { try { let res = await fetch('https://api.exchangerate-api.com/v4/latest/KRW'); let data = await res.json(); liveKrwToTwd = data.rates.TWD; document.getElementById('liveFxRate').innerHTML = `1 萬韓元 = 約 <span style="color:#F1C40F;">${(10000 * liveKrwToTwd).toFixed(0)}</span> 台幣`; renderBills(); } catch(e) {} }
 
-    // ⭐️ 氣象與穿搭 (修正洋蔥式防風)
+    // ⭐️ 氣象與洋蔥式防風
     async function fetchLiveWeather() {
         try {
             let res = await fetch('https://wttr.in/Busan?format=j1'); let data = await res.json();
@@ -479,23 +524,32 @@
     function closeFlashcard() { let m = document.getElementById('flashcardModal'); m.style.opacity = '0'; setTimeout(() => { m.style.display = 'none'; }, 300); }
 
     function enterApp() { const s = document.getElementById('splash'); const a = document.getElementById('mainApp'); s.style.transform = 'translateY(-100%)'; s.style.opacity = '0'; setTimeout(() => { s.style.display = 'none'; a.style.display = 'block'; fetchLiveExchangeRate(); fetchLiveWeather(); setTimeout(() => a.style.opacity = '1', 50); }, 800); }
-    function showTab(id, el) { document.querySelectorAll('.container').forEach(c => c.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.getElementById(id).classList.add('active'); if(!el.classList.contains('nav-center')) el.classList.add('active'); window.scrollTo(0,0); if(id === 'guide') { document.getElementById('guideDashboard').style.display = 'block'; document.getElementById('guideDetail').style.display = 'none'; } if(id === 'shop') { document.getElementById('tabShopWen').click(); } }
     
-    // ⭐️ 滑動返回目錄機制
+    // 全域 Tab 導航
+    function showTab(id, el) { 
+        document.querySelectorAll('.container').forEach(c => c.classList.remove('active')); 
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); 
+        document.getElementById(id).classList.add('active'); 
+        if(!el.classList.contains('nav-center')) el.classList.add('active'); 
+        window.scrollTo(0,0); 
+        if(id === 'guide') { document.getElementById('guideDashboard').style.display = 'block'; document.getElementById('guideDetail').style.display = 'none'; } 
+        // 購物車切換自動載入本機使用者的專屬車
+        if(id === 'shop') { 
+            let targetTab = deviceOwner === 'user1' ? 'tabShopU1' : 'tabShopU2';
+            document.getElementById(targetTab).click(); 
+        } 
+    }
+    
+    // ⭐️ 滑動返回目錄
     let touchstartX = 0; let touchendX = 0; const guideDetail = document.getElementById('guideDetail');
     guideDetail.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; });
     guideDetail.addEventListener('touchend', e => { touchendX = e.changedTouches[0].screenX; if (touchendX - touchstartX > 100) closeGuideFolder(); });
 
-    const IMGBB_API_KEY = "ba1b2b24f8275c9d3a199bea5cd52bf9"; 
-    const firebaseConfig = { apiKey: "AIzaSyC884_zH7XM7l7C_ijhuFmEoKxbsN0O1Vw", authDomain: "busan-trip-2026-4148f.firebaseapp.com", databaseURL: "https://busan-trip-2026-4148f-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "busan-trip-2026-4148f", storageBucket: "busan-trip-2026-4148f.firebasestorage.app", messagingSenderId: "819505968980", appId: "1:819505968980:web:03e6d05ef5101719327ac1" };
-    firebase.initializeApp(firebaseConfig); const db = firebase.database();
-
-    const itiRef = db.ref("busan_v35_iti"); const guideRef = db.ref("busan_v35_guide"); const shopRef = db.ref("busan_v35_shop"); const photoRef = db.ref("busan_v35_photos"); const ticketRef = db.ref("busan_v35_tickets"); const billRef = db.ref("busan_v35_bills"); const prepRef = db.ref("busan_v35_prep"); const voiceRef = db.ref("busan_v35_voice");
-
     async function uploadSingleToImgBB(file, target) { if (!file || file.size > 32*1024*1024) return; let statusId = target+'UploadStatus'; if(target==='voucher') statusId='voucherStatus'; if(target==='receipt') statusId='receiptStatus'; const status = document.getElementById(statusId); status.innerText = "⏳ 上傳中..."; const fd = new FormData(); fd.append("image", file); try { const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: fd }); const data = await res.json(); if (data.success) { if(target==='shop') { document.getElementById('tempShopImg').value = data.data.url; } else if(target==='voucher') { document.getElementById('tempVoucher').value = data.data.url; } else if(target==='receipt') { document.getElementById('tempReceipt').value = data.data.url; } else { document.getElementById('tempGuideImg').value = data.data.url; } status.innerText="✅ OK"; } } catch(e) {} }
     async function uploadMultipleToImgBB(files, target) { if(files.length === 0) return; const status = document.getElementById('photoUploadStatus'); let d = (new Date().getMonth()+1)+"/"+new Date().getDate(); let successCount = 0; for(let i=0; i<files.length; i++) { let file = files[i]; if (file.size > 32*1024*1024) continue; status.innerText = `⏳ 批次上傳中... (${i+1}/${files.length})`; const fd = new FormData(); fd.append("image", file); try { const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: fd }); const data = await res.json(); if (data.success) { photoRef.push({url:data.data.url, date:d, timestamp:Date.now()}); successCount++; } } catch(e) {} } status.innerText = `✅ 成功歸檔 ${successCount} 張照片！`; }
 
-    // --- 動態字卡模組 ---
+    function speakKorean(text) { if ('speechSynthesis' in window) { let msg = new SpeechSynthesisUtterance(text); msg.lang = 'ko-KR'; msg.rate = 0.85; window.speechSynthesis.speak(msg); } }
+
     let voiceData = [];
     voiceRef.on("value", s => {
         if(!s.exists()) {
@@ -514,7 +568,7 @@
     function addVoiceCard() { let tw = document.getElementById('newCardTw').value; let kr = document.getElementById('newCardKr').value; if(tw && kr) { voiceRef.push({ tw: tw, kr: kr, icon: 'fa-comment-dots', custom: true }); document.getElementById('newCardTw').value = ''; document.getElementById('newCardKr').value = ''; } }
     function deleteVoiceCard(k) { voiceRef.child(k).remove(); }
 
-    // ⭐️ Checklist 韓服分家並附上真實連結
+    // ⭐️ Checklist 韓服徹底分開並帶 IG 連結
     let prepData = [];
     prepRef.on("value", s => {
         if(!s.exists()) {
@@ -532,41 +586,67 @@
     function renderPrepList() {
         const l = document.getElementById('prepListUI'); l.innerHTML = '';
         prepData.forEach(p => {
-            let linkHTML = p.link ? `<a href="${p.link}" target="_blank" class="prep-link" onclick="event.stopPropagation();"><i class="fa-solid fa-link"></i> 前往</a>` : '';
+            // ⭐️ 強制用 window.open 打開外部連結，避開 PWA 空白問題
+            let linkHTML = p.link ? `<div class="prep-link" onclick="event.stopPropagation(); window.open('${p.link}', '_blank', 'noopener,noreferrer');"><i class="fa-solid fa-link"></i> 前往</div>` : '';
             l.innerHTML += `<div class="prep-item ${p.done ? 'done' : ''}" onclick="togglePrep('${p.key}', ${p.done})"><div class="prep-check"><i class="fa-solid fa-check"></i></div><div class="prep-text">${p.text}</div>${linkHTML}</div>`;
         });
     }
     function togglePrep(key, currentStatus) { prepRef.child(key).update({ done: !currentStatus }); }
 
-    // ⭐️ 東京級記帳本邏輯 (公私類別死鎖防呆)
-    let deviceOwner = localStorage.getItem('busan_v35_owner') || '溫';
-    function updateOwner() { deviceOwner = document.getElementById('deviceOwner').value; localStorage.setItem('busan_v35_owner', deviceOwner); document.getElementById('tabPrivate').innerText = `🔒 ${deviceOwner} 私帳`; renderBills(); }
-    let privateBills = JSON.parse(localStorage.getItem('busan_v35_p_bills')) || []; let sharedBills = []; let currentBillTab = '公費';
+    // ⭐️ 東京級記帳本邏輯 (公私分離隱藏選項)
+    let privateBills = JSON.parse(localStorage.getItem('busan_v36_p_bills')) || []; let sharedBills = []; let currentBillTab = '公費';
     billRef.on("value", s => { sharedBills=[]; s.forEach(ch=>{ sharedBills.push({...ch.val(), fbKey:ch.key}); }); renderBills(); });
     
+    function togglePayerSelect() {
+        const type = document.getElementById('billType').value;
+        const payerSelect = document.getElementById('payer');
+        if(type === '私帳') { payerSelect.style.display = 'none'; } else { payerSelect.style.display = 'block'; }
+    }
+
     function filterBills_Logic(t) { 
         currentBillTab = t; 
         document.querySelectorAll('#split .day-tab').forEach(b=>b.classList.remove('active')); 
         document.getElementById(t==='公費'?'tabShared':'tabPrivate').classList.add('active'); 
         
         const typeSelect = document.getElementById('billType');
-        if(t === '私帳') { typeSelect.innerHTML = `<option value="私帳">私帳</option>`; } 
-        else { typeSelect.innerHTML = `<option value="公費">公費</option><option value="私帳">私帳</option>`; }
-        
+        if(t === '私帳') { 
+            typeSelect.innerHTML = `<option value="私帳">私帳</option>`; 
+            document.getElementById('payer').style.display = 'none'; // 切換私帳強制隱藏
+        } else { 
+            typeSelect.innerHTML = `<option value="公費">公費</option><option value="私帳">私帳</option>`; 
+            document.getElementById('payer').style.display = 'block'; // 恢復顯示
+        }
         renderBills(); 
     }
     
     function renderBills() {
-        const l = document.getElementById('billList'), res = document.getElementById('settlement'); let sWen_TotalTWD_Paid = 0, sYa_TotalTWD_Paid = 0; l.innerHTML = ''; let all = [...sharedBills, ...privateBills].sort((a,b)=>a.timestamp-b.timestamp);
-        all.filter(b => currentBillTab==='公費'?b.type==='公費':b.type==='私帳'&&b.owner===deviceOwner).forEach(b => { let sym = b.currency==='TWD'?'$':'₩'; let rHTML = b.receipt ? `<a href="${b.receipt}" target="_blank" style="font-size:0.75rem; color:var(--primary); margin-left:5px; text-decoration:none;"><i class="fa-solid fa-receipt"></i> 發票</a>` : ''; l.innerHTML += `<div class="card" style="padding:15px; margin-bottom:10px;"><div style="display:flex; justify-content:space-between; align-items:center;"><div style="flex:1;"><b style="font-size:1.05rem;">${b.item}</b> ${rHTML}<br><small style="color:#7f8c8d; font-weight:700;">${b.method} | ${b.payer} 代墊</small></div><div style="text-align:right;"><b style="font-size:1.15rem; color:var(--dora);">${b.amt.toLocaleString()}${sym}</b></div><button class="btn-delete" style="margin-left:15px;" onclick="${b.type==='公費'?`deleteSharedBill('${b.fbKey}')`:`deletePrivateBill(${b.id})`}">🗑️</button></div></div>`; });
-        all.forEach(b => { if(b.type==='公費'){ let amtInTWD = b.currency === 'KRW' ? b.amt * liveKrwToTwd : b.amt; if(b.payer === '溫') sWen_TotalTWD_Paid += amtInTWD; if(b.payer === '鴨') sYa_TotalTWD_Paid += amtInTWD; } });
-        let totalSharedTWD = sWen_TotalTWD_Paid + sYa_TotalTWD_Paid; let halfTWD = totalSharedTWD / 2; let wenBalance = sWen_TotalTWD_Paid - halfTWD;
+        const l = document.getElementById('billList'), res = document.getElementById('settlement'); let sU1_TotalTWD_Paid = 0, sU2_TotalTWD_Paid = 0; l.innerHTML = ''; let all = [...sharedBills, ...privateBills].sort((a,b)=>a.timestamp-b.timestamp);
+        
+        all.filter(b => currentBillTab==='公費'?b.type==='公費':b.type==='私帳'&&b.owner===deviceOwner).forEach(b => { 
+            let sym = b.currency==='TWD'?'$':'₩'; 
+            let rHTML = b.receipt ? `<a href="${b.receipt}" target="_blank" style="font-size:0.75rem; color:var(--primary); margin-left:5px; text-decoration:none;"><i class="fa-solid fa-receipt"></i> 發票</a>` : ''; 
+            let payerName = b.payer === 'user1' ? u1.name : u2.name;
+            let detailTxt = b.type==='公費' ? `<small style="color:#7f8c8d; font-weight:700;">${b.method} | ${payerName} 代墊</small>` : `<small style="color:#7f8c8d; font-weight:700;">${b.method} | 個人花費</small>`;
+            l.innerHTML += `<div class="card" style="padding:15px; margin-bottom:10px;"><div style="display:flex; justify-content:space-between; align-items:center;"><div style="flex:1;"><b style="font-size:1.05rem;">${b.item}</b> ${rHTML}<br>${detailTxt}</div><div style="text-align:right;"><b style="font-size:1.15rem; color:var(--dora);">${b.amt.toLocaleString()}${sym}</b></div><button class="btn-delete" style="margin-left:15px;" onclick="${b.type==='公費'?`deleteSharedBill('${b.fbKey}')`:`deletePrivateBill(${b.id})`}">🗑️</button></div></div>`; 
+        });
+
+        all.forEach(b => { 
+            if(b.type==='公費'){ 
+                let amtInTWD = b.currency === 'KRW' ? b.amt * liveKrwToTwd : b.amt; 
+                if(b.payer === 'user1') sU1_TotalTWD_Paid += amtInTWD; 
+                if(b.payer === 'user2') sU2_TotalTWD_Paid += amtInTWD; 
+            } 
+        });
+        
+        let totalSharedTWD = sU1_TotalTWD_Paid + sU2_TotalTWD_Paid; let halfTWD = totalSharedTWD / 2; let u1Balance = sU1_TotalTWD_Paid - halfTWD;
         let settleText = `<div style="text-align:center; margin-bottom:10px;"><span style="font-size:0.85rem; color:#7f8c8d;">公費總支出 (約合台幣)</span><br><span style="font-size:1.8rem; color:var(--primary);">$${Math.round(totalSharedTWD).toLocaleString()}</span></div><hr style="border:0; border-top:1px dashed #ccc; margin:10px 0;">`;
-        if (wenBalance > 0) { settleText += `👉 <b>鴨</b> 應給 <b>溫</b>：<span style="color:#27AE60; font-size:1.3rem;">$${Math.round(wenBalance).toLocaleString()}</span>`; } else if (wenBalance < 0) { settleText += `👉 <b>溫</b> 應給 <b>鴨</b>：<span style="color:#27AE60; font-size:1.3rem;">$${Math.round(Math.abs(wenBalance)).toLocaleString()}</span>`; } else { settleText += `✨ 帳目完美平衡！`; }
+        if (u1Balance > 0) { settleText += `👉 <b>${u2.avatar} ${u2.name}</b> 應給 <b>${u1.avatar} ${u1.name}</b>：<span style="color:#27AE60; font-size:1.3rem;">$${Math.round(u1Balance).toLocaleString()}</span>`; } 
+        else if (u1Balance < 0) { settleText += `👉 <b>${u1.avatar} ${u1.name}</b> 應給 <b>${u2.avatar} ${u2.name}</b>：<span style="color:#27AE60; font-size:1.3rem;">$${Math.round(Math.abs(u1Balance)).toLocaleString()}</span>`; } 
+        else { settleText += `✨ 帳目完美平衡！`; }
         res.innerHTML = settleText;
     }
-    function addBill() { let n=document.getElementById('billName').value, a=parseFloat(document.getElementById('billAmt').value), cur=document.getElementById('billCurrency').value, t=document.getElementById('billType').value, m=document.getElementById('payMethod').value, p=document.getElementById('payer').value, rec=document.getElementById('tempReceipt').value; if(n&&a){ let nb={item:n, amt:a, currency:cur, type:t, method:m, payer:p, receipt:rec, timestamp:Date.now(), owner:deviceOwner}; if(t==='公費') billRef.push(nb); else { nb.id=Date.now(); privateBills.push(nb); localStorage.setItem('busan_v35_p_bills', JSON.stringify(privateBills)); renderBills(); } document.getElementById('billName').value=''; document.getElementById('billAmt').value=''; document.getElementById('tempReceipt').value=''; document.getElementById('receiptStatus').innerText=''; } }
-    function deleteSharedBill(k) { billRef.child(k).remove(); } function deletePrivateBill(id) { privateBills = privateBills.filter(b=>b.id!==id); localStorage.setItem('busan_v35_p_bills', JSON.stringify(privateBills)); renderBills(); }
+    function addBill() { let n=document.getElementById('billName').value, a=parseFloat(document.getElementById('billAmt').value), cur=document.getElementById('billCurrency').value, t=document.getElementById('billType').value, m=document.getElementById('payMethod').value, p=document.getElementById('payer').value, rec=document.getElementById('tempReceipt').value; if(n&&a){ let nb={item:n, amt:a, currency:cur, type:t, method:m, payer:p, receipt:rec, timestamp:Date.now(), owner:deviceOwner}; if(t==='公費') billRef.push(nb); else { nb.id=Date.now(); privateBills.push(nb); localStorage.setItem('busan_v36_p_bills', JSON.stringify(privateBills)); renderBills(); } document.getElementById('billName').value=''; document.getElementById('billAmt').value=''; document.getElementById('tempReceipt').value=''; document.getElementById('receiptStatus').innerText=''; } }
+    function deleteSharedBill(k) { billRef.child(k).remove(); } function deletePrivateBill(id) { privateBills = privateBills.filter(b=>b.id!==id); localStorage.setItem('busan_v36_p_bills', JSON.stringify(privateBills)); renderBills(); }
 
     // 拍立得相冊
     photoRef.orderByChild("timestamp").on("value", s => {
@@ -619,9 +699,9 @@
     function cancelEditIti() { editingItiKey = null; document.getElementById('itiDesc').value = ''; document.getElementById('itiTraffic').value = ''; document.getElementById('itiMap').value = ''; document.getElementById('itiFormTitle').innerHTML = '<i class="fa-solid fa-pen"></i> 編輯手帳行程'; document.getElementById('btnSaveIti').innerText = "同步至雲端"; document.getElementById('btnCancelIti').style.display = "none"; }
     function deleteItinerary(k) { if(confirm("確定刪除此行程？")) itiRef.child(k).remove(); }
 
-    let shopList = []; let currentShopOwner = "溫";
+    let shopList = []; let currentShopOwner = "user1";
     shopRef.on("value", s => { shopList = []; s.forEach(ch => { shopList.push({...ch.val(), key:ch.key}); }); renderShop(); });
-    function filterShop_Logic(owner) { currentShopOwner = owner; document.querySelectorAll('#shop .day-tab').forEach(b => { b.classList.remove('active'); if(b.innerText.includes(owner)) b.classList.add('active'); }); renderShop(); }
+    function filterShop_Logic(owner) { currentShopOwner = owner; document.querySelectorAll('#shop .day-tab').forEach(b => { b.classList.remove('active'); }); document.getElementById(owner === 'user1' ? 'tabShopU1' : 'tabShopU2').classList.add('active'); renderShop(); }
     function renderShop() {
         const l = document.getElementById('sList'); l.innerHTML = '';
         let f = shopList.filter(i => i.owner === currentShopOwner);
@@ -691,7 +771,6 @@
     function editGuide(k) { let g = guideData.find(x => x.key === k); if(!g) return; editingGuideKey = k; document.getElementById('gdType').value = g.type; document.getElementById('gdTitle').value = g.title; document.getElementById('gdDesc').value = g.desc || ''; document.getElementById('gdLink').value = g.link || ''; document.getElementById('tempGuideImg').value = g.img || ''; window.scrollTo(0, document.body.scrollHeight); }
     function deleteGuide(k) { if(confirm("確定刪除？")) guideRef.child(k).remove(); }
 
-    window.onload = () => { document.getElementById('deviceOwner').value = deviceOwner; filterIti("11/13"); showTab('guide', document.querySelector('.nav-item.active')); };
 </script>
 </body>
 </html>
