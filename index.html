@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 釜山慶州・哆啦A夢秋之旅 V24</title>
+    <!-- PWA 必備標籤 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#FFF9F2">
+    <title>釜山慶州秋之旅 V27</title>
+    
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -12,7 +17,7 @@
     <style>
         :root {
             --primary: #C0392B; --accent: #F39C12; --dora: #2980B9;
-            --card-bg: rgba(255, 255, 255, 0.85); --text-dark: #2C3E50;
+            --card-bg: rgba(255, 255, 255, 0.75); --text-dark: #2C3E50;
             --shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Nunito', 'Noto Sans TC', sans-serif; }
@@ -38,7 +43,7 @@
         .container.active { display: block; }
         @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        .card { background: var(--card-bg); backdrop-filter: blur(16px); border-radius: 32px; padding: 25px; margin-bottom: 22px; box-shadow: var(--shadow); border: 1px solid rgba(255, 255, 255, 0.9); }
+        .card { background: var(--card-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 32px; padding: 25px; margin-bottom: 22px; box-shadow: var(--shadow); border: 1px solid rgba(255, 255, 255, 0.9); }
         .card-title { color: var(--primary); font-weight: 900; border-bottom: 2px dashed rgba(243, 156, 18, 0.3); padding-bottom: 12px; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; font-size: 1.15rem;}
 
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(255,255,255,0.92); backdrop-filter: blur(25px); display: flex; justify-content: space-around; align-items: center; padding: 10px 0 25px; border-top: 1px solid rgba(255,255,255,0.5); z-index: 2000; box-shadow: 0 -10px 40px rgba(0,0,0,0.06); }
@@ -54,11 +59,12 @@
         .flex-1 { flex: 1; }
         .btn-action { background: linear-gradient(135deg, var(--primary), #E74C3C); color: white; border: none; padding: 15px; border-radius: 18px; width: 100%; font-weight: 900; font-size: 1.05rem; cursor: pointer; transition: 0.2s; box-shadow: 0 6px 20px rgba(192, 57, 43, 0.25); }
         .btn-action:active { transform: scale(0.96); }
-        .btn-edit { background: #eef7ff; border: none; color: var(--dora); cursor: pointer; font-size: 0.9rem; padding: 10px 14px; border-radius: 14px;}
+        .btn-edit { background: #eef7ff; border: none; color: var(--dora); cursor: pointer; font-size: 0.9rem; padding: 10px 14px; border-radius: 14px; transition: 0.2s;}
         .btn-delete { background: #fee; border: none; color: #e74c3c; cursor: pointer; font-size: 0.9rem; padding: 10px 14px; border-radius: 14px; }
         .btn-search { background: #E8F8F5; border: 1px solid #1ABC9C; color: #1ABC9C; padding: 12px; border-radius: 14px; font-weight: 900; cursor: pointer; white-space: nowrap;}
         
         .day-tabs { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 12px; scrollbar-width: none; }
+        .day-tabs::-webkit-scrollbar { display: none; }
         .day-tab { padding: 10px 20px; background: rgba(255,255,255,0.9); border-radius: 22px; font-weight: 900; color: #95a5a6; border: none; white-space: nowrap; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.04);}
         .day-tab.active { background: var(--primary); color: white; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(192, 57, 43, 0.3);}
         
@@ -68,9 +74,18 @@
         .traffic-tag { background: #f1f2f6; color: #555; padding: 3px 8px; border-radius: 8px; font-size: 0.75rem; display: inline-block; margin-top: 4px; border: 1px solid #e0e0e0;}
         .map-tag { background: #03C75A; color: white; padding: 4px 10px; border-radius: 10px; font-size: 0.8rem; text-decoration: none; font-weight: 900; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 4px 10px rgba(3, 199, 90, 0.2);}
 
-        .album-date { font-weight: 900; color: var(--primary); font-size: 1.3rem; margin: 25px 0 15px; padding-bottom: 8px; border-bottom: 3px solid rgba(243, 156, 18, 0.3); display: inline-block; }
-        .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-        .photo-grid img { width: 100%; height: 170px; object-fit: cover; border-radius: 22px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); border: 2px solid #fff;}
+        /* 拍立得特效 */
+        .album-date { font-weight: 900; color: var(--primary); font-size: 1.3rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 3px solid rgba(243, 156, 18, 0.3); display: flex; align-items: center; gap: 10px; }
+        .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; padding-bottom: 20px;}
+        .polaroid { background: #fff; padding: 10px 10px 35px 10px; border-radius: 4px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); cursor: pointer; transition: 0.3s; position: relative;}
+        .polaroid:hover { transform: scale(1.05) rotate(0deg) !important; z-index: 10; box-shadow: 0 12px 30px rgba(0,0,0,0.2);}
+        .polaroid img { width: 100%; height: 160px; object-fit: cover; background: #eee; border: 1px solid #f0f0f0; }
+        
+        #lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); opacity: 0; transition: 0.3s ease;}
+        .lightbox-controls { position: absolute; top: 30px; right: 20px; display: flex; gap: 15px; z-index: 10000; }
+        .btn-lb { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); padding: 10px 18px; border-radius: 12px; font-weight: 900; cursor: pointer; font-size: 0.95rem; backdrop-filter: blur(5px);}
+        .btn-lb.dl { background: var(--accent); border: none; box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);}
+        #lightbox-img { max-width: 95%; max-height: 80vh; border-radius: 12px; box-shadow: 0 15px 40px rgba(0,0,0,0.5); transform: scale(0.9); transition: 0.3s;}
         
         .guide-card { border: 2px solid #fff; border-radius: 24px; overflow: hidden; margin-bottom: 20px; background: rgba(255,255,255,0.8); box-shadow: 0 10px 25px rgba(0,0,0,0.04);}
         .guide-img { width: 100%; height: 190px; object-fit: cover; background: #eee; }
@@ -92,50 +107,56 @@
 <div id="splash">
     <div class="splash-card">
         <h1>2026 BUSAN</h1>
-        <h2 style="margin:8px 0; color:var(--text-dark); font-weight:900;">皇家極致秋遊</h2>
-        <p style="color:var(--dora); font-weight:700;">V24 領航・全境聯網版</p>
+        <h2 style="margin:8px 0; color:var(--text-dark); font-weight:900;">秋季雙城・皇家旅程</h2>
+        <p style="color:var(--dora); font-weight:700;">V27 影音雙軌特仕版</p>
     </div>
-    <button class="btn-enter" onclick="enterApp()">啟動總裁專屬旅程 <i class="fa-solid fa-plane-departure"></i></button>
+    <button class="btn-enter" onclick="enterApp()">啟動專屬系統 <i class="fa-solid fa-plane-departure"></i></button>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox">
+    <div class="lightbox-controls">
+        <button class="btn-lb dl" id="btnDownload" onclick="downloadImage()"><i class="fa-solid fa-download"></i> 下載原圖</button>
+        <button class="btn-lb" onclick="closeLightbox()"><i class="fa-solid fa-xmark"></i> 關閉</button>
+    </div>
+    <img id="lightbox-img" src="">
 </div>
 
 <div id="mainApp">
     
-    <!-- 1. 實用工具台 -->
+    <!-- 1. 控制台 -->
     <div id="tools" class="container active">
         
-        <!-- 動態天氣 -->
         <div class="card">
-            <h3 class="card-title"><i class="fa-solid fa-cloud-sun"></i> 即時氣候與極光穿搭</h3>
+            <h3 class="card-title"><i class="fa-solid fa-cloud-sun"></i> 氣象演算與穿搭指南</h3>
             <div class="flex-row" style="margin-bottom: 15px; gap:12px;">
                 <div style="flex:1; background:rgba(255,255,255,0.8); border-radius:18px; padding:12px; box-shadow:0 4px 15px rgba(0,0,0,0.02);"><div style="font-weight:900; text-align:center; color:var(--primary);">📍 即時・釜山</div><iframe src="https://wttr.in/Busan?format=1" style="width:100%; height:30px; border:none;" scrolling="no"></iframe></div>
                 <div style="flex:1; background:rgba(255,255,255,0.8); border-radius:18px; padding:12px; box-shadow:0 4px 15px rgba(0,0,0,0.02);"><div style="font-weight:900; text-align:center; color:var(--primary);">📍 即時・慶州</div><iframe src="https://wttr.in/Gyeongju?format=1" style="width:100%; height:30px; border:none;" scrolling="no"></iframe></div>
             </div>
-            <div style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.5)); border-radius: 20px; padding: 20px; border-left: 6px solid var(--accent);">
-                <div style="font-weight:900; color:var(--primary); margin-bottom:8px; font-size:1.05rem;"><i class="fa-solid fa-shirt fa-bounce"></i> 外交官夫人 智慧穿搭演算</div>
+            <div style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.5)); border-radius: 20px; padding: 20px; border-left: 6px solid var(--accent); box-shadow: 0 8px 20px rgba(0,0,0,0.03);">
+                <div style="font-weight:900; color:var(--primary); margin-bottom:8px; font-size:1.05rem;"><i class="fa-solid fa-shirt fa-bounce"></i> 專屬氣候穿搭演算</div>
                 <div id="dynamicOutfit" style="font-size:0.95rem; color:#555; line-height:1.7; font-weight:700;">
                     早晚溫差大 (約 8℃~16℃)。發熱衣 + 輕薄針織 + 米色防風大衣。
                 </div>
             </div>
         </div>
 
-        <!-- 韓國入境指南 -->
         <div class="card">
             <h3 class="card-title"><i class="fa-solid fa-passport"></i> 韓國入境通關全攻略</h3>
             <div class="entry-card">
                 <h4 style="margin: 0 0 8px 0; color: var(--primary); font-weight:900;">📄 K-ETA (電子旅行許可)</h4>
-                請於出發前 <b>72 小時</b> 至官方網站填寫申請。效期為 3 年，通關必備。
+                出發前 <b>72 小時</b> 至官網申請。效期為 3 年。
                 <a href="https://www.k-eta.go.kr/" target="_blank" style="display:inline-block; margin-top:8px; color:white; background:var(--dora); padding:6px 12px; border-radius:8px; font-weight:bold; text-decoration:none; font-size:0.85rem;">前往 K-ETA 官網</a>
             </div>
             <div class="entry-card">
                 <h4 style="margin: 0 0 8px 0; color: var(--primary); font-weight:900;">🩺 Q-Code (健康狀態問卷)</h4>
-                出發前 <b>3 天內</b> 填寫，入境時出示 QR Code 掃描，通關最快速！
+                出發前 <b>3 天內</b> 填寫，通關最快速！
                 <a href="https://qcode.kdca.go.kr/" target="_blank" style="display:inline-block; margin-top:8px; color:white; background:var(--dora); padding:6px 12px; border-radius:8px; font-weight:bold; text-decoration:none; font-size:0.85rem;">前往 Q-Code 官網</a>
             </div>
         </div>
 
-        <!-- 專屬預約樞紐 -->
         <div class="card">
-            <h3 class="card-title"><i class="fa-solid fa-link"></i> 官方預約與地標樞紐</h3>
+            <h3 class="card-title"><i class="fa-solid fa-link"></i> 官方預約與交通樞紐</h3>
             <div class="link-hub">
                 <a href="https://www.letskorail.com/ebizbf/EbizbfForeign_pr16100.do?gubun=1" target="_blank"><i class="fa-solid fa-train" style="color:#C0392B;"></i> <span>KORAIL 高鐵 (釜山➔慶州)</span></a>
                 <a href="https://www.bluelinepark.com/eng/" target="_blank"><i class="fa-solid fa-train-tram" style="color:#27AE60;"></i> <span>海雲台藍線 膠囊火車預約</span></a>
@@ -146,10 +167,8 @@
             </div>
         </div>
 
-        <!-- 雙效韓語錦囊 -->
         <div class="card">
             <h3 class="card-title"><i class="fa-solid fa-bullhorn"></i> 雙效韓語語音錦囊</h3>
-            <p style="font-size:0.85rem; color:#7f8c8d; font-weight:900;">不敢開口？直接把螢幕的韓文字指給店員看！</p>
             <div style="display:flex; flex-direction:column; gap:12px;">
                 <div class="flex-row" style="justify-content:space-between; background:rgba(255,255,255,0.9); padding:15px; border-radius:18px; border:1px solid #eee;">
                     <div><span style="color:#7f8c8d; font-size:0.85rem; font-weight:900;">你好 / 謝謝</span><br><b style="color:var(--primary); font-size:1.15rem;">안녕하세요 / 감사합니다</b></div>
@@ -175,17 +194,11 @@
                     <div><span style="color:#7f8c8d; font-size:0.85rem; font-weight:900;">洗手間在哪裡？</span><br><b style="color:var(--primary); font-size:1.15rem;">화장실이 어디예요?</b></div>
                     <button class="voice-btn" onclick="speakKorean('화장실이 어디예요?')"><i class="fa-solid fa-volume-high"></i></button>
                 </div>
-                <div class="flex-row" style="justify-content:space-between; background:rgba(255,255,255,0.9); padding:15px; border-radius:18px; border:1px solid #eee;">
-                    <div><span style="color:#7f8c8d; font-size:0.85rem; font-weight:900;">請給我水</span><br><b style="color:var(--primary); font-size:1.15rem;">물 좀 주세요</b></div>
-                    <button class="voice-btn" onclick="speakKorean('물 좀 주세요')"><i class="fa-solid fa-volume-high"></i></button>
-                </div>
             </div>
         </div>
 
-        <!-- 分流：住宿機票憑證庫 -->
         <div class="card">
             <h3 class="card-title"><i class="fa-solid fa-bed"></i> 住宿機票憑證庫 (雲端)</h3>
-            <p style="font-size:0.85rem; color:#7f8c8d; font-weight:900;">支援上傳 JPG/PNG 截圖憑證，與地圖連結分離。</p>
             <div class="flex-row"><select id="tkType" class="input-box" style="width:110px;"><option value="🏨 住宿">住宿</option><option value="✈️ 機票">機票</option><option value="🎫 門票">門票</option></select><input type="text" id="tkTitle" class="input-box flex-1" placeholder="標題"></div>
             <input type="text" id="tkDesc" class="input-box" placeholder="時間/備註">
             <input type="url" id="tkLink" class="input-box" placeholder="📍 地圖連結 (Naver Map 等)">
@@ -200,19 +213,27 @@
         </div>
     </div>
 
-    <!-- 2. 相冊 -->
+    <!-- 2. 相冊 (新增 Google Drive 入口 & 支援 GIF) -->
     <div id="photo" class="container">
+        
+        <!-- V27: 雲端原檔與影音金庫 -->
+        <div class="card" style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(252,239,225,0.9)); border-left: 6px solid var(--dora);">
+            <h3 class="card-title" style="color:var(--dora); border-bottom:none; margin-bottom:10px;"><i class="fa-brands fa-google-drive"></i> 雲端原檔與影音金庫</h3>
+            <p style="font-size:0.9rem; color:#555; font-weight:700; margin-top:0;">需要後製剪輯的高畫質 4K 影片、無損原圖，請直接存放於此專屬 Google Drive 資料夾，釋放手機空間。</p>
+            <a href="https://drive.google.com/drive/folders/1eYv4GX8vMQvVNHPSwrp3zfZGb9YNkpsZ" target="_blank" class="btn-action" style="background: linear-gradient(135deg, var(--dora), #3498DB); text-decoration: none; display: block; text-align: center; margin-top: 15px;"><i class="fa-solid fa-cloud-arrow-up"></i> 開啟 Google Drive 金庫</a>
+        </div>
+
         <div class="card">
-            <h3 class="card-title"><i class="fa-solid fa-camera-retro"></i> 每日回憶相簿</h3>
-            <p style="font-size:0.85rem; color:#888; font-weight:900;">自動即時上傳至雲端圖庫，單張限 32MB。</p>
-            <label for="photoImgUpload" class="btn-action" style="text-align:center; display:block;"><i class="fa-solid fa-cloud-arrow-up"></i> 上傳今日美照</label>
+            <h3 class="card-title"><i class="fa-solid fa-camera-retro"></i> 每日拍立得回憶庫</h3>
+            <p style="font-size:0.85rem; color:#888; font-weight:900;">完美支援 <b>GIF 短動圖</b> 與靜態相片！單張限 32MB。</p>
+            <label for="photoImgUpload" class="btn-action" style="text-align:center; display:block;"><i class="fa-solid fa-wand-magic-sparkles"></i> 上傳今日美照 / GIF</label>
             <input type="file" id="photoImgUpload" style="display:none;" accept="image/*" onchange="uploadToImgBB(this.files[0], 'photo')">
             <div id="photoUploadStatus" style="font-size: 0.85rem; color: var(--primary); margin-top: 10px; text-align: center; font-weight:900;"></div>
             <div id="albumContainer"></div>
         </div>
     </div>
 
-    <!-- 3. C位手帳 (動態編輯+一鍵地圖) -->
+    <!-- 3. C位手帳 -->
     <div id="itinerary" class="container">
         <div class="day-tabs">
             <button class="day-tab active" onclick="filterIti('11/13')">13日(西面)</button>
@@ -238,7 +259,7 @@
         </div>
     </div>
 
-    <!-- 4. 專屬個人購物車 (獨立 UI, 支援分類與圖片) -->
+    <!-- 4. 專屬個人購物車 -->
     <div id="shop" class="container">
         <div class="card">
             <h3 class="card-title"><i class="fa-solid fa-cart-shopping"></i> 專屬個人購物車</h3>
@@ -255,9 +276,9 @@
                     </select>
                     <input type="text" id="newShop" class="input-box flex-1" placeholder="想買什麼？" style="margin-bottom:0;">
                 </div>
-                <input type="text" id="shopWhere" class="input-box" placeholder="📍 哪裡買？ (例: 西面地下街 / Olive Young)">
+                <input type="text" id="shopWhere" class="input-box" placeholder="📍 哪裡買？ (例: 西面地下街)">
                 <div class="flex-row">
-                    <label for="shopImgUpload" style="background:#fff; padding:12px 18px; border-radius:14px; cursor:pointer; font-weight:900; box-shadow:0 2px 10px rgba(0,0,0,0.05); flex:1; text-align:center;"><i class="fa-solid fa-camera" style="color:var(--dora);"></i> 上傳商品參考圖</label>
+                    <label for="shopImgUpload" style="background:#fff; padding:12px 18px; border-radius:14px; cursor:pointer; font-weight:900; box-shadow:0 2px 10px rgba(0,0,0,0.05); flex:1; text-align:center;"><i class="fa-solid fa-camera" style="color:var(--dora);"></i> 上傳商品圖</label>
                     <input type="file" id="shopImgUpload" style="display:none;" accept="image/*" onchange="uploadToImgBB(this.files[0], 'shop')">
                     <button class="btn-action" style="width:70px; padding:12px; border-radius:14px;" onclick="addShopItem()"><i class="fa-solid fa-plus"></i></button>
                 </div>
@@ -272,18 +293,16 @@
     <!-- 5. 滿血導遊指南庫 -->
     <div id="guide" class="container">
         <div class="day-tabs">
-            <button class="day-tab active" onclick="filterGuide('伴手禮')">🎁 伴手禮</button>
-            <button class="day-tab" onclick="filterGuide('小物')">📱 小物配件</button>
-            <button class="day-tab" onclick="filterGuide('彩妝')">💄 彩妝</button>
-            <button class="day-tab" onclick="filterGuide('保養')">🧴 保養</button>
-            <button class="day-tab" onclick="filterGuide('衣履')">👗 衣履鞋襪</button>
-            <button class="day-tab" onclick="filterGuide('美食')">🍽️ 必吃美食</button>
-            <button class="day-tab" onclick="filterGuide('景點')">📸 絕美景點</button>
+            <button class="day-tab active" onclick="filterGuide('打卡景點')">📸 打卡景點(10)</button>
+            <button class="day-tab" onclick="filterGuide('必吃美食')">🍽️ 必吃美食(5)</button>
+            <button class="day-tab" onclick="filterGuide('GS25')">🏪 GS25</button>
+            <button class="day-tab" onclick="filterGuide('CU')">🏪 CU</button>
+            <button class="day-tab" onclick="filterGuide('7-11')">🏪 7-11</button>
         </div>
         <div id="guideList"></div>
         <div class="card" style="margin-top:15px;">
             <h4 style="margin:0 0 10px 0; color:var(--primary);"><i class="fa-solid fa-plus"></i> 新增圖文地標/推薦</h4>
-            <div class="flex-row"><select id="gdType" class="input-box" style="width:110px;"><option value="美食">美食</option><option value="景點">景點</option><option value="伴手禮">伴手禮</option><option value="小物">小物</option><option value="彩妝">彩妝</option><option value="保養">保養</option><option value="衣履">衣履</option></select><input type="text" id="gdTitle" class="input-box flex-1" placeholder="名稱"></div>
+            <div class="flex-row"><select id="gdType" class="input-box" style="width:110px;"><option value="打卡景點">打卡景點</option><option value="必吃美食">必吃美食</option><option value="GS25">GS25</option><option value="CU">CU</option><option value="7-11">7-11</option></select><input type="text" id="gdTitle" class="input-box flex-1" placeholder="名稱"></div>
             <input type="text" id="gdDesc" class="input-box" placeholder="推薦理由/筆記">
             <div class="flex-row">
                 <input type="url" id="gdLink" class="input-box flex-1" placeholder="Naver Map 網址 (或點右方產生)">
@@ -310,14 +329,52 @@
 </div>
 
 <script>
-    // --- 黑科技：一鍵生成 Naver Map 搜尋網址 ---
     function autoFetchMap(inputId, targetId) {
         let val = document.getElementById(inputId).value;
         if(val) { document.getElementById(targetId).value = 'https://map.naver.com/v5/search/' + encodeURIComponent(val); }
         else { alert("請先輸入名稱！"); }
     }
 
-    function enterApp() { const s = document.getElementById('splash'); const a = document.getElementById('mainApp'); s.style.transform = 'translateY(-100%)'; s.style.opacity = '0'; setTimeout(() => { s.style.display = 'none'; a.style.display = 'block'; setTimeout(() => a.style.opacity = '1', 50); }, 800); }
+    async function fetchLiveWeather() {
+        try {
+            let res = await fetch('https://wttr.in/Busan?format=j1');
+            let data = await res.json();
+            let temp = parseInt(data.current_condition[0].temp_C);
+            let suggestion = "";
+            if(temp < 10) suggestion = "氣溫偏低！務必穿著發熱衣 + 防風大衣，並攜帶暖暖包。";
+            else if(temp >= 10 && temp <= 18) suggestion = "氣溫微涼。建議洋蔥式穿搭：長袖打底 + 輕薄針織 + 米色風衣。";
+            else suggestion = "氣溫舒適。可穿著秋季長袖，攜帶薄外套備用。";
+            
+            document.getElementById('dynamicOutfit').innerHTML = `
+                <span style="color:var(--primary); font-size:1.1rem; font-weight:900;">即時氣溫 ${temp}℃：</span><br>${suggestion}
+                <div style="font-size:0.85rem; color:#888; margin-top:10px; border-top:1px dashed #ccc; padding-top:10px;">
+                    👟 <b>鞋履：</b> 建議穿上您的 <b>Skechers D'Lites</b> 或 NB 運動鞋，應付爆發性步行！<br>
+                    🔋 <b>裝備：</b> 出門帶上 <b>Baseus 行動電源</b>；晚上可用 <b>Fuji Instax Mini Link</b> 印出實體照片！
+                </div>
+            `;
+        } catch(e) {
+            document.getElementById('dynamicOutfit').innerHTML = "早晚溫差大 (約 8℃~16℃)。發熱衣打底 + 輕薄針織衫 + 米色防風大衣。";
+        }
+    }
+
+    let currentLightboxUrl = "";
+    function openLightbox(url) {
+        currentLightboxUrl = url;
+        const lb = document.getElementById('lightbox');
+        const img = document.getElementById('lightbox-img');
+        img.src = url;
+        lb.style.display = 'flex';
+        setTimeout(() => { lb.style.opacity = '1'; img.style.transform = 'scale(1)'; }, 10);
+    }
+    function closeLightbox() {
+        const lb = document.getElementById('lightbox');
+        const img = document.getElementById('lightbox-img');
+        lb.style.opacity = '0'; img.style.transform = 'scale(0.9)';
+        setTimeout(() => { lb.style.display = 'none'; }, 300);
+    }
+    function downloadImage() { if(currentLightboxUrl) { window.open(currentLightboxUrl, '_blank'); } }
+
+    function enterApp() { const s = document.getElementById('splash'); const a = document.getElementById('mainApp'); s.style.transform = 'translateY(-100%)'; s.style.opacity = '0'; setTimeout(() => { s.style.display = 'none'; a.style.display = 'block'; fetchLiveWeather(); setTimeout(() => a.style.opacity = '1', 50); }, 800); }
     function showTab(id, el) { document.querySelectorAll('.container').forEach(c => c.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.getElementById(id).classList.add('active'); if(!el.classList.contains('nav-center')) el.classList.add('active'); window.scrollTo(0,0); }
     function speakKorean(text) { if ('speechSynthesis' in window) { let msg = new SpeechSynthesisUtterance(text); msg.lang = 'ko-KR'; msg.rate = 0.85; window.speechSynthesis.speak(msg); } }
 
@@ -325,14 +382,15 @@
     const firebaseConfig = { apiKey: "AIzaSyC884_zH7XM7l7C_ijhuFmEoKxbsN0O1Vw", authDomain: "busan-trip-2026-4148f.firebaseapp.com", databaseURL: "https://busan-trip-2026-4148f-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "busan-trip-2026-4148f", storageBucket: "busan-trip-2026-4148f.firebasestorage.app", messagingSenderId: "819505968980", appId: "1:819505968980:web:03e6d05ef5101719327ac1" };
     firebase.initializeApp(firebaseConfig); const db = firebase.database();
 
-    const itiRef = db.ref("busan_v24_iti");
-    const guideRef = db.ref("busan_v24_guide");
-    const shopRef = db.ref("busan_v24_shop");
-    const photoRef = db.ref("busan_v24_photos");
-    const ticketRef = db.ref("busan_v24_tickets");
+    // V27 金鑰
+    const itiRef = db.ref("busan_v27_iti");
+    const guideRef = db.ref("busan_v27_guide");
+    const shopRef = db.ref("busan_v27_shop");
+    const photoRef = db.ref("busan_v27_photos");
+    const ticketRef = db.ref("busan_v27_tickets");
 
     async function uploadToImgBB(file, target) {
-        if (!file || file.size > 32*1024*1024) return;
+        if (!file || file.size > 32*1024*1024) { alert("⚠️ 檔案過大或無效！"); return; }
         let statusId = target+'UploadStatus'; if(target==='voucher') statusId='voucherStatus';
         const status = document.getElementById(statusId); status.innerText = "⏳ 魔法上傳中...";
         const fd = new FormData(); fd.append("image", file);
@@ -340,7 +398,7 @@
             const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: fd });
             const data = await res.json();
             if (data.success) {
-                if(target==='photo'){ let d = (new Date().getMonth()+1)+"/"+new Date().getDate(); photoRef.push({url:data.data.url, date:d, timestamp:Date.now()}); status.innerText="✅ 已同步"; }
+                if(target==='photo'){ let d = (new Date().getMonth()+1)+"/"+new Date().getDate(); photoRef.push({url:data.data.url, date:d, timestamp:Date.now()}); status.innerText="✅ 已永久歸檔"; }
                 else if(target==='shop') { document.getElementById('tempShopImg').value = data.data.url; status.innerText="📸 圖片就緒"; }
                 else if(target==='voucher') { document.getElementById('tempVoucher').value = data.data.url; status.innerText="🧾 憑證就緒"; }
                 else { document.getElementById('tempGuideImg').value = data.data.url; status.innerText="📸 圖片就緒"; }
@@ -351,20 +409,26 @@
     photoRef.orderByChild("timestamp").on("value", s => {
         const c = document.getElementById("albumContainer"); c.innerHTML = ""; let a = {};
         s.forEach(ch => { let p = ch.val(); let d = p.date || "回憶"; if(!a[d]) a[d] = []; a[d].unshift(p.url); });
-        for(let d in a){ let g = a[d].map(u => `<img src="${u}">`).join(''); c.innerHTML = `<div class="album-date">📅 ${d}</div><div class="photo-grid">${g}</div>` + c.innerHTML; }
+        for(let d in a){ 
+            let g = a[d].map(u => {
+                let rot = (Math.random() * 6) - 3; 
+                return `<div class="polaroid" style="transform: rotate(${rot}deg);" onclick="openLightbox('${u}')"><img src="${u}"></div>`;
+            }).join(''); 
+            c.innerHTML = `<div class="album-date"><i class="fa-solid fa-calendar-day"></i> ${d} 的記憶</div><div class="photo-grid">${g}</div>` + c.innerHTML; 
+        }
     });
 
-    // 機票住宿憑證 (支援 JPG)
     let ticketData = [];
     ticketRef.on("value", s => {
         if(!s.exists()) {
             ticketRef.push({ type: "🏨 住宿", title: "西面住宿 (大本營)", desc: "11/13 - 11/17", link: "https://naver.me/FGo2I6pW", voucher: "" });
+            ticketRef.push({ type: "✈️ 機票", title: "去程航班", desc: "11/13 抵達金海機場 16:30", link: "", voucher: "" });
         } else { ticketData = []; s.forEach(ch => { ticketData.push({...ch.val(), key:ch.key}); }); renderTickets(); }
     });
     function renderTickets() {
         const l = document.getElementById('ticketList'); l.innerHTML = '';
         ticketData.forEach(t => {
-            let lh = t.link ? `<a href="${t.link}" target="_blank" class="map-tag" style="margin-top:8px;">📍 地圖</a>` : '';
+            let lh = t.link ? `<a href="${t.link}" target="_blank" class="map-tag" style="margin-top:8px;"><i class="fa-solid fa-map-location-dot"></i> 地圖</a>` : '';
             let vh = t.voucher ? `<a href="${t.voucher}" target="_blank" class="map-tag" style="background:var(--primary); margin-top:8px;"><i class="fa-solid fa-image"></i> 看憑證</a>` : '';
             l.innerHTML += `<div class="card" style="padding:15px; border-left:5px solid var(--dora); margin-bottom:12px;"><div style="display:flex; justify-content:space-between; align-items:flex-start;"><div><div style="font-weight:900; font-size:1.05rem; margin-bottom:4px;">${t.type} | ${t.title}</div><div style="font-size:0.85rem; color:#7f8c8d; font-weight:700;">${t.desc}</div>${lh} ${vh}</div><button class="btn-delete" onclick="deleteTicket('${t.key}')"><i class="fa-solid fa-trash"></i></button></div></div>`;
         });
@@ -372,7 +436,6 @@
     function addTicket() { let ty=document.getElementById('tkType').value, ti=document.getElementById('tkTitle').value, de=document.getElementById('tkDesc').value, l=document.getElementById('tkLink').value, v=document.getElementById('tempVoucher').value; if(ti) ticketRef.push({type:ty, title:ti, desc:de, link:l, voucher:v}); document.getElementById('tkTitle').value=''; document.getElementById('tkDesc').value=''; document.getElementById('tkLink').value=''; document.getElementById('tempVoucher').value=''; document.getElementById('voucherStatus').innerText='';}
     function deleteTicket(k) { ticketRef.child(k).remove(); }
 
-    // 行程 (動態編輯與座標地圖)
     let itineraryData = []; let currentFilterDay = "11/13"; let editingItiKey = null;
     itiRef.on("value", s => {
         if(!s.exists()) {
@@ -420,7 +483,7 @@
     function cancelEditIti() { editingItiKey = null; document.getElementById('itiDesc').value = ''; document.getElementById('itiTraffic').value = ''; document.getElementById('itiMap').value = ''; document.getElementById('itiFormTitle').innerHTML = '<i class="fa-solid fa-pen"></i> 編輯手帳行程'; document.getElementById('btnSaveIti').innerText = "同步至雲端"; document.getElementById('btnCancelIti').style.display = "none"; }
     function deleteItinerary(k) { if(confirm("確定刪除此行程？")) itiRef.child(k).remove(); }
 
-    // 專屬購物車 (進階分類+備註+圖片)
+    // 專屬購物車
     let shopList = []; let currentShopOwner = "溫";
     shopRef.on("value", s => { shopList = []; s.forEach(ch => { shopList.push({...ch.val(), key:ch.key}); }); renderShop(); });
     function filterShop(owner) { currentShopOwner = owner; document.querySelectorAll('#shop .day-tab').forEach(b => { b.classList.remove('active'); if(b.innerText.includes(owner)) b.classList.add('active'); }); renderShop(); }
@@ -429,7 +492,7 @@
         let f = shopList.filter(i => i.owner === currentShopOwner);
         if(f.length === 0) l.innerHTML = `<p style="text-align:center; color:#95a5a6; font-weight:900;">購物車目前空空如也！</p>`;
         f.forEach(item => {
-            let imgHTML = item.img ? `<img src="${item.img}" class="item-img">` : '';
+            let imgHTML = item.img ? `<img src="${item.img}" class="item-img" onclick="openLightbox('${item.img}')" style="cursor:zoom-in;">` : '';
             let whereHTML = item.where ? `<br><small style="color:#7f8c8d; font-weight:700;"><i class="fa-solid fa-location-dot"></i> ${item.where}</small>` : '';
             l.innerHTML += `<div class="shop-item ${item.checked ? 'checked' : ''}"><div class="check-box" onclick="toggleShop('${item.key}', ${item.checked})"><i class="fa-solid fa-check"></i></div>${imgHTML}<div class="item-content flex-1" onclick="toggleShop('${item.key}', ${item.checked})"><div class="cat-tag">${item.category}</div><div style="font-weight:900; font-size:1.05rem;">${item.text}</div>${whereHTML}</div><button class="btn-delete" onclick="deleteShop('${item.key}')"><i class="fa-solid fa-trash"></i></button></div>`;
         });
@@ -442,28 +505,17 @@
     function toggleShop(key, currentStatus) { shopRef.child(key).update({ checked: !currentStatus }); }
     function deleteShop(key) { shopRef.child(key).remove(); }
 
-    // 指南 (滿血 15 項購物推薦)
-    let guideData = []; let currentGuideTab = "伴手禮"; let editingGuideKey = null;
+    // 滿血 5+10+15 導遊指南庫
+    let guideData = []; let currentGuideTab = "打卡景點"; let editingGuideKey = null;
     guideRef.on("value", s => {
         if(!s.exists()) {
             const defs = [
-                {type:"伴手禮", title:"慶州皇南餅", desc:"古早味紅豆內餡，慶州必買經典。", link:"https://map.naver.com/v5/search/%ED%99%A9%EB%82%A8%EB%B9%B5"},
-                {type:"伴手禮", title:"古來思魚板", desc:"釜山名物，可真空包裝帶回台灣。", link:"https://map.naver.com/v5/search/%EA%B3%A0%EB%9E%98%EC%82%AC%EC%96%B4%EB%AC%B5"},
-                {type:"伴手禮", title:"天然果乾零糖茶包", desc:"樂天超市有售，符合完全無糖的清爽需求。", link:"https://map.naver.com/v5/search/%EB%A1%AF%EB%8D%B0%EB%A7%88%ED%8A%B8"},
-                {type:"小物", title:"RhinoShield 韓國聯名殼", desc:"保護手機，可去弘大或西面專賣店尋寶。", link:"https://map.naver.com/v5/search/%EC%84%9C%EB%A9%B4%EC%A7%80%ED%95%98%EC%83%81%EA%B0%80"},
-                {type:"小物", title:"Baseus 行動電源", desc:"若忘記帶，大賣場或 Olive Young 皆可購入。", link:"https://map.naver.com/v5/search/Olive%20Young"},
-                {type:"小物", title:"Dinotaeng 堅果熊周邊", desc:"Object 文創店必買超萌小物。", link:"https://map.naver.com/v5/search/Object"},
-                {type:"彩妝", title:"fwee 玻尿酸氣墊粉餅", desc:"Olive Young 霸榜底妝，保濕貼膚。", link:"https://map.naver.com/v5/search/Olive%20Young"},
-                {type:"彩妝", title:"Rom&nd 果凍唇釉", desc:"最新色號必收，光澤感極佳。", link:"https://map.naver.com/v5/search/Olive%20Young"},
-                {type:"彩妝", title:"Dasique 九宮格眼影盤", desc:"粉質細膩，韓系溫柔眼妝必備。", link:"https://map.naver.com/v5/search/Olive%20Young"},
-                {type:"保養", title:"Torriden 玻尿酸精華", desc:"深層保濕，Olive Young 常年銷量冠軍。", link:"https://map.naver.com/v5/search/Olive%20Young"},
-                {type:"保養", title:"VT 綠寶盒微針精華 (Reedle Shot)", desc:"近期韓國最紅縮毛孔神器。", link:"https://map.naver.com/v5/search/Olive%20Young"},
-                {type:"保養", title:"Abib 魚腥草舒緩面膜", desc:"鎮定肌膚效果極佳，適合旅行急救。", link:"https://map.naver.com/v5/search/Olive%20Young"},
-                {type:"衣履", title:"Skechers D'Lites 厚底鞋", desc:"ABC-Mart 有韓國限定色，爆發性步行絕佳戰友！", link:"https://map.naver.com/v5/search/ABC-Mart"},
-                {type:"衣履", title:"New Balance 2002R/530", desc:"韓國超流行復古慢跑鞋，好搭好走。", link:"https://map.naver.com/v5/search/New%20Balance"},
-                {type:"衣履", title:"高磅數純棉設計襪", desc:"西面地下街超多款式，質感好又便宜。", link:"https://map.naver.com/v5/search/%EC%84%9C%EB%A9%B4%EC%A7%80%ED%95%98%EC%83%81%EA%B0%80"},
-                {type:"美食", title:"味讚王鹽烤肉", desc:"西面厚切豬五花專人代烤", link:"https://naver.me/FHYI5S6w"}, {type:"美食", title:"海木鰻魚飯", desc:"海雲台米其林推薦", link:"https://naver.me/x35p8q1Z"},
-                {type:"景點", title:"大陵苑石牆路", desc:"換韓服拍金黃銀杏", link:"https://naver.me/5bdi2a6u"}, {type:"景點", title:"月精橋", desc:"絕美木造橋樑，韓服拍照首選", link:"https://naver.me/F9Q6M9O9"}
+                {type:"必吃美食", title:"味讚王鹽烤肉", desc:"西面厚切豬五花專人代烤", link:"https://naver.me/FHYI5S6w"}, {type:"必吃美食", title:"海木鰻魚飯", desc:"海雲台米其林推薦", link:"https://naver.me/x35p8q1Z"}, {type:"必吃美食", title:"Solsot 釜飯", desc:"慶州皇理團路必吃排隊名店", link:"https://naver.me/G1F4eP1s"}, {type:"必吃美食", title:"東萊蔘雞湯", desc:"西面分店，濃郁補氣", link:"https://map.naver.com/v5/search/%EB%8F%99%EB%9E%98%EC%82%BC%EA%B3%84%ED%83%95"}, {type:"必吃美食", title:"密陽血腸豬肉湯飯", desc:"西面24hr營業暖胃首選", link:"https://map.naver.com/v5/search/%EB%B0%80%EC%96%91%EC%88%9C%EB%8C%80%EB%8F%BC%EC%A7%80%EA%B5%AD%EB%B0%A5"},
+                {type:"打卡景點", title:"松島海上纜車", desc:"跨海絕景與龍宮雲端步道", link:"https://naver.me/x9JuH1oB"}, {type:"打卡景點", title:"白淺灘文化村", desc:"韓國版聖托里尼，海景咖啡", link:"https://naver.me/5B1TfU1b"}, {type:"打卡景點", title:"廣安里 M 無人機秀", desc:"週六限定夜空璀璨秀", link:"https://naver.me/54VWK4oO"}, {type:"打卡景點", title:"海雲台藍線公園", desc:"夢幻膠囊小火車", link:"https://naver.me/xXEA9A1c"}, {type:"打卡景點", title:"影島 Thrill On The Mug", desc:"無死角絕美海景咖啡", link:"https://map.naver.com/v5/search/Thrill%20On%20The%20Mug"},
+                {type:"打卡景點", title:"東宮與月池", desc:"慶州夜楓與宮殿倒影", link:"https://naver.me/moon"}, {type:"打卡景點", title:"大陵苑石牆路", desc:"換韓服拍金黃銀杏", link:"https://naver.me/5bdi2a6u"}, {type:"打卡景點", title:"月精橋", desc:"絕美木造橋樑夕照", link:"https://naver.me/F9Q6M9O9"}, {type:"打卡景點", title:"皇理團路古街", desc:"慶州最美文創街區", link:"https://map.naver.com/v5/search/%ED%99%A9%EB%A6%AC%EB%8B%A8%EA%B8%B8"}, {type:"打卡景點", title:"花路韓服/韓服判", desc:"慶州精緻韓服換裝體驗", link:"https://map.naver.com/v5/search/%EA%BD%83%EA%B8%B8%ED%95%9C%EB%B3%B5"},
+                {type:"GS25", title:"蟹膏醬飯糰", desc:"神級早餐", link:""}, {type:"GS25", title:"天然果香冷泡茶", desc:"✨ 無糖、無蜂蜜煉乳，清爽解渴！", link:""}, {type:"GS25", title:"Omori泡菜鍋泡麵", desc:"宵夜首選", link:""}, {type:"GS25", title:"濟州橘子冰棒", desc:"酸甜解渴", link:""}, {type:"GS25", title:"T-money 聯名卡", desc:"超商必備", link:""},
+                {type:"CU", title:"延世大生乳包", desc:"超商甜點天花板", link:""}, {type:"CU", title:"冰塊杯+無糖黑咖啡", desc:"韓國人標配", link:""}, {type:"CU", title:"辣炒年糕杯", desc:"宵夜解饞", link:""}, {type:"CU", title:"減糖版香蕉牛奶", desc:"經典國民飲料", link:""}, {type:"CU", title:"濟州限定啤酒", desc:"微醺必備", link:""},
+                {type:"7-11", title:"養樂多軟糖", desc:"伴手禮首選", link:""}, {type:"7-11", title:"濟州牛奶冰淇淋", desc:"香濃綿密", link:""}, {type:"7-11", title:"辣魷魚三角飯糰", desc:"道地口味", link:""}, {type:"7-11", title:"低卡氣泡水", desc:"健康解渴", link:""}, {type:"7-11", title:"高蛋白堅果包", desc:"隨身補充體力", link:""}
             ];
             defs.forEach(g=>guideRef.push({...g, timestamp:Date.now()}));
         } else { guideData=[]; s.forEach(ch=>{ guideData.push({...ch.val(), key:ch.key}); }); renderGuide(); }
@@ -472,7 +524,7 @@
     function renderGuide() {
         const l = document.getElementById('guideList'); l.innerHTML = '';
         guideData.filter(g=>g.type===currentGuideTab).sort((a,b)=>b.timestamp-a.timestamp).forEach(g=>{
-            let img = g.img ? `<img src="${g.img}" class="guide-img">` : ''; let link = g.link ? `<a href="${g.link}" target="_blank" class="map-btn" style="margin-top:10px;"><i class="fa-solid fa-map-location-dot"></i> 地圖/連結</a>` : '';
+            let img = g.img ? `<img src="${g.img}" class="guide-img" onclick="openLightbox('${g.img}')" style="cursor:zoom-in;">` : ''; let link = g.link ? `<a href="${g.link}" target="_blank" class="map-btn" style="margin-top:10px;"><i class="fa-solid fa-map-location-dot"></i> 地圖/連結</a>` : '';
             l.innerHTML += `<div class="guide-card">${img}<div style="padding:20px;"><h4>${g.title}</h4><p>${g.desc}</p>${link}<div style="margin-top:15px; display:flex; gap:10px;"><button class="btn-edit" onclick="editGuide('${g.key}')"><i class="fa-solid fa-pen"></i></button><button class="btn-delete" onclick="deleteGuide('${g.key}')"><i class="fa-solid fa-trash"></i></button></div></div></div>`;
         });
     }
@@ -490,7 +542,7 @@
     }
     function deleteGuide(k) { if(confirm("確定刪除？")) guideRef.child(k).remove(); }
 
-    window.onload = () => { filterIti("11/13"); filterShop("溫"); filterGuide("伴手禮"); };
+    window.onload = () => { filterIti("11/13"); filterShop("溫"); filterGuide("打卡景點"); };
 </script>
 </body>
 </html>
