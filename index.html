@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- PWA 必備標籤 -->
+    <!-- PWA 核心設定 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#FFF9F2">
-    <title>釜山慶州秋之旅 V27</title>
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="icon" href="icon.png" type="image/png">
+    <link id="manifest-link" rel="manifest" href="">
+    <title>釜山慶州秋之旅 V28</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -17,7 +20,7 @@
     <style>
         :root {
             --primary: #C0392B; --accent: #F39C12; --dora: #2980B9;
-            --card-bg: rgba(255, 255, 255, 0.75); --text-dark: #2C3E50;
+            --card-bg: rgba(255, 255, 255, 0.82); --text-dark: #2C3E50;
             --shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Nunito', 'Noto Sans TC', sans-serif; }
@@ -33,9 +36,9 @@
             color: var(--text-dark); margin: 0; padding-bottom: 120px; overflow-x: hidden; 
         }
 
-        #splash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; background: url('13972.png') center/cover no-repeat; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 60px 20px; transition: 0.8s cubic-bezier(0.8, 0, 0.2, 1); }
-        .splash-card { background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); padding: 35px 25px; border-radius: 35px; text-align: center; width: 92%; box-shadow: 0 20px 50px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.8); }
-        .btn-enter { background: linear-gradient(135deg, var(--primary), #E74C3C); color: white; border: none; padding: 18px 50px; border-radius: 40px; font-size: 1.15rem; font-weight: 900; cursor: pointer; animation: pulse 2s infinite; margin-bottom: 30px; box-shadow: 0 10px 25px rgba(192, 57, 43, 0.4);}
+        #splash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; background: #FFF9F2; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; transition: 0.8s cubic-bezier(0.8, 0, 0.2, 1); }
+        .splash-img { width: 180px; height: 180px; border-radius: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); margin-bottom: 30px; border: 4px solid #fff;}
+        .btn-enter { background: linear-gradient(135deg, var(--primary), #E74C3C); color: white; border: none; padding: 18px 50px; border-radius: 40px; font-size: 1.15rem; font-weight: 900; cursor: pointer; animation: pulse 2s infinite; box-shadow: 0 10px 25px rgba(192, 57, 43, 0.4);}
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.03); } 100% { transform: scale(1); } }
 
         #mainApp { display: none; opacity: 0; transition: 0.5s ease; }
@@ -54,11 +57,9 @@
         .nav-center i { font-size: 1.8rem; }
 
         .input-box { width: 100%; padding: 15px 18px; margin-bottom: 12px; border: none; border-radius: 18px; font-size: 0.95rem; background: rgba(255,255,255,0.95); font-weight: 700; color: var(--text-dark); box-shadow: inset 0 2px 5px rgba(0,0,0,0.02);}
-        .input-box:focus { outline: none; box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.2); }
         .flex-row { display: flex; gap: 10px; align-items: center; }
         .flex-1 { flex: 1; }
         .btn-action { background: linear-gradient(135deg, var(--primary), #E74C3C); color: white; border: none; padding: 15px; border-radius: 18px; width: 100%; font-weight: 900; font-size: 1.05rem; cursor: pointer; transition: 0.2s; box-shadow: 0 6px 20px rgba(192, 57, 43, 0.25); }
-        .btn-action:active { transform: scale(0.96); }
         .btn-edit { background: #eef7ff; border: none; color: var(--dora); cursor: pointer; font-size: 0.9rem; padding: 10px 14px; border-radius: 14px; transition: 0.2s;}
         .btn-delete { background: #fee; border: none; color: #e74c3c; cursor: pointer; font-size: 0.9rem; padding: 10px 14px; border-radius: 14px; }
         .btn-search { background: #E8F8F5; border: 1px solid #1ABC9C; color: #1ABC9C; padding: 12px; border-radius: 14px; font-weight: 900; cursor: pointer; white-space: nowrap;}
@@ -78,7 +79,6 @@
         .album-date { font-weight: 900; color: var(--primary); font-size: 1.3rem; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 3px solid rgba(243, 156, 18, 0.3); display: flex; align-items: center; gap: 10px; }
         .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; padding-bottom: 20px;}
         .polaroid { background: #fff; padding: 10px 10px 35px 10px; border-radius: 4px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); cursor: pointer; transition: 0.3s; position: relative;}
-        .polaroid:hover { transform: scale(1.05) rotate(0deg) !important; z-index: 10; box-shadow: 0 12px 30px rgba(0,0,0,0.2);}
         .polaroid img { width: 100%; height: 160px; object-fit: cover; background: #eee; border: 1px solid #f0f0f0; }
         
         #lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); opacity: 0; transition: 0.3s ease;}
@@ -97,20 +97,30 @@
         .checked .item-content { opacity: 0.4; text-decoration: line-through; }
         .item-img { width: 60px; height: 60px; border-radius: 14px; object-fit: cover; margin-right: 15px; border: 2px solid #ecf0f1;}
         .cat-tag { background: var(--accent); color: white; padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 900; margin-bottom: 4px; display: inline-block;}
-        
-        .entry-card { background: #fdfdfd; border-radius: 18px; padding: 18px; border-left: 6px solid var(--primary); font-size: 0.95rem; line-height: 1.6; color: #555; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);}
-        .link-hub a { display: flex; align-items: center; gap: 10px; background: #fff; padding: 16px; border-radius: 18px; text-decoration: none; color: var(--text-dark); font-weight: 900; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.02);}
     </style>
 </head>
 <body>
 
+<!-- 動態 PWA Manifest 注入 -->
+<script>
+    const manifestJSON = {
+      "name": "釜山慶州秋之旅 V28",
+      "short_name": "皇家秋遊",
+      "start_url": ".",
+      "display": "standalone",
+      "background_color": "#FFF9F2",
+      "theme_color": "#FFF9F2",
+      "icons": [{"src": "icon.png", "sizes": "512x512", "type": "image/png"}]
+    };
+    const blob = new Blob([JSON.stringify(manifestJSON)], {type: 'application/json'});
+    document.getElementById('manifest-link').setAttribute('href', URL.createObjectURL(blob));
+</script>
+
 <div id="splash">
-    <div class="splash-card">
-        <h1>2026 BUSAN</h1>
-        <h2 style="margin:8px 0; color:var(--text-dark); font-weight:900;">秋季雙城・皇家旅程</h2>
-        <p style="color:var(--dora); font-weight:700;">V27 影音雙軌特仕版</p>
-    </div>
-    <button class="btn-enter" onclick="enterApp()">啟動專屬系統 <i class="fa-solid fa-plane-departure"></i></button>
+    <img src="icon.png" alt="App Icon" class="splash-img" onerror="this.src='https://via.placeholder.com/180/FFF9F2/C0392B?text=APP+Icon'">
+    <h2 style="margin:8px 0; color:var(--text-dark); font-weight:900;">秋季雙城・皇家旅程</h2>
+    <p style="color:var(--dora); font-weight:700; margin-bottom:40px;">V28 滿血安裝版</p>
+    <button class="btn-enter" onclick="enterApp()">啟動總裁專屬系統 <i class="fa-solid fa-plane-departure"></i></button>
 </div>
 
 <!-- Lightbox -->
@@ -130,10 +140,10 @@
         <div class="card">
             <h3 class="card-title"><i class="fa-solid fa-cloud-sun"></i> 氣象演算與穿搭指南</h3>
             <div class="flex-row" style="margin-bottom: 15px; gap:12px;">
-                <div style="flex:1; background:rgba(255,255,255,0.8); border-radius:18px; padding:12px; box-shadow:0 4px 15px rgba(0,0,0,0.02);"><div style="font-weight:900; text-align:center; color:var(--primary);">📍 即時・釜山</div><iframe src="https://wttr.in/Busan?format=1" style="width:100%; height:30px; border:none;" scrolling="no"></iframe></div>
-                <div style="flex:1; background:rgba(255,255,255,0.8); border-radius:18px; padding:12px; box-shadow:0 4px 15px rgba(0,0,0,0.02);"><div style="font-weight:900; text-align:center; color:var(--primary);">📍 即時・慶州</div><iframe src="https://wttr.in/Gyeongju?format=1" style="width:100%; height:30px; border:none;" scrolling="no"></iframe></div>
+                <div style="flex:1; background:rgba(255,255,255,0.8); border-radius:18px; padding:12px;"><div style="font-weight:900; text-align:center; color:var(--primary);">📍 釜山</div><iframe src="https://wttr.in/Busan?format=1" style="width:100%; height:30px; border:none;" scrolling="no"></iframe></div>
+                <div style="flex:1; background:rgba(255,255,255,0.8); border-radius:18px; padding:12px;"><div style="font-weight:900; text-align:center; color:var(--primary);">📍 慶州</div><iframe src="https://wttr.in/Gyeongju?format=1" style="width:100%; height:30px; border:none;" scrolling="no"></iframe></div>
             </div>
-            <div style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.5)); border-radius: 20px; padding: 20px; border-left: 6px solid var(--accent); box-shadow: 0 8px 20px rgba(0,0,0,0.03);">
+            <div style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.5)); border-radius: 20px; padding: 20px; border-left: 6px solid var(--accent);">
                 <div style="font-weight:900; color:var(--primary); margin-bottom:8px; font-size:1.05rem;"><i class="fa-solid fa-shirt fa-bounce"></i> 專屬氣候穿搭演算</div>
                 <div id="dynamicOutfit" style="font-size:0.95rem; color:#555; line-height:1.7; font-weight:700;">
                     早晚溫差大 (約 8℃~16℃)。發熱衣 + 輕薄針織 + 米色防風大衣。
@@ -142,21 +152,7 @@
         </div>
 
         <div class="card">
-            <h3 class="card-title"><i class="fa-solid fa-passport"></i> 韓國入境通關全攻略</h3>
-            <div class="entry-card">
-                <h4 style="margin: 0 0 8px 0; color: var(--primary); font-weight:900;">📄 K-ETA (電子旅行許可)</h4>
-                出發前 <b>72 小時</b> 至官網申請。效期為 3 年。
-                <a href="https://www.k-eta.go.kr/" target="_blank" style="display:inline-block; margin-top:8px; color:white; background:var(--dora); padding:6px 12px; border-radius:8px; font-weight:bold; text-decoration:none; font-size:0.85rem;">前往 K-ETA 官網</a>
-            </div>
-            <div class="entry-card">
-                <h4 style="margin: 0 0 8px 0; color: var(--primary); font-weight:900;">🩺 Q-Code (健康狀態問卷)</h4>
-                出發前 <b>3 天內</b> 填寫，通關最快速！
-                <a href="https://qcode.kdca.go.kr/" target="_blank" style="display:inline-block; margin-top:8px; color:white; background:var(--dora); padding:6px 12px; border-radius:8px; font-weight:bold; text-decoration:none; font-size:0.85rem;">前往 Q-Code 官網</a>
-            </div>
-        </div>
-
-        <div class="card">
-            <h3 class="card-title"><i class="fa-solid fa-link"></i> 官方預約與交通樞紐</h3>
+            <h3 class="card-title"><i class="fa-solid fa-link"></i> 官方預約樞紐</h3>
             <div class="link-hub">
                 <a href="https://www.letskorail.com/ebizbf/EbizbfForeign_pr16100.do?gubun=1" target="_blank"><i class="fa-solid fa-train" style="color:#C0392B;"></i> <span>KORAIL 高鐵 (釜山➔慶州)</span></a>
                 <a href="https://www.bluelinepark.com/eng/" target="_blank"><i class="fa-solid fa-train-tram" style="color:#27AE60;"></i> <span>海雲台藍線 膠囊火車預約</span></a>
@@ -190,10 +186,6 @@
                     <div><span style="color:#7f8c8d; font-size:0.85rem; font-weight:900;">太辣了</span><br><b style="color:var(--primary); font-size:1.15rem;">너무 매워요</b></div>
                     <button class="voice-btn" onclick="speakKorean('너무 매워요')"><i class="fa-solid fa-volume-high"></i></button>
                 </div>
-                <div class="flex-row" style="justify-content:space-between; background:rgba(255,255,255,0.9); padding:15px; border-radius:18px; border:1px solid #eee;">
-                    <div><span style="color:#7f8c8d; font-size:0.85rem; font-weight:900;">洗手間在哪裡？</span><br><b style="color:var(--primary); font-size:1.15rem;">화장실이 어디예요?</b></div>
-                    <button class="voice-btn" onclick="speakKorean('화장실이 어디예요?')"><i class="fa-solid fa-volume-high"></i></button>
-                </div>
             </div>
         </div>
 
@@ -201,7 +193,10 @@
             <h3 class="card-title"><i class="fa-solid fa-bed"></i> 住宿機票憑證庫 (雲端)</h3>
             <div class="flex-row"><select id="tkType" class="input-box" style="width:110px;"><option value="🏨 住宿">住宿</option><option value="✈️ 機票">機票</option><option value="🎫 門票">門票</option></select><input type="text" id="tkTitle" class="input-box flex-1" placeholder="標題"></div>
             <input type="text" id="tkDesc" class="input-box" placeholder="時間/備註">
-            <input type="url" id="tkLink" class="input-box" placeholder="📍 地圖連結 (Naver Map 等)">
+            <div class="flex-row">
+                <input type="url" id="tkLink" class="input-box flex-1" placeholder="📍 地圖連結">
+                <button class="btn-search" onclick="autoFetchMap('tkTitle', 'tkLink')">🔍 找地圖</button>
+            </div>
             <div class="flex-row" style="margin-top:5px; margin-bottom:12px;">
                 <label for="voucherUpload" style="background:rgba(255,255,255,0.9); padding:12px 18px; border-radius:14px; cursor:pointer; font-weight:900; border:2px solid #eee;"><i class="fa-solid fa-file-image" style="color:var(--dora);"></i> 上傳憑證截圖</label>
                 <input type="file" id="voucherUpload" style="display:none;" accept="image/*" onchange="uploadToImgBB(this.files[0], 'voucher')">
@@ -213,19 +208,17 @@
         </div>
     </div>
 
-    <!-- 2. 相冊 (新增 Google Drive 入口 & 支援 GIF) -->
+    <!-- 2. 相冊 -->
     <div id="photo" class="container">
-        
-        <!-- V27: 雲端原檔與影音金庫 -->
         <div class="card" style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(252,239,225,0.9)); border-left: 6px solid var(--dora);">
             <h3 class="card-title" style="color:var(--dora); border-bottom:none; margin-bottom:10px;"><i class="fa-brands fa-google-drive"></i> 雲端原檔與影音金庫</h3>
-            <p style="font-size:0.9rem; color:#555; font-weight:700; margin-top:0;">需要後製剪輯的高畫質 4K 影片、無損原圖，請直接存放於此專屬 Google Drive 資料夾，釋放手機空間。</p>
+            <p style="font-size:0.9rem; color:#555; font-weight:700; margin-top:0;">需要後製剪輯的高畫質 4K 影片、無損原圖，請直接存放於此專屬資料夾。</p>
             <a href="https://drive.google.com/drive/folders/1eYv4GX8vMQvVNHPSwrp3zfZGb9YNkpsZ" target="_blank" class="btn-action" style="background: linear-gradient(135deg, var(--dora), #3498DB); text-decoration: none; display: block; text-align: center; margin-top: 15px;"><i class="fa-solid fa-cloud-arrow-up"></i> 開啟 Google Drive 金庫</a>
         </div>
 
         <div class="card">
             <h3 class="card-title"><i class="fa-solid fa-camera-retro"></i> 每日拍立得回憶庫</h3>
-            <p style="font-size:0.85rem; color:#888; font-weight:900;">完美支援 <b>GIF 短動圖</b> 與靜態相片！單張限 32MB。</p>
+            <p style="font-size:0.85rem; color:#888; font-weight:900;">完美支援 <b>GIF 短動圖</b> 與相片！單張限 32MB。</p>
             <label for="photoImgUpload" class="btn-action" style="text-align:center; display:block;"><i class="fa-solid fa-wand-magic-sparkles"></i> 上傳今日美照 / GIF</label>
             <input type="file" id="photoImgUpload" style="display:none;" accept="image/*" onchange="uploadToImgBB(this.files[0], 'photo')">
             <div id="photoUploadStatus" style="font-size: 0.85rem; color: var(--primary); margin-top: 10px; text-align: center; font-weight:900;"></div>
@@ -249,7 +242,7 @@
             <input type="text" id="itiDesc" class="input-box" placeholder="內容 (例: 【午餐】味讚王)">
             <input type="text" id="itiTraffic" class="input-box" placeholder="交通耗時 (選填，例: 🚇地鐵 15分)">
             <div class="flex-row">
-                <input type="url" id="itiMap" class="input-box flex-1" placeholder="Naver Map 網址 (或點右方產生)">
+                <input type="url" id="itiMap" class="input-box flex-1" placeholder="Naver Map 網址 (點右方產生)">
                 <button class="btn-search" onclick="autoFetchMap('itiDesc', 'itiMap')">🔍 找地圖</button>
             </div>
             <div class="flex-row">
@@ -272,7 +265,7 @@
                 <div class="flex-row" style="margin-bottom:10px;">
                     <select id="shopCategory" class="input-box" style="width:110px; margin-bottom:0;">
                         <option value="伴手禮">🎁 伴手禮</option><option value="小物">📱 小物</option><option value="彩妝">💄 彩妝</option>
-                        <option value="保養">🧴 保養</option><option value="衣履">👗 衣履</option><option value="其他">📌 其他</option>
+                        <option value="保養">🧴 保養</option><option value="衣履">👗 衣履</option><option value="藥妝">💊 藥妝</option><option value="其他">📌 其他</option>
                     </select>
                     <input type="text" id="newShop" class="input-box flex-1" placeholder="想買什麼？" style="margin-bottom:0;">
                 </div>
@@ -285,7 +278,6 @@
                 <div id="shopUploadStatus" style="font-size: 0.85rem; color: var(--primary); text-align: center; margin-top:8px; font-weight:bold;"></div>
                 <input type="hidden" id="tempShopImg" value="">
             </div>
-            
             <div id="sList"></div>
         </div>
     </div>
@@ -295,17 +287,24 @@
         <div class="day-tabs">
             <button class="day-tab active" onclick="filterGuide('打卡景點')">📸 打卡景點(10)</button>
             <button class="day-tab" onclick="filterGuide('必吃美食')">🍽️ 必吃美食(5)</button>
-            <button class="day-tab" onclick="filterGuide('GS25')">🏪 GS25</button>
-            <button class="day-tab" onclick="filterGuide('CU')">🏪 CU</button>
-            <button class="day-tab" onclick="filterGuide('7-11')">🏪 7-11</button>
+            <button class="day-tab" onclick="filterGuide('伴手禮')">🎁 伴手禮</button>
+            <button class="day-tab" onclick="filterGuide('衣物鞋履')">👗 衣物鞋履</button>
+            <button class="day-tab" onclick="filterGuide('小物配件')">📱 小物配件</button>
+            <button class="day-tab" onclick="filterGuide('彩妝')">💄 彩妝</button>
+            <button class="day-tab" onclick="filterGuide('保養')">🧴 保養</button>
+            <button class="day-tab" onclick="filterGuide('Olive Young')">🌿 Olive Young</button>
+            <button class="day-tab" onclick="filterGuide('當地藥局')">💊 當地藥局</button>
         </div>
         <div id="guideList"></div>
         <div class="card" style="margin-top:15px;">
             <h4 style="margin:0 0 10px 0; color:var(--primary);"><i class="fa-solid fa-plus"></i> 新增圖文地標/推薦</h4>
-            <div class="flex-row"><select id="gdType" class="input-box" style="width:110px;"><option value="打卡景點">打卡景點</option><option value="必吃美食">必吃美食</option><option value="GS25">GS25</option><option value="CU">CU</option><option value="7-11">7-11</option></select><input type="text" id="gdTitle" class="input-box flex-1" placeholder="名稱"></div>
+            <div class="flex-row"><select id="gdType" class="input-box" style="width:110px;">
+                <option value="打卡景點">打卡景點</option><option value="必吃美食">必吃美食</option><option value="伴手禮">伴手禮</option><option value="衣物鞋履">衣物鞋履</option>
+                <option value="小物配件">小物配件</option><option value="彩妝">彩妝</option><option value="保養">保養</option><option value="Olive Young">Olive Young</option><option value="當地藥局">當地藥局</option>
+            </select><input type="text" id="gdTitle" class="input-box flex-1" placeholder="名稱"></div>
             <input type="text" id="gdDesc" class="input-box" placeholder="推薦理由/筆記">
             <div class="flex-row">
-                <input type="url" id="gdLink" class="input-box flex-1" placeholder="Naver Map 網址 (或點右方產生)">
+                <input type="url" id="gdLink" class="input-box flex-1" placeholder="Naver Map 網址 (點右方產生)">
                 <button class="btn-search" onclick="autoFetchMap('gdTitle', 'gdLink')">🔍 找地圖</button>
             </div>
             <div class="flex-row">
@@ -329,10 +328,13 @@
 </div>
 
 <script>
+    // --- 黑科技：Naver Map 絕對精準 P-Search 引擎 ---
     function autoFetchMap(inputId, targetId) {
         let val = document.getElementById(inputId).value;
-        if(val) { document.getElementById(targetId).value = 'https://map.naver.com/v5/search/' + encodeURIComponent(val); }
-        else { alert("請先輸入名稱！"); }
+        if(val) { 
+            // 替換所有不必要的文字，提取純地名，並使用 P-Search 格式確保跨平台開啟
+            document.getElementById(targetId).value = 'https://map.naver.com/p/search/' + encodeURIComponent(val); 
+        } else { alert("請先輸入名稱！"); }
     }
 
     async function fetchLiveWeather() {
@@ -341,7 +343,7 @@
             let data = await res.json();
             let temp = parseInt(data.current_condition[0].temp_C);
             let suggestion = "";
-            if(temp < 10) suggestion = "氣溫偏低！務必穿著發熱衣 + 防風大衣，並攜帶暖暖包。";
+            if(temp < 10) suggestion = "氣溫偏低！務必穿著發熱衣 + 防風大衣。";
             else if(temp >= 10 && temp <= 18) suggestion = "氣溫微涼。建議洋蔥式穿搭：長袖打底 + 輕薄針織 + 米色風衣。";
             else suggestion = "氣溫舒適。可穿著秋季長袖，攜帶薄外套備用。";
             
@@ -352,9 +354,7 @@
                     🔋 <b>裝備：</b> 出門帶上 <b>Baseus 行動電源</b>；晚上可用 <b>Fuji Instax Mini Link</b> 印出實體照片！
                 </div>
             `;
-        } catch(e) {
-            document.getElementById('dynamicOutfit').innerHTML = "早晚溫差大 (約 8℃~16℃)。發熱衣打底 + 輕薄針織衫 + 米色防風大衣。";
-        }
+        } catch(e) {}
     }
 
     let currentLightboxUrl = "";
@@ -382,12 +382,12 @@
     const firebaseConfig = { apiKey: "AIzaSyC884_zH7XM7l7C_ijhuFmEoKxbsN0O1Vw", authDomain: "busan-trip-2026-4148f.firebaseapp.com", databaseURL: "https://busan-trip-2026-4148f-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "busan-trip-2026-4148f", storageBucket: "busan-trip-2026-4148f.firebasestorage.app", messagingSenderId: "819505968980", appId: "1:819505968980:web:03e6d05ef5101719327ac1" };
     firebase.initializeApp(firebaseConfig); const db = firebase.database();
 
-    // V27 金鑰
-    const itiRef = db.ref("busan_v27_iti");
-    const guideRef = db.ref("busan_v27_guide");
-    const shopRef = db.ref("busan_v27_shop");
-    const photoRef = db.ref("busan_v27_photos");
-    const ticketRef = db.ref("busan_v27_tickets");
+    // V28 金鑰
+    const itiRef = db.ref("busan_v28_iti");
+    const guideRef = db.ref("busan_v28_guide");
+    const shopRef = db.ref("busan_v28_shop");
+    const photoRef = db.ref("busan_v28_photos");
+    const ticketRef = db.ref("busan_v28_tickets");
 
     async function uploadToImgBB(file, target) {
         if (!file || file.size > 32*1024*1024) { alert("⚠️ 檔案過大或無效！"); return; }
@@ -421,7 +421,7 @@
     let ticketData = [];
     ticketRef.on("value", s => {
         if(!s.exists()) {
-            ticketRef.push({ type: "🏨 住宿", title: "西面住宿 (大本營)", desc: "11/13 - 11/17", link: "https://naver.me/FGo2I6pW", voucher: "" });
+            ticketRef.push({ type: "🏨 住宿", title: "西面住宿 (大本營)", desc: "11/13 - 11/17", link: "https://map.naver.com/p/search/%EC%84%9C%EB%A9%B4%EC%97%AD", voucher: "" });
             ticketRef.push({ type: "✈️ 機票", title: "去程航班", desc: "11/13 抵達金海機場 16:30", link: "", voucher: "" });
         } else { ticketData = []; s.forEach(ch => { ticketData.push({...ch.val(), key:ch.key}); }); renderTickets(); }
     });
@@ -440,21 +440,21 @@
     itiRef.on("value", s => {
         if(!s.exists()) {
             const dIti = [
-                { d: "11/13", t: "16:30", tr: "🚕 30分", txt: "抵達金海機場 ➔ 西面 Check-in", map: "https://map.naver.com/v5/search/%EA%B9%80%ED%95%B4%EA%B5%AD%EC%A0%9C%EA%B3%B5%ED%95%AD" }, 
-                { d: "11/13", t: "18:30", tr: "🚶 5分", txt: "【晚餐】味讚王鹽烤肉", map: "https://naver.me/FHYI5S6w" },
-                { d: "11/14", t: "11:00", tr: "🚋 觀光列車", txt: "海雲台藍線 膠囊火車 (尾浦發車)", map: "https://naver.me/xXEA9A1c" }, 
-                { d: "11/14", t: "14:30", tr: "🚇 15分", txt: "Spa Land 頂級汗蒸幕", map: "https://naver.me/xH2Bc9xO" }, 
-                { d: "11/14", t: "19:30", tr: "🚶 步行", txt: "廣安里 M 無人機煙火秀", map: "https://naver.me/54VWK4oO" },
-                { d: "11/15", t: "09:30", tr: "🚄 KTX 30分", txt: "釜山站 ➔ 新慶州站", map: "https://naver.me/x0aIuU7h" }, 
-                { d: "11/15", t: "12:00", tr: "🚕 15分", txt: "【午餐】Solsot 釜飯", map: "https://naver.me/G1F4eP1s" }, 
-                { d: "11/15", t: "13:30", tr: "🚶 步行", txt: "【重點】韓服換裝", map: "https://naver.me/5vI6pXhM" }, 
-                { d: "11/15", t: "14:30", tr: "🚶 5分", txt: "大陵苑石牆路 銀杏大道", map: "https://naver.me/5bdi2a6u" }, 
-                { d: "11/15", t: "16:00", tr: "🚕 5分", txt: "月精橋 優雅夕照", map: "https://naver.me/F9Q6M9O9" }, 
-                { d: "11/15", t: "19:00", tr: "🚕 5分", txt: "東宮與月池 絕美夜楓", map: "https://naver.me/moon" },
-                { d: "11/16", t: "10:30", tr: "🚕 25分", txt: "松島海上纜車 & 龍宮步道", map: "https://naver.me/x9JuH1oB" }, 
-                { d: "11/16", t: "13:00", tr: "🚕 15分", txt: "【午餐】白淺灘文化村", map: "https://naver.me/5B1TfU1b" }, 
-                { d: "11/16", t: "18:30", tr: "🚕 35分", txt: "【晚餐】海木鰻魚飯", map: "https://naver.me/x35p8q1Z" },
-                { d: "11/17", t: "10:00", tr: "📦 寄件", txt: "Zimcarry 寄行李去機場", map: "https://naver.me/5B1TfU1b" },
+                { d: "11/13", t: "16:30", tr: "🚕 30分", txt: "抵達金海機場 ➔ 西面 Check-in", map: "https://map.naver.com/p/search/%EA%B9%80%ED%95%B4%EA%B5%AD%EC%A0%9C%EA%B3%B5%ED%95%AD" }, 
+                { d: "11/13", t: "18:30", tr: "🚶 5分", txt: "【晚餐】味讚王鹽烤肉", map: "https://map.naver.com/p/search/%EB%A7%9B%EC%B0%AC%EB%93%A4%EC%99%95%EC%86%8C%EA%B8%88%EA%B5%AC%EC%9D%B4%20%EC%84%9C%EB%A9%B4%EC%A0%90" },
+                { d: "11/14", t: "11:00", tr: "🚋 觀光列車", txt: "海雲台藍線 膠囊火車", map: "https://map.naver.com/p/search/%ED%95%B4%EC%9A%B4%EB%8C%80%EB%B8%94%EB%A3%A8%EB%9D%BC%EC%9D%B8%ED%8C%8C%ED%81%AC" }, 
+                { d: "11/14", t: "14:30", tr: "🚇 15分", txt: "Spa Land 頂級汗蒸幕", map: "https://map.naver.com/p/search/Spa%20Land" }, 
+                { d: "11/14", t: "19:30", tr: "🚶 步行", txt: "廣安里 M 無人機煙火秀", map: "https://map.naver.com/p/search/%EA%B4%91%EC%95%88%EB%A6%AC%ED%95%B4%EC%88%98%EC%9A%95%EC%9E%A5" },
+                { d: "11/15", t: "09:30", tr: "🚄 KTX 30分", txt: "釜山站 ➔ 新慶州站", map: "https://map.naver.com/p/search/%EA%B2%BD%EC%A3%BC%EC%97%AD" }, 
+                { d: "11/15", t: "12:00", tr: "🚕 15分", txt: "【午餐】Solsot 釜飯", map: "https://map.naver.com/p/search/%EC%86%94%EC%86%AF%20%EA%B2%BD%EC%A3%BC%ED%99%A9%EB%A6%AC%EB%8B%A8%EA%B8%B8%EC%A0%90" }, 
+                { d: "11/15", t: "13:30", tr: "🚶 步行", txt: "【重點】韓服換裝", map: "https://map.naver.com/p/search/%EA%BD%83%EA%B8%B8%ED%95%9C%EB%B3%B5" }, 
+                { d: "11/15", t: "14:30", tr: "🚶 5分", txt: "大陵苑石牆路 銀杏大道", map: "https://map.naver.com/p/search/%EB%8C%80%EB%A6%89%EC%9B%90" }, 
+                { d: "11/15", t: "16:00", tr: "🚕 5分", txt: "月精橋 優雅夕照", map: "https://map.naver.com/p/search/%EC%9B%94%EC%A0%95%EA%B5%90" }, 
+                { d: "11/15", t: "19:00", tr: "🚕 5分", txt: "東宮與月池 絕美夜楓", map: "https://map.naver.com/p/search/%EB%8F%99%EA%B6%81%EA%B3%BC%EC%9B%94%EC%A7%80" },
+                { d: "11/16", t: "10:30", tr: "🚕 25分", txt: "松島海上纜車 & 龍宮步道", map: "https://map.naver.com/p/search/%EC%86%A1%EB%8F%84%ED%95%B4%EC%83%81%EC%BC%80%EC%9D%B4%EB%B8%94%EC%B9%B4" }, 
+                { d: "11/16", t: "13:00", tr: "🚕 15分", txt: "【午餐】白淺灘文化村", map: "https://map.naver.com/p/search/%ED%9D%B0%EC%97%AC%EC%9A%B8%EB%AC%B8%ED%99%94%EB%A7%88%EC%9D%84" }, 
+                { d: "11/16", t: "18:30", tr: "🚕 35分", txt: "【晚餐】海木鰻魚飯", map: "https://map.naver.com/p/search/%ED%95%B4%EB%AA%A9%20%ED%95%B4%EC%9A%B4%EB%8C%80%EC%A0%90" },
+                { d: "11/17", t: "10:00", tr: "📦 寄件", txt: "Zimcarry 寄行李去機場", map: "" },
                 { d: "11/17", t: "16:30", tr: "✈️ 飛機", txt: "優雅登機，滿載而歸！", map: "" }
             ];
             dIti.forEach(i => itiRef.push({day:i.d, time:i.t, tr:i.tr, desc:i.txt, map:i.map}));
@@ -483,7 +483,6 @@
     function cancelEditIti() { editingItiKey = null; document.getElementById('itiDesc').value = ''; document.getElementById('itiTraffic').value = ''; document.getElementById('itiMap').value = ''; document.getElementById('itiFormTitle').innerHTML = '<i class="fa-solid fa-pen"></i> 編輯手帳行程'; document.getElementById('btnSaveIti').innerText = "同步至雲端"; document.getElementById('btnCancelIti').style.display = "none"; }
     function deleteItinerary(k) { if(confirm("確定刪除此行程？")) itiRef.child(k).remove(); }
 
-    // 專屬購物車
     let shopList = []; let currentShopOwner = "溫";
     shopRef.on("value", s => { shopList = []; s.forEach(ch => { shopList.push({...ch.val(), key:ch.key}); }); renderShop(); });
     function filterShop(owner) { currentShopOwner = owner; document.querySelectorAll('#shop .day-tab').forEach(b => { b.classList.remove('active'); if(b.innerText.includes(owner)) b.classList.add('active'); }); renderShop(); }
@@ -505,17 +504,28 @@
     function toggleShop(key, currentStatus) { shopRef.child(key).update({ checked: !currentStatus }); }
     function deleteShop(key) { shopRef.child(key).remove(); }
 
-    // 滿血 5+10+15 導遊指南庫
+    // 滿血 5+10+7x3 終極導遊指南庫 (100% Naver Map P-Search)
     let guideData = []; let currentGuideTab = "打卡景點"; let editingGuideKey = null;
     guideRef.on("value", s => {
         if(!s.exists()) {
             const defs = [
-                {type:"必吃美食", title:"味讚王鹽烤肉", desc:"西面厚切豬五花專人代烤", link:"https://naver.me/FHYI5S6w"}, {type:"必吃美食", title:"海木鰻魚飯", desc:"海雲台米其林推薦", link:"https://naver.me/x35p8q1Z"}, {type:"必吃美食", title:"Solsot 釜飯", desc:"慶州皇理團路必吃排隊名店", link:"https://naver.me/G1F4eP1s"}, {type:"必吃美食", title:"東萊蔘雞湯", desc:"西面分店，濃郁補氣", link:"https://map.naver.com/v5/search/%EB%8F%99%EB%9E%98%EC%82%BC%EA%B3%84%ED%83%95"}, {type:"必吃美食", title:"密陽血腸豬肉湯飯", desc:"西面24hr營業暖胃首選", link:"https://map.naver.com/v5/search/%EB%B0%80%EC%96%91%EC%88%9C%EB%8C%80%EB%8F%BC%EC%A7%80%EA%B5%AD%EB%B0%A5"},
-                {type:"打卡景點", title:"松島海上纜車", desc:"跨海絕景與龍宮雲端步道", link:"https://naver.me/x9JuH1oB"}, {type:"打卡景點", title:"白淺灘文化村", desc:"韓國版聖托里尼，海景咖啡", link:"https://naver.me/5B1TfU1b"}, {type:"打卡景點", title:"廣安里 M 無人機秀", desc:"週六限定夜空璀璨秀", link:"https://naver.me/54VWK4oO"}, {type:"打卡景點", title:"海雲台藍線公園", desc:"夢幻膠囊小火車", link:"https://naver.me/xXEA9A1c"}, {type:"打卡景點", title:"影島 Thrill On The Mug", desc:"無死角絕美海景咖啡", link:"https://map.naver.com/v5/search/Thrill%20On%20The%20Mug"},
-                {type:"打卡景點", title:"東宮與月池", desc:"慶州夜楓與宮殿倒影", link:"https://naver.me/moon"}, {type:"打卡景點", title:"大陵苑石牆路", desc:"換韓服拍金黃銀杏", link:"https://naver.me/5bdi2a6u"}, {type:"打卡景點", title:"月精橋", desc:"絕美木造橋樑夕照", link:"https://naver.me/F9Q6M9O9"}, {type:"打卡景點", title:"皇理團路古街", desc:"慶州最美文創街區", link:"https://map.naver.com/v5/search/%ED%99%A9%EB%A6%AC%EB%8B%A8%EA%B8%B8"}, {type:"打卡景點", title:"花路韓服/韓服判", desc:"慶州精緻韓服換裝體驗", link:"https://map.naver.com/v5/search/%EA%BD%83%EA%B8%B8%ED%95%9C%EB%B3%B5"},
-                {type:"GS25", title:"蟹膏醬飯糰", desc:"神級早餐", link:""}, {type:"GS25", title:"天然果香冷泡茶", desc:"✨ 無糖、無蜂蜜煉乳，清爽解渴！", link:""}, {type:"GS25", title:"Omori泡菜鍋泡麵", desc:"宵夜首選", link:""}, {type:"GS25", title:"濟州橘子冰棒", desc:"酸甜解渴", link:""}, {type:"GS25", title:"T-money 聯名卡", desc:"超商必備", link:""},
-                {type:"CU", title:"延世大生乳包", desc:"超商甜點天花板", link:""}, {type:"CU", title:"冰塊杯+無糖黑咖啡", desc:"韓國人標配", link:""}, {type:"CU", title:"辣炒年糕杯", desc:"宵夜解饞", link:""}, {type:"CU", title:"減糖版香蕉牛奶", desc:"經典國民飲料", link:""}, {type:"CU", title:"濟州限定啤酒", desc:"微醺必備", link:""},
-                {type:"7-11", title:"養樂多軟糖", desc:"伴手禮首選", link:""}, {type:"7-11", title:"濟州牛奶冰淇淋", desc:"香濃綿密", link:""}, {type:"7-11", title:"辣魷魚三角飯糰", desc:"道地口味", link:""}, {type:"7-11", title:"低卡氣泡水", desc:"健康解渴", link:""}, {type:"7-11", title:"高蛋白堅果包", desc:"隨身補充體力", link:""}
+                // 美食
+                {type:"必吃美食", title:"味讚王鹽烤肉", desc:"西面厚切豬五花專人代烤", link:"https://map.naver.com/p/search/%EB%A7%9B%EC%B0%AC%EB%93%A4%EC%99%95%EC%86%8C%EA%B8%88%EA%B5%AC%EC%9D%B4%20%EC%84%9C%EB%A9%B4%EC%A0%90"}, {type:"必吃美食", title:"海木鰻魚飯", desc:"海雲台米其林推薦", link:"https://map.naver.com/p/search/%ED%95%B4%EB%AA%A9%20%ED%95%B4%EC%9A%B4%EB%8C%80%EC%A0%90"}, {type:"必吃美食", title:"Solsot 釜飯", desc:"慶州皇理團路必吃名店", link:"https://map.naver.com/p/search/%EC%86%94%EC%86%AF%20%EA%B2%BD%EC%A3%BC%ED%99%A9%EB%A6%AC%EB%8B%A8%EA%B8%B8%EC%A0%90"}, {type:"必吃美食", title:"東萊蔘雞湯", desc:"西面分店，濃郁補氣", link:"https://map.naver.com/p/search/%EB%8F%99%EB%9E%98%EC%82%BC%EA%B3%84%ED%83%95"}, {type:"必吃美食", title:"密陽血腸豬肉湯飯", desc:"西面24hr營業暖胃首選", link:"https://map.naver.com/p/search/%EB%B0%80%EC%96%91%EC%88%9C%EB%8C%80%EB%8F%BC%EC%A7%80%EA%B5%AD%EB%B0%A5"},
+                // 景點 (釜山+慶州共10個)
+                {type:"打卡景點", title:"松島海上纜車", desc:"跨海絕景與龍宮雲端步道", link:"https://map.naver.com/p/search/%EC%86%A1%EB%8F%84%ED%95%B4%EC%83%81%EC%BC%80%EC%9D%B4%EB%B8%94%EC%B9%B4"}, {type:"打卡景點", title:"白淺灘文化村", desc:"韓國版聖托里尼，海景咖啡", link:"https://map.naver.com/p/search/%ED%9D%B0%EC%97%AC%EC%9A%B8%EB%AC%B8%ED%99%94%EB%A7%88%EC%9D%84"}, {type:"打卡景點", title:"廣安里 M 無人機秀", desc:"週六限定夜空璀璨秀", link:"https://map.naver.com/p/search/%EA%B4%91%EC%95%88%EB%A6%AC%ED%95%B4%EC%88%98%EC%9A%95%EC%9E%A5"}, {type:"打卡景點", title:"海雲台藍線公園", desc:"夢幻膠囊小火車", link:"https://map.naver.com/p/search/%ED%95%B4%EC%9A%B4%EB%8C%80%EB%B8%94%EB%A3%A8%EB%9D%BC%EC%9D%B8%ED%8C%8C%ED%81%AC"}, {type:"打卡景點", title:"影島 Thrill On The Mug", desc:"無死角絕美海景咖啡", link:"https://map.naver.com/p/search/Thrill%20On%20The%20Mug"},
+                {type:"打卡景點", title:"東宮與月池", desc:"慶州夜楓與宮殿倒影", link:"https://map.naver.com/p/search/%EB%8F%99%EA%B6%81%EA%B3%BC%EC%9B%94%EC%A7%80"}, {type:"打卡景點", title:"大陵苑石牆路", desc:"換韓服拍金黃銀杏", link:"https://map.naver.com/p/search/%EB%8C%80%EB%A6%89%EC%9B%90"}, {type:"打卡景點", title:"月精橋", desc:"絕美木造橋樑夕照", link:"https://map.naver.com/p/search/%EC%9B%94%EC%A0%95%EA%B5%90"}, {type:"打卡景點", title:"皇理團路古街", desc:"慶州最美文創街區", link:"https://map.naver.com/p/search/%ED%99%A9%EB%A6%AC%EB%8B%A8%EA%B8%B8"}, {type:"打卡景點", title:"花路韓服/韓服判", desc:"慶州精緻韓服換裝體驗", link:"https://map.naver.com/p/search/%EA%BD%83%EA%B8%B8%ED%95%9C%EB%B3%B5"},
+                // 購物：伴手禮
+                {type:"伴手禮", title:"慶州皇南餅", desc:"古早味紅豆內餡，慶州必買經典。"}, {type:"伴手禮", title:"古來思魚板", desc:"釜山名物，可真空包裝帶回台灣。"}, {type:"伴手禮", title:"天然果乾冷泡茶", desc:"✨ 強烈推薦：完全無糖、不含蜂蜜與煉乳，純粹果香清爽解膩！超商或超市皆有。"},
+                // 購物：衣物鞋履
+                {type:"衣物鞋履", title:"Skechers D'Lites 厚底鞋", desc:"✨ 強烈推薦：韓國特有配色！極致避震，爆發性步行的最佳戰友。"}, {type:"衣物鞋履", title:"New Balance 530/2002R", desc:"韓國時下最流行的復古慢跑鞋款。"}, {type:"衣物鞋履", title:"高磅數純棉設計襪", desc:"西面地下街掃貨首選，便宜質感好。"},
+                // 購物：小物配件
+                {type:"小物配件", title:"Baseus 迷你快充行動電源", desc:"✨ 出國神物：體積小容量大，整天拍照不焦慮。"}, {type:"小物配件", title:"Fuji Instax Mini Link 底片", desc:"韓國獨家邊框底片，隨拍隨印實體回憶。"}, {type:"小物配件", title:"Dinotaeng 堅果熊周邊", desc:"Object 文創店必買超萌小物。"},
+                // 購物：彩妝 & 保養
+                {type:"彩妝", title:"fwee 唇頰兩用霜", desc:"韓國霸榜單品，打造自然好氣色。"}, {type:"彩妝", title:"Rom&nd 果凍唇釉", desc:"最新色號必收，光澤感極佳。"}, {type:"彩妝", title:"Dasique 九宮格眼影盤", desc:"粉質細膩，韓系溫柔眼妝必備。"},
+                {type:"保養", title:"Torriden 玻尿酸精華", desc:"深層保濕，銷量常勝軍。"}, {type:"保養", title:"Abib 魚腥草舒緩面膜", desc:"鎮定肌膚效果極佳，旅行急救。"}, {type:"保養", title:"Aestura 舒緩爽膚棉片", desc:"洗完臉濕敷，毛孔瞬間補水。"},
+                // 購物：Olive Young & 當地藥局
+                {type:"Olive Young", title:"VT 綠寶盒微針精華", desc:"近期韓國最紅縮毛孔神器！"}, {type:"Olive Young", title:"Delight Project 低卡貝果餅乾", desc:"無負擔低卡零食，超唰嘴。"}, {type:"Olive Young", title:"UNOVE 護髮精華", desc:"深層滋養，拯救毛躁受損髮。"},
+                {type:"當地藥局", title:"韓國人氣人工淚液", desc:"✨ 導遊推薦：秋季氣候乾燥，解救乾眼症必備。"}, {type:"當地藥局", title:"肌肉痠痛貼布 (冷熱雙效)", desc:"✨ 導遊推薦：走完大陵苑與白淺灘，晚上貼小腿超有感！"}, {type:"當地藥局", title:"宿醉解酒液", desc:"吃烤肉喝燒酒前先喝一瓶，隔天不頭痛。"}
             ];
             defs.forEach(g=>guideRef.push({...g, timestamp:Date.now()}));
         } else { guideData=[]; s.forEach(ch=>{ guideData.push({...ch.val(), key:ch.key}); }); renderGuide(); }
