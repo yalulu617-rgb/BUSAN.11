@@ -9,7 +9,7 @@
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="icon" href="icon.png" type="image/png">
     <link id="manifest-link" rel="manifest" href="">
-    <title>釜山慶州秋之旅 V36</title>
+    <title>釜山慶州秋之旅 V37</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -123,6 +123,17 @@
         #pinModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(15px); }
         .pin-box { background: #fff; padding: 35px 30px; border-radius: 28px; width: 85%; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
         .pin-input { width: 100%; padding: 15px; border-radius: 16px; border: 2px solid #ecf0f1; text-align: center; font-size: 2rem; letter-spacing: 15px; margin-bottom: 20px; font-weight: 900; color: var(--primary); background: #fdfdfd;}
+
+        /* ⭐️ V37 預算進度條與計算機樣式 */
+        .calc-card { background: linear-gradient(145deg, #fff, #f8f9fa); border-radius: 20px; padding: 20px; border: 2px solid #eee; margin-bottom: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.04); }
+        .krw-input { font-size: 1.8rem; font-weight: 900; color: var(--dora); text-align: center; width: 100%; padding: 10px; border: none; border-bottom: 3px solid #eee; background: transparent; transition: 0.2s; }
+        .krw-input:focus { outline: none; border-bottom-color: var(--dora); }
+        .calc-res { font-size: 1.2rem; font-weight: 900; color: var(--text-dark); text-align: center; margin-top: 15px; }
+        .tax-badge { background: #27AE60; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; display: inline-block; margin-top: 8px; font-weight: 900; }
+        
+        .budget-box { margin-top: 25px; padding: 20px; background: rgba(255,255,255,0.9); border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); border: 1px solid #ecf0f1;}
+        .progress-bg { width: 100%; height: 16px; background: #ecf0f1; border-radius: 10px; overflow: hidden; margin: 15px 0 8px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #27AE60, #F1C40F, #E74C3C); width: 0%; transition: width 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     </style>
 </head>
 <body>
@@ -136,7 +147,7 @@
     <div class="splash-card">
         <h1>2026 BUSAN</h1>
         <h2 style="margin:8px 0; color:var(--text-dark); font-weight:900;">秋季雙城・皇家旅程</h2>
-        <p style="color:var(--dora); font-weight:700;">V36 個人化真我版</p>
+        <p style="color:var(--dora); font-weight:700;">V37 金流掌控版</p>
     </div>
     <button class="btn-enter" onclick="enterApp()">進入專屬系統 <i class="fa-solid fa-plane-departure"></i></button>
 </div>
@@ -159,7 +170,6 @@
     <img id="lightbox-img" src="">
 </div>
 
-<!-- ⭐️ 大字卡發音介面 -->
 <div id="flashcardModal" onclick="if(event.target.id === 'flashcardModal') closeFlashcard()">
     <div class="fc-box">
         <div class="fc-tw" id="fc-tw">中文</div>
@@ -171,7 +181,6 @@
     </div>
 </div>
 
-<!-- ⭐️ 使用者大頭貼設定介面 -->
 <div id="profileModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10001; justify-content:center; align-items:center; backdrop-filter:blur(15px);">
     <div class="pin-box">
         <h3 style="color:var(--dora); margin:0 0 15px 0;"><i class="fa-solid fa-user-astronaut"></i> 專屬頭像與名稱設定</h3>
@@ -196,13 +205,13 @@
 <div id="mainApp">
 
     <div id="guide" class="container active">
+        
         <div id="guideDashboard">
             
             <div class="card" style="background: linear-gradient(135deg, rgba(255,234,234,0.9), rgba(255,255,255,0.9)); border-left: 6px solid #E74C3C;">
                 <h4 style="color: #E74C3C; margin: 0 0 12px 0; font-size: 1.1rem;"><i class="fa-solid fa-triangle-exclamation fa-fade"></i> 行前必備與翻譯捷徑</h4>
                 <div style="font-size: 0.95rem; line-height: 1.6; color: #444; font-weight: 700; margin-bottom:15px;">🚨 <b>K-ETA：</b>出發前 72 小時申請。<br>🚨 <b>Q-Code：</b>出發前 3 天內填寫。<br>🚨 <b>隨身清單：</b>護照、WOWPASS、行動電源。</div>
-                <!-- ⭐️ Papago 強制喚醒 APP -->
-                <button class="btn-action" style="background: #27AE60; padding:12px; font-size:1rem;" onclick="openPapago()"><i class="fa-solid fa-camera"></i> 喚醒 Papago 鏡頭翻譯</button>
+                <a href="intent://translator#Intent;scheme=papago;package=com.naver.labs.translator;S.browser_fallback_url=https%3A%2F%2Fpapago.naver.com%2F;end;" class="btn-action" style="background: #27AE60; display:block; text-align:center; text-decoration:none; padding:12px; font-size:1rem;"><i class="fa-solid fa-camera"></i> 啟動 Papago 鏡頭掃描</a>
             </div>
 
             <div class="card" style="padding:15px 20px;">
@@ -231,7 +240,6 @@
             <p style="font-size:0.8rem; color:#bdc3c7; text-align:center; margin:0 0 10px 0;"><i class="fa-solid fa-arrow-right-arrow-left"></i> 畫面往右滑動可快速返回目錄</p>
             
             <div id="toolSection" style="display:none;">
-                
                 <div class="card">
                     <h3 class="card-title"><i class="fa-solid fa-list-check"></i> 行前預約進度表</h3>
                     <div class="prep-list" id="prepListUI"></div>
@@ -239,7 +247,6 @@
 
                 <div class="card">
                     <h3 class="card-title"><i class="fa-solid fa-bullhorn"></i> 方塊大字卡與生成器</h3>
-                    <p style="font-size:0.85rem; color:#7f8c8d; font-weight:900; margin-top:0;">點擊卡片可放大顯示與發音。</p>
                     <div style="background: #fdfdfd; padding: 15px; border-radius: 18px; border: 1px solid #eee; margin-bottom: 15px;">
                         <input type="text" id="newCardTw" class="input-box" placeholder="中文 (例: 我不要加蔥)" style="margin-bottom:8px;">
                         <input type="text" id="newCardKr" class="input-box" placeholder="韓文 (請查好貼上)" style="margin-bottom:8px;">
@@ -252,10 +259,7 @@
                     <h3 class="card-title"><i class="fa-solid fa-bed"></i> 住宿機票憑證庫</h3>
                     <div class="flex-row"><select id="tkType" class="input-box" style="width:110px;"><option value="🏨 住宿">住宿</option><option value="✈️ 機票">機票</option><option value="🎫 門票">門票</option></select><input type="text" id="tkTitle" class="input-box flex-1" placeholder="標題"></div>
                     <input type="text" id="tkDesc" class="input-box" placeholder="時間/備註">
-                    <div class="flex-row">
-                        <input type="url" id="tkLink" class="input-box flex-1" placeholder="📍 地圖連結">
-                        <button class="btn-search" onclick="autoFetchMap('tkTitle', 'tkLink')">🔍 找地圖</button>
-                    </div>
+                    <div class="flex-row"><input type="url" id="tkLink" class="input-box flex-1" placeholder="📍 地圖連結"><button class="btn-search" onclick="autoFetchMap('tkTitle', 'tkLink')">🔍 找地圖</button></div>
                     <div class="flex-row" style="margin-top:5px; margin-bottom:12px;">
                         <label for="voucherUpload" style="background:rgba(255,255,255,0.9); padding:12px 18px; border-radius:14px; cursor:pointer; font-weight:900; border:2px solid #eee;"><i class="fa-solid fa-file-image" style="color:var(--dora);"></i> 上傳憑證</label>
                         <input type="file" id="voucherUpload" style="display:none;" accept="image/*" onchange="uploadSingleToImgBB(this.files[0], 'voucher')">
@@ -289,14 +293,22 @@
         </div>
     </div>
 
-    <!-- 2. 滿血記帳本 (結合個人化大頭貼與身分同步) -->
     <div id="split" class="container">
-        <div class="fx-card">
-            <div><div style="font-size:0.85rem; font-weight:900; opacity:0.8;">🌐 即時匯率同步</div><div style="font-size:1.4rem; font-weight:900; margin-top:4px;" id="liveFxRate"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
+        
+        <div class="fx-card" style="margin-bottom:15px;">
+            <div><div style="font-size:0.85rem; font-weight:900; opacity:0.8;">🌐 即時匯率基準</div><div style="font-size:1.4rem; font-weight:900; margin-top:4px;" id="liveFxRate"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
             <i class="fa-solid fa-coins" style="font-size:2rem; opacity:0.5;"></i>
         </div>
 
-        <div class="card" style="background: rgba(231, 76, 60, 0.1); border:none;">
+        <div class="calc-card">
+            <h3 style="margin:0 0 15px 0; color:var(--primary); font-size:1rem; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-calculator"></i> 購物換算與退稅雷達</h3>
+            <input type="number" id="quickKrw" class="krw-input" placeholder="₩ 輸入韓元標價..." oninput="calcQuickFx()">
+            <div id="quickResult" class="calc-res">輸入金額看台幣</div>
+            <div style="text-align:center;"><div id="taxResult" class="tax-badge" style="display:none;"></div></div>
+            <button class="btn-action" style="margin-top:15px; background:linear-gradient(135deg, #34495E, #2C3E50); font-size:0.95rem; padding:12px;" onclick="transferToBill()"><i class="fa-solid fa-arrow-down"></i> 帶入下方記帳本</button>
+        </div>
+
+        <div class="card" style="background: rgba(231, 76, 60, 0.1); border:none; padding:15px 20px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                 <h3 class="card-title" style="color:#C0392B; margin:0; font-size:1rem; border:none;"><i class="fa-solid fa-id-badge"></i> 本機使用者身分</h3>
                 <button class="btn-edit" style="background:none; border:1px solid #C0392B; color:#C0392B; padding:6px 12px; font-weight:900;" onclick="document.getElementById('profileModal').style.display='flex'"><i class="fa-solid fa-gear"></i> 設定</button>
@@ -315,12 +327,11 @@
             <div class="flex-row">
                 <input type="number" id="billAmt" class="input-box flex-1" placeholder="金額">
                 <select id="billCurrency" class="input-box" style="width:85px;"><option value="KRW">₩ 韓元</option><option value="TWD">$ 台幣</option></select>
-                <!-- ⭐️ 公私防呆監聽 -->
                 <select id="billType" class="input-box" style="width:85px;" onchange="togglePayerSelect()"><option value="公費">公費</option><option value="私帳">私帳</option></select>
             </div>
             <div class="flex-row" style="margin-top:-5px;">
                 <select id="payMethod" class="input-box flex-1"><option value="現金">💵 現金</option><option value="信用卡">💳 信用卡</option><option value="WOWPASS">🪪 WOWPASS</option></select>
-                <select id="payer" class="input-box flex-1"></select> <!-- 動態載入使用者名稱 -->
+                <select id="payer" class="input-box flex-1"></select>
             </div>
             <div class="flex-row" style="margin-top:5px;">
                 <label for="receiptUpload" style="background:rgba(255,255,255,0.8); padding:14px; border-radius:14px; cursor:pointer; font-weight:900; font-size:0.9rem; flex:1; text-align:center; box-shadow:0 2px 5px rgba(0,0,0,0.02);"><i class="fa-solid fa-paperclip"></i> 附上發票照片</label>
@@ -332,10 +343,18 @@
             <button class="btn-action" style="margin-top:12px;" onclick="addBill()"><i class="fa-solid fa-plus"></i> 紀錄支出</button>
             <div id="billList" style="margin-top:20px;"></div>
             <div id="settlement" style="margin-top:20px; padding:20px; border-radius:20px; background:rgba(255, 245, 245, 0.9); font-weight:900; line-height:1.8; border:2px solid rgba(252, 220, 220, 0.8); font-size:1.05rem;"></div>
+
+            <div class="budget-box">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3 style="margin:0; font-size:1rem; color:var(--dora);"><i class="fa-solid fa-chart-line"></i> 個人台幣總花費監控</h3>
+                    <button class="btn-edit" style="padding:4px 8px; font-size:0.8rem;" onclick="setBudget()">設預算</button>
+                </div>
+                <div class="progress-bg"><div class="progress-fill" id="budgetFill"></div></div>
+                <div id="budgetStatus" style="text-align:right; font-size:0.85rem; font-weight:900; color:#7f8c8d;">載入中...</div>
+            </div>
         </div>
     </div>
 
-    <!-- 3. C位手帳 -->
     <div id="itinerary" class="container">
         <div class="day-tabs">
             <button class="day-tab active" onclick="filterIti('11/13')">13日(西面)</button>
@@ -350,31 +369,18 @@
             <div class="flex-row"><select id="itiDay" class="input-box" style="width: 45%;"><option value="11/13">11/13</option><option value="11/14">11/14</option><option value="11/15">11/15</option><option value="11/16">11/16</option><option value="11/17">11/17</option></select><input type="time" id="itiTime" class="input-box flex-1"></div>
             <input type="text" id="itiDesc" class="input-box" placeholder="內容 (例: 【午餐】味讚王)">
             <input type="text" id="itiTraffic" class="input-box" placeholder="交通耗時 (選填，例: 🚇地鐵 15分)">
-            <div class="flex-row">
-                <input type="url" id="itiMap" class="input-box flex-1" placeholder="Naver Map 網址">
-                <button class="btn-search" onclick="autoFetchMap('itiDesc', 'itiMap')">🔍 找地圖</button>
-            </div>
-            <div class="flex-row">
-                <button class="btn-action flex-1" id="btnSaveIti" onclick="saveItinerary()">💾 儲存</button>
-                <button class="btn-delete" style="display:none;" id="btnCancelIti" onclick="cancelEditIti()">取消</button>
-            </div>
+            <div class="flex-row"><input type="url" id="itiMap" class="input-box flex-1" placeholder="Naver Map 網址"><button class="btn-search" onclick="autoFetchMap('itiDesc', 'itiMap')">🔍 找地圖</button></div>
+            <div class="flex-row"><button class="btn-action flex-1" id="btnSaveIti" onclick="saveItinerary()">💾 儲存</button><button class="btn-delete" style="display:none;" id="btnCancelIti" onclick="cancelEditIti()">取消</button></div>
         </div>
     </div>
 
-    <!-- 4. 專屬購物車 -->
     <div id="shop" class="container">
         <div class="card">
             <h3 class="card-title"><i class="fa-solid fa-cart-shopping"></i> 個人購物清單</h3>
-            <div class="day-tabs" id="shopTabsUI">
-                <!-- 動態注入 User 1 和 User 2 -->
-            </div>
-            
+            <div class="day-tabs" id="shopTabsUI"></div>
             <div style="background: rgba(255,255,255,0.6); padding: 18px; border-radius: 22px; margin-bottom: 20px; border:1px solid #fff;">
                 <div class="flex-row" style="margin-bottom:10px;">
-                    <select id="shopCategory" class="input-box" style="width:110px; margin-bottom:0;">
-                        <option value="伴手禮">🎁 伴手禮</option><option value="小物">📱 小物</option><option value="彩妝">💄 彩妝</option>
-                        <option value="保養">🧴 保養</option><option value="衣履">👗 衣履</option><option value="藥妝">💊 藥妝</option><option value="其他">📌 其他</option>
-                    </select>
+                    <select id="shopCategory" class="input-box" style="width:110px; margin-bottom:0;"><option value="伴手禮">🎁 伴手禮</option><option value="小物">📱 小物</option><option value="彩妝">💄 彩妝</option><option value="保養">🧴 保養</option><option value="衣履">👗 衣履</option><option value="藥妝">💊 藥妝</option><option value="其他">📌 其他</option></select>
                     <input type="text" id="newShop" class="input-box flex-1" placeholder="想買什麼？" style="margin-bottom:0;">
                 </div>
                 <input type="text" id="shopWhere" class="input-box" placeholder="📍 哪裡買？">
@@ -390,7 +396,6 @@
         </div>
     </div>
 
-    <!-- 5. 拍立得相冊 -->
     <div id="photo" class="container">
         <div class="card" style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(252,239,225,0.9)); border-left: 6px solid var(--dora);">
             <h3 class="card-title" style="color:var(--dora); border-bottom:none; margin-bottom:10px;"><i class="fa-brands fa-google-drive"></i> 雲端原檔金庫</h3>
@@ -407,7 +412,6 @@
         </div>
     </div>
 
-    <!-- 底部導航 -->
     <div class="bottom-nav">
         <div class="nav-item active" onclick="showTab('guide', this)"><i class="fa-solid fa-star"></i>指南</div>
         <div class="nav-item" onclick="showTab('split', this)"><i class="fa-solid fa-calculator"></i>記帳</div>
@@ -418,17 +422,17 @@
 </div>
 
 <script>
-    // --- ⭐️ 核心 Firebase 初始化 ---
+    // --- ⭐️ 全域與 Firebase ---
     const IMGBB_API_KEY = "ba1b2b24f8275c9d3a199bea5cd52bf9"; 
     const firebaseConfig = { apiKey: "AIzaSyC884_zH7XM7l7C_ijhuFmEoKxbsN0O1Vw", authDomain: "busan-trip-2026-4148f.firebaseapp.com", databaseURL: "https://busan-trip-2026-4148f-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "busan-trip-2026-4148f", storageBucket: "busan-trip-2026-4148f.firebasestorage.app", messagingSenderId: "819505968980", appId: "1:819505968980:web:03e6d05ef5101719327ac1" };
     firebase.initializeApp(firebaseConfig); const db = firebase.database();
 
-    const itiRef = db.ref("busan_v36_iti"); const guideRef = db.ref("busan_v36_guide"); const shopRef = db.ref("busan_v36_shop"); const photoRef = db.ref("busan_v36_photos"); const ticketRef = db.ref("busan_v36_tickets"); const billRef = db.ref("busan_v36_bills"); const prepRef = db.ref("busan_v36_prep"); const voiceRef = db.ref("busan_v36_voice"); const profileRef = db.ref("busan_v36_profiles");
+    const itiRef = db.ref("busan_v37_iti"); const guideRef = db.ref("busan_v37_guide"); const shopRef = db.ref("busan_v37_shop"); const photoRef = db.ref("busan_v37_photos"); const ticketRef = db.ref("busan_v37_tickets"); const billRef = db.ref("busan_v37_bills"); const prepRef = db.ref("busan_v37_prep"); const voiceRef = db.ref("busan_v37_voice"); const profileRef = db.ref("busan_v37_profiles");
 
     // --- ⭐️ 個人化全域設定 (Avatar & Names) ---
     let u1 = { key: 'user1', name: '溫', avatar: '👩' };
     let u2 = { key: 'user2', name: '鴨', avatar: '🦆' };
-    let deviceOwner = localStorage.getItem('busan_v36_owner') || 'user1'; // 本機登入者
+    let deviceOwner = localStorage.getItem('busan_v37_owner') || 'user1';
 
     profileRef.on('value', s => {
         if(s.exists()) { let data = s.val(); u1 = data.user1 || u1; u2 = data.user2 || u2; } 
@@ -437,20 +441,11 @@
     });
 
     function updateProfileUI() {
-        // 更新選擇器
         document.getElementById('deviceOwner').innerHTML = `<option value="user1" ${deviceOwner==='user1'?'selected':''}>${u1.avatar} ${u1.name}</option><option value="user2" ${deviceOwner==='user2'?'selected':''}>${u2.avatar} ${u2.name}</option>`;
         document.getElementById('payer').innerHTML = `<option value="user1">${u1.name} 先代墊</option><option value="user2">${u2.name} 先代墊</option>`;
-        
-        // 更新私帳與購物車 Tab 文字
         let ownerData = deviceOwner === 'user1' ? u1 : u2;
         document.getElementById('tabPrivate').innerText = `🔒 ${ownerData.avatar} 私帳`;
-        
-        document.getElementById('shopTabsUI').innerHTML = `
-            <button class="day-tab ${currentShopOwner==='user1'?'active':''}" onclick="filterShopWithPin('user1')" id="tabShopU1">🔒 ${u1.avatar} ${u1.name}</button>
-            <button class="day-tab ${currentShopOwner==='user2'?'active':''}" onclick="filterShopWithPin('user2')" id="tabShopU2">🔒 ${u2.avatar} ${u2.name}</button>
-        `;
-        
-        // 更新編輯 Modal
+        document.getElementById('shopTabsUI').innerHTML = `<button class="day-tab ${currentShopOwner==='user1'?'active':''}" onclick="filterShopWithPin('user1')" id="tabShopU1">🔒 ${u1.avatar} ${u1.name}</button><button class="day-tab ${currentShopOwner==='user2'?'active':''}" onclick="filterShopWithPin('user2')" id="tabShopU2">🔒 ${u2.avatar} ${u2.name}</button>`;
         document.getElementById('editU1Avatar').value = u1.avatar; document.getElementById('editU1Name').value = u1.name;
         document.getElementById('editU2Avatar').value = u2.avatar; document.getElementById('editU2Name').value = u2.name;
     }
@@ -458,51 +453,143 @@
     function saveProfiles() {
         u1.avatar = document.getElementById('editU1Avatar').value || '👩'; u1.name = document.getElementById('editU1Name').value || '溫';
         u2.avatar = document.getElementById('editU2Avatar').value || '🦆'; u2.name = document.getElementById('editU2Name').value || '鴨';
-        profileRef.set({ user1: u1, user2: u2 });
-        document.getElementById('profileModal').style.display = 'none';
+        profileRef.set({ user1: u1, user2: u2 }); document.getElementById('profileModal').style.display = 'none';
     }
+    function updateOwner() { deviceOwner = document.getElementById('deviceOwner').value; localStorage.setItem('busan_v37_owner', deviceOwner); updateProfileUI(); }
 
-    function updateOwner() { deviceOwner = document.getElementById('deviceOwner').value; localStorage.setItem('busan_v36_owner', deviceOwner); updateProfileUI(); }
-
-    // --- 🔐 智慧局部鎖 (Session Unlock 修正) ---
+    // --- 🔐 智慧局部鎖 ---
     let targetTabAction = null; let tabRevertAction = null; 
     function checkPinAccess(actionCallback, fallbackAction) {
         if(sessionStorage.getItem('busan_unlocked') === 'true') { actionCallback(); return; }
         targetTabAction = actionCallback; tabRevertAction = fallbackAction;
-        let savedPin = localStorage.getItem('busan_v36_pin');
+        let savedPin = localStorage.getItem('busan_v37_pin');
         document.getElementById('pinModal').style.display = 'flex'; document.getElementById('pinInput').value = '';
-        if(!savedPin) { document.getElementById('pinMsg').innerText = "首次啟用隱私空間，請設定 4 位數密碼"; } 
+        if(!savedPin) { document.getElementById('pinMsg').innerText = "首次啟用隱私空間，請設定 4 位數旅行密碼"; } 
         else { document.getElementById('pinMsg').innerText = "請輸入 4 位數密碼解鎖 (關閉APP前免再輸)"; }
         document.getElementById('pinInput').focus();
     }
     function cancelPin() { document.getElementById('pinModal').style.display = 'none'; if(tabRevertAction) tabRevertAction(); }
     function submitPin() {
         let input = document.getElementById('pinInput').value; if(input.length !== 4) { alert("⚠️ 請輸入 4 位數字！"); return; }
-        let savedPin = localStorage.getItem('busan_v36_pin');
+        let savedPin = localStorage.getItem('busan_v37_pin');
         if(input === '0000' || input === '9999') { sessionStorage.setItem('busan_unlocked', 'true'); alert("🚨 救援模式解鎖！"); document.getElementById('pinModal').style.display = 'none'; if(targetTabAction) targetTabAction(); return; }
-        if(!savedPin) { localStorage.setItem('busan_v36_pin', input); sessionStorage.setItem('busan_unlocked', 'true'); alert("✅ 密碼設定成功！"); document.getElementById('pinModal').style.display = 'none'; if(targetTabAction) targetTabAction(); } 
+        if(!savedPin) { localStorage.setItem('busan_v37_pin', input); sessionStorage.setItem('busan_unlocked', 'true'); alert("✅ 密碼設定成功！"); document.getElementById('pinModal').style.display = 'none'; if(targetTabAction) targetTabAction(); } 
         else { if(input === savedPin) { sessionStorage.setItem('busan_unlocked', 'true'); document.getElementById('pinModal').style.display = 'none'; if(targetTabAction) targetTabAction(); } else { alert("❌ 密碼錯誤！"); document.getElementById('pinInput').value = ''; } }
     }
     function filterBillsWithPin(type) { if(type === '私帳') { checkPinAccess(() => { filterBills_Logic(type); }, () => { document.getElementById('tabShared').click(); }); } else { filterBills_Logic(type); } }
     function filterShopWithPin(owner) { checkPinAccess(() => { filterShop_Logic(owner); }, () => { showTab('guide', document.querySelector('.nav-item')); }); }
 
-    // --- ⭐️ 強制喚醒 Papago APP ---
-    function openPapago() {
-        // 先嘗試透過 Intent 喚醒 Android APP
-        window.location.href = "intent://translator#Intent;scheme=papago;package=com.naver.labs.translator;end;";
-        // 設定 0.5 秒後如果沒反應，就跳回安全的網頁版
-        setTimeout(function() {
-            window.location.href = "https://papago.naver.com/";
-        }, 500);
+    // --- ⭐️ 金流雙引擎 (換算 + 預算光條) ---
+    let liveKrwToTwd = 0.024; 
+    let userBudgetTWD = parseInt(localStorage.getItem('busan_v37_budget')) || 30000;
+
+    async function fetchLiveExchangeRate() { 
+        try { let res = await fetch('https://api.exchangerate-api.com/v4/latest/KRW'); let data = await res.json(); liveKrwToTwd = data.rates.TWD; document.getElementById('liveFxRate').innerHTML = `1 萬韓元 = 約 <span style="color:#F1C40F;">${(10000 * liveKrwToTwd).toFixed(0)}</span> 台幣`; renderBills(); } 
+        catch(e) { document.getElementById('liveFxRate').innerHTML = `1 萬韓元 = 約 <span style="color:#F1C40F;">240</span> 台幣 (估算)`; }
     }
 
-    // --- 基礎架構 ---
+    function calcQuickFx() {
+        let krw = parseInt(document.getElementById('quickKrw').value) || 0;
+        if(krw === 0) {
+            document.getElementById('quickResult').innerText = "輸入金額看台幣";
+            document.getElementById('taxResult').style.display = "none";
+            return;
+        }
+        let twd = krw * liveKrwToTwd;
+        document.getElementById('quickResult').innerHTML = `約 NT$ <span style="color:var(--primary); font-size:1.6rem;">${Math.round(twd).toLocaleString()}</span>`;
+        
+        let taxBadge = document.getElementById('taxResult');
+        if(krw >= 30000) {
+            let tax = krw * 0.06; // 概算 6%
+            taxBadge.innerHTML = `<i class="fa-solid fa-money-bill-wave"></i> 達標！可退稅約 ₩${Math.round(tax).toLocaleString()}`;
+            taxBadge.style.display = "inline-block";
+        } else {
+            taxBadge.style.display = "none";
+        }
+    }
+
+    function transferToBill() {
+        let krw = document.getElementById('quickKrw').value;
+        if(krw) {
+            document.getElementById('billAmt').value = krw;
+            document.getElementById('billCurrency').value = 'KRW';
+            document.getElementById('quickKrw').value = '';
+            calcQuickFx();
+            document.getElementById('billName').focus();
+        }
+    }
+
+    function setBudget() {
+        let b = prompt("請設定這趟旅行您的「個人總預算 (台幣)」：", userBudgetTWD);
+        if(b && !isNaN(b)) {
+            userBudgetTWD = parseInt(b);
+            localStorage.setItem('busan_v37_budget', userBudgetTWD);
+            renderBills();
+        }
+    }
+
+    function updateBudgetPulse(myTotalExpenseTWD) {
+        const fill = document.getElementById('budgetFill');
+        const status = document.getElementById('budgetStatus');
+        let pct = (myTotalExpenseTWD / userBudgetTWD) * 100;
+        if(pct > 100) pct = 100;
+        fill.style.width = `${pct}%`;
+        
+        status.innerHTML = `已花費: <span style="color:var(--primary);">$${Math.round(myTotalExpenseTWD).toLocaleString()}</span> / 剩餘: $${Math.max(0, Math.round(userBudgetTWD - myTotalExpenseTWD)).toLocaleString()}`;
+    }
+
+    // --- 東京級記帳本邏輯 ---
+    let privateBills = JSON.parse(localStorage.getItem('busan_v37_p_bills')) || []; let sharedBills = []; let currentBillTab = '公費';
+    billRef.on("value", s => { sharedBills=[]; s.forEach(ch=>{ sharedBills.push({...ch.val(), fbKey:ch.key}); }); renderBills(); });
+    
+    function togglePayerSelect() { const type = document.getElementById('billType').value; const payerSelect = document.getElementById('payer'); if(type === '私帳') { payerSelect.style.display = 'none'; } else { payerSelect.style.display = 'block'; } }
+
+    function filterBills_Logic(t) { 
+        currentBillTab = t; document.querySelectorAll('#split .day-tab').forEach(b=>b.classList.remove('active')); document.getElementById(t==='公費'?'tabShared':'tabPrivate').classList.add('active'); 
+        const typeSelect = document.getElementById('billType');
+        if(t === '私帳') { typeSelect.innerHTML = `<option value="私帳">私帳</option>`; document.getElementById('payer').style.display = 'none'; } 
+        else { typeSelect.innerHTML = `<option value="公費">公費</option><option value="私帳">私帳</option>`; document.getElementById('payer').style.display = 'block'; }
+        renderBills(); 
+    }
+    
+    function renderBills() {
+        const l = document.getElementById('billList'), res = document.getElementById('settlement'); let sU1_TotalTWD_Paid = 0, sU2_TotalTWD_Paid = 0; let myPrivateTWD = 0; l.innerHTML = ''; 
+        let all = [...sharedBills, ...privateBills].sort((a,b)=>a.timestamp-b.timestamp);
+        
+        all.filter(b => currentBillTab==='公費'?b.type==='公費':b.type==='私帳'&&b.owner===deviceOwner).forEach(b => { 
+            let sym = b.currency==='TWD'?'$':'₩'; let rHTML = b.receipt ? `<a href="${b.receipt}" target="_blank" style="font-size:0.75rem; color:var(--primary); margin-left:5px; text-decoration:none;"><i class="fa-solid fa-receipt"></i></a>` : ''; 
+            let payerName = b.payer === 'user1' ? u1.name : u2.name; let detailTxt = b.type==='公費' ? `<small style="color:#7f8c8d; font-weight:700;">${b.method} | ${payerName} 代墊</small>` : `<small style="color:#7f8c8d; font-weight:700;">${b.method} | 個人花費</small>`;
+            l.innerHTML += `<div class="card" style="padding:15px; margin-bottom:10px;"><div style="display:flex; justify-content:space-between; align-items:center;"><div style="flex:1;"><b style="font-size:1.05rem;">${b.item}</b> ${rHTML}<br>${detailTxt}</div><div style="text-align:right;"><b style="font-size:1.15rem; color:var(--dora);">${b.amt.toLocaleString()}${sym}</b></div><button class="btn-delete" style="margin-left:15px;" onclick="${b.type==='公費'?`deleteSharedBill('${b.fbKey}')`:`deletePrivateBill(${b.id})`}">🗑️</button></div></div>`; 
+        });
+
+        all.forEach(b => { 
+            let amtInTWD = b.currency === 'KRW' ? b.amt * liveKrwToTwd : b.amt; 
+            if(b.type==='公費'){ 
+                if(b.payer === 'user1') sU1_TotalTWD_Paid += amtInTWD; 
+                if(b.payer === 'user2') sU2_TotalTWD_Paid += amtInTWD; 
+            } else if(b.type==='私帳' && b.owner === deviceOwner) {
+                myPrivateTWD += amtInTWD;
+            }
+        });
+        
+        let totalSharedTWD = sU1_TotalTWD_Paid + sU2_TotalTWD_Paid; let halfTWD = totalSharedTWD / 2; let u1Balance = sU1_TotalTWD_Paid - halfTWD;
+        
+        // 更新預算光條
+        let myTotalExpenseTWD = halfTWD + myPrivateTWD;
+        updateBudgetPulse(myTotalExpenseTWD);
+
+        let settleText = `<div style="text-align:center; margin-bottom:10px;"><span style="font-size:0.85rem; color:#7f8c8d;">公費總支出 (約合台幣)</span><br><span style="font-size:1.8rem; color:var(--primary);">$${Math.round(totalSharedTWD).toLocaleString()}</span></div><hr style="border:0; border-top:1px dashed #ccc; margin:10px 0;">`;
+        if (u1Balance > 0) { settleText += `👉 <b>${u2.avatar} ${u2.name}</b> 應給 <b>${u1.avatar} ${u1.name}</b>：<span style="color:#27AE60; font-size:1.3rem;">$${Math.round(u1Balance).toLocaleString()}</span>`; } 
+        else if (u1Balance < 0) { settleText += `👉 <b>${u1.avatar} ${u1.name}</b> 應給 <b>${u2.avatar} ${u2.name}</b>：<span style="color:#27AE60; font-size:1.3rem;">$${Math.round(Math.abs(u1Balance)).toLocaleString()}</span>`; } 
+        else { settleText += `✨ 帳目完美平衡！`; }
+        res.innerHTML = settleText;
+    }
+    function addBill() { let n=document.getElementById('billName').value, a=parseFloat(document.getElementById('billAmt').value), cur=document.getElementById('billCurrency').value, t=document.getElementById('billType').value, m=document.getElementById('payMethod').value, p=document.getElementById('payer').value, rec=document.getElementById('tempReceipt').value; if(n&&a){ let nb={item:n, amt:a, currency:cur, type:t, method:m, payer:p, receipt:rec, timestamp:Date.now(), owner:deviceOwner}; if(t==='公費') billRef.push(nb); else { nb.id=Date.now(); privateBills.push(nb); localStorage.setItem('busan_v37_p_bills', JSON.stringify(privateBills)); renderBills(); } document.getElementById('billName').value=''; document.getElementById('billAmt').value=''; document.getElementById('tempReceipt').value=''; document.getElementById('receiptStatus').innerText=''; } }
+    function deleteSharedBill(k) { billRef.child(k).remove(); } function deletePrivateBill(id) { privateBills = privateBills.filter(b=>b.id!==id); localStorage.setItem('busan_v37_p_bills', JSON.stringify(privateBills)); renderBills(); }
+
+    // --- 基礎架構 & UI ---
     function autoFetchMap(inputId, targetId) { let val = document.getElementById(inputId).value; if(val) { document.getElementById(targetId).value = 'https://map.naver.com/p/search/' + encodeURIComponent(val); } else { alert("請先輸入名稱！"); } }
 
-    let liveKrwToTwd = 0.024; 
-    async function fetchLiveExchangeRate() { try { let res = await fetch('https://api.exchangerate-api.com/v4/latest/KRW'); let data = await res.json(); liveKrwToTwd = data.rates.TWD; document.getElementById('liveFxRate').innerHTML = `1 萬韓元 = 約 <span style="color:#F1C40F;">${(10000 * liveKrwToTwd).toFixed(0)}</span> 台幣`; renderBills(); } catch(e) {} }
-
-    // ⭐️ 氣象與洋蔥式防風
     async function fetchLiveWeather() {
         try {
             let res = await fetch('https://wttr.in/Busan?format=j1'); let data = await res.json();
@@ -525,29 +612,18 @@
 
     function enterApp() { const s = document.getElementById('splash'); const a = document.getElementById('mainApp'); s.style.transform = 'translateY(-100%)'; s.style.opacity = '0'; setTimeout(() => { s.style.display = 'none'; a.style.display = 'block'; fetchLiveExchangeRate(); fetchLiveWeather(); setTimeout(() => a.style.opacity = '1', 50); }, 800); }
     
-    // 全域 Tab 導航
     function showTab(id, el) { 
-        document.querySelectorAll('.container').forEach(c => c.classList.remove('active')); 
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); 
-        document.getElementById(id).classList.add('active'); 
-        if(!el.classList.contains('nav-center')) el.classList.add('active'); 
-        window.scrollTo(0,0); 
+        document.querySelectorAll('.container').forEach(c => c.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); document.getElementById(id).classList.add('active'); if(!el.classList.contains('nav-center')) el.classList.add('active'); window.scrollTo(0,0); 
         if(id === 'guide') { document.getElementById('guideDashboard').style.display = 'block'; document.getElementById('guideDetail').style.display = 'none'; } 
-        // 購物車切換自動載入本機使用者的專屬車
-        if(id === 'shop') { 
-            let targetTab = deviceOwner === 'user1' ? 'tabShopU1' : 'tabShopU2';
-            document.getElementById(targetTab).click(); 
-        } 
+        if(id === 'shop') { let targetTab = deviceOwner === 'user1' ? 'tabShopU1' : 'tabShopU2'; document.getElementById(targetTab).click(); } 
     }
     
-    // ⭐️ 滑動返回目錄
     let touchstartX = 0; let touchendX = 0; const guideDetail = document.getElementById('guideDetail');
     guideDetail.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; });
     guideDetail.addEventListener('touchend', e => { touchendX = e.changedTouches[0].screenX; if (touchendX - touchstartX > 100) closeGuideFolder(); });
 
     async function uploadSingleToImgBB(file, target) { if (!file || file.size > 32*1024*1024) return; let statusId = target+'UploadStatus'; if(target==='voucher') statusId='voucherStatus'; if(target==='receipt') statusId='receiptStatus'; const status = document.getElementById(statusId); status.innerText = "⏳ 上傳中..."; const fd = new FormData(); fd.append("image", file); try { const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: fd }); const data = await res.json(); if (data.success) { if(target==='shop') { document.getElementById('tempShopImg').value = data.data.url; } else if(target==='voucher') { document.getElementById('tempVoucher').value = data.data.url; } else if(target==='receipt') { document.getElementById('tempReceipt').value = data.data.url; } else { document.getElementById('tempGuideImg').value = data.data.url; } status.innerText="✅ OK"; } } catch(e) {} }
     async function uploadMultipleToImgBB(files, target) { if(files.length === 0) return; const status = document.getElementById('photoUploadStatus'); let d = (new Date().getMonth()+1)+"/"+new Date().getDate(); let successCount = 0; for(let i=0; i<files.length; i++) { let file = files[i]; if (file.size > 32*1024*1024) continue; status.innerText = `⏳ 批次上傳中... (${i+1}/${files.length})`; const fd = new FormData(); fd.append("image", file); try { const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: fd }); const data = await res.json(); if (data.success) { photoRef.push({url:data.data.url, date:d, timestamp:Date.now()}); successCount++; } } catch(e) {} } status.innerText = `✅ 成功歸檔 ${successCount} 張照片！`; }
-
     function speakKorean(text) { if ('speechSynthesis' in window) { let msg = new SpeechSynthesisUtterance(text); msg.lang = 'ko-KR'; msg.rate = 0.85; window.speechSynthesis.speak(msg); } }
 
     let voiceData = [];
@@ -557,186 +633,27 @@
             defs.forEach(v => voiceRef.push(v));
         } else { voiceData = []; s.forEach(ch => { voiceData.push({...ch.val(), key:ch.key}); }); renderVoiceCards(); }
     });
-    function renderVoiceCards() {
-        const l = document.getElementById('voiceGridUI'); l.innerHTML = '';
-        voiceData.forEach(v => {
-            let bgStyle = v.custom ? `border-color:var(--primary); background: #fff5f5;` : '';
-            let delBtn = v.custom ? `<div class="del-voice" onclick="event.stopPropagation(); deleteVoiceCard('${v.key}')"><i class="fa-solid fa-xmark"></i></div>` : '';
-            l.innerHTML += `<div class="voice-card" style="${bgStyle}" onclick="openCardLightbox('${v.tw}', '${v.kr}')">${delBtn}<i class="fa-solid ${v.icon || 'fa-comment-dots'}"></i><span>${v.tw}</span><b>${v.kr}</b></div>`;
-        });
-    }
+    function renderVoiceCards() { const l = document.getElementById('voiceGridUI'); l.innerHTML = ''; voiceData.forEach(v => { let bgStyle = v.custom ? `border-color:var(--primary); background: #fff5f5;` : ''; let delBtn = v.custom ? `<div class="del-voice" onclick="event.stopPropagation(); deleteVoiceCard('${v.key}')"><i class="fa-solid fa-xmark"></i></div>` : ''; l.innerHTML += `<div class="voice-card" style="${bgStyle}" onclick="openCardLightbox('${v.tw}', '${v.kr}')">${delBtn}<i class="fa-solid ${v.icon || 'fa-comment-dots'}"></i><span>${v.tw}</span><b>${v.kr}</b></div>`; }); }
     function addVoiceCard() { let tw = document.getElementById('newCardTw').value; let kr = document.getElementById('newCardKr').value; if(tw && kr) { voiceRef.push({ tw: tw, kr: kr, icon: 'fa-comment-dots', custom: true }); document.getElementById('newCardTw').value = ''; document.getElementById('newCardKr').value = ''; } }
     function deleteVoiceCard(k) { voiceRef.child(k).remove(); }
 
-    // ⭐️ Checklist 韓服徹底分開並帶 IG 連結
     let prepData = [];
-    prepRef.on("value", s => {
-        if(!s.exists()) {
-            const defs = [
-                { text: "K-ETA 電子旅行許可", link: "https://www.k-eta.go.kr/", done: false },
-                { text: "Q-Code 健康聲明", link: "https://qcode.kdca.go.kr/", done: false },
-                { text: "KORAIL 高鐵票", link: "https://www.letskorail.com/ebizbf/EbizbfForeign_pr16100.do?gubun=1", done: false },
-                { text: "海雲台膠囊火車", link: "https://www.bluelinepark.com/eng/", done: false },
-                { text: "花路韓服 預約", link: "https://www.instagram.com/ggotgil_hanbok/", done: false },
-                { text: "韓服判 預約", link: "https://www.instagram.com/gyeongju_hanbokpan?igsh=MTBia3N5dzM2ZmxkMg==", done: false }
-            ];
-            defs.forEach(p => prepRef.push(p));
-        } else { prepData = []; s.forEach(ch => { prepData.push({...ch.val(), key:ch.key}); }); renderPrepList(); }
-    });
-    function renderPrepList() {
-        const l = document.getElementById('prepListUI'); l.innerHTML = '';
-        prepData.forEach(p => {
-            // ⭐️ 強制用 window.open 打開外部連結，避開 PWA 空白問題
-            let linkHTML = p.link ? `<div class="prep-link" onclick="event.stopPropagation(); window.open('${p.link}', '_blank', 'noopener,noreferrer');"><i class="fa-solid fa-link"></i> 前往</div>` : '';
-            l.innerHTML += `<div class="prep-item ${p.done ? 'done' : ''}" onclick="togglePrep('${p.key}', ${p.done})"><div class="prep-check"><i class="fa-solid fa-check"></i></div><div class="prep-text">${p.text}</div>${linkHTML}</div>`;
-        });
-    }
+    prepRef.on("value", s => { if(!s.exists()) { const defs = [{ text: "K-ETA 電子旅行許可", link: "https://www.k-eta.go.kr/", done: false }, { text: "Q-Code 健康聲明", link: "https://qcode.kdca.go.kr/", done: false }, { text: "KORAIL 高鐵票", link: "https://www.letskorail.com/ebizbf/EbizbfForeign_pr16100.do?gubun=1", done: false }, { text: "海雲台膠囊火車", link: "https://www.bluelinepark.com/eng/", done: false }, { text: "花路韓服 預約", link: "https://www.instagram.com/ggotgil_hanbok/", done: false }, { text: "韓服判 預約", link: "https://www.instagram.com/gyeongju_hanbokpan?igsh=MTBia3N5dzM2ZmxkMg==", done: false }]; defs.forEach(p => prepRef.push(p)); } else { prepData = []; s.forEach(ch => { prepData.push({...ch.val(), key:ch.key}); }); renderPrepList(); } });
+    function renderPrepList() { const l = document.getElementById('prepListUI'); l.innerHTML = ''; prepData.forEach(p => { let linkHTML = p.link ? `<div class="prep-link" onclick="event.stopPropagation(); window.open('${p.link}', '_blank', 'noopener,noreferrer');"><i class="fa-solid fa-link"></i></div>` : ''; l.innerHTML += `<div class="prep-item ${p.done ? 'done' : ''}" onclick="togglePrep('${p.key}', ${p.done})"><div class="prep-check"><i class="fa-solid fa-check"></i></div><div class="prep-text">${p.text}</div>${linkHTML}</div>`; }); }
     function togglePrep(key, currentStatus) { prepRef.child(key).update({ done: !currentStatus }); }
-
-    // ⭐️ 東京級記帳本邏輯 (公私分離隱藏選項)
-    let privateBills = JSON.parse(localStorage.getItem('busan_v36_p_bills')) || []; let sharedBills = []; let currentBillTab = '公費';
-    billRef.on("value", s => { sharedBills=[]; s.forEach(ch=>{ sharedBills.push({...ch.val(), fbKey:ch.key}); }); renderBills(); });
-    
-    function togglePayerSelect() {
-        const type = document.getElementById('billType').value;
-        const payerSelect = document.getElementById('payer');
-        if(type === '私帳') { payerSelect.style.display = 'none'; } else { payerSelect.style.display = 'block'; }
-    }
-
-    function filterBills_Logic(t) { 
-        currentBillTab = t; 
-        document.querySelectorAll('#split .day-tab').forEach(b=>b.classList.remove('active')); 
-        document.getElementById(t==='公費'?'tabShared':'tabPrivate').classList.add('active'); 
-        
-        const typeSelect = document.getElementById('billType');
-        if(t === '私帳') { 
-            typeSelect.innerHTML = `<option value="私帳">私帳</option>`; 
-            document.getElementById('payer').style.display = 'none'; // 切換私帳強制隱藏
-        } else { 
-            typeSelect.innerHTML = `<option value="公費">公費</option><option value="私帳">私帳</option>`; 
-            document.getElementById('payer').style.display = 'block'; // 恢復顯示
-        }
-        renderBills(); 
-    }
-    
-    function renderBills() {
-        const l = document.getElementById('billList'), res = document.getElementById('settlement'); let sU1_TotalTWD_Paid = 0, sU2_TotalTWD_Paid = 0; l.innerHTML = ''; let all = [...sharedBills, ...privateBills].sort((a,b)=>a.timestamp-b.timestamp);
-        
-        all.filter(b => currentBillTab==='公費'?b.type==='公費':b.type==='私帳'&&b.owner===deviceOwner).forEach(b => { 
-            let sym = b.currency==='TWD'?'$':'₩'; 
-            let rHTML = b.receipt ? `<a href="${b.receipt}" target="_blank" style="font-size:0.75rem; color:var(--primary); margin-left:5px; text-decoration:none;"><i class="fa-solid fa-receipt"></i> 發票</a>` : ''; 
-            let payerName = b.payer === 'user1' ? u1.name : u2.name;
-            let detailTxt = b.type==='公費' ? `<small style="color:#7f8c8d; font-weight:700;">${b.method} | ${payerName} 代墊</small>` : `<small style="color:#7f8c8d; font-weight:700;">${b.method} | 個人花費</small>`;
-            l.innerHTML += `<div class="card" style="padding:15px; margin-bottom:10px;"><div style="display:flex; justify-content:space-between; align-items:center;"><div style="flex:1;"><b style="font-size:1.05rem;">${b.item}</b> ${rHTML}<br>${detailTxt}</div><div style="text-align:right;"><b style="font-size:1.15rem; color:var(--dora);">${b.amt.toLocaleString()}${sym}</b></div><button class="btn-delete" style="margin-left:15px;" onclick="${b.type==='公費'?`deleteSharedBill('${b.fbKey}')`:`deletePrivateBill(${b.id})`}">🗑️</button></div></div>`; 
-        });
-
-        all.forEach(b => { 
-            if(b.type==='公費'){ 
-                let amtInTWD = b.currency === 'KRW' ? b.amt * liveKrwToTwd : b.amt; 
-                if(b.payer === 'user1') sU1_TotalTWD_Paid += amtInTWD; 
-                if(b.payer === 'user2') sU2_TotalTWD_Paid += amtInTWD; 
-            } 
-        });
-        
-        let totalSharedTWD = sU1_TotalTWD_Paid + sU2_TotalTWD_Paid; let halfTWD = totalSharedTWD / 2; let u1Balance = sU1_TotalTWD_Paid - halfTWD;
-        let settleText = `<div style="text-align:center; margin-bottom:10px;"><span style="font-size:0.85rem; color:#7f8c8d;">公費總支出 (約合台幣)</span><br><span style="font-size:1.8rem; color:var(--primary);">$${Math.round(totalSharedTWD).toLocaleString()}</span></div><hr style="border:0; border-top:1px dashed #ccc; margin:10px 0;">`;
-        if (u1Balance > 0) { settleText += `👉 <b>${u2.avatar} ${u2.name}</b> 應給 <b>${u1.avatar} ${u1.name}</b>：<span style="color:#27AE60; font-size:1.3rem;">$${Math.round(u1Balance).toLocaleString()}</span>`; } 
-        else if (u1Balance < 0) { settleText += `👉 <b>${u1.avatar} ${u1.name}</b> 應給 <b>${u2.avatar} ${u2.name}</b>：<span style="color:#27AE60; font-size:1.3rem;">$${Math.round(Math.abs(u1Balance)).toLocaleString()}</span>`; } 
-        else { settleText += `✨ 帳目完美平衡！`; }
-        res.innerHTML = settleText;
-    }
-    function addBill() { let n=document.getElementById('billName').value, a=parseFloat(document.getElementById('billAmt').value), cur=document.getElementById('billCurrency').value, t=document.getElementById('billType').value, m=document.getElementById('payMethod').value, p=document.getElementById('payer').value, rec=document.getElementById('tempReceipt').value; if(n&&a){ let nb={item:n, amt:a, currency:cur, type:t, method:m, payer:p, receipt:rec, timestamp:Date.now(), owner:deviceOwner}; if(t==='公費') billRef.push(nb); else { nb.id=Date.now(); privateBills.push(nb); localStorage.setItem('busan_v36_p_bills', JSON.stringify(privateBills)); renderBills(); } document.getElementById('billName').value=''; document.getElementById('billAmt').value=''; document.getElementById('tempReceipt').value=''; document.getElementById('receiptStatus').innerText=''; } }
-    function deleteSharedBill(k) { billRef.child(k).remove(); } function deletePrivateBill(id) { privateBills = privateBills.filter(b=>b.id!==id); localStorage.setItem('busan_v36_p_bills', JSON.stringify(privateBills)); renderBills(); }
-
-    // 拍立得相冊
-    photoRef.orderByChild("timestamp").on("value", s => {
-        const c = document.getElementById("albumContainer"); c.innerHTML = ""; let a = {};
-        s.forEach(ch => { let p = ch.val(); p.key = ch.key; let d = p.date || "回憶"; if(!a[d]) a[d] = []; a[d].unshift(p); });
-        for(let d in a){ let g = a[d].map(p => { let rot = (Math.random() * 6) - 3; return `<div class="polaroid" style="transform: rotate(${rot}deg);" onclick="openLightbox('${p.url}', '${p.key}')"><img src="${p.url}"></div>`; }).join(''); c.innerHTML = `<div class="album-date"><i class="fa-solid fa-calendar-day"></i> ${d} 的記憶</div><div class="photo-grid">${g}</div>` + c.innerHTML; }
-    });
-
-    let ticketData = [];
-    ticketRef.on("value", s => { if(!s.exists()) { ticketRef.push({ type: "🏨 住宿", title: "西面大本營", desc: "11/13 - 11/17", link: "https://map.naver.com/p/search/%EC%84%9C%EB%A9%B4%EC%97%AD", voucher: "" }); } else { ticketData = []; s.forEach(ch => { ticketData.push({...ch.val(), key:ch.key}); }); renderTickets(); } });
-    function renderTickets() { const l = document.getElementById('ticketList'); l.innerHTML = ''; ticketData.forEach(t => { let lh = t.link ? `<a href="${t.link}" target="_blank" class="map-tag" style="margin-top:8px;"><i class="fa-solid fa-map-location-dot"></i> 地圖</a>` : ''; let vh = t.voucher ? `<a href="${t.voucher}" target="_blank" class="map-tag" style="background:var(--primary); margin-top:8px;"><i class="fa-solid fa-image"></i> 看憑證</a>` : ''; l.innerHTML += `<div class="card" style="padding:15px; border-left:5px solid var(--dora); margin-bottom:12px;"><div style="display:flex; justify-content:space-between; align-items:flex-start;"><div><div style="font-weight:900; font-size:1.05rem; margin-bottom:4px;">${t.type} | ${t.title}</div><div style="font-size:0.85rem; color:#7f8c8d; font-weight:700;">${t.desc}</div>${lh} ${vh}</div><button class="btn-delete" onclick="deleteTicket('${t.key}')"><i class="fa-solid fa-trash"></i></button></div></div>`; }); }
-    function addTicket() { let ty=document.getElementById('tkType').value, ti=document.getElementById('tkTitle').value, de=document.getElementById('tkDesc').value, l=document.getElementById('tkLink').value, v=document.getElementById('tempVoucher').value; if(ti) ticketRef.push({type:ty, title:ti, desc:de, link:l, voucher:v}); document.getElementById('tkTitle').value=''; document.getElementById('tkDesc').value=''; document.getElementById('tkLink').value=''; document.getElementById('tempVoucher').value=''; document.getElementById('voucherStatus').innerText='';}
-    function deleteTicket(k) { ticketRef.child(k).remove(); }
-
-    let itineraryData = []; let currentFilterDay = "11/13"; let editingItiKey = null;
-    itiRef.on("value", s => {
-        if(!s.exists()) {
-            const dIti = [
-                { d: "11/13", t: "16:30", tr: "🚕 30分", txt: "抵達金海機場 ➔ 西面 Check-in", map: "https://map.naver.com/p/search/%EA%B9%80%ED%95%B4%EA%B5%AD%EC%A0%9C%EA%B3%B5%ED%95%AD" }, 
-                { d: "11/13", t: "18:30", tr: "🚶 5分", txt: "【晚餐】味讚王鹽烤肉", map: "https://map.naver.com/p/search/%EB%A7%9B%EC%B0%AC%EB%93%A4%EC%99%95%EC%86%8C%EA%B8%88%EA%B5%AC%EC%9D%B4%20%EC%84%9C%EB%A9%B4%EC%A0%90" },
-                { d: "11/14", t: "11:00", tr: "🚋 觀光列車", txt: "海雲台藍線 膠囊火車", map: "https://map.naver.com/p/search/%ED%95%B4%EC%9A%B4%EB%8C%80%EB%B8%94%EB%A3%A8%EB%9D%BC%EC%9D%B8%ED%8C%8C%ED%81%AC" }, 
-                { d: "11/14", t: "14:30", tr: "🚇 15分", txt: "Spa Land 頂級汗蒸幕", map: "https://map.naver.com/p/search/Spa%20Land" }, 
-                { d: "11/14", t: "19:30", tr: "🚶 步行", txt: "廣安里 M 無人機煙火秀", map: "https://map.naver.com/p/search/%EA%B4%91%EC%95%88%EB%A6%AC%ED%95%B4%EC%88%98%EC%9A%95%EC%9E%A5" },
-                { d: "11/15", t: "09:30", tr: "🚄 KTX 30分", txt: "釜山站 ➔ 新慶州站", map: "https://map.naver.com/p/search/%EA%B2%BD%EC%A3%BC%EC%97%AD" }, 
-                { d: "11/15", t: "12:00", tr: "🚕 15分", txt: "【午餐】Solsot 釜飯", map: "https://map.naver.com/p/search/%EC%86%94%EC%86%AF%20%EA%B2%BD%EC%A3%BC%ED%99%A9%EB%A6%AC%EB%8B%A8%EA%B8%B8%EC%A0%90" }, 
-                { d: "11/15", t: "13:30", tr: "🚶 步行", txt: "【重點】韓服換裝", map: "https://map.naver.com/p/search/%EA%BD%83%EA%B8%B8%ED%95%9C%EB%B3%B5" }, 
-                { d: "11/15", t: "14:30", tr: "🚶 5分", txt: "大陵苑石牆路 銀杏大道", map: "https://map.naver.com/p/search/%EB%8C%80%EB%A6%89%EC%9B%90" }, 
-                { d: "11/15", t: "16:00", tr: "🚕 5分", txt: "月精橋 優雅夕照", map: "https://map.naver.com/p/search/%EC%9B%94%EC%A0%95%EA%B5%90" }, 
-                { d: "11/15", t: "19:00", tr: "🚕 5分", txt: "東宮與月池 絕美夜楓", map: "https://map.naver.com/p/search/%EB%8F%99%EA%B6%81%EA%B3%BC%EC%9B%94%EC%A7%80" },
-                { d: "11/16", t: "10:30", tr: "🚕 25分", txt: "松島海上纜車 & 龍宮步道", map: "https://map.naver.com/p/search/%EC%86%A1%EB%8F%84%ED%95%B4%EC%83%81%EC%BC%80%EC%9D%B4%EB%B8%94%EC%B9%B4" }, 
-                { d: "11/16", t: "13:00", tr: "🚕 15分", txt: "【午餐】白淺灘文化村", map: "https://map.naver.com/p/search/%ED%9D%B0%EC%97%AC%EC%9A%B8%EB%AC%B8%ED%99%94%EB%A7%88%EC%9D%84" }, 
-                { d: "11/16", t: "18:30", tr: "🚕 35分", txt: "【晚餐】海木鰻魚飯", map: "https://map.naver.com/p/search/%ED%95%B4%EB%AA%A9%20%ED%95%B4%EC%9A%B4%EB%8C%80%EC%A0%90" },
-                { d: "11/17", t: "10:00", tr: "📦 寄件", txt: "Zimcarry 寄行李去機場", map: "" },
-                { d: "11/17", t: "16:30", tr: "✈️ 飛機", txt: "優雅登機，滿載而歸！", map: "" }
-            ];
-            dIti.forEach(i => itiRef.push({day:i.d, time:i.t, tr:i.tr, desc:i.txt, map:i.map}));
-        } else { itineraryData = []; s.forEach(ch => { itineraryData.push({...ch.val(), key:ch.key}); }); renderItinerary(); }
-    });
-    function filterIti(d) { currentFilterDay = d; document.querySelectorAll('#itinerary .day-tab').forEach(b => { b.classList.remove('active'); if(b.innerText.includes(d)) b.classList.add('active'); }); renderItinerary(); }
-    function renderItinerary() {
-        const l = document.getElementById('itiContent'); l.innerHTML = '';
-        itineraryData.filter(i => i.day === currentFilterDay).sort((a,b)=>a.time.localeCompare(b.time)).forEach(it => { 
-            let trTag = it.tr ? `<div class="traffic-tag">${it.tr}</div>` : '';
-            let mapTag = it.map ? `<a href="${it.map}" target="_blank" class="map-tag"><i class="fa-solid fa-map-location-dot"></i> 地圖</a>` : '';
-            l.innerHTML += `<div class="iti-row"><div class="iti-time">${it.time}</div><div class="iti-desc">${it.desc} ${mapTag}<br>${trTag}</div><div style="display:flex; flex-direction:column; gap:5px;"><button class="btn-edit" onclick="editItinerary('${it.key}')"><i class="fa-solid fa-pen"></i></button><button class="btn-delete" onclick="deleteItinerary('${it.key}')"><i class="fa-solid fa-trash"></i></button></div></div>`; 
-        });
-    }
-    function saveItinerary() { let d=document.getElementById('itiDay').value, t=document.getElementById('itiTime').value||"12:00", de=document.getElementById('itiDesc').value, tr=document.getElementById('itiTraffic').value, map=document.getElementById('itiMap').value; if(!de) return; if(editingItiKey) { itiRef.child(editingItiKey).update({day:d, time:t, tr:tr, desc:de, map:map}); cancelEditIti(); } else { itiRef.push({day:d, time:t, tr:tr, desc:de, map:map}); document.getElementById('itiDesc').value=''; document.getElementById('itiTraffic').value=''; document.getElementById('itiMap').value=''; filterIti(d); } }
-    function editItinerary(k) { let it = itineraryData.find(i => i.key === k); if(!it) return; editingItiKey = k; document.getElementById('itiDay').value = it.day; document.getElementById('itiTime').value = it.time; document.getElementById('itiDesc').value = it.desc; document.getElementById('itiTraffic').value = it.tr || ''; document.getElementById('itiMap').value = it.map || ''; document.getElementById('itiFormTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 修改行程中...'; document.getElementById('btnSaveIti').innerText = "💾 儲存修改"; document.getElementById('btnCancelIti').style.display = "block"; }
-    function cancelEditIti() { editingItiKey = null; document.getElementById('itiDesc').value = ''; document.getElementById('itiTraffic').value = ''; document.getElementById('itiMap').value = ''; document.getElementById('itiFormTitle').innerHTML = '<i class="fa-solid fa-pen"></i> 編輯手帳行程'; document.getElementById('btnSaveIti').innerText = "同步至雲端"; document.getElementById('btnCancelIti').style.display = "none"; }
-    function deleteItinerary(k) { if(confirm("確定刪除此行程？")) itiRef.child(k).remove(); }
 
     let shopList = []; let currentShopOwner = "user1";
     shopRef.on("value", s => { shopList = []; s.forEach(ch => { shopList.push({...ch.val(), key:ch.key}); }); renderShop(); });
     function filterShop_Logic(owner) { currentShopOwner = owner; document.querySelectorAll('#shop .day-tab').forEach(b => { b.classList.remove('active'); }); document.getElementById(owner === 'user1' ? 'tabShopU1' : 'tabShopU2').classList.add('active'); renderShop(); }
-    function renderShop() {
-        const l = document.getElementById('sList'); l.innerHTML = '';
-        let f = shopList.filter(i => i.owner === currentShopOwner);
-        if(f.length === 0) l.innerHTML = `<p style="text-align:center; color:#95a5a6; font-weight:900;">購物車目前空空如也！</p>`;
-        f.forEach(item => {
-            let imgHTML = item.img ? `<img src="${item.img}" class="item-img" onclick="openLightbox('${item.img}', null)" style="cursor:zoom-in;">` : '';
-            let whereHTML = item.where ? `<br><small style="color:#7f8c8d; font-weight:700;"><i class="fa-solid fa-location-dot"></i> ${item.where}</small>` : '';
-            l.innerHTML += `<div class="shop-item ${item.checked ? 'checked' : ''}"><div class="check-box" onclick="toggleShop('${item.key}', ${item.checked})"><i class="fa-solid fa-check"></i></div>${imgHTML}<div class="item-content flex-1" onclick="toggleShop('${item.key}', ${item.checked})"><div class="cat-tag">${item.category}</div><div style="font-weight:900; font-size:1.05rem;">${item.text}</div>${whereHTML}</div><button class="btn-delete" onclick="deleteShop('${item.key}')"><i class="fa-solid fa-trash"></i></button></div>`;
-        });
-    }
+    function renderShop() { const l = document.getElementById('sList'); l.innerHTML = ''; let f = shopList.filter(i => i.owner === currentShopOwner); if(f.length === 0) l.innerHTML = `<p style="text-align:center; color:#95a5a6; font-weight:900;">購物車目前空空如也！</p>`; f.forEach(item => { let imgHTML = item.img ? `<img src="${item.img}" class="item-img" onclick="openLightbox('${item.img}', null)" style="cursor:zoom-in;">` : ''; let whereHTML = item.where ? `<br><small style="color:#7f8c8d; font-weight:700;"><i class="fa-solid fa-location-dot"></i> ${item.where}</small>` : ''; l.innerHTML += `<div class="shop-item ${item.checked ? 'checked' : ''}"><div class="check-box" onclick="toggleShop('${item.key}', ${item.checked})"><i class="fa-solid fa-check"></i></div>${imgHTML}<div class="item-content flex-1" onclick="toggleShop('${item.key}', ${item.checked})"><div class="cat-tag">${item.category}</div><div style="font-weight:900; font-size:1.05rem;">${item.text}</div>${whereHTML}</div><button class="btn-delete" onclick="deleteShop('${item.key}')"><i class="fa-solid fa-trash"></i></button></div>`; }); }
     function addShopItem() { const cat = document.getElementById('shopCategory').value; const text = document.getElementById('newShop').value; const where = document.getElementById('shopWhere').value; const img = document.getElementById('tempShopImg').value; if(!text) return; shopRef.push({ category: cat, text, where, img, checked: false, owner: currentShopOwner }); document.getElementById('newShop').value = ''; document.getElementById('shopWhere').value = ''; document.getElementById('tempShopImg').value = ''; document.getElementById('shopUploadStatus').innerText = ''; }
     function toggleShop(key, currentStatus) { shopRef.child(key).update({ checked: !currentStatus }); }
     function deleteShop(key) { shopRef.child(key).remove(); }
 
     let guideData = []; let currentGuideTab = "打卡景點"; let editingGuideKey = null;
     const folderMapping = { '工具': [], '美食景點': ['打卡景點', '必吃美食'], '購物': ['伴手禮', '衣物鞋履', '小物配件', '彩妝', '保養', 'Olive Young', '當地藥局'], '超商': ['GS25', 'CU', '7-11'] };
-
-    function openGuideFolder(folderName) {
-        document.getElementById('guideDashboard').style.display = 'none';
-        document.getElementById('guideDetail').style.display = 'block';
-        if(folderName === '工具') {
-            document.getElementById('toolSection').style.display = 'block'; document.getElementById('guideSection').style.display = 'none'; document.getElementById('guideSubTabs').style.display = 'none';
-        } else {
-            document.getElementById('toolSection').style.display = 'none'; document.getElementById('guideSection').style.display = 'block'; document.getElementById('guideSubTabs').style.display = 'flex';
-            const tabsContainer = document.getElementById('guideSubTabs'); tabsContainer.innerHTML = '';
-            folderMapping[folderName].forEach((tab, index) => {
-                let btn = document.createElement('button'); btn.className = `day-tab ${index === 0 ? 'active' : ''}`; btn.innerText = tab;
-                btn.onclick = function() { document.querySelectorAll('#guideSubTabs .day-tab').forEach(b => b.classList.remove('active')); this.classList.add('active'); filterGuideContent(tab); };
-                tabsContainer.appendChild(btn);
-            });
-            filterGuideContent(folderMapping[folderName][0]);
-        }
-    }
-
-    function closeGuideFolder() { document.getElementById('guideDashboard').style.display = 'block'; document.getElementById('guideDetail').style.display = 'none'; document.getElementById('guideDashboard').scrollIntoView({behavior: 'smooth'}); }
+    function openGuideFolder(folderName) { document.getElementById('guideDashboard').style.display = 'none'; document.getElementById('guideDetail').style.display = 'block'; document.getElementById('fabBack').style.display = 'flex'; if(folderName === '工具') { document.getElementById('toolSection').style.display = 'block'; document.getElementById('guideSection').style.display = 'none'; document.getElementById('guideSubTabs').style.display = 'none'; } else { document.getElementById('toolSection').style.display = 'none'; document.getElementById('guideSection').style.display = 'block'; document.getElementById('guideSubTabs').style.display = 'flex'; const tabsContainer = document.getElementById('guideSubTabs'); tabsContainer.innerHTML = ''; folderMapping[folderName].forEach((tab, index) => { let btn = document.createElement('button'); btn.className = `day-tab ${index === 0 ? 'active' : ''}`; btn.innerText = tab; btn.onclick = function() { document.querySelectorAll('#guideSubTabs .day-tab').forEach(b => b.classList.remove('active')); this.classList.add('active'); filterGuideContent(tab); }; tabsContainer.appendChild(btn); }); filterGuideContent(folderMapping[folderName][0]); } }
+    function closeGuideFolder() { document.getElementById('guideDashboard').style.display = 'block'; document.getElementById('guideDetail').style.display = 'none'; document.getElementById('fabBack').style.display = 'none'; document.getElementById('guideDashboard').scrollIntoView({behavior: 'smooth'}); }
 
     guideRef.on("value", s => {
         if(!s.exists()) {
@@ -760,17 +677,12 @@
     });
 
     function filterGuideContent(t) { currentGuideTab = t; document.getElementById('gdType').value = t; renderGuideContent(); }
-    function renderGuideContent() {
-        const l = document.getElementById('guideList'); l.innerHTML = '';
-        guideData.filter(g=>g.type===currentGuideTab).sort((a,b)=>b.timestamp-a.timestamp).forEach(g=>{
-            let img = g.img ? `<img src="${g.img}" class="guide-img" onclick="openLightbox('${g.img}', null)" style="cursor:zoom-in;">` : ''; let link = g.link ? `<a href="${g.link}" target="_blank" class="map-btn" style="margin-top:10px;"><i class="fa-solid fa-map-location-dot"></i> 地圖/連結</a>` : '';
-            l.innerHTML += `<div class="guide-card">${img}<div style="padding:20px;"><h4>${g.title}</h4><p>${g.desc}</p>${link}<div style="margin-top:15px; display:flex; gap:10px;"><button class="btn-edit" onclick="editGuide('${g.key}')"><i class="fa-solid fa-pen"></i></button><button class="btn-delete" onclick="deleteGuide('${g.key}')"><i class="fa-solid fa-trash"></i></button></div></div></div>`;
-        });
-    }
+    function renderGuideContent() { const l = document.getElementById('guideList'); l.innerHTML = ''; guideData.filter(g=>g.type===currentGuideTab).sort((a,b)=>b.timestamp-a.timestamp).forEach(g=>{ let img = g.img ? `<img src="${g.img}" class="guide-img" onclick="openLightbox('${g.img}', null)" style="cursor:zoom-in;">` : ''; let link = g.link ? `<a href="${g.link}" target="_blank" class="map-btn" style="margin-top:10px;"><i class="fa-solid fa-map-location-dot"></i> 地圖/連結</a>` : ''; l.innerHTML += `<div class="guide-card">${img}<div style="padding:20px;"><h4>${g.title}</h4><p>${g.desc}</p>${link}<div style="margin-top:15px; display:flex; gap:10px;"><button class="btn-edit" onclick="editGuide('${g.key}')"><i class="fa-solid fa-pen"></i></button><button class="btn-delete" onclick="deleteGuide('${g.key}')"><i class="fa-solid fa-trash"></i></button></div></div></div>`; }); }
     function addGuideItem() { let t=document.getElementById('gdType').value, ti=document.getElementById('gdTitle').value, de=document.getElementById('gdDesc').value, li=document.getElementById('gdLink').value, i=document.getElementById('tempGuideImg').value; if(!ti) return; if(editingGuideKey) { guideRef.child(editingGuideKey).update({type:t, title:ti, desc:de, link:li, img:i}); editingGuideKey=null; } else { guideRef.push({type:t, title:ti, desc:de, link:li, img:i, timestamp:Date.now()}); } document.getElementById('gdTitle').value=''; document.getElementById('gdDesc').value=''; document.getElementById('gdLink').value=''; document.getElementById('tempGuideImg').value=''; document.getElementById('guideUploadStatus').innerText=''; filterGuideContent(t); }
     function editGuide(k) { let g = guideData.find(x => x.key === k); if(!g) return; editingGuideKey = k; document.getElementById('gdType').value = g.type; document.getElementById('gdTitle').value = g.title; document.getElementById('gdDesc').value = g.desc || ''; document.getElementById('gdLink').value = g.link || ''; document.getElementById('tempGuideImg').value = g.img || ''; window.scrollTo(0, document.body.scrollHeight); }
     function deleteGuide(k) { if(confirm("確定刪除？")) guideRef.child(k).remove(); }
 
+    window.onload = () => { document.getElementById('deviceOwner').value = deviceOwner; filterIti("11/13"); showTab('guide', document.querySelector('.nav-item.active')); };
 </script>
 </body>
 </html>
