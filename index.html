@@ -9,7 +9,7 @@
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="icon" href="icon.png" type="image/png">
     <link id="manifest-link" rel="manifest" href="">
-    <title>釜山慶州秋之旅 V36</title>
+    <title>釜山慶州秋之旅 V36 旗艦版</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -123,6 +123,10 @@
         #pinModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(15px); }
         .pin-box { background: #fff; padding: 35px 30px; border-radius: 28px; width: 85%; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
         .pin-input { width: 100%; padding: 15px; border-radius: 16px; border: 2px solid #ecf0f1; text-align: center; font-size: 2rem; letter-spacing: 15px; margin-bottom: 20px; font-weight: 900; color: var(--primary); background: #fdfdfd;}
+
+        /* 進度條特效 CSS */
+        .budget-bar-container { background: #E0E0E0; border-radius: 20px; height: 12px; width: 100%; margin: 15px 0 5px; overflow: hidden; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
+        .budget-pulse-bar { height: 100%; width: 0%; border-radius: 20px; background: linear-gradient(90deg, #F39C12, #E74C3C); box-shadow: 0 0 15px rgba(231, 76, 60, 0.6); transition: width 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     </style>
 </head>
 <body>
@@ -136,7 +140,7 @@
     <div class="splash-card">
         <h1>2026 BUSAN</h1>
         <h2 style="margin:8px 0; color:var(--text-dark); font-weight:900;">秋季雙城・皇家旅程</h2>
-        <p style="color:var(--dora); font-weight:700;">V36 個人化真我版</p>
+        <p style="color:var(--dora); font-weight:700;">V36 旗艦真我版</p>
     </div>
     <button class="btn-enter" onclick="enterApp()">進入專屬系統 <i class="fa-solid fa-plane-departure"></i></button>
 </div>
@@ -159,7 +163,6 @@
     <img id="lightbox-img" src="">
 </div>
 
-<!-- ⭐️ 大字卡發音介面 -->
 <div id="flashcardModal" onclick="if(event.target.id === 'flashcardModal') closeFlashcard()">
     <div class="fc-box">
         <div class="fc-tw" id="fc-tw">中文</div>
@@ -171,7 +174,6 @@
     </div>
 </div>
 
-<!-- ⭐️ 使用者大頭貼設定介面 -->
 <div id="profileModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10001; justify-content:center; align-items:center; backdrop-filter:blur(15px);">
     <div class="pin-box">
         <h3 style="color:var(--dora); margin:0 0 15px 0;"><i class="fa-solid fa-user-astronaut"></i> 專屬頭像與名稱設定</h3>
@@ -201,7 +203,6 @@
             <div class="card" style="background: linear-gradient(135deg, rgba(255,234,234,0.9), rgba(255,255,255,0.9)); border-left: 6px solid #E74C3C;">
                 <h4 style="color: #E74C3C; margin: 0 0 12px 0; font-size: 1.1rem;"><i class="fa-solid fa-triangle-exclamation fa-fade"></i> 行前必備與翻譯捷徑</h4>
                 <div style="font-size: 0.95rem; line-height: 1.6; color: #444; font-weight: 700; margin-bottom:15px;">🚨 <b>K-ETA：</b>出發前 72 小時申請。<br>🚨 <b>Q-Code：</b>出發前 3 天內填寫。<br>🚨 <b>隨身清單：</b>護照、WOWPASS、行動電源。</div>
-                <!-- ⭐️ Papago 強制喚醒 APP -->
                 <button class="btn-action" style="background: #27AE60; padding:12px; font-size:1rem;" onclick="openPapago()"><i class="fa-solid fa-camera"></i> 喚醒 Papago 鏡頭翻譯</button>
             </div>
 
@@ -289,7 +290,7 @@
         </div>
     </div>
 
-    <!-- 2. 滿血記帳本 (結合個人化大頭貼與身分同步) -->
+    <!-- 2. 滿血記帳本 -->
     <div id="split" class="container">
         <div class="fx-card">
             <div><div style="font-size:0.85rem; font-weight:900; opacity:0.8;">🌐 即時匯率同步</div><div style="font-size:1.4rem; font-weight:900; margin-top:4px;" id="liveFxRate"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
@@ -315,12 +316,11 @@
             <div class="flex-row">
                 <input type="number" id="billAmt" class="input-box flex-1" placeholder="金額">
                 <select id="billCurrency" class="input-box" style="width:85px;"><option value="KRW">₩ 韓元</option><option value="TWD">$ 台幣</option></select>
-                <!-- ⭐️ 公私防呆監聽 -->
                 <select id="billType" class="input-box" style="width:85px;" onchange="togglePayerSelect()"><option value="公費">公費</option><option value="私帳">私帳</option></select>
             </div>
             <div class="flex-row" style="margin-top:-5px;">
                 <select id="payMethod" class="input-box flex-1"><option value="現金">💵 現金</option><option value="信用卡">💳 信用卡</option><option value="WOWPASS">🪪 WOWPASS</option></select>
-                <select id="payer" class="input-box flex-1"></select> <!-- 動態載入使用者名稱 -->
+                <select id="payer" class="input-box flex-1"></select>
             </div>
             <div class="flex-row" style="margin-top:5px;">
                 <label for="receiptUpload" style="background:rgba(255,255,255,0.8); padding:14px; border-radius:14px; cursor:pointer; font-weight:900; font-size:0.9rem; flex:1; text-align:center; box-shadow:0 2px 5px rgba(0,0,0,0.02);"><i class="fa-solid fa-paperclip"></i> 附上發票照片</label>
@@ -331,6 +331,17 @@
             
             <button class="btn-action" style="margin-top:12px;" onclick="addBill()"><i class="fa-solid fa-plus"></i> 紀錄支出</button>
             <div id="billList" style="margin-top:20px;"></div>
+            
+            <!-- 預算進度條 -->
+            <div style="margin-top: 20px; padding: 15px 20px; background: rgba(255,255,255,0.9); border-radius: 20px; box-shadow: var(--shadow);">
+                <div style="display: flex; justify-content: space-between; font-weight: 900; font-size: 0.95rem;">
+                    <span style="color: var(--text-dark);"><i class="fa-solid fa-chart-pie"></i> 預算水位</span>
+                    <span id="budgetPct" style="color: var(--primary);">0%</span>
+                </div>
+                <div class="budget-bar-container"><div id="budgetBar" class="budget-pulse-bar"></div></div>
+                <div style="text-align: right; font-size: 0.8rem; color: #7f8c8d; font-weight: 700; margin-top: 5px;" id="budgetText">已花費 $0 / 設定預算 $50,000</div>
+            </div>
+
             <div id="settlement" style="margin-top:20px; padding:20px; border-radius:20px; background:rgba(255, 245, 245, 0.9); font-weight:900; line-height:1.8; border:2px solid rgba(252, 220, 220, 0.8); font-size:1.05rem;"></div>
         </div>
     </div>
@@ -344,6 +355,10 @@
             <button class="day-tab" onclick="filterIti('11/16')">16日(海濱漫步)</button>
             <button class="day-tab" onclick="filterIti('11/17')">17日(賦歸)</button>
         </div>
+        
+        <!-- Vlog 腳本匯出按鈕 -->
+        <button class="btn-search" style="margin-bottom: 12px; width: 100%; border-color: var(--dora); color: var(--dora);" onclick="exportForVlog()"><i class="fa-solid fa-wand-magic-sparkles"></i> 匯出本日 Vlog 腳本 (供 CapCut/Canva 剪輯)</button>
+
         <div class="card"><div id="itiContent"></div></div>
         <div class="card">
             <h3 class="card-title" id="itiFormTitle"><i class="fa-solid fa-pen"></i> 編輯手帳行程</h3>
@@ -363,6 +378,21 @@
 
     <!-- 4. 專屬購物車 -->
     <div id="shop" class="container">
+        <!-- 購物換算與退稅神器 -->
+        <div class="card" style="background: linear-gradient(135deg, #2C3E50, #1A252F); color: white; padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="margin: 0; font-size: 1.1rem; color: #F39C12;"><i class="fa-solid fa-calculator"></i> 購物匯率與退稅雷達</h3>
+            </div>
+            <div class="flex-row">
+                <input type="number" id="quickKrw" class="input-box flex-1" placeholder="輸入韓元 (₩)" oninput="calcQuickExchange()" style="font-size: 1.2rem; text-align: center;">
+                <button class="btn-action" style="width: 60px; background: #27AE60;" onclick="quickAddBill()"><i class="fa-solid fa-plus"></i></button>
+            </div>
+            <div id="quickResult" style="margin-top: 15px; font-weight: 900; line-height: 1.6; display: none;">
+                <div style="font-size: 1.2rem;">折合台幣約：<span id="quickTwd" style="color: #F1C40F;">$0</span></div>
+                <div style="font-size: 0.95rem; color: #1ABC9C;" id="taxRefundMsg"><i class="fa-solid fa-money-bill-wave"></i> 預估可退稅：₩0</div>
+            </div>
+        </div>
+
         <div class="card">
             <h3 class="card-title"><i class="fa-solid fa-cart-shopping"></i> 個人購物清單</h3>
             <div class="day-tabs" id="shopTabsUI">
@@ -418,17 +448,17 @@
 </div>
 
 <script>
-    // --- ⭐️ 核心 Firebase 初始化 ---
+    // --- 核心 Firebase 初始化 ---
     const IMGBB_API_KEY = "ba1b2b24f8275c9d3a199bea5cd52bf9"; 
     const firebaseConfig = { apiKey: "AIzaSyC884_zH7XM7l7C_ijhuFmEoKxbsN0O1Vw", authDomain: "busan-trip-2026-4148f.firebaseapp.com", databaseURL: "https://busan-trip-2026-4148f-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "busan-trip-2026-4148f", storageBucket: "busan-trip-2026-4148f.firebasestorage.app", messagingSenderId: "819505968980", appId: "1:819505968980:web:03e6d05ef5101719327ac1" };
     firebase.initializeApp(firebaseConfig); const db = firebase.database();
 
     const itiRef = db.ref("busan_v36_iti"); const guideRef = db.ref("busan_v36_guide"); const shopRef = db.ref("busan_v36_shop"); const photoRef = db.ref("busan_v36_photos"); const ticketRef = db.ref("busan_v36_tickets"); const billRef = db.ref("busan_v36_bills"); const prepRef = db.ref("busan_v36_prep"); const voiceRef = db.ref("busan_v36_voice"); const profileRef = db.ref("busan_v36_profiles");
 
-    // --- ⭐️ 個人化全域設定 (Avatar & Names) ---
+    // --- 個人化全域設定 ---
     let u1 = { key: 'user1', name: '溫', avatar: '👩' };
     let u2 = { key: 'user2', name: '鴨', avatar: '🦆' };
-    let deviceOwner = localStorage.getItem('busan_v36_owner') || 'user1'; // 本機登入者
+    let deviceOwner = localStorage.getItem('busan_v36_owner') || 'user1'; 
 
     profileRef.on('value', s => {
         if(s.exists()) { let data = s.val(); u1 = data.user1 || u1; u2 = data.user2 || u2; } 
@@ -437,11 +467,9 @@
     });
 
     function updateProfileUI() {
-        // 更新選擇器
         document.getElementById('deviceOwner').innerHTML = `<option value="user1" ${deviceOwner==='user1'?'selected':''}>${u1.avatar} ${u1.name}</option><option value="user2" ${deviceOwner==='user2'?'selected':''}>${u2.avatar} ${u2.name}</option>`;
         document.getElementById('payer').innerHTML = `<option value="user1">${u1.name} 先代墊</option><option value="user2">${u2.name} 先代墊</option>`;
         
-        // 更新私帳與購物車 Tab 文字
         let ownerData = deviceOwner === 'user1' ? u1 : u2;
         document.getElementById('tabPrivate').innerText = `🔒 ${ownerData.avatar} 私帳`;
         
@@ -450,7 +478,6 @@
             <button class="day-tab ${currentShopOwner==='user2'?'active':''}" onclick="filterShopWithPin('user2')" id="tabShopU2">🔒 ${u2.avatar} ${u2.name}</button>
         `;
         
-        // 更新編輯 Modal
         document.getElementById('editU1Avatar').value = u1.avatar; document.getElementById('editU1Name').value = u1.name;
         document.getElementById('editU2Avatar').value = u2.avatar; document.getElementById('editU2Name').value = u2.name;
     }
@@ -464,7 +491,7 @@
 
     function updateOwner() { deviceOwner = document.getElementById('deviceOwner').value; localStorage.setItem('busan_v36_owner', deviceOwner); updateProfileUI(); }
 
-    // --- 🔐 智慧局部鎖 (Session Unlock 修正) ---
+    // --- 智慧局部鎖 ---
     let targetTabAction = null; let tabRevertAction = null; 
     function checkPinAccess(actionCallback, fallbackAction) {
         if(sessionStorage.getItem('busan_unlocked') === 'true') { actionCallback(); return; }
@@ -486,23 +513,16 @@
     function filterBillsWithPin(type) { if(type === '私帳') { checkPinAccess(() => { filterBills_Logic(type); }, () => { document.getElementById('tabShared').click(); }); } else { filterBills_Logic(type); } }
     function filterShopWithPin(owner) { checkPinAccess(() => { filterShop_Logic(owner); }, () => { showTab('guide', document.querySelector('.nav-item')); }); }
 
-    // --- ⭐️ 強制喚醒 Papago APP ---
     function openPapago() {
-        // 先嘗試透過 Intent 喚醒 Android APP
         window.location.href = "intent://translator#Intent;scheme=papago;package=com.naver.labs.translator;end;";
-        // 設定 0.5 秒後如果沒反應，就跳回安全的網頁版
-        setTimeout(function() {
-            window.location.href = "https://papago.naver.com/";
-        }, 500);
+        setTimeout(function() { window.location.href = "https://papago.naver.com/"; }, 500);
     }
 
-    // --- 基礎架構 ---
     function autoFetchMap(inputId, targetId) { let val = document.getElementById(inputId).value; if(val) { document.getElementById(targetId).value = 'https://map.naver.com/p/search/' + encodeURIComponent(val); } else { alert("請先輸入名稱！"); } }
 
     let liveKrwToTwd = 0.024; 
     async function fetchLiveExchangeRate() { try { let res = await fetch('https://api.exchangerate-api.com/v4/latest/KRW'); let data = await res.json(); liveKrwToTwd = data.rates.TWD; document.getElementById('liveFxRate').innerHTML = `1 萬韓元 = 約 <span style="color:#F1C40F;">${(10000 * liveKrwToTwd).toFixed(0)}</span> 台幣`; renderBills(); } catch(e) {} }
 
-    // ⭐️ 氣象與洋蔥式防風
     async function fetchLiveWeather() {
         try {
             let res = await fetch('https://wttr.in/Busan?format=j1'); let data = await res.json();
@@ -525,7 +545,6 @@
 
     function enterApp() { const s = document.getElementById('splash'); const a = document.getElementById('mainApp'); s.style.transform = 'translateY(-100%)'; s.style.opacity = '0'; setTimeout(() => { s.style.display = 'none'; a.style.display = 'block'; fetchLiveExchangeRate(); fetchLiveWeather(); setTimeout(() => a.style.opacity = '1', 50); }, 800); }
     
-    // 全域 Tab 導航
     function showTab(id, el) { 
         document.querySelectorAll('.container').forEach(c => c.classList.remove('active')); 
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); 
@@ -533,14 +552,12 @@
         if(!el.classList.contains('nav-center')) el.classList.add('active'); 
         window.scrollTo(0,0); 
         if(id === 'guide') { document.getElementById('guideDashboard').style.display = 'block'; document.getElementById('guideDetail').style.display = 'none'; } 
-        // 購物車切換自動載入本機使用者的專屬車
         if(id === 'shop') { 
             let targetTab = deviceOwner === 'user1' ? 'tabShopU1' : 'tabShopU2';
             document.getElementById(targetTab).click(); 
         } 
     }
     
-    // ⭐️ 滑動返回目錄
     let touchstartX = 0; let touchendX = 0; const guideDetail = document.getElementById('guideDetail');
     guideDetail.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; });
     guideDetail.addEventListener('touchend', e => { touchendX = e.changedTouches[0].screenX; if (touchendX - touchstartX > 100) closeGuideFolder(); });
@@ -568,7 +585,6 @@
     function addVoiceCard() { let tw = document.getElementById('newCardTw').value; let kr = document.getElementById('newCardKr').value; if(tw && kr) { voiceRef.push({ tw: tw, kr: kr, icon: 'fa-comment-dots', custom: true }); document.getElementById('newCardTw').value = ''; document.getElementById('newCardKr').value = ''; } }
     function deleteVoiceCard(k) { voiceRef.child(k).remove(); }
 
-    // ⭐️ Checklist 韓服徹底分開並帶 IG 連結
     let prepData = [];
     prepRef.on("value", s => {
         if(!s.exists()) {
@@ -586,14 +602,13 @@
     function renderPrepList() {
         const l = document.getElementById('prepListUI'); l.innerHTML = '';
         prepData.forEach(p => {
-            // ⭐️ 強制用 window.open 打開外部連結，避開 PWA 空白問題
             let linkHTML = p.link ? `<div class="prep-link" onclick="event.stopPropagation(); window.open('${p.link}', '_blank', 'noopener,noreferrer');"><i class="fa-solid fa-link"></i> 前往</div>` : '';
             l.innerHTML += `<div class="prep-item ${p.done ? 'done' : ''}" onclick="togglePrep('${p.key}', ${p.done})"><div class="prep-check"><i class="fa-solid fa-check"></i></div><div class="prep-text">${p.text}</div>${linkHTML}</div>`;
         });
     }
     function togglePrep(key, currentStatus) { prepRef.child(key).update({ done: !currentStatus }); }
 
-    // ⭐️ 東京級記帳本邏輯 (公私分離隱藏選項)
+    // ⭐️ 滿血記帳本 + 預算進度條邏輯
     let privateBills = JSON.parse(localStorage.getItem('busan_v36_p_bills')) || []; let sharedBills = []; let currentBillTab = '公費';
     billRef.on("value", s => { sharedBills=[]; s.forEach(ch=>{ sharedBills.push({...ch.val(), fbKey:ch.key}); }); renderBills(); });
     
@@ -611,10 +626,10 @@
         const typeSelect = document.getElementById('billType');
         if(t === '私帳') { 
             typeSelect.innerHTML = `<option value="私帳">私帳</option>`; 
-            document.getElementById('payer').style.display = 'none'; // 切換私帳強制隱藏
+            document.getElementById('payer').style.display = 'none';
         } else { 
             typeSelect.innerHTML = `<option value="公費">公費</option><option value="私帳">私帳</option>`; 
-            document.getElementById('payer').style.display = 'block'; // 恢復顯示
+            document.getElementById('payer').style.display = 'block';
         }
         renderBills(); 
     }
@@ -639,12 +654,32 @@
         });
         
         let totalSharedTWD = sU1_TotalTWD_Paid + sU2_TotalTWD_Paid; let halfTWD = totalSharedTWD / 2; let u1Balance = sU1_TotalTWD_Paid - halfTWD;
+        
+        // ⭐️ 預算進度條渲染邏輯
+        let targetBudget = 50000; // 假設公費總預算為 5 萬台幣
+        let currentExpense = currentBillTab === '公費' ? totalSharedTWD : privateBills.reduce((acc, b) => acc + (b.currency === 'KRW' ? b.amt * liveKrwToTwd : b.amt), 0);
+        let target = currentBillTab === '公費' ? targetBudget : 20000; // 私帳預設抓 2 萬
+        let pct = Math.min((currentExpense / target) * 100, 100).toFixed(1);
+        
+        document.getElementById('budgetBar').style.width = `${pct}%`;
+        document.getElementById('budgetPct').innerText = `${pct}%`;
+        document.getElementById('budgetText').innerText = `已花費 $${Math.round(currentExpense).toLocaleString()} / 設定預算 $${target.toLocaleString()}`;
+        
+        if (pct >= 90) {
+            document.getElementById('budgetBar').style.background = "linear-gradient(90deg, #E74C3C, #C0392B)";
+            document.getElementById('budgetBar').style.boxShadow = "0 0 20px rgba(192, 57, 43, 0.8)";
+        } else {
+            document.getElementById('budgetBar').style.background = "linear-gradient(90deg, #F39C12, #E74C3C)";
+            document.getElementById('budgetBar').style.boxShadow = "0 0 15px rgba(231, 76, 60, 0.6)";
+        }
+
         let settleText = `<div style="text-align:center; margin-bottom:10px;"><span style="font-size:0.85rem; color:#7f8c8d;">公費總支出 (約合台幣)</span><br><span style="font-size:1.8rem; color:var(--primary);">$${Math.round(totalSharedTWD).toLocaleString()}</span></div><hr style="border:0; border-top:1px dashed #ccc; margin:10px 0;">`;
         if (u1Balance > 0) { settleText += `👉 <b>${u2.avatar} ${u2.name}</b> 應給 <b>${u1.avatar} ${u1.name}</b>：<span style="color:#27AE60; font-size:1.3rem;">$${Math.round(u1Balance).toLocaleString()}</span>`; } 
         else if (u1Balance < 0) { settleText += `👉 <b>${u1.avatar} ${u1.name}</b> 應給 <b>${u2.avatar} ${u2.name}</b>：<span style="color:#27AE60; font-size:1.3rem;">$${Math.round(Math.abs(u1Balance)).toLocaleString()}</span>`; } 
         else { settleText += `✨ 帳目完美平衡！`; }
         res.innerHTML = settleText;
     }
+
     function addBill() { let n=document.getElementById('billName').value, a=parseFloat(document.getElementById('billAmt').value), cur=document.getElementById('billCurrency').value, t=document.getElementById('billType').value, m=document.getElementById('payMethod').value, p=document.getElementById('payer').value, rec=document.getElementById('tempReceipt').value; if(n&&a){ let nb={item:n, amt:a, currency:cur, type:t, method:m, payer:p, receipt:rec, timestamp:Date.now(), owner:deviceOwner}; if(t==='公費') billRef.push(nb); else { nb.id=Date.now(); privateBills.push(nb); localStorage.setItem('busan_v36_p_bills', JSON.stringify(privateBills)); renderBills(); } document.getElementById('billName').value=''; document.getElementById('billAmt').value=''; document.getElementById('tempReceipt').value=''; document.getElementById('receiptStatus').innerText=''; } }
     function deleteSharedBill(k) { billRef.child(k).remove(); } function deletePrivateBill(id) { privateBills = privateBills.filter(b=>b.id!==id); localStorage.setItem('busan_v36_p_bills', JSON.stringify(privateBills)); renderBills(); }
 
@@ -660,6 +695,28 @@
     function renderTickets() { const l = document.getElementById('ticketList'); l.innerHTML = ''; ticketData.forEach(t => { let lh = t.link ? `<a href="${t.link}" target="_blank" class="map-tag" style="margin-top:8px;"><i class="fa-solid fa-map-location-dot"></i> 地圖</a>` : ''; let vh = t.voucher ? `<a href="${t.voucher}" target="_blank" class="map-tag" style="background:var(--primary); margin-top:8px;"><i class="fa-solid fa-image"></i> 看憑證</a>` : ''; l.innerHTML += `<div class="card" style="padding:15px; border-left:5px solid var(--dora); margin-bottom:12px;"><div style="display:flex; justify-content:space-between; align-items:flex-start;"><div><div style="font-weight:900; font-size:1.05rem; margin-bottom:4px;">${t.type} | ${t.title}</div><div style="font-size:0.85rem; color:#7f8c8d; font-weight:700;">${t.desc}</div>${lh} ${vh}</div><button class="btn-delete" onclick="deleteTicket('${t.key}')"><i class="fa-solid fa-trash"></i></button></div></div>`; }); }
     function addTicket() { let ty=document.getElementById('tkType').value, ti=document.getElementById('tkTitle').value, de=document.getElementById('tkDesc').value, l=document.getElementById('tkLink').value, v=document.getElementById('tempVoucher').value; if(ti) ticketRef.push({type:ty, title:ti, desc:de, link:l, voucher:v}); document.getElementById('tkTitle').value=''; document.getElementById('tkDesc').value=''; document.getElementById('tkLink').value=''; document.getElementById('tempVoucher').value=''; document.getElementById('voucherStatus').innerText='';}
     function deleteTicket(k) { ticketRef.child(k).remove(); }
+
+    // ⭐️ Vlog 腳本匯出邏輯
+    function exportForVlog() {
+        let dayData = itineraryData.filter(i => i.day === currentFilterDay).sort((a,b)=>a.time.localeCompare(b.time));
+        if (dayData.length === 0) { alert("今天還沒有建立行程喔！"); return; }
+        
+        let scriptContent = `🎬【${currentFilterDay} 釜山慶州 Vlog 拍攝分鏡表】\n\n`;
+        dayData.forEach((it, index) => {
+            scriptContent += `📍 Scene ${index + 1}: ${it.time}\n`;
+            scriptContent += `👉 畫面重點：${it.desc}\n`;
+            if (it.tr) scriptContent += `🚗 轉場提示：拍一段 ${it.tr} 的 B-Roll\n`;
+            scriptContent += `------------------------\n`;
+        });
+        
+        scriptContent += `\n💡 剪輯筆記：記得匯入 Drive 金庫的高畫質原檔！`;
+        
+        navigator.clipboard.writeText(scriptContent).then(() => {
+            alert("✅ Vlog 腳本已複製！\n現在可以直接打開 CapCut 貼入文字腳本，或進入 Canva 製作排版。");
+        }).catch(err => {
+            alert("複製失敗，請重試。");
+        });
+    }
 
     let itineraryData = []; let currentFilterDay = "11/13"; let editingItiKey = null;
     itiRef.on("value", s => {
@@ -698,6 +755,39 @@
     function editItinerary(k) { let it = itineraryData.find(i => i.key === k); if(!it) return; editingItiKey = k; document.getElementById('itiDay').value = it.day; document.getElementById('itiTime').value = it.time; document.getElementById('itiDesc').value = it.desc; document.getElementById('itiTraffic').value = it.tr || ''; document.getElementById('itiMap').value = it.map || ''; document.getElementById('itiFormTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 修改行程中...'; document.getElementById('btnSaveIti').innerText = "💾 儲存修改"; document.getElementById('btnCancelIti').style.display = "block"; }
     function cancelEditIti() { editingItiKey = null; document.getElementById('itiDesc').value = ''; document.getElementById('itiTraffic').value = ''; document.getElementById('itiMap').value = ''; document.getElementById('itiFormTitle').innerHTML = '<i class="fa-solid fa-pen"></i> 編輯手帳行程'; document.getElementById('btnSaveIti').innerText = "同步至雲端"; document.getElementById('btnCancelIti').style.display = "none"; }
     function deleteItinerary(k) { if(confirm("確定刪除此行程？")) itiRef.child(k).remove(); }
+
+    // ⭐️ 購物雷達換算器與退稅
+    function calcQuickExchange() {
+        let krw = parseFloat(document.getElementById('quickKrw').value);
+        let resultDiv = document.getElementById('quickResult');
+        if (!krw || isNaN(krw)) { resultDiv.style.display = 'none'; return; }
+        
+        resultDiv.style.display = 'block';
+        let twd = Math.round(krw * liveKrwToTwd);
+        document.getElementById('quickTwd').innerText = `$${twd.toLocaleString()}`;
+        
+        let refund = 0;
+        if (krw >= 30000) {
+            refund = Math.floor(krw * 0.06 / 500) * 500;
+            document.getElementById('taxRefundMsg').innerHTML = `<i class="fa-solid fa-money-bill-wave"></i> 達退稅門檻！預估可退回約：<span style="color:#FFF;">₩${refund.toLocaleString()}</span>`;
+        } else {
+            let gap = 30000 - krw;
+            document.getElementById('taxRefundMsg').innerHTML = `<i class="fa-solid fa-circle-exclamation" style="color:#E74C3C;"></i> 未達門檻，再湊 ₩${gap.toLocaleString()} 即可退稅！`;
+        }
+    }
+
+    function quickAddBill() {
+        let krw = parseFloat(document.getElementById('quickKrw').value);
+        if (!krw) { alert("請先輸入金額！"); return; }
+        document.getElementById('billName').value = "血拚購物";
+        document.getElementById('billAmt').value = krw;
+        document.getElementById('billCurrency').value = "KRW";
+        document.getElementById('billType').value = "私帳";
+        showTab('split', document.querySelectorAll('.nav-item')[1]);
+        document.getElementById('billName').focus();
+        document.getElementById('quickKrw').value = '';
+        document.getElementById('quickResult').style.display = 'none';
+    }
 
     let shopList = []; let currentShopOwner = "user1";
     shopRef.on("value", s => { shopList = []; s.forEach(ch => { shopList.push({...ch.val(), key:ch.key}); }); renderShop(); });
@@ -771,6 +861,14 @@
     function editGuide(k) { let g = guideData.find(x => x.key === k); if(!g) return; editingGuideKey = k; document.getElementById('gdType').value = g.type; document.getElementById('gdTitle').value = g.title; document.getElementById('gdDesc').value = g.desc || ''; document.getElementById('gdLink').value = g.link || ''; document.getElementById('tempGuideImg').value = g.img || ''; window.scrollTo(0, document.body.scrollHeight); }
     function deleteGuide(k) { if(confirm("確定刪除？")) guideRef.child(k).remove(); }
 
+    // ⭐️ 註冊 Service Worker 實現離線功能
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker 註冊成功！', reg.scope))
+                .catch(err => console.log('Service Worker 註冊失敗', err));
+        });
+    }
 </script>
 </body>
 </html>
