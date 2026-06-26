@@ -248,7 +248,7 @@
 
                 <div class="card">
                     <h3 class="card-title"><i class="fa-solid fa-bed"></i> 住宿機票憑證庫</h3>
-                    <div class="flex-row"><select id="tkType" class="input-box" style="width:110px;"><option value="🏨 住宿">住宿</option><option value="✈️ 機票">機票</option><option value="🎫 門票">門票</option></select><input type="text" id="tkTitle" class="input-box flex-1" placeholder="標題"></div>
+                    <div class="flex-row"><select id="tkType" class="input-box" style="width:110px;"><option value="✈️ 機票">機票</option><option value="🎫 門票">門票</option></select><input type="text" id="tkTitle" class="input-box flex-1" placeholder="標題"></div>
                     <input type="text" id="tkDesc" class="input-box" placeholder="時間/備註">
                     <div class="flex-row">
                         <input type="url" id="tkLink" class="input-box flex-1" placeholder="📍 地圖連結">
@@ -508,7 +508,7 @@
         if (day === "11/16") dayNum = "DAY 4 (松島/白淺灘)";
         if (day === "11/17") dayNum = "DAY 5 (回程)";
         
-        let hotelName = "城市律動飯店 (Urban Groove Hotel)";
+        let hotelName = safeValue(hotelData.name, "城市律動飯店") + " (" + safeValue(hotelData.nameEN, "Urban Groove Hotel") + ")";
         let weatherText = `${currentWeatherTemp}℃`;
         
         const now = new Date();
@@ -632,7 +632,7 @@
 
     function isRestrictedPath(path) {
         const p = path.toLowerCase();
-        if (p.includes("iti") || p.includes("guide") || p.includes("ticket") || p.includes("shop")) {
+        if (p.includes("iti") || p.includes("guide") || p.includes("ticket") || p.includes("shop") || p.includes("hotel")) {
             return true;
         }
         return false;
@@ -688,8 +688,8 @@
 
     async function uploadHotelDocument(key, file) {
         if (!file) return;
-        const docType = document.getElementById(`hotelDocType_${key}`).value;
-        const status = document.getElementById(`hotelDocStatus_${key}`);
+        const docType = document.getElementById(`hotelDocType_current`).value;
+        const status = document.getElementById(`hotelDocStatus_current`);
         status.innerText = "⏳ 上傳中...";
         try {
             const compressed = await compressImage(file);
@@ -701,7 +701,7 @@
                 const url = data.data.url;
                 const updates = { lastUpdate: Date.now() };
                 updates[docType] = url;
-                await ticketRef.child(key).update(updates);
+                await hotelRef.update(updates);
                 status.innerText = "✅ 上傳成功";
                 showToast("住宿文件上傳成功！", "success");
             } else {
@@ -781,7 +781,7 @@
         reader.onload = async (e) => {
             try {
                 const data = JSON.parse(e.target.result);
-                const validKeys = ["busan_v36_iti", "busan_v36_guide", "busan_v36_shop", "busan_v36_photos", "busan_v36_tickets", "busan_v36_bills", "busan_v36_prep", "busan_v36_voice", "busan_v36_profiles"];
+                const validKeys = ["busan_v36_iti", "busan_v36_guide", "busan_v36_shop", "busan_v36_photos", "busan_v36_tickets", "busan_v36_bills", "busan_v36_prep", "busan_v36_voice", "busan_v36_profiles", "busan_v36_hotel"];
                 const hasValidKey = Object.keys(data).some(k => validKeys.includes(k));
                 if (!hasValidKey) {
                     showToast("❌ 還原失敗：JSON 格式不符合本系統資料格式", "error");
@@ -881,6 +881,179 @@
 
 
     const itiRef = db.ref("busan_v36_iti"); const guideRef = db.ref("busan_v36_guide"); const shopRef = db.ref("busan_v36_shop"); const photoRef = db.ref("busan_v36_photos"); const ticketRef = db.ref("busan_v36_tickets"); const billRef = db.ref("busan_v36_bills"); const prepRef = db.ref("busan_v36_prep"); const voiceRef = db.ref("busan_v36_voice"); const profileRef = db.ref("busan_v36_profiles");
+    const hotelRef = db.ref("busan_v36_hotel");
+    let hotelData = {};
+
+    // --- V36.1 Lodging safe binding functions ---
+    function safeValue(val, placeholder = "尚未填寫") {
+        if (val === undefined || val === null || String(val).trim() === "" || String(val).trim() === "null" || String(val).trim() === "尚未填寫") {
+            return placeholder;
+        }
+        return String(val).trim();
+    }
+
+    function safeNumber(val, placeholder = "尚未填寫") {
+        if (val === undefined || val === null || String(val).trim() === "" || isNaN(Number(val))) {
+            return placeholder;
+        }
+        return Number(val);
+    }
+
+    function safePrice(val, currency = "TWD", placeholder = "尚未填寫") {
+        const num = Number(val);
+        if (val === undefined || val === null || String(val).trim() === "" || isNaN(num)) {
+            return placeholder;
+        }
+        let c = (currency && String(currency).trim() !== "" && String(currency).trim() !== "尚未填寫") ? String(currency).trim() : "TWD";
+        return c + " " + Math.round(num).toLocaleString();
+    }
+
+    function safeBoolean(val, trueText = "有", falseText = "無", placeholder = "尚未填寫") {
+        if (val === undefined || val === null || String(val).trim() === "") {
+            return placeholder;
+        }
+        if (val === true || String(val).toLowerCase() === "true" || String(val).toLowerCase() === "yes" || String(val) === "1" || String(val) === "是") {
+            return trueText;
+        }
+        if (val === false || String(val).toLowerCase() === "false" || String(val).toLowerCase() === "no" || String(val) === "0" || String(val) === "無") {
+            return falseText;
+        }
+        return placeholder;
+    }
+
+    function safeUrl(url, label, iconClass, bgColor = "var(--dora)", textColor = "white") {
+        const cleanUrl = safeValue(url, "");
+        if (!cleanUrl) {
+            return `<button class="map-tag" onclick="showToast('${label}連結尚未填寫', 'warning')" style="background:#bdc3c7; color:#7f8c8d; border:none; border-radius:10px; padding: 6px 12px; font-size:0.8rem; font-weight:900; cursor:not-allowed; margin-top:8px;"><i class="${iconClass}"></i> ${label} (尚未填寫)</button>`;
+        }
+        return `<a href="${cleanUrl}" target="_blank" class="map-tag" style="background:${bgColor}; color:${textColor}; border:none; border-radius:10px; padding: 6px 12px; font-size:0.8rem; font-weight:900; text-decoration:none; display:inline-block; margin-top:8px;"><i class="${iconClass}"></i> ${label}</a>`;
+    }
+
+    function calculateNights(checkIn, checkOut) {
+        const inDate = new Date(checkIn);
+        const outDate = new Date(checkOut);
+        if (isNaN(inDate.getTime()) || isNaN(outDate.getTime())) {
+            return null;
+        }
+        const timeDiff = outDate.getTime() - inDate.getTime();
+        const nights = Math.round(timeDiff / (1000 * 3600 * 24));
+        return nights > 0 ? nights : null;
+    }
+
+    async function deleteHotelData() {
+        if (confirm("⚠️ 確定要清空所有住宿資料嗎？此操作將重置住宿資訊。")) {
+            try {
+                const emptyHotel = {
+                    name: "尚未填寫", nameKR: "尚未填寫", nameEN: "尚未填寫", addressKR: "尚未填寫", addressEN: "尚未填寫", addressTW: "尚未填寫",
+                    checkInDate: "尚未填寫", checkOutDate: "尚未填寫", checkInTime: "尚未填寫", checkOutTime: "尚未填寫",
+                    roomType: "尚未填寫", bedType: "尚未填寫", roomCount: "尚未填寫", guestCount: "尚未填寫",
+                    bookingPlatform: "尚未填寫", bookingNumber: "尚未填寫", roomNumber: "尚未填寫", guestName: "尚未填寫",
+                    totalPrice: "尚未填寫", wifiName: "尚未填寫", wifiPassword: "尚未填寫", plugType: "尚未填寫", adapter: "尚未填寫",
+                    hairDryer: false, refrigerator: false, washer: false, dryer: false, microwave: false, laundryFee: "尚未填寫",
+                    luggageBefore: false, luggageAfter: false, phone: "尚未填寫", email: "尚未填寫", website: "尚未填寫",
+                    googleMap: "尚未填寫", naverMap: "尚未填寫", kakaoMap: "尚未填寫", agoda: "尚未填寫", booking: "尚未填寫",
+                    trip: "尚未填寫", googleReview: "尚未填寫", nearestStation: "尚未填寫", exit: "尚未填寫", walkingTime: "尚未填寫",
+                    busanStation: "尚未填寫", seomyeon: "尚未填寫", haeundae: "尚未填寫", gwangan: "尚未填寫", airport: "尚未填寫",
+                    cu: "尚未填寫", gs25: "尚未填寫", seven: "尚未填寫", breakfast: "尚未填寫", moneyExchange: "尚未填寫",
+                    pharmacy: "尚未填寫", oliveYoung: "尚未填寫", hospital: "尚未填寫", police: "尚未填寫", memo: "尚未填寫",
+                    docTripOrder: "尚未填寫", docReceipt: "尚未填寫", docPayment: "尚未填寫", docQrCode: "尚未填寫", docOthers: "尚未填寫",
+                    currency: "TWD", lastUpdate: Date.now()
+                };
+                await hotelRef.set(emptyHotel);
+                showToast("住宿資料已清空", "success");
+            } catch (error) {
+                console.error(error);
+                showToast("清空失敗: " + error.message, "error");
+            }
+        }
+    }
+
+    // --- Firebase hotel 監聽器與種子初始化 ---
+    hotelRef.on("value", s => {
+        console.log("Hotel Loaded. Firebase Path: " + hotelRef.toString());
+        console.log("Snapshot exists:", s.exists(), "val:", s.val());
+        if (s.exists()) {
+            hotelData = s.val();
+        } else {
+            hotelData = {
+                name: "城市律動飯店",
+                nameKR: "어반그루브호텔",
+                nameEN: "Urban Groove Hotel",
+                addressKR: "부산광역시 부산진구 황령대로17번길 18",
+                addressEN: "18 Hwangnyeong-daero 17beon-gil, Busanjin-gu, Busan 47353, South Korea",
+                addressTW: "釜山廣域市釜山鎮區荒嶺大路17番街18",
+                checkInDate: "2026-11-13",
+                checkOutDate: "2026-11-17",
+                checkInTime: "17:00",
+                checkOutTime: "12:00",
+                roomType: "尊貴雙床房",
+                bedType: "2 張大床",
+                roomCount: 1,
+                guestCount: 4,
+                bookingPlatform: "Trip.com",
+                bookingNumber: "",
+                roomNumber: "",
+                guestName: "ZHANG YARU",
+                totalPrice: 101028,
+                wifiName: "有",
+                wifiPassword: "",
+                plugType: "220V 圓頭",
+                adapter: "尚未填寫",
+                hairDryer: true,
+                refrigerator: true,
+                washer: true,
+                dryer: false,
+                microwave: false,
+                laundryFee: "尚未填寫",
+                luggageBefore: true,
+                luggageAfter: true,
+                phone: "+82 507-1384-5553",
+                email: "尚未填寫",
+                website: "",
+                googleMap: "https://www.google.com/maps/search/?api=1&query=Urban+Groove+Hotel+Busan",
+                naverMap: "https://map.naver.com/p/search/%EC%96%B4%EB%B0%98%EA%B7%B8%EB%A3%A8%EB%B8%8C%ED%98%B8%ED%85%94",
+                kakaoMap: "https://map.kakao.com/?q=%EC%96%B4%EB%B0%98%EA%B7%B8%EB%A3%A8%EB%B8%8C%ED%98%B8%ED%85%94",
+                agoda: "https://www.agoda.com/zh-tw/busan-seomyeon-urban-groove-hotel/hotel/busan-kr.html",
+                booking: "https://www.booking.com/hotel/kr/urban-groove.zh-tw.html",
+                trip: "https://www.trip.com/hotels/busan-hotel-detail-113941372/urban-groove-hotel/",
+                googleReview: "https://www.google.com/maps/search/?api=1&query=Urban+Groove+Hotel+Busan+Reviews",
+                nearestStation: "凡內谷站 (Beomnaegol Station)",
+                exit: "6號出口",
+                walkingTime: "步行約 3-4 分鐘",
+                busanStation: "尚未填寫",
+                seomyeon: "尚未填寫",
+                haeundae: "尚未填寫",
+                gwangan: "尚未填寫",
+                airport: "尚未填寫",
+                cu: "尚未填寫",
+                gs25: "尚未填寫",
+                seven: "尚未填寫",
+                breakfast: "無餐點",
+                moneyExchange: "尚未填寫",
+                pharmacy: "尚未填寫",
+                oliveYoung: "尚未填寫",
+                hospital: "尚未填寫",
+                police: "尚未填寫",
+                memo: "尚未填寫",
+                docTripOrder: "尚未填寫",
+                docReceipt: "尚未填寫",
+                docPayment: "尚未填寫",
+                docQrCode: "尚未填寫",
+                docOthers: "尚未填寫",
+                currency: "TWD",
+                lastUpdate: Date.now()
+            };
+            console.log("Initializing Hotel Default Data to Firebase Path:", hotelRef.toString());
+            hotelRef.set(hotelData).then(() => {
+                console.log("Hotel Saved");
+            }).catch(err => {
+                console.error("Hotel Initialize failed:", err);
+            });
+        }
+        renderTickets();
+        renderTravelModeDashboard();
+    });
+
 
     // --- 全域 Toast 提示通知元件 ---
     function showToast(msg, type = 'info') {
@@ -1342,80 +1515,18 @@
             (async () => {
                 try {
                     await ticketRef.push({ 
-                        type: "🏨 住宿", 
-                        title: "城市律動飯店", 
-                        desc: "11/13 - 11/17", 
-                        link: "https://www.trip.com/hotels/busan-hotel-detail-113941372/urban-groove-hotel/", 
-                        voucher: "",
-                        hotelName: "城市律動飯店",
-                        hotelNameKr: "어반그루브호텔",
-                        hotelNameEn: "Urban Groove Hotel",
-                        hotelPhoto: "",
-                        addrZh: "釜山廣域市釜山鎮區荒嶺大路17番街18",
-                        addrKr: "부산광역시 부산진구 황령대로17번길 18",
-                        addrEn: "18 Hwangnyeong-daero 17beon-gil, Busanjin-gu, Busan 47353, South Korea",
-                        checkInDate: "2026-11-13",
-                        checkOutDate: "2026-11-17",
-                        checkInTime: "17:00",
-                        checkOutTime: "12:00",
-                        roomType: "尊貴雙床房",
-                        bookingPlatform: "Trip.com",
-                        bookingNo: "",
-                        note: "尚未填寫",
-                        wifiSsid: "有",
-                        wifiPassword: "",
-                        outletSpec: "尚未填寫",
-                        needAdapter: "尚未填寫",
-                        hairDryer: "尚未填寫",
-                        fridge: "尚未填寫",
-                        washer: "有",
-                        dryer: "尚未填寫",
-                        laundryFee: "尚未填寫",
-                        microwave: "尚未填寫",
-                        luggagePre: "尚未填寫",
-                        luggagePost: "尚未填寫",
-                        hotelPhone: "+82 507-1384-5553",
-                        hotelEmail: "尚未填寫",
-                        hotelWebsite: "",
-                        googleMap: "https://www.google.com/maps/search/?api=1&query=Urban+Groove+Hotel+Busan",
-                        naverMap: "https://map.naver.com/p/search/%EC%96%B4%EB%B0%98%EA%B7%B8%EB%A3%A8%EB%B8%8C%ED%98%B8%ED%85%94",
-                        kakaoMap: "https://map.kakao.com/?q=%EC%96%B4%EB%B0%98%EA%B7%B8%EB%A3%A8%EB%B8%8C%ED%98%B8%ED%85%94",
-                        metro: "凡內谷站 (Beomnaegol Station)",
-                        metroExit: "6號出口",
-                        walkTime: "步行約 3-4 分鐘",
-                        toSeomyeon: "尚未填寫",
-                        toBusan: "尚未填寫",
-                        toHaeundae: "尚未填寫",
-                        toGwangalli: "尚未填寫",
-                        toAirport: "尚未填寫",
-                        nearbyCu: "尚未填寫",
-                        nearbyGs25: "尚未填寫",
-                        nearby711: "尚未填寫",
-                        breakfast: "無餐點",
-                        moneyEx: "尚未填寫",
-                        pharmacy: "尚未填寫",
-                        oliveYoung: "尚未填寫",
-                        agodaLink: "https://www.agoda.com/zh-tw/busan-seomyeon-urban-groove-hotel/hotel/busan-kr.html",
-                        bookingLink: "https://www.booking.com/hotel/kr/urban-groove.zh-tw.html",
-                        tripLink: "https://www.trip.com/hotels/busan-hotel-detail-113941372/urban-groove-hotel/",
-                        googleReviewsLink: "https://www.google.com/maps/search/?api=1&query=Urban+Groove+Hotel+Busan+Reviews",
-                        totalPrice: 10828,
-                        currency: "TWD",
-                        nights: 4,
-                        guests: 2,
-                        roomCapacity: 4,
-                        roomCount: 1,
-                        guestName: "",
-                        roomNo: "",
-                        bedType: "2 張大床",
-                        docTripOrder: "尚未填寫",
-                        docReceipt: "尚未填寫",
-                        docQrCode: "尚未填寫",
-                        docOthers: "尚未填寫",
-                        emgHospital: "尚未填寫",
-                        emgPharmacy: "尚未填寫",
-                        emgPolice: "尚未填寫",
-                        lastUpdate: Date.now()
+                        type: "✈️ 機票", 
+                        title: "大韓航空 KE2248", 
+                        desc: "11/13 13:15 - 16:00 (台北桃園 ➔ 釜山金海)", 
+                        link: "https://www.koreanair.com/",
+                        voucher: ""
+                    });
+                    await ticketRef.push({ 
+                        type: "🎫 門票", 
+                        title: "Spa Land 汗蒸幕入場券", 
+                        desc: "11/14 預約使用", 
+                        link: "https://www.shinsegae.com/store/main.do?storeCd=D09",
+                        voucher: ""
                     });
                     showToast("儲存成功", "success");
                 } catch (error) {
@@ -1429,6 +1540,7 @@
             renderTickets(); 
         } 
     });
+
     function copyAddress(addr) {
         if (!addr || addr === "尚未填寫") {
             showToast("地址為空！", "warning");
@@ -1515,9 +1627,8 @@
         return `<a href="${url}" target="_blank" class="map-tag" style="background:${bgColor}; color:${textColor}; border:none; border-radius:10px; padding: 6px 12px; font-size:0.8rem; font-weight:900; text-decoration:none; display:inline-block; margin-top:8px;"><i class="${iconClass}"></i> ${label}</a>`;
     }
 
-    window.editHotel = function(key) {
-        let t = ticketData.find(x => x.key === key);
-        if (!t) return;
+    window.editHotel = function() {
+        let t = hotelData;
         
         let modal = document.createElement('div');
         modal.id = 'dynamicLodgingModal';
@@ -1529,64 +1640,61 @@
         form.innerHTML = `<h3 style="margin-top:0; font-weight:900; color:var(--primary); display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-pen-to-square"></i> 編輯住宿資訊</h3>`;
         
         let fields = [
-            { key: 'hotelName', label: '飯店名稱(中)' },
-            { key: 'hotelNameKr', label: '飯店名稱(韓)' },
-            { key: 'hotelNameEn', label: '飯店名稱(英)' },
-            { key: 'hotelPhoto', label: '飯店照片連結' },
-            { key: 'addrZh', label: '地址(中)' },
-            { key: 'addrKr', label: '地址(韓)' },
-            { key: 'addrEn', label: '地址(英)' },
+            { key: 'name', label: '飯店名稱(中)' },
+            { key: 'nameKR', label: '飯店名稱(韓)' },
+            { key: 'nameEN', label: '飯店名稱(英)' },
+            { key: 'addressTW', label: '地址(中)' },
+            { key: 'addressKR', label: '地址(韓)' },
+            { key: 'addressEN', label: '地址(英)' },
             { key: 'checkInDate', label: '入住日期' },
             { key: 'checkOutDate', label: '退房日期' },
             { key: 'checkInTime', label: 'Check-in 時間' },
             { key: 'checkOutTime', label: 'Check-out 時間' },
             { key: 'roomType', label: '預訂房型' },
             { key: 'bedType', label: '床型規格' },
-            { key: 'roomCapacity', label: '房型容量(人數)' },
             { key: 'roomCount', label: '房間數量' },
+            { key: 'guestCount', label: '實際入住人數' },
             { key: 'bookingPlatform', label: '訂房平台' },
-            { key: 'bookingNo', label: '訂房編號' },
+            { key: 'bookingNumber', label: '訂房編號' },
+            { key: 'roomNumber', label: '房間號碼' },
             { key: 'guestName', label: '入住人姓名' },
-            { key: 'roomNo', label: '房間號碼' },
-            { key: 'guests', label: '實際入住人數' },
-            { key: 'nights', label: '入住晚數' },
             { key: 'totalPrice', label: '總金額(房價)' },
             { key: 'currency', label: '幣別' },
-            { key: 'wifiSsid', label: 'WiFi 名稱(SSID)' },
+            { key: 'wifiName', label: 'WiFi 名稱(SSID)' },
             { key: 'wifiPassword', label: 'WiFi 密碼' },
-            { key: 'outletSpec', label: '插座規格' },
-            { key: 'needAdapter', label: '需轉接頭(是/否)' },
-            { key: 'hairDryer', label: '吹風機(有/無)' },
-            { key: 'fridge', label: '冰箱(有/無)' },
-            { key: 'washer', label: '洗衣機(有/無)' },
-            { key: 'dryer', label: '烘衣機(有/無)' },
+            { key: 'plugType', label: '插座規格' },
+            { key: 'adapter', label: '需轉接頭(是/否)' },
+            { key: 'hairDryer', label: '吹風機' },
+            { key: 'refrigerator', label: '冰箱' },
+            { key: 'washer', label: '洗衣機' },
+            { key: 'dryer', label: '烘衣機' },
+            { key: 'microwave', label: '微波爐' },
             { key: 'laundryFee', label: '洗衣費用' },
-            { key: 'microwave', label: '微波爐(有/無)' },
-            { key: 'luggagePre', label: '入住前可寄放' },
-            { key: 'luggagePost', label: '退房後可寄放' },
-            { key: 'hotelPhone', label: '櫃台電話' },
-            { key: 'hotelEmail', label: 'Email' },
-            { key: 'hotelWebsite', label: '官方網站' },
+            { key: 'luggageBefore', label: '入住前可寄放' },
+            { key: 'luggageAfter', label: '退房後可寄放' },
+            { key: 'phone', label: '櫃台電話' },
+            { key: 'email', label: 'Email' },
+            { key: 'website', label: '官方網站' },
             { key: 'googleMap', label: 'Google Map 連結' },
             { key: 'naverMap', label: 'Naver Map 連結' },
             { key: 'kakaoMap', label: 'Kakao Map 連結' },
-            { key: 'agodaLink', label: 'Agoda 連結' },
-            { key: 'bookingLink', label: 'Booking.com 連結' },
-            { key: 'tripLink', label: 'Trip.com 飯店連結' },
-            { key: 'googleReviewsLink', label: 'Google 評論連結' },
-            { key: 'metro', label: '最近地鐵站' },
-            { key: 'metroExit', label: '幾號出口' },
-            { key: 'walkTime', label: '步行時間' },
-            { key: 'toSeomyeon', label: '到西面站交通' },
-            { key: 'toBusan', label: '到釜山站交通' },
-            { key: 'toHaeundae', label: '到海雲台交通' },
-            { key: 'toGwangalli', label: '到廣安里交通' },
-            { key: 'toAirport', label: '到金海機場交通' },
-            { key: 'nearbyCu', label: '最近 CU' },
-            { key: 'nearbyGs25', label: '最近 GS25' },
-            { key: 'nearby711', label: '最近 7-11' },
+            { key: 'agoda', label: 'Agoda 連結' },
+            { key: 'booking', label: 'Booking.com 連結' },
+            { key: 'trip', label: 'Trip.com 飯店連結' },
+            { key: 'googleReview', label: 'Google 評論連結' },
+            { key: 'nearestStation', label: '最近地鐵站' },
+            { key: 'exit', label: '幾號出口' },
+            { key: 'walkingTime', label: '步行時間' },
+            { key: 'seomyeon', label: '到西面站交通' },
+            { key: 'busanStation', label: '到釜山站交通' },
+            { key: 'haeundae', label: '到海雲台交通' },
+            { key: 'gwangan', label: '到廣安里交通' },
+            { key: 'airport', label: '到金海機場交通' },
+            { key: 'cu', label: '最近 CU' },
+            { key: 'gs25', label: '最近 GS25' },
+            { key: 'seven', label: '最近 7-11' },
             { key: 'breakfast', label: '早餐說明' },
-            { key: 'moneyEx', label: '附近換錢所' },
+            { key: 'moneyExchange', label: '附近換錢所' },
             { key: 'pharmacy', label: '附近藥局' },
             { key: 'oliveYoung', label: 'Olive Young' },
             { key: 'docTripOrder', label: '📄 Trip.com 訂單連結' },
@@ -1594,43 +1702,60 @@
             { key: 'docPayment', label: '📄 付款證明連結' },
             { key: 'docQrCode', label: '📄 入住 QR Code 連結' },
             { key: 'docOthers', label: '📄 其他住宿文件連結' },
-            { key: 'emgHospital', label: '🚨 最近醫院' },
-            { key: 'emgPharmacy', label: '🚨 最近藥局' },
-            { key: 'emgPolice', label: '🚨 最近派出所' }
+            { key: 'hospital', label: '🚨 最近醫院' },
+            { key: 'police', label: '🚨 最近派出所' },
+            { key: 'memo', label: '備註/說明' }
         ];
-
+        
         let sections = {
-            "基本資訊": ["hotelName", "hotelNameKr", "hotelNameEn", "hotelPhoto", "addrZh", "addrKr", "addrEn"],
-            "入住資訊": ["checkInDate", "checkOutDate", "checkInTime", "checkOutTime", "roomType", "bedType", "roomCapacity", "roomCount", "bookingPlatform", "bookingNo", "guestName", "roomNo", "guests", "nights", "totalPrice", "currency", "breakfast"],
-            "WiFi & 設施": ["wifiSsid", "wifiPassword", "outletSpec", "needAdapter", "hairDryer", "fridge", "washer", "dryer", "laundryFee", "microwave"],
-            "行李 & 聯絡": ["luggagePre", "luggagePost", "hotelPhone", "hotelEmail", "hotelWebsite"],
-            "地圖與平台連結": ["googleMap", "naverMap", "kakaoMap", "agodaLink", "bookingLink", "tripLink", "googleReviewsLink"],
-            "交通資訊": ["metro", "metroExit", "walkTime", "toSeomyeon", "toBusan", "toHaeundae", "toGwangalli", "toAirport"],
-            "周邊生活": ["nearbyCu", "nearbyGs25", "nearby711", "moneyEx", "pharmacy", "oliveYoung"],
+            "基本資訊": ["name", "nameKR", "nameEN", "addressTW", "addressKR", "addressEN"],
+            "入住資訊": ["checkInDate", "checkOutDate", "checkInTime", "checkOutTime", "roomType", "bedType", "roomCount", "guestCount", "bookingPlatform", "bookingNumber", "guestName", "roomNumber", "totalPrice", "currency", "breakfast"],
+            "WiFi & 設施": ["wifiName", "wifiPassword", "plugType", "adapter", "hairDryer", "refrigerator", "washer", "dryer", "microwave", "laundryFee"],
+            "行李 & 聯絡": ["luggageBefore", "luggageAfter", "phone", "email", "website"],
+            "地圖與平台連結": ["googleMap", "naverMap", "kakaoMap", "agoda", "booking", "trip", "googleReview"],
+            "交通資訊": ["nearestStation", "exit", "walkingTime", "seomyeon", "busanStation", "haeundae", "gwangan", "airport"],
+            "周邊生活": ["cu", "gs25", "seven", "moneyExchange", "pharmacy", "oliveYoung"],
             "📄 我的住宿文件": ["docTripOrder", "docReceipt", "docPayment", "docQrCode", "docOthers"],
-            "🚨 緊急資訊": ["emgHospital", "emgPharmacy", "emgPolice"]
+            "🚨 緊急資訊": ["hospital", "police"],
+            "備註": ["memo"]
         };
-
+        
+        const booleanFields = ["hairDryer", "refrigerator", "washer", "dryer", "microwave", "luggageBefore", "luggageAfter"];
+        
         let sectionHtml = '';
         for (let secName in sections) {
             sectionHtml += `<div style="font-weight:900; color:var(--dora); margin: 15px 0 8px 0; border-bottom:1px solid #e0d0b0; padding-bottom:4px; font-size:0.9rem;">${secName}</div>`;
             sections[secName].forEach(fKey => {
                 let fItem = fields.find(f => f.key === fKey);
                 let label = fItem ? fItem.label : fKey;
-                let val = t[fKey] || '';
+                let val = t[fKey];
+                if (val === undefined || val === null) val = '';
                 if (val === "尚未填寫") val = '';
-                sectionHtml += `
-                    <div style="margin-bottom:8px; display:flex; flex-direction:column; gap:3px;">
-                        <label style="font-size:0.75rem; font-weight:700; color:#7f8c8d;">${label}</label>
-                        <input type="text" id="edit_hotel_${fKey}" class="input-box" value="${val}" style="width:100%; padding:8px 12px; border-radius:10px; border:1px solid #ccc; box-sizing:border-box; font-size:0.85rem;">
-                    </div>
-                `;
+                
+                if (booleanFields.includes(fKey)) {
+                    sectionHtml += `
+                        <div style="margin-bottom:8px; display:flex; flex-direction:column; gap:3px;">
+                            <label style="font-size:0.75rem; font-weight:700; color:#7f8c8d;">${label}</label>
+                            <select id="edit_hotel_${fKey}" class="input-box" style="width:100%; padding:8px 12px; border-radius:10px; border:1px solid #ccc; box-sizing:border-box; font-size:0.85rem; height:38px;">
+                                <option value="true" ${val === true || String(val) === 'true' ? 'selected' : ''}>有 / 是</option>
+                                <option value="false" ${val === false || String(val) === 'false' ? 'selected' : ''}>無 / 否</option>
+                            </select>
+                        </div>
+                    `;
+                } else {
+                    sectionHtml += `
+                        <div style="margin-bottom:8px; display:flex; flex-direction:column; gap:3px;">
+                            <label style="font-size:0.75rem; font-weight:700; color:#7f8c8d;">${label}</label>
+                            <input type="text" id="edit_hotel_${fKey}" class="input-box" value="${val}" style="width:100%; padding:8px 12px; border-radius:10px; border:1px solid #ccc; box-sizing:border-box; font-size:0.85rem;">
+                        </div>
+                    `;
+                }
             });
         }
-
+        
         let btnGroup = `
             <div style="display:flex; gap:10px; margin-top:20px; position:sticky; bottom:0; background:#FFF9F2; padding-top:10px; border-top:1px solid #eee;">
-                <button onclick="saveHotelEdits('${key}')" style="flex:1; padding:12px; border-radius:12px; border:none; background:var(--primary); color:white; font-weight:900; cursor:pointer;"><i class="fa-solid fa-save"></i> 儲存修改</button>
+                <button onclick="saveHotelEdits()" style="flex:1; padding:12px; border-radius:12px; border:none; background:var(--primary); color:white; font-weight:900; cursor:pointer;"><i class="fa-solid fa-save"></i> 儲存修改</button>
                 <button onclick="document.body.removeChild(document.getElementById('dynamicLodgingModal'))" style="flex:1; padding:12px; border-radius:12px; border:none; background:#bdc3c7; color:#333; font-weight:900; cursor:pointer;">取消</button>
             </div>
         `;
@@ -1639,30 +1764,37 @@
         document.body.appendChild(modal);
     };
 
-    window.saveHotelEdits = async function(key) {
+    window.saveHotelEdits = async function() {
+        console.log("Hotel Saving/Updating. Extracting Form values...");
         let updateData = {
             lastUpdate: Date.now()
         };
         
         let allKeys = [
-            "hotelName", "hotelNameKr", "hotelNameEn", "hotelPhoto", "addrZh", "addrKr", "addrEn",
+            "name", "nameKR", "nameEN", "addressKR", "addressEN", "addressTW",
             "checkInDate", "checkOutDate", "checkInTime", "checkOutTime", "roomType", "bedType",
-            "roomCapacity", "roomCount", "bookingPlatform", "bookingNo", "guestName", "roomNo", "guests",
-            "nights", "totalPrice", "currency", "breakfast", "wifiSsid", "wifiPassword",
-            "outletSpec", "needAdapter", "hairDryer", "fridge", "washer", "dryer", "laundryFee",
-            "microwave", "luggagePre", "luggagePost", "hotelPhone", "hotelEmail", "hotelWebsite",
-            "googleMap", "naverMap", "kakaoMap", "agodaLink", "bookingLink", "tripLink",
-            "googleReviewsLink", "metro", "metroExit", "walkTime", "toSeomyeon", "toBusan",
-            "toHaeundae", "toGwangalli", "toAirport", "nearbyCu", "nearbyGs25", "nearby711",
-            "moneyEx", "pharmacy", "oliveYoung", "docTripOrder", "docReceipt", "docPayment", "docQrCode",
-            "docOthers", "emgHospital", "emgPharmacy", "emgPolice"
+            "roomCount", "guestCount", "bookingPlatform", "bookingNumber", "roomNumber", "guestName",
+            "totalPrice", "wifiName", "wifiPassword", "plugType", "adapter", "hairDryer",
+            "refrigerator", "washer", "dryer", "microwave", "laundryFee", "luggageBefore",
+            "luggageAfter", "phone", "email", "website", "googleMap", "naverMap", "kakaoMap",
+            "agoda", "booking", "trip", "googleReview", "nearestStation", "exit",
+            "walkingTime", "seomyeon", "busanStation", "haeundae", "gwangan", "airport",
+            "cu", "gs25", "seven", "breakfast", "moneyExchange", "pharmacy", "oliveYoung",
+            "docTripOrder", "docReceipt", "docPayment", "docQrCode", "docOthers", "hospital",
+            "police", "memo", "currency"
         ];
+        
+        const booleanFields = ["hairDryer", "refrigerator", "washer", "dryer", "microwave", "luggageBefore", "luggageAfter"];
         
         allKeys.forEach(k => {
             let el = document.getElementById("edit_hotel_" + k);
             if (el) {
                 let val = el.value.trim();
-                updateData[k] = val === "" ? "尚未填寫" : val;
+                if (booleanFields.includes(k)) {
+                    updateData[k] = (val === "true");
+                } else {
+                    updateData[k] = val === "" ? "尚未填寫" : val;
+                }
             }
         });
         
@@ -1670,30 +1802,24 @@
             let p = parseFloat(updateData.totalPrice);
             updateData.totalPrice = isNaN(p) ? "尚未填寫" : p;
         }
-        if (updateData.nights && updateData.nights !== "尚未填寫") {
-            let n = parseInt(updateData.nights);
-            updateData.nights = isNaN(n) ? "尚未填寫" : n;
-        }
-        if (updateData.guests && updateData.guests !== "尚未填寫") {
-            let g = parseInt(updateData.guests);
-            updateData.guests = isNaN(g) ? "尚未填寫" : g;
-        }
-        if (updateData.roomCapacity && updateData.roomCapacity !== "尚未填寫") {
-            let rc = parseInt(updateData.roomCapacity);
-            updateData.roomCapacity = isNaN(rc) ? "尚未填寫" : rc;
-        }
         if (updateData.roomCount && updateData.roomCount !== "尚未填寫") {
             let rco = parseInt(updateData.roomCount);
             updateData.roomCount = isNaN(rco) ? "尚未填寫" : rco;
         }
+        if (updateData.guestCount && updateData.guestCount !== "尚未填寫") {
+            let gc = parseInt(updateData.guestCount);
+            updateData.guestCount = isNaN(gc) ? "尚未填寫" : gc;
+        }
         
+        console.log("Hotel Saving/Updating. Data to save:", updateData);
         try {
-            await ticketRef.child(key).update(updateData);
+            await hotelRef.update(updateData);
+            console.log("Hotel Saved/Updated successfully.");
             showToast("儲存成功", "success");
             let m = document.getElementById('dynamicLodgingModal');
             if (m) document.body.removeChild(m);
         } catch (error) {
-            console.error(error);
+            console.error("Hotel Update failed:", error);
             showToast(error.message || "同步失敗", "error");
         }
     };
@@ -1701,55 +1827,63 @@
     function renderTickets() {
         const l = document.getElementById('ticketList');
         l.innerHTML = '';
-        ticketData.forEach(t => {
-            if (t.type === "🏨 住宿" && (t.hotelName || t.title)) {
-                let googleBtn = getLinkButton(t.googleMap, "Google Maps", "fa-solid fa-map", "#4285F4", "white");
-                let naverBtn = getLinkButton(t.naverMap, "Naver Map", "fa-solid fa-location-arrow", "#03C75A", "white");
-                let kakaoBtn = getLinkButton(t.kakaoMap, "Kakao Map", "fa-solid fa-route", "#FEE500", "#3C1E1E");
-                
-                let agodaBtn = getLinkButton(t.agodaLink, "Agoda", "fa-solid fa-hotel", "#E12F81", "white");
-                let bookingBtn = getLinkButton(t.bookingLink, "Booking.com", "fa-solid fa-h-square", "#003580", "white");
-                let tripBtn = getLinkButton(t.tripLink, "Trip.com", "fa-solid fa-suitcase", "#2577E3", "white");
-                let googleReviewsBtn = getLinkButton(t.googleReviewsLink, "Google 評論", "fa-solid fa-star", "#F4B400", "white");
-                
-                let websiteBtn = t.hotelWebsite ? getLinkButton(t.hotelWebsite, "官方網站", "fa-solid fa-globe", "var(--dora)", "white") : '尚未填寫';
-                
-                let photoHtml = (t.hotelPhoto && t.hotelPhoto !== "尚未填寫") ? `<img src="${t.hotelPhoto}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 16px; margin-bottom: 12px; cursor: zoom-in;" onclick="openLightbox('${t.hotelPhoto}', null)">` : '';
-                let vh = t.voucher ? `<a href="${t.voucher}" target="_blank" class="map-tag" style="background:var(--primary); margin-top:8px; display:inline-block; text-decoration:none;"><i class="fa-solid fa-image"></i> 看憑證</a>` : '';
-                
-                let totalPriceVal = parseFloat(t.totalPrice);
-                let nightsVal = parseInt(t.nights);
-                let guestsVal = parseInt(t.guests);
-                
-                let avgPerNight = "尚未填寫";
-                let avgPerGuest = "尚未填寫";
-                let avgPerGuestNight = "尚未填寫";
-                
-                if (!isNaN(totalPriceVal) && !isNaN(nightsVal) && nightsVal > 0) {
-                    avgPerNight = formatPrice(totalPriceVal / nightsVal, t.currency);
+        
+        console.log("Hotel Render. Hotel Object:", hotelData);
+
+        // 1. Render Lodging Card first using dedicated hotelData
+        if (hotelData && (hotelData.name || hotelData.nameEN)) {
+            const h = hotelData;
+            let googleBtn = safeUrl(h.googleMap, "Google Maps", "fa-solid fa-map", "#4285F4", "white");
+            let naverBtn = safeUrl(h.naverMap, "Naver Map", "fa-solid fa-location-arrow", "#03C75A", "white");
+            let kakaoBtn = safeUrl(h.kakaoMap, "Kakao Map", "fa-solid fa-route", "#FEE500", "#3C1E1E");
+            
+            let agodaBtn = safeUrl(h.agoda, "Agoda", "fa-solid fa-hotel", "#E12F81", "white");
+            let bookingBtn = safeUrl(h.booking, "Booking.com", "fa-solid fa-h-square", "#003580", "white");
+            let tripBtn = safeUrl(h.trip, "Trip.com", "fa-solid fa-suitcase", "#2577E3", "white");
+            let googleReviewsBtn = safeUrl(h.googleReview, "Google 評論", "fa-solid fa-star", "#F4B400", "white");
+            
+            let websiteBtn = h.website ? safeUrl(h.website, "官方網站", "fa-solid fa-globe", "var(--dora)", "white") : '尚未填寫';
+            
+            let photoHtml = (h.hotelPhoto && h.hotelPhoto !== "尚未填寫") ? `<img src="${h.hotelPhoto}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 16px; margin-bottom: 12px; cursor: zoom-in;" onclick="openLightbox('${h.hotelPhoto}', null)">` : '';
+            
+            // Automatic calculations
+            const nightsVal = calculateNights(h.checkInDate, h.checkOutDate);
+            const totalPriceVal = Number(h.totalPrice);
+            const guestsVal = Number(h.guestCount);
+            
+            let nightsText = "尚未填寫";
+            let avgPerNight = "尚未填寫";
+            let avgPerGuest = "尚未填寫";
+            let avgPerGuestNight = "尚未填寫";
+            
+            if (nightsVal !== null && !isNaN(nightsVal)) {
+                nightsText = nightsVal + " 晚";
+                if (!isNaN(totalPriceVal)) {
+                    avgPerNight = safePrice(totalPriceVal / nightsVal, h.currency);
                 }
-                if (!isNaN(totalPriceVal) && !isNaN(guestsVal) && guestsVal > 0) {
-                    avgPerGuest = formatPrice(totalPriceVal / guestsVal, t.currency);
+            }
+            if (!isNaN(totalPriceVal) && guestsVal > 0) {
+                avgPerGuest = safePrice(totalPriceVal / guestsVal, h.currency);
+                if (nightsVal !== null && !isNaN(nightsVal)) {
+                    avgPerGuestNight = safePrice(totalPriceVal / (guestsVal * nightsVal), h.currency);
                 }
-                if (!isNaN(totalPriceVal) && !isNaN(guestsVal) && guestsVal > 0 && !isNaN(nightsVal) && nightsVal > 0) {
-                    avgPerGuestNight = formatPrice(totalPriceVal / (guestsVal * nightsVal), t.currency);
-                }
-                
-                l.innerHTML += `
+            }
+            
+            l.innerHTML += `
 <div class="card" style="padding: 20px; border-left: 6px solid var(--primary); margin-bottom: 16px; position: relative; border-radius: 24px;">
     <div style="position: absolute; top: 15px; right: 15px; z-index:10; display:flex; gap:6px;">
-        <button class="btn-edit" onclick="editHotel('${t.key}')" style="background:#f39c12; color:white; border:none; border-radius:8px; padding: 4px 8px; font-size:0.75rem; cursor:pointer;"><i class="fa-solid fa-pen"></i></button>
-        <button class="btn-delete" onclick="deleteTicket('${t.key}')"><i class="fa-solid fa-trash"></i></button>
+        <button class="btn-edit" onclick="editHotel()" style="background:#f39c12; color:white; border:none; border-radius:8px; padding: 4px 8px; font-size:0.75rem; cursor:pointer;"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn-delete" onclick="deleteHotelData()"><i class="fa-solid fa-trash"></i></button>
     </div>
     
     <!-- Header: Photo & Title -->
     ${photoHtml}
     <div style="margin-bottom: 12px;">
         <span style="background: var(--primary); color: white; padding: 3px 8px; border-radius: 8px; font-size: 0.7rem; font-weight: 900; display: inline-block; margin-bottom: 6px;">🏨 住宿資訊卡</span>
-        <h3 style="margin: 0 0 4px 0; font-weight: 900; color: var(--text-dark); font-size: 1.2rem;">${valOrPlaceholder(t.hotelName || t.title)}</h3>
+        <h3 style="margin: 0 0 4px 0; font-weight: 900; color: var(--text-dark); font-size: 1.2rem;">${safeValue(h.name)}</h3>
         <div style="font-size: 0.8rem; color: #7f8c8d; font-weight: 700; line-height: 1.4;">
-            <div>🇰🇷 韓文：${valOrPlaceholder(t.hotelNameKr)}</div>
-            <div>🇺🇸 英文：${valOrPlaceholder(t.hotelNameEn)}</div>
+            <div>🇰🇷 韓文：${safeValue(h.nameKR)}</div>
+            <div>🇺🇸 英文：${safeValue(h.nameEN)}</div>
         </div>
     </div>
     
@@ -1757,13 +1891,13 @@
     <div style="display: flex; gap: 8px; margin-bottom: 12px; background: #fffdf9; padding: 10px; border-radius: 12px; border: 1px solid #f9ebd9;">
         <div style="flex: 1; text-align: center; border-right: 1px dashed #e0d0b0; padding-right: 4px;">
             <div style="font-size: 0.7rem; color: #a5b1c2; font-weight: 900;">📅 入住日期</div>
-            <div style="font-size: 0.85rem; font-weight: 900; color: var(--primary); margin: 2px 0;">${valOrPlaceholder(t.checkInDate || t.desc)}</div>
-            <div style="font-size: 0.7rem; color: #7f8c8d; font-weight: 700;">🕒 Check-in: ${valOrPlaceholder(t.checkInTime)}</div>
+            <div style="font-size: 0.85rem; font-weight: 900; color: var(--primary); margin: 2px 0;">${safeValue(h.checkInDate)}</div>
+            <div style="font-size: 0.7rem; color: #7f8c8d; font-weight: 700;">🕒 Check-in: ${safeValue(h.checkInTime)}</div>
         </div>
         <div style="flex: 1; text-align: center; padding-left: 4px;">
             <div style="font-size: 0.7rem; color: #a5b1c2; font-weight: 900;">📅 退房日期</div>
-            <div style="font-size: 0.85rem; font-weight: 900; color: var(--text-dark); margin: 2px 0;">${valOrPlaceholder(t.checkOutDate)}</div>
-            <div style="font-size: 0.7rem; color: #7f8c8d; font-weight: 700;">🕒 Check-out: ${valOrPlaceholder(t.checkOutTime)}</div>
+            <div style="font-size: 0.85rem; font-weight: 900; color: var(--text-dark); margin: 2px 0;">${safeValue(h.checkOutDate)}</div>
+            <div style="font-size: 0.7rem; color: #7f8c8d; font-weight: 700;">🕒 Check-out: ${safeValue(h.checkOutTime)}</div>
         </div>
     </div>
 
@@ -1772,10 +1906,10 @@
         <div style="font-weight: 900; font-size: 0.8rem; color: var(--primary); margin-bottom: 6px;"><i class="fa-solid fa-calculator"></i> 住宿費用摘要</div>
         <div style="font-size: 0.85rem; font-weight: 700; color: #555; line-height: 1.5; background: #fffdf9; padding: 10px; border-radius: 12px; border: 1px solid #f9ebd9;">
             <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 6px; border-bottom: 1px dashed #f0e0d0; padding-bottom: 6px; margin-bottom: 6px; font-size: 0.75rem;">
-                <div>💰 總房價：<b>${formatPrice(t.totalPrice, t.currency)}</b></div>
-                <div>🌙 入住晚數：<b>${valOrPlaceholder(t.nights)} 晚</b></div>
-                <div>👥 入住人數：<b>${valOrPlaceholder(t.guests)} 人</b></div>
-                <div>🛏️ 房間數量：<b>${valOrPlaceholder(t.roomCount)} 間</b></div>
+                <div>💰 總房價：<b>${safePrice(h.totalPrice, h.currency)}</b></div>
+                <div>🌙 入住晚數：<b>${nightsText}</b></div>
+                <div>👥 入住人數：<b>${safeNumber(h.guestCount)} 人</b></div>
+                <div>🛏️ 房間數量：<b>${safeNumber(h.roomCount)} 間</b></div>
             </div>
             <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem;">
                 <div style="display: flex; justify-content: space-between;">
@@ -1806,25 +1940,24 @@
         <!-- Room booking platforms -->
         <div style="font-weight: 900; font-size: 0.8rem; color: var(--dora); margin-bottom: 4px;"><i class="fa-solid fa-receipt"></i> 訂房與房型資訊</div>
         <div style="font-size: 0.8rem; font-weight: 700; color: #555; line-height: 1.4; background: #fdfdfd; padding: 8px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 12px;">
-            <div>🛏️ 預訂房型：<b>${valOrPlaceholder(t.roomType)}</b></div>
-            <div style="margin: 2px 0;">🛌 床型規格：<b>${valOrPlaceholder(t.bedType)}</b></div>
-            <div style="margin: 2px 0;">👥 房型容量：<b>${valOrPlaceholder(t.roomCapacity)} 人</b></div>
-            <div style="margin: 2px 0;">🖥️ 訂房平台：<b>${valOrPlaceholder(t.bookingPlatform)}</b></div>
-            <div style="margin: 2px 0;">🔢 訂房編號：<b>${valOrPlaceholder(t.bookingNo)}</b></div>
-            <div style="margin: 2px 0;">🔑 房間號碼：<b>${valOrPlaceholder(t.roomNo)}</b></div>
-            <div>👤 入住人：<b>${valOrPlaceholder(t.guestName)}</b></div>
+            <div>🛏️ 預訂房型：<b>${safeValue(h.roomType)}</b></div>
+            <div style="margin: 2px 0;">🛌 床型規格：<b>${safeValue(h.bedType)}</b></div>
+            <div style="margin: 2px 0;">🖥️ 訂房平台：<b>${safeValue(h.bookingPlatform)}</b></div>
+            <div style="margin: 2px 0;">🔢 訂房編號：<b>${safeValue(h.bookingNumber)}</b></div>
+            <div style="margin: 2px 0;">🔑 房間號碼：<b>${safeValue(h.roomNumber)}</b></div>
+            <div>👤 入住人：<b>${safeValue(h.guestName)}</b></div>
         </div>
 
         <!-- WiFi -->
         <div style="font-weight: 900; font-size: 0.8rem; color: var(--dora); margin-bottom: 4px;"><i class="fa-solid fa-wifi"></i> WiFi 與上網</div>
         <div style="font-size: 0.8rem; font-weight: 700; color: #555; line-height: 1.4; margin-bottom: 12px;">
             <div style="background: #fdfdfd; padding: 8px; border-radius: 12px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
-                <div>📶 WiFi 名稱：<b>${valOrPlaceholder(t.wifiSsid)}</b></div>
-                <button class="btn-edit" onclick="copyWiFi('${t.wifiSsid || ''}')" style="font-size: 0.7rem; padding: 3px 8px; border-radius: 8px;"><i class="fa-solid fa-copy"></i> 複製</button>
+                <div>📶 WiFi 名稱：<b>${safeValue(h.wifiName)}</b></div>
+                <button class="btn-edit" onclick="copyWiFi('${h.wifiName || ''}')" style="font-size: 0.7rem; padding: 3px 8px; border-radius: 8px;"><i class="fa-solid fa-copy"></i> 複製</button>
             </div>
             <div style="background: #fdfdfd; padding: 8px; border-radius: 12px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-                <div>🔑 WiFi 密碼：<b>${valOrPlaceholder(t.wifiPassword)}</b></div>
-                <button class="btn-edit" onclick="copyWiFi('${t.wifiPassword || ''}')" style="font-size: 0.7rem; padding: 3px 8px; border-radius: 8px;"><i class="fa-solid fa-copy"></i> 複製</button>
+                <div>🔑 WiFi 密碼：<b>${safeValue(h.wifiPassword)}</b></div>
+                <button class="btn-edit" onclick="copyWiFi('${h.wifiPassword || ''}')" style="font-size: 0.7rem; padding: 3px 8px; border-radius: 8px;"><i class="fa-solid fa-copy"></i> 複製</button>
             </div>
         </div>
 
@@ -1832,29 +1965,29 @@
         <div style="font-weight: 900; font-size: 0.8rem; color: var(--dora); margin-bottom: 4px;"><i class="fa-solid fa-plug"></i> 房間設備與規格</div>
         <div style="font-size: 0.8rem; font-weight: 700; color: #555; line-height: 1.5; background: #fdfdfd; padding: 8px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 12px;">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
-                <div>🔌 插座規格：<b>${valOrPlaceholder(t.outletSpec)}</b></div>
-                <div>🔌 需轉接頭：<b>${valOrPlaceholder(t.needAdapter)}</b></div>
-                <div>💨 吹風機：<b>${valOrPlaceholder(t.hairDryer)}</b></div>
-                <div>🧊 冰箱：<b>${valOrPlaceholder(t.fridge)}</b></div>
-                <div>🧺 洗衣機：<b>${valOrPlaceholder(t.washer)}</b></div>
-                <div>☀️ 烘衣機：<b>${valOrPlaceholder(t.dryer)}</b></div>
-                <div>🥣 微波爐：<b>${valOrPlaceholder(t.microwave)}</b></div>
-                <div>🪙 洗衣費用：<b>${valOrPlaceholder(t.laundryFee)}</b></div>
+                <div>🔌 插座規格：<b>${safeValue(h.plugType)}</b></div>
+                <div>🔌 需轉接頭：<b>${safeValue(h.adapter)}</b></div>
+                <div>💨 吹風機：<b>${safeBoolean(h.hairDryer, "有", "無")}</b></div>
+                <div>🧊 冰箱：<b>${safeBoolean(h.refrigerator, "有", "無")}</b></div>
+                <div>🧺 洗衣機：<b>${safeBoolean(h.washer, "有", "無")}</b></div>
+                <div>☀️ 烘衣機：<b>${safeBoolean(h.dryer, "有", "無")}</b></div>
+                <div>🥣 微波爐：<b>${safeBoolean(h.microwave, "有", "無")}</b></div>
+                <div>🪙 洗衣費用：<b>${safeValue(h.laundryFee)}</b></div>
             </div>
         </div>
 
         <!-- Luggage Services -->
         <div style="font-weight: 900; font-size: 0.8rem; color: var(--dora); margin-bottom: 4px;"><i class="fa-solid fa-suitcase-rolling"></i> 行理寄存服務</div>
         <div style="font-size: 0.8rem; font-weight: 700; color: #555; line-height: 1.4; background: #fdfdfd; padding: 8px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
-            <div>🧳 入住前可寄放：<b>${valOrPlaceholder(t.luggagePre)}</b></div>
-            <div>🧳 退房後可寄放：<b>${valOrPlaceholder(t.luggagePost)}</b></div>
+            <div>🧳 入住前可寄放：<b>${safeBoolean(h.luggageBefore, "可", "否")}</b></div>
+            <div>🧳 退房後可寄放：<b>${safeBoolean(h.luggageAfter, "可", "否")}</b></div>
         </div>
 
         <!-- Hotel Contacts -->
         <div style="font-weight: 900; font-size: 0.8rem; color: var(--dora); margin-bottom: 4px;"><i class="fa-solid fa-address-book"></i> 聯絡與資訊</div>
         <div style="font-size: 0.8rem; font-weight: 700; color: #555; line-height: 1.4; background: #fdfdfd; padding: 8px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 12px;">
-            <div>📞 櫃台電話：<b>${valOrPlaceholder(t.hotelPhone)}</b></div>
-            <div style="margin: 2px 0;">📧 電子郵件：<b>${valOrPlaceholder(t.hotelEmail)}</b></div>
+            <div>📞 櫃台電話：<b>${safeValue(h.phone)}</b></div>
+            <div style="margin: 2px 0;">📧 電子郵件：<b>${safeValue(h.email)}</b></div>
             <div style="display:flex; align-items:center; gap: 6px;">🌐 官方網站：${websiteBtn}</div>
         </div>
 
@@ -1862,22 +1995,22 @@
         <div style="margin-bottom: 12px; background: #f8f9fa; padding: 10px; border-radius: 12px; border: 1px solid #eee;">
             <div style="font-weight: 900; font-size: 0.8rem; color: var(--dora); margin-bottom: 4px;"><i class="fa-solid fa-location-dot"></i> 飯店地址</div>
             <div style="font-size: 0.8rem; line-height: 1.4; color: var(--text-dark); font-weight: 700; margin-bottom: 6px;">
-                <div>🇨🇳 中文：${valOrPlaceholder(t.addrZh)}</div>
-                <div style="margin: 2px 0;">🇰🇷 韓文：${valOrPlaceholder(t.addrKr)}</div>
-                <div>🇺🇸 英文：${valOrPlaceholder(t.addrEn)}</div>
+                <div>🇨🇳 中文：${safeValue(h.addressTW)}</div>
+                <div style="margin: 2px 0;">🇰🇷 韓文：${safeValue(h.addressKR)}</div>
+                <div>🇺🇸 英文：${safeValue(h.addressEN)}</div>
             </div>
             <div style="display: flex; gap: 6px; margin-bottom: 6px;">
-                <button class="btn-edit flex-1" onclick="copyAddress('${t.addrKr || ''}')" style="font-weight: 900; font-size: 0.75rem; padding: 6px;"><i class="fa-solid fa-copy"></i> 複製韓文地址</button>
-                <button class="btn-edit flex-1" onclick="copyAddress('${t.addrEn || ''}')" style="font-weight: 900; font-size: 0.75rem; padding: 6px;"><i class="fa-solid fa-copy"></i> 複製英文地址</button>
+                <button class="btn-edit flex-1" onclick="copyAddress('${h.addressKR || ''}')" style="font-weight: 900; font-size: 0.75rem; padding: 6px;"><i class="fa-solid fa-copy"></i> 複製韓文地址</button>
+                <button class="btn-edit flex-1" onclick="copyAddress('${h.addressEN || ''}')" style="font-weight: 900; font-size: 0.75rem; padding: 6px;"><i class="fa-solid fa-copy"></i> 複製英文地址</button>
             </div>
             
             <!-- Taxi Passenger helper -->
             <div style="background: #fff; border: 1px solid #f9ebd9; padding: 10px; border-radius: 12px; margin-top: 8px;">
                 <div style="font-size: 0.7rem; color: #a5b1c2; font-weight: 900; margin-bottom: 4px;">🚕 韓國計程車搭車快速字條</div>
                 <div style="font-family: monospace; font-size: 0.8rem; background: #fafafa; padding: 6px; border-radius: 6px; border: 1px solid #eee; margin-bottom: 6px; line-height: 1.3; font-weight: bold; color: var(--text-dark);">
-                    기사님,<br>여기로 부탁드립니다.<br><br>${valOrPlaceholder(t.addrKr)}
+                    기사님,<br>여기로 부탁드립니다.<br><br>${safeValue(h.addressKR)}
                 </div>
-                <button class="btn-edit" onclick="copyTaxiHelper('${t.addrKr || ''}')" style="width: 100%; font-weight: 900; font-size: 0.75rem; padding: 6px; display: flex; justify-content: center; align-items: center; gap: 4px;">
+                <button class="btn-edit" onclick="copyTaxiHelper('${h.addressKR || ''}')" style="width: 100%; font-weight: 900; font-size: 0.75rem; padding: 6px; display: flex; justify-content: center; align-items: center; gap: 4px;">
                     <i class="fa-solid fa-copy"></i> 一鍵複製計程車字條
                 </button>
             </div>
@@ -1886,29 +2019,29 @@
         <!-- 📄 我的住宿文件 -->
         <div style="font-weight: 900; font-size: 0.8rem; color: var(--dora); margin-bottom: 4px;"><i class="fa-solid fa-file-invoice"></i> 📄 我的住宿文件</div>
         <div style="font-size: 0.8rem; font-weight: 700; color: #555; line-height: 1.4; background: #fdfdfd; padding: 8px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 12px;">
-            ${(!t.docTripOrder && !t.docReceipt && !t.docPayment && !t.docQrCode && !t.docOthers) || (t.docTripOrder === "尚未填寫" && t.docReceipt === "尚未填寫" && t.docPayment === "尚未填寫" && t.docQrCode === "尚未填寫" && t.docOthers === "尚未填寫") ? 
+            ${(!h.docTripOrder && !h.docReceipt && !h.docPayment && !h.docQrCode && !h.docOthers) || (h.docTripOrder === "尚未填寫" && h.docReceipt === "尚未填寫" && h.docPayment === "尚未填寫" && h.docQrCode === "尚未填寫" && h.docOthers === "尚未填寫") ? 
             `<div style="color: #7f8c8d; text-align: center; padding: 4px 0;">尚未新增</div>` : 
             `<div style="display: flex; flex-direction: column; gap: 6px;">
-                ${t.docTripOrder && t.docTripOrder !== "尚未填寫" ? `<a href="${t.docTripOrder}" target="_blank" style="color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-file-shield"></i> Trip.com 訂單</a>` : ''}
-                ${t.docReceipt && t.docReceipt !== "尚未填寫" ? `<a href="${t.docReceipt}" target="_blank" style="color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-file-invoice-dollar"></i> 電子收據</a>` : ''}
-                ${t.docPayment && t.docPayment !== "尚未填寫" ? `<a href="${t.docPayment}" target="_blank" style="color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-receipt"></i> 付款證明</a>` : ''}
-                ${t.docQrCode && t.docQrCode !== "尚未填寫" ? `<a href="${t.docQrCode}" target="_blank" style="color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-qrcode"></i> 入住 QR Code</a>` : ''}
-                ${t.docOthers && t.docOthers !== "尚未填寫" ? `<a href="${t.docOthers}" target="_blank" style="color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-folder-open"></i> 其他住宿文件</a>` : ''}
+                ${h.docTripOrder && h.docTripOrder !== "尚未填寫" ? `<a href="${h.docTripOrder}" target="_blank" style="color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-file-shield"></i> Trip.com 訂單</a>` : ''}
+                ${h.docReceipt && h.docReceipt !== "尚未填寫" ? `<a href="${h.docReceipt}" target="_blank" style="color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-file-invoice-dollar"></i> 電子收據</a>` : ''}
+                ${h.docPayment && h.docPayment !== "尚未填寫" ? `<a href="${h.docPayment}" target="_blank" style="color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-receipt"></i> 付款證明</a>` : ''}
+                ${h.docQrCode && h.docQrCode !== "尚未填寫" ? `<a href="${h.docQrCode}" target="_blank" style="color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-qrcode"></i> 入住 QR Code</a>` : ''}
+                ${h.docOthers && h.docOthers !== "尚未填寫" ? `<a href="${h.docOthers}" target="_blank" style="color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-folder-open"></i> 其他住宿文件</a>` : ''}
             </div>`
             }
             <div style="margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; border-top: 1px dashed #eee; padding-top: 8px;">
-                <select id="hotelDocType_${t.key}" style="padding: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 0.75rem; font-weight: bold; background: #fff;">
+                <select id="hotelDocType_current" style="padding: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 0.75rem; font-weight: bold; background: #fff;">
                     <option value="docTripOrder">Trip.com 訂單</option>
                     <option value="docReceipt">電子收據</option>
                     <option value="docPayment">付款證明</option>
                     <option value="docQrCode">入住 QR Code</option>
                     <option value="docOthers">其他文件</option>
                 </select>
-                <label for="hotelDocUpload_${t.key}" class="btn-edit" style="font-size: 0.75rem; padding: 4px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: var(--dora); color: white; border: none; border-radius: 8px; margin:0;">
+                <label for="hotelDocUpload_current" class="btn-edit" style="font-size: 0.75rem; padding: 4px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: var(--dora); color: white; border: none; border-radius: 8px; margin:0;">
                     <i class="fa-solid fa-camera"></i> ＋ 上傳文件
                 </label>
-                <input type="file" id="hotelDocUpload_${t.key}" style="display: none;" accept="image/*" onchange="uploadHotelDocument('${t.key}', this.files[0])">
-                <span id="hotelDocStatus_${t.key}" style="font-size: 0.7rem; color: var(--primary); font-weight: bold; margin-left: 5px;"></span>
+                <input type="file" id="hotelDocUpload_current" style="display: none;" accept="image/*" onchange="uploadHotelDocument('current', this.files[0])">
+                <span id="hotelDocStatus_current" style="font-size: 0.7rem; color: var(--primary); font-weight: bold; margin-left: 5px;"></span>
             </div>
         </div>
 
@@ -1932,18 +2065,18 @@
         <div style="margin-bottom: 12px; border-top: 1px dashed #eee; padding-top: 8px;">
             <div style="font-weight: 900; font-size: 0.8rem; color: var(--text-dark); margin-bottom: 4px;"><i class="fa-solid fa-train"></i> 鄰近地鐵與步行時間</div>
             <div style="font-size: 0.8rem; font-weight: 700; color: #555; line-height: 1.4; background: #fdfdfd; padding: 8px; border-radius: 8px; border: 1px solid #eee;">
-                <div>🚉 最近站點：<b>${valOrPlaceholder(t.metro)}</b></div>
-                <div style="margin: 2px 0;">🚪 出口編號：<b>${valOrPlaceholder(t.metroExit)}</b></div>
-                <div>⏱️ 步行時間：<b>${valOrPlaceholder(t.walkTime)}</b></div>
+                <div>🚉 最近站點：<b>${safeValue(h.nearestStation)}</b></div>
+                <div style="margin: 2px 0;">🚪 出口編號：<b>${safeValue(h.exit)}</b></div>
+                <div>⏱️ 步行時間：<b>${safeValue(h.walkingTime)}</b></div>
             </div>
             
             <div style="font-weight: 900; font-size: 0.8rem; color: var(--text-dark); margin: 8px 0 4px 0;"><i class="fa-solid fa-arrows-split-up-and-left"></i> 聯外主要交通：</div>
             <div style="background: #fdfdfd; padding: 8px; border-radius: 12px; border: 1px solid #eee; font-size: 0.75rem; font-weight: 700; line-height: 1.4;">
-                <div>🚇 到西面站：${valOrPlaceholder(t.toSeomyeon)}</div>
-                <div style="margin: 2px 0;">🚇 到釜山站：${valOrPlaceholder(t.toBusan)}</div>
-                <div style="margin: 2px 0;">🚇 到海雲台：${valOrPlaceholder(t.toHaeundae)}</div>
-                <div style="margin: 2px 0;">🚇 到廣安里：${valOrPlaceholder(t.toGwangalli)}</div>
-                <div>🚇 到金海機場：${valOrPlaceholder(t.toAirport)}</div>
+                <div>🚇 到西面站：${safeValue(h.seomyeon)}</div>
+                <div style="margin: 2px 0;">🚇 到釜山站：${safeValue(h.busanStation)}</div>
+                <div style="margin: 2px 0;">🚇 到海雲台：${safeValue(h.haeundae)}</div>
+                <div style="margin: 2px 0;">🚇 到廣安里：${safeValue(h.gwangan)}</div>
+                <div>🚇 到金海機場：${safeValue(h.airport)}</div>
             </div>
         </div>
 
@@ -1951,13 +2084,13 @@
         <div style="margin-bottom: 12px; border-top: 1px dashed #eee; padding-top: 8px;">
             <div style="font-weight: 900; font-size: 0.8rem; color: var(--text-dark); margin-bottom: 4px;"><i class="fa-solid fa-store"></i> 周邊生活機能</div>
             <div style="font-size: 0.8rem; font-weight: 700; color: #555; line-height: 1.4; background: #fdfdfd; padding: 8px; border-radius: 8px; border: 1px solid #eee; display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
-                <div>🏪 最近 CU：<b>${valOrPlaceholder(t.nearbyCu)}</b></div>
-                <div>🏪 最近 GS25：<b>${valOrPlaceholder(t.nearbyGs25)}</b></div>
-                <div>🏪 最近 7-11：<b>${valOrPlaceholder(t.nearby711)}</b></div>
-                <div>🍳 推薦早餐：<b>${valOrPlaceholder(t.breakfast)}</b></div>
-                <div>💱 換錢位置：<b>${valOrPlaceholder(t.moneyEx)}</b></div>
-                <div>💊 附近藥局：<b>${valOrPlaceholder(t.pharmacy)}</b></div>
-                <div>💄 Olive Young：<b>${valOrPlaceholder(t.oliveYoung)}</b></div>
+                <div>🏪 最近 CU：<b>${safeValue(h.cu)}</b></div>
+                <div>🏪 最近 GS25：<b>${safeValue(h.gs25)}</b></div>
+                <div>🏪 最近 7-11：<b>${safeValue(h.seven)}</b></div>
+                <div>🍳 推薦早餐：<b>${safeValue(h.breakfast)}</b></div>
+                <div>💱 換錢位置：<b>${safeValue(h.moneyExchange)}</b></div>
+                <div>💊 附近藥局：<b>${safeValue(h.pharmacy)}</b></div>
+                <div>💄 Olive Young：<b>${safeValue(h.oliveYoung)}</b></div>
             </div>
         </div>
 
@@ -1970,27 +2103,27 @@
                 <div>📞 消防/救護：<a href="tel:119" style="color: #C0392B; text-decoration: none; font-weight:900;">119</a></div>
             </div>
             <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.75rem;">
-                <div>🏥 最近醫院：<b>${valOrPlaceholder(t.emgHospital)}</b></div>
-                <div>💊 最近藥局：<b>${valOrPlaceholder(t.emgPharmacy)}</b></div>
-                <div>🚓 最近派出所：<b>${valOrPlaceholder(t.emgPolice)}</b></div>
+                <div>🏥 最近醫院：<b>${safeValue(h.hospital)}</b></div>
+                <div>🚓 最近派出所：<b>${safeValue(h.police)}</b></div>
             </div>
         </div>
 
         <!-- Notes -->
-        ${t.note ? `
+        ${h.memo && h.memo !== "尚未填寫" ? `
         <div style="border-top: 1px dashed #eee; padding-top: 8px; font-size: 0.75rem; color: #7f8c8d; font-weight: 700; line-height: 1.4;">
-            <i class="fa-solid fa-circle-info"></i> 備註：${t.note}
+            <i class="fa-solid fa-circle-info"></i> 備註：${safeValue(h.memo)}
         </div>
         ` : ''}
-        
-        <!-- Voucher -->
-        ${vh ? `<div style="margin-top: 10px;">${vh}</div>` : ''}
     </div>
     
     <!-- Last Update Time -->
-    ${t.lastUpdate ? `<div style="text-align: right; font-size: 0.65rem; color: #a5b1c2; font-weight: 700; margin-top: 10px;">${formatLastUpdate(t.lastUpdate)}</div>` : ''}
+    ${h.lastUpdate ? `<div style="text-align: right; font-size: 0.65rem; color: #a5b1c2; font-weight: 700; margin-top: 10px;">${formatLastUpdate(h.lastUpdate)}</div>` : ''}
 </div>`;
-            } else {
+        }
+
+        // 2. Render other tickets (skip type "🏨 住宿")
+        ticketData.forEach(t => {
+            if (t.type !== "🏨 住宿") {
                 let lh = t.link ? `<a href="${t.link}" target="_blank" class="map-tag" style="margin-top:8px;"><i class="fa-solid fa-map-location-dot"></i> 地圖</a>` : '';
                 let vh = t.voucher ? `<a href="${t.voucher}" target="_blank" class="map-tag" style="background:var(--primary); margin-top:8px;"><i class="fa-solid fa-image"></i> 看憑證</a>` : '';
                 l.innerHTML += `<div class="card" style="padding:15px; border-left:5px solid var(--dora); margin-bottom:12px;"><div style="display:flex; justify-content:space-between; align-items:flex-start;"><div><div style="font-weight:900; font-size:1.05rem; margin-bottom:4px;">${t.type} | ${t.title}</div><div style="font-size:0.85rem; color:#7f8c8d; font-weight:700;">${t.desc}</div>${lh} ${vh}</div><button class="btn-delete" onclick="deleteTicket('${t.key}')"><i class="fa-solid fa-trash"></i></button></div></div>`;
