@@ -1,0 +1,15 @@
+{
+  "name": "釜山慶州秋之旅",
+  "short_name": "哆啦秋遊",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#FFF9F2",
+  "theme_color": "#FFF9F2",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
