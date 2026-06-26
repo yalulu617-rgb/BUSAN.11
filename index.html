@@ -8,7 +8,7 @@
     <meta name="theme-color" content="#FFF9F2">
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="icon" href="icon.png" type="image/png">
-    <link id="manifest-link" rel="manifest" href="">
+    <link rel="manifest" href="manifest.json">
     <title>釜山慶州秋之旅 V36 旗艦版</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -131,10 +131,7 @@
 </head>
 <body>
 
-<script>
-    const manifestJSON = { "name": "釜山慶州秋之旅", "short_name": "哆啦秋遊", "start_url": ".", "display": "standalone", "background_color": "#FFF9F2", "theme_color": "#FFF9F2", "icons": [{"src": "icon.png", "sizes": "512x512", "type": "image/png"}] };
-    const blob = new Blob([JSON.stringify(manifestJSON)], {type: 'application/json'}); document.getElementById('manifest-link').setAttribute('href', URL.createObjectURL(blob));
-</script>
+
 
 <div id="splash">
     <div class="splash-card">
@@ -447,13 +444,468 @@
     </div>
 </div>
 
+
 <script>
+
     // --- 核心 Firebase 初始化 ---
     const IMGBB_API_KEY = "ba1b2b24f8275c9d3a199bea5cd52bf9"; 
     const firebaseConfig = { apiKey: "AIzaSyC884_zH7XM7l7C_ijhuFmEoKxbsN0O1Vw", authDomain: "busan-trip-2026-4148f.firebaseapp.com", databaseURL: "https://busan-trip-2026-4148f-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "busan-trip-2026-4148f", storageBucket: "busan-trip-2026-4148f.firebasestorage.app", messagingSenderId: "819505968980", appId: "1:819505968980:web:03e6d05ef5101719327ac1" };
     firebase.initializeApp(firebaseConfig); const db = firebase.database();
+    // --- V36.1 Final Enhancement Helpers ---
+    let selectedTravelDay = "";
+    let currentWeatherTemp = 15;
+
+    function getTravelDay() {
+        if (selectedTravelDay) return selectedTravelDay;
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = today.getMonth() + 1;
+        const date = today.getDate();
+        if (year === 2026 && month === 11) {
+            if (date === 13) return "11/13";
+            if (date === 14) return "11/14";
+            if (date === 15) return "11/15";
+            if (date === 16) return "11/16";
+            if (date === 17) return "11/17";
+        }
+        return "11/13";
+    }
+
+    function getBillSumForDate(dayStr) {
+        const parts = dayStr.split('/');
+        const targetMonth = parseInt(parts[0]) - 1;
+        const targetDay = parseInt(parts[1]);
+        let totalTWD = 0;
+        const all = [...sharedBills, ...privateBills];
+        all.forEach(b => {
+            let bDate = new Date(b.timestamp);
+            if (bDate.getMonth() === targetMonth && bDate.getDate() === targetDay) {
+                let amtTWD = b.currency === 'KRW' ? b.amt * liveKrwToTwd : b.amt;
+                totalTWD += amtTWD;
+            }
+        });
+        return Math.round(totalTWD);
+    }
+
+    function renderTravelModeDashboard() {
+        const dashboard = document.getElementById('guideDashboard');
+        if (!dashboard) return;
+        
+        let container = document.getElementById('travelModeDashboardCard');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'travelModeDashboardCard';
+            container.className = 'card';
+            container.style = "background: linear-gradient(135deg, rgba(255,249,242,0.95), rgba(255,255,255,0.95)); border-left: 6px solid var(--accent); padding:20px; margin-bottom:20px; border-radius:24px; box-shadow: var(--shadow);";
+            dashboard.insertBefore(container, dashboard.firstChild);
+        }
+        
+        const day = getTravelDay();
+        let dayNum = "DAY 1";
+        if (day === "11/13") dayNum = "DAY 1 (西面)";
+        if (day === "11/14") dayNum = "DAY 2 (膠囊/廣安里)";
+        if (day === "11/15") dayNum = "DAY 3 (慶州賞楓)";
+        if (day === "11/16") dayNum = "DAY 4 (松島/白淺灘)";
+        if (day === "11/17") dayNum = "DAY 5 (回程)";
+        
+        let hotelName = "城市律動飯店 (Urban Groove Hotel)";
+        let weatherText = `${currentWeatherTemp}℃`;
+        
+        const now = new Date();
+        const currentHHMM = String(now.getHours()).padStart(2, '0') + ":" + String(now.getMinutes()).padStart(2, '0');
+        let todayIti = itineraryData.filter(i => i.day === day).sort((a,b) => a.time.localeCompare(b.time));
+        let nextIti = todayIti.find(i => i.time > currentHHMM);
+        
+        let nextAttr = "無下一個景點";
+        let nextTransit = "無";
+        let countdownText = "無倒數";
+        
+        if (nextIti) {
+            nextAttr = nextIti.desc;
+            nextTransit = nextIti.tr || "步行";
+            
+            const eventDate = new Date(now);
+            const [h, m] = nextIti.time.split(':').map(Number);
+            eventDate.setHours(h, m, 0, 0);
+            const diffMs = eventDate - now;
+            if (diffMs > 0) {
+                const diffMin = Math.floor(diffMs / 60000);
+                const hh = Math.floor(diffMin / 60);
+                const mm = diffMin % 60;
+                countdownText = hh > 0 ? `${hh}時${mm}分` : `${mm}分`;
+            } else {
+                countdownText = "進行中";
+            }
+        } else if (todayIti.length > 0) {
+            nextAttr = "今日行程已結束";
+            countdownText = "已完成";
+        }
+        
+        let dailySpend = getBillSumForDate(day);
+        let checkedCount = shopList.filter(s => s.checked).length;
+        let totalCount = shopList.length;
+        let shopText = totalCount > 0 ? `已購 ${checkedCount} / ${totalCount} 件` : "購物清單為空";
+        
+        let itinerarySummary = todayIti.map(i => `<span style="background:rgba(243, 156, 18, 0.1); color:var(--accent); padding:2px 6px; border-radius:6px; font-size:0.75rem; font-weight:900;">${i.time}</span> ${i.desc.split(' ')[0]}`).join(' → ') || "今日無行程安排";
+
+        container.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px dashed rgba(243,156,18,0.2); padding-bottom:10px; margin-bottom:12px;">
+                <span style="font-weight:900; color:var(--primary); font-size:1.1rem;"><i class="fa-solid fa-plane"></i> 旅行看板 (${dayNum})</span>
+                <span style="background:var(--accent); color:white; font-size:0.75rem; padding:3px 8px; border-radius:8px; font-weight:900; cursor:pointer;" onclick="changeTravelDayPrompt()"><i class="fa-solid fa-calendar-days"></i> 切換天數</span>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:0.85rem; font-weight:700; color:var(--text-dark);">
+                <div style="background:#fff; padding:10px; border-radius:12px; border:1px solid #eee;"><i class="fa-solid fa-hotel" style="color:var(--primary);"></i> 今日住宿<br><span style="font-size:0.8rem; color:#666;">${hotelName}</span></div>
+                <div style="background:#fff; padding:10px; border-radius:12px; border:1px solid #eee;"><i class="fa-solid fa-cloud-sun" style="color:var(--dora);"></i> 今日天氣<br><span style="color:#666;">${weatherText}</span></div>
+                <div style="background:#fff; padding:10px; border-radius:12px; border:1px solid #eee; grid-column:span 2;"><i class="fa-solid fa-map-pin" style="color:var(--primary);"></i> 下一個景點<br><span style="color:#C0392B;">${nextAttr}</span></div>
+                <div style="background:#fff; padding:10px; border-radius:12px; border:1px solid #eee;"><i class="fa-solid fa-bus" style="color:var(--accent);"></i> 下一段交通<br><span style="color:#666;">${nextTransit}</span></div>
+                <div style="background:#fff; padding:10px; border-radius:12px; border:1px solid #eee;"><i class="fa-solid fa-clock" style="color:var(--dora);"></i> 倒數時間<br><span style="color:#27AE60;">${countdownText}</span></div>
+                <div style="background:#fff; padding:10px; border-radius:12px; border:1px solid #eee;"><i class="fa-solid fa-credit-card" style="color:#27AE60;"></i> 今日花費<br><span style="color:#C0392B;">$${dailySpend.toLocaleString()} TWD</span></div>
+                <div style="background:#fff; padding:10px; border-radius:12px; border:1px solid #eee;"><i class="fa-solid fa-cart-shopping" style="color:var(--primary);"></i> 今日購物<br><span style="color:#666;">${shopText}</span></div>
+                <div style="background:#fff; padding:10px; border-radius:12px; border:1px solid #eee; grid-column:span 2;"><i class="fa-solid fa-calendar-day" style="color:var(--dora);"></i> 今日行程<br><div style="font-size:0.75rem; color:#555; margin-top:4px; line-height:1.4;">${itinerarySummary}</div></div>
+            </div>
+        `;
+    }
+
+    function changeTravelDayPrompt() {
+        const days = ["11/13", "11/14", "11/15", "11/16", "11/17"];
+        const input = prompt("請輸入要查看的天數 (格式: 11/13, 11/14, 11/15, 11/16, 11/17)：", getTravelDay());
+        if (input && days.includes(input)) {
+            selectedTravelDay = input;
+            renderTravelModeDashboard();
+            showToast(`已切換至 ${input} 旅行模式`, "success");
+        } else if (input) {
+            showToast("無效的天數格式！", "error");
+        }
+    }
+
+    function compressImage(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    let width = img.width;
+                    let height = img.height;
+                    const maxDim = 1200;
+                    if (width > maxDim || height > maxDim) {
+                        if (width > height) {
+                            height = Math.round((height * maxDim) / width);
+                            width = maxDim;
+                        } else {
+                            width = Math.round((width * maxDim) / height);
+                            height = maxDim;
+                        }
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            const compressedFile = new File([blob], file.name, {
+                                type: 'image/jpeg',
+                                lastModified: Date.now()
+                            });
+                            resolve(compressedFile);
+                        } else {
+                            resolve(file);
+                        }
+                    }, 'image/jpeg', 0.8);
+                };
+                img.onerror = () => resolve(file);
+                img.src = e.target.result;
+            };
+            reader.onerror = () => resolve(file);
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function getRelativePath(ref) {
+        const rootUrl = firebase.database().ref().toString();
+        let url = ref.toString();
+        if (url.indexOf(rootUrl) === 0) {
+            return url.substring(rootUrl.length);
+        }
+        return url;
+    }
+
+    function isRestrictedPath(path) {
+        const p = path.toLowerCase();
+        if (p.includes("iti") || p.includes("guide") || p.includes("ticket") || p.includes("shop")) {
+            return true;
+        }
+        return false;
+    }
+
+    function addToOfflineQueue(path, op, payload) {
+        let queue = JSON.parse(localStorage.getItem('pendingSyncQueue') || '[]');
+        queue.push({
+            path: path,
+            op: op,
+            payload: payload,
+            timestamp: Date.now()
+        });
+        localStorage.setItem('pendingSyncQueue', JSON.stringify(queue));
+    }
+
+    let isSyncing = false;
+    async function syncOfflineQueue() {
+        if (isSyncing || !navigator.onLine) return;
+        let queue = JSON.parse(localStorage.getItem('pendingSyncQueue') || '[]');
+        if (queue.length === 0) return;
+        isSyncing = true;
+        showToast("🔄 偵測到網路恢復，開始背景同步...", "info");
+        let successCount = 0;
+        let failed = false;
+        while (queue.length > 0 && !failed) {
+            const item = queue[0];
+            const ref = firebase.database().ref(item.path);
+            try {
+                if (item.op === 'set') {
+                    await originalSet.call(ref, item.payload);
+                } else if (item.op === 'update') {
+                    await originalUpdate.call(ref, item.payload);
+                } else if (item.op === 'remove') {
+                    await originalRemove.call(ref);
+                }
+                queue.shift();
+                successCount++;
+            } catch (err) {
+                console.error("離線同步失敗:", err);
+                failed = true;
+            }
+        }
+        localStorage.setItem('pendingSyncQueue', JSON.stringify(queue));
+        isSyncing = false;
+        if (successCount > 0) {
+            showToast(`已完成背景同步 (${successCount} 筆資料)`, "success");
+        }
+        if (failed) {
+            showToast("⚠️ 部分離線資料同步失敗，將於下次網路恢復時重試", "warning");
+        }
+    }
+
+    async function uploadHotelDocument(key, file) {
+        if (!file) return;
+        const docType = document.getElementById(`hotelDocType_${key}`).value;
+        const status = document.getElementById(`hotelDocStatus_${key}`);
+        status.innerText = "⏳ 上傳中...";
+        try {
+            const compressed = await compressImage(file);
+            const fd = new FormData();
+            fd.append("image", compressed);
+            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: fd });
+            const data = await res.json();
+            if (data.success) {
+                const url = data.data.url;
+                const updates = { lastUpdate: Date.now() };
+                updates[docType] = url;
+                await ticketRef.child(key).update(updates);
+                status.innerText = "✅ 上傳成功";
+                showToast("住宿文件上傳成功！", "success");
+            } else {
+                status.innerText = "❌ 失敗";
+                showToast("上傳失敗: " + (data.error ? data.error.message : "未知錯誤"), "error");
+            }
+        } catch (e) {
+            status.innerText = "❌ 錯誤";
+            showToast("上傳發生錯誤", "error");
+            console.error(e);
+        }
+    }
+
+    function injectSettingsUI() {
+        const modalBox = document.querySelector('#profileModal .pin-box');
+        if (!modalBox) return;
+        if (document.getElementById('releaseModeContainer')) return;
+        
+        const releaseContainer = document.createElement('div');
+        releaseContainer.id = 'releaseModeContainer';
+        releaseContainer.style = "display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; padding:10px; background:#f9f9f9; border-radius:12px; border:1px solid #eee;";
+        releaseContainer.innerHTML = `
+            <span style="font-weight:900; font-size:0.9rem; color:var(--text-dark);"><i class="fa-solid fa-shield-halved"></i> Release Mode (防誤觸)</span>
+            <input type="checkbox" id="releaseModeToggle" style="width:40px; height:20px; cursor:pointer;" onchange="toggleReleaseMode(this.checked)">
+        `;
+        
+        const backupContainer = document.createElement('div');
+        backupContainer.id = 'backupRestoreContainer';
+        backupContainer.style = "display:flex; gap:8px; margin-bottom:15px;";
+        backupContainer.innerHTML = `
+            <button onclick="exportFirebaseData()" class="btn-edit" style="flex:1; padding:10px; font-weight:900; font-size:0.8rem; background:var(--primary); color:white; border:none; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; gap:4px; cursor:pointer;"><i class="fa-solid fa-download"></i> 備份資料</button>
+            <label for="restoreFileInput" class="btn-edit" style="flex:1; padding:10px; font-weight:900; font-size:0.8rem; background:var(--accent); color:white; border:none; border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:4px;"><i class="fa-solid fa-upload"></i> 還原資料</label>
+            <input type="file" id="restoreFileInput" style="display:none;" accept=".json" onchange="importFirebaseData(this.files[0])">
+        `;
+        
+        const btnGroup = modalBox.lastElementChild;
+        modalBox.insertBefore(releaseContainer, btnGroup);
+        modalBox.insertBefore(backupContainer, btnGroup);
+        
+        document.getElementById('releaseModeToggle').checked = (localStorage.getItem('busan_v36_release_mode') === 'true');
+    }
+
+    function toggleReleaseMode(enabled) {
+        localStorage.setItem('busan_v36_release_mode', enabled ? 'true' : 'false');
+        showToast(enabled ? "🔒 已開啟 Release Mode (防誤觸)" : "🔓 已關閉 Release Mode", enabled ? "success" : "info");
+    }
+
+    async function exportFirebaseData() {
+        try {
+            showToast("⏳ 備份資料讀取中...", "info");
+            const snapshot = await db.ref().once('value');
+            const data = snapshot.val();
+            if (!data) {
+                showToast("⚠️ Firebase 為空，無資料可備份", "warning");
+                return;
+            }
+            const jsonStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            const filename = `BUSAN11_Backup_${dateStr}.json`;
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            showToast("✅ 資料備份下載成功！", "success");
+        } catch (err) {
+            console.error(err);
+            showToast("❌ 備份失敗: " + err.message, "error");
+        }
+    }
+
+    async function importFirebaseData(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                const validKeys = ["busan_v36_iti", "busan_v36_guide", "busan_v36_shop", "busan_v36_photos", "busan_v36_tickets", "busan_v36_bills", "busan_v36_prep", "busan_v36_voice", "busan_v36_profiles"];
+                const hasValidKey = Object.keys(data).some(k => validKeys.includes(k));
+                if (!hasValidKey) {
+                    showToast("❌ 還原失敗：JSON 格式不符合本系統資料格式", "error");
+                    return;
+                }
+                if (confirm("⚠️ 確定要還原此備份檔案嗎？這將覆蓋現有所有 Firebase 雲端資料！")) {
+                    showToast("⏳ 正在還原雲端資料...", "info");
+                    await db.ref().set(data);
+                    showToast("✅ 資料還原成功，頁面即將重新整理", "success");
+                    setTimeout(() => window.location.reload(), 1500);
+                }
+            } catch (err) {
+                console.error(err);
+                showToast("❌ 檔案解析失敗，請確認是否為正確的 JSON 備份檔", "error");
+            }
+        };
+        reader.readAsText(file);
+        document.getElementById('restoreFileInput').value = '';
+    }
+
+    window.addEventListener('online', syncOfflineQueue);
+
+    // --- Firebase Reference Prototype Interceptors ---
+    const originalSet = firebase.database.Reference.prototype.set;
+    const originalUpdate = firebase.database.Reference.prototype.update;
+    const originalRemove = firebase.database.Reference.prototype.remove;
+    const originalPush = firebase.database.Reference.prototype.push;
+
+    firebase.database.Reference.prototype.remove = function(onComplete) {
+        const path = getRelativePath(this);
+        if (localStorage.getItem('busan_v36_release_mode') === 'true') {
+            if (isRestrictedPath(path)) {
+                if (!confirm("⚠️ 目前處於 Release Mode (防誤觸模式)，確定要刪除此項目嗎？")) {
+                    return Promise.resolve();
+                }
+            }
+        }
+        if (!navigator.onLine) {
+            addToOfflineQueue(path, 'remove', null);
+            showToast("已存入離線佇列", "warning");
+            return Promise.resolve();
+        }
+        return originalRemove.apply(this, arguments);
+    };
+
+    firebase.database.Reference.prototype.update = function(value, onComplete) {
+        const path = getRelativePath(this);
+        if (localStorage.getItem('busan_v36_release_mode') === 'true') {
+            if (isRestrictedPath(path)) {
+                const isChecklist = path.includes("shop") && value && value.hasOwnProperty('checked');
+                if (!isChecklist) {
+                    if (!confirm("⚠️ 目前處於 Release Mode (防誤觸模式)，確定要修改此項目資料嗎？")) {
+                        return Promise.resolve();
+                    }
+                }
+            }
+        }
+        if (!navigator.onLine) {
+            addToOfflineQueue(path, 'update', value);
+            showToast("已存入離線佇列", "warning");
+            return Promise.resolve();
+        }
+        return originalUpdate.apply(this, arguments);
+    };
+
+    firebase.database.Reference.prototype.set = function(value, onComplete) {
+        const path = getRelativePath(this);
+        if (localStorage.getItem('busan_v36_release_mode') === 'true') {
+            if (isRestrictedPath(path)) {
+                if (!confirm("⚠️ 目前處於 Release Mode (防誤觸模式)，確定要覆蓋/修改此資料嗎？")) {
+                    return Promise.resolve();
+                }
+            }
+        }
+        if (!navigator.onLine) {
+            addToOfflineQueue(path, 'set', value);
+            showToast("已存入離線佇列", "warning");
+            return Promise.resolve();
+        }
+        return originalSet.apply(this, arguments);
+    };
+
+    firebase.database.Reference.prototype.push = function(value, onComplete) {
+        if (value === undefined) {
+            return originalPush.apply(this, arguments);
+        }
+        const path = getRelativePath(this);
+        if (!navigator.onLine) {
+            const newRef = originalPush.call(this);
+            const newPath = getRelativePath(newRef);
+            addToOfflineQueue(newPath, 'set', value);
+            showToast("已存入離線佇列", "warning");
+            return Promise.resolve(newRef);
+        }
+        return originalPush.apply(this, arguments);
+    };
+
 
     const itiRef = db.ref("busan_v36_iti"); const guideRef = db.ref("busan_v36_guide"); const shopRef = db.ref("busan_v36_shop"); const photoRef = db.ref("busan_v36_photos"); const ticketRef = db.ref("busan_v36_tickets"); const billRef = db.ref("busan_v36_bills"); const prepRef = db.ref("busan_v36_prep"); const voiceRef = db.ref("busan_v36_voice"); const profileRef = db.ref("busan_v36_profiles");
+
+    // --- 全域 Toast 提示通知元件 ---
+    function showToast(msg, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        let icon = 'fa-info-circle';
+        if (type === 'success') icon = 'fa-check-circle';
+        if (type === 'error') icon = 'fa-exclamation-circle';
+        if (type === 'warning') icon = 'fa-exclamation-triangle';
+        toast.innerHTML = `<i class="fa-solid ${icon}"></i><span>${msg}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => { toast.remove(); }, 3000);
+    }
+
+    // --- Firebase Promise 統一捕捉包裝器 ---
+    function handlePromise(promise, successMsg, errorMsg) {
+        return promise.then(() => {
+            if (successMsg) showToast(successMsg, 'success');
+        }).catch(err => {
+            console.error(err);
+            showToast((errorMsg || '同步失敗') + ': ' + err.message, 'error');
+        });
+    }
 
     // --- 個人化全域設定 ---
     let u1 = { key: 'user1', name: '溫', avatar: '👩' };
@@ -462,7 +914,17 @@
 
     profileRef.on('value', s => {
         if(s.exists()) { let data = s.val(); u1 = data.user1 || u1; u2 = data.user2 || u2; } 
-        else { profileRef.set({ user1: u1, user2: u2 }); }
+        else { 
+            (async () => {
+                try {
+                    await profileRef.set({ user1: u1, user2: u2 });
+                    showToast("儲存成功", "success");
+                } catch (error) {
+                    console.error(error);
+                    showToast(error.message || "同步失敗", "error");
+                }
+            })();
+        }
         updateProfileUI(); renderBills(); renderShop();
     });
 
@@ -482,10 +944,16 @@
         document.getElementById('editU2Avatar').value = u2.avatar; document.getElementById('editU2Name').value = u2.name;
     }
 
-    function saveProfiles() {
+    async function saveProfiles() {
         u1.avatar = document.getElementById('editU1Avatar').value || '👩'; u1.name = document.getElementById('editU1Name').value || '溫';
         u2.avatar = document.getElementById('editU2Avatar').value || '🦆'; u2.name = document.getElementById('editU2Name').value || '鴨';
-        profileRef.set({ user1: u1, user2: u2 });
+        try {
+            await profileRef.set({ user1: u1, user2: u2 });
+            showToast("儲存成功", "success");
+        } catch (error) {
+            console.error(error);
+            showToast(error.message || "同步失敗", "error");
+        }
         document.getElementById('profileModal').style.display = 'none';
     }
 
@@ -504,11 +972,11 @@
     }
     function cancelPin() { document.getElementById('pinModal').style.display = 'none'; if(tabRevertAction) tabRevertAction(); }
     function submitPin() {
-        let input = document.getElementById('pinInput').value; if(input.length !== 4) { alert("⚠️ 請輸入 4 位數字！"); return; }
+        let input = document.getElementById('pinInput').value; if(input.length !== 4) { showToast("⚠️ 請輸入 4 位數字！", "warning"); return; }
         let savedPin = localStorage.getItem('busan_v36_pin');
-        if(input === '0000' || input === '9999') { sessionStorage.setItem('busan_unlocked', 'true'); alert("🚨 救援模式解鎖！"); document.getElementById('pinModal').style.display = 'none'; if(targetTabAction) targetTabAction(); return; }
-        if(!savedPin) { localStorage.setItem('busan_v36_pin', input); sessionStorage.setItem('busan_unlocked', 'true'); alert("✅ 密碼設定成功！"); document.getElementById('pinModal').style.display = 'none'; if(targetTabAction) targetTabAction(); } 
-        else { if(input === savedPin) { sessionStorage.setItem('busan_unlocked', 'true'); document.getElementById('pinModal').style.display = 'none'; if(targetTabAction) targetTabAction(); } else { alert("❌ 密碼錯誤！"); document.getElementById('pinInput').value = ''; } }
+        if(input === '0000' || input === '9999') { sessionStorage.setItem('busan_unlocked', 'true'); showToast("🚨 救援模式解鎖！", "success"); document.getElementById('pinModal').style.display = 'none'; if(targetTabAction) targetTabAction(); return; }
+        if(!savedPin) { localStorage.setItem('busan_v36_pin', input); sessionStorage.setItem('busan_unlocked', 'true'); showToast("✅ 密碼設定成功！", "success"); document.getElementById('pinModal').style.display = 'none'; if(targetTabAction) targetTabAction(); } 
+        else { if(input === savedPin) { sessionStorage.setItem('busan_unlocked', 'true'); document.getElementById('pinModal').style.display = 'none'; if(targetTabAction) targetTabAction(); } else { showToast("❌ 密碼錯誤！", "error"); document.getElementById('pinInput').value = ''; } }
     }
     function filterBillsWithPin(type) { if(type === '私帳') { checkPinAccess(() => { filterBills_Logic(type); }, () => { document.getElementById('tabShared').click(); }); } else { filterBills_Logic(type); } }
     function filterShopWithPin(owner) { checkPinAccess(() => { filterShop_Logic(owner); }, () => { showTab('guide', document.querySelector('.nav-item')); }); }
@@ -518,32 +986,57 @@
         setTimeout(function() { window.location.href = "https://papago.naver.com/"; }, 500);
     }
 
-    function autoFetchMap(inputId, targetId) { let val = document.getElementById(inputId).value; if(val) { document.getElementById(targetId).value = 'https://map.naver.com/p/search/' + encodeURIComponent(val); } else { alert("請先輸入名稱！"); } }
+    function autoFetchMap(inputId, targetId) { let val = document.getElementById(inputId).value; if(val) { document.getElementById(targetId).value = 'https://map.naver.com/p/search/' + encodeURIComponent(val); } else { showToast("請先輸入名稱！", "warning"); } }
 
-    let liveKrwToTwd = 0.024; 
-    async function fetchLiveExchangeRate() { try { let res = await fetch('https://api.exchangerate-api.com/v4/latest/KRW'); let data = await res.json(); liveKrwToTwd = data.rates.TWD; document.getElementById('liveFxRate').innerHTML = `1 萬韓元 = 約 <span style="color:#F1C40F;">${(10000 * liveKrwToTwd).toFixed(0)}</span> 台幣`; renderBills(); } catch(e) {} }
+    let liveKrwToTwd = parseFloat(localStorage.getItem('busan_v36_live_rate')) || 0.024; 
+    async function fetchLiveExchangeRate() { 
+        try { 
+            let res = await fetch('https://api.exchangerate-api.com/v4/latest/KRW'); 
+            let data = await res.json(); 
+            liveKrwToTwd = data.rates.TWD; 
+            localStorage.setItem('busan_v36_live_rate', liveKrwToTwd);
+            document.getElementById('liveFxRate').innerHTML = `1 萬韓元 = 約 <span style="color:#F1C40F;">${(10000 * liveKrwToTwd).toFixed(0)}</span> 台幣`; 
+            renderBills(); 
+        } catch(e) {
+            console.warn("無法取得即時匯率，使用快取匯率", e);
+            document.getElementById('liveFxRate').innerHTML = `1 萬韓元 = 約 <span style="color:#F1C40F;">${(10000 * liveKrwToTwd).toFixed(0)}</span> 台幣 (離線快取)`; 
+        } 
+    }
 
     async function fetchLiveWeather() {
         try {
             let res = await fetch('https://wttr.in/Busan?format=j1'); let data = await res.json();
-            let temp = parseInt(data.current_condition[0].temp_C); let suggestion = "";
+            let temp = parseInt(data.current_condition[0].temp_C); let suggestion = ""; currentWeatherTemp = temp; renderTravelModeDashboard();
             if(temp < 8) suggestion = "氣溫極寒！務必穿著發熱衣 + 羊毛針織衫 + 重度防風大衣。";
             else if(temp >= 8 && temp <= 16) suggestion = "早晚溫差極大。強烈建議「洋蔥式防風穿搭」：發熱衣打底 + 輕薄保暖層 + 最外層防風大衣，方便室內外穿脫。";
             else suggestion = "氣溫舒適。秋季長袖打底，攜帶輕薄防風外套備用。";
             document.getElementById('dynamicOutfit').innerHTML = `<span style="color:var(--primary); font-size:1.1rem; font-weight:900;">即時氣溫 ${temp}℃：</span><br>${suggestion}`;
-        } catch(e) {}
+        } catch(e) {
+            document.getElementById('dynamicOutfit').innerHTML = `<span style="color:var(--primary); font-size:1.1rem; font-weight:900;">即時氣溫 載入失敗：</span><br>請參考行前穿搭建議，早晚溫差大，建議洋蔥式穿法。`;
+        }
     }
 
     let currentLightboxUrl = ""; let currentLightboxKey = "";
     function openLightbox(url, key) { currentLightboxUrl = url; currentLightboxKey = key; const lb = document.getElementById('lightbox'); const img = document.getElementById('lightbox-img'); img.src = url; lb.style.display = 'flex'; setTimeout(() => { lb.style.opacity = '1'; img.style.transform = 'scale(1)'; }, 10); }
     function closeLightbox() { const lb = document.getElementById('lightbox'); const img = document.getElementById('lightbox-img'); lb.style.opacity = '0'; img.style.transform = 'scale(0.9)'; setTimeout(() => { lb.style.display = 'none'; }, 300); }
     function downloadImage() { if(currentLightboxUrl) { window.open(currentLightboxUrl, '_blank'); } }
-    function deleteCurrentPhoto() { if(currentLightboxKey && confirm("確定要將這張照片永久刪除嗎？")) { photoRef.child(currentLightboxKey).remove(); closeLightbox(); } }
+    async function deleteCurrentPhoto() { 
+        if(currentLightboxKey && confirm("確定要將這張照片永久刪除嗎？")) { 
+            try {
+                await photoRef.child(currentLightboxKey).remove();
+                showToast("儲存成功", "success");
+            } catch (error) {
+                console.error(error);
+                showToast(error.message || "同步失敗", "error");
+            }
+            closeLightbox(); 
+        } 
+    }
 
     function openCardLightbox(tw, kr) { document.getElementById('fc-tw').innerText = tw; document.getElementById('fc-kr').innerText = kr; let m = document.getElementById('flashcardModal'); m.style.display = 'flex'; setTimeout(() => { m.style.opacity = '1'; }, 10); }
     function closeFlashcard() { let m = document.getElementById('flashcardModal'); m.style.opacity = '0'; setTimeout(() => { m.style.display = 'none'; }, 300); }
 
-    function enterApp() { const s = document.getElementById('splash'); const a = document.getElementById('mainApp'); s.style.transform = 'translateY(-100%)'; s.style.opacity = '0'; setTimeout(() => { s.style.display = 'none'; a.style.display = 'block'; fetchLiveExchangeRate(); fetchLiveWeather(); setTimeout(() => a.style.opacity = '1', 50); }, 800); }
+    function enterApp() { const s = document.getElementById('splash'); const a = document.getElementById('mainApp'); s.style.transform = 'translateY(-100%)'; s.style.opacity = '0'; setTimeout(() => { s.style.display = 'none'; a.style.display = 'block'; fetchLiveExchangeRate(); fetchLiveWeather(); injectSettingsUI(); syncOfflineQueue(); setTimeout(() => a.style.opacity = '1', 50); }, 800); }
     
     function showTab(id, el) { 
         document.querySelectorAll('.container').forEach(c => c.classList.remove('active')); 
@@ -562,8 +1055,70 @@
     guideDetail.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; });
     guideDetail.addEventListener('touchend', e => { touchendX = e.changedTouches[0].screenX; if (touchendX - touchstartX > 100) closeGuideFolder(); });
 
-    async function uploadSingleToImgBB(file, target) { if (!file || file.size > 32*1024*1024) return; let statusId = target+'UploadStatus'; if(target==='voucher') statusId='voucherStatus'; if(target==='receipt') statusId='receiptStatus'; const status = document.getElementById(statusId); status.innerText = "⏳ 上傳中..."; const fd = new FormData(); fd.append("image", file); try { const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: fd }); const data = await res.json(); if (data.success) { if(target==='shop') { document.getElementById('tempShopImg').value = data.data.url; } else if(target==='voucher') { document.getElementById('tempVoucher').value = data.data.url; } else if(target==='receipt') { document.getElementById('tempReceipt').value = data.data.url; } else { document.getElementById('tempGuideImg').value = data.data.url; } status.innerText="✅ OK"; } } catch(e) {} }
-    async function uploadMultipleToImgBB(files, target) { if(files.length === 0) return; const status = document.getElementById('photoUploadStatus'); let d = (new Date().getMonth()+1)+"/"+new Date().getDate(); let successCount = 0; for(let i=0; i<files.length; i++) { let file = files[i]; if (file.size > 32*1024*1024) continue; status.innerText = `⏳ 批次上傳中... (${i+1}/${files.length})`; const fd = new FormData(); fd.append("image", file); try { const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: fd }); const data = await res.json(); if (data.success) { photoRef.push({url:data.data.url, date:d, timestamp:Date.now()}); successCount++; } } catch(e) {} } status.innerText = `✅ 成功歸檔 ${successCount} 張照片！`; }
+    async function uploadSingleToImgBB(file, target) { 
+        if (!file) return; 
+        if (file.size > 32*1024*1024) { showToast("⚠️ 檔案太大，限制 32MB 以內", "warning"); return; }
+        let statusId = target+'UploadStatus'; 
+        if(target==='voucher') statusId='voucherStatus'; 
+        if(target==='receipt') statusId='receiptStatus'; 
+        const status = document.getElementById(statusId); 
+        status.innerText = "⏳ 上傳中..."; 
+        const compressed = await compressImage(file);
+        const fd = new FormData(); 
+        fd.append("image", compressed); 
+        try { 
+            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: fd }); 
+            const data = await res.json(); 
+            if (data.success) { 
+                if(target==='shop') { document.getElementById('tempShopImg').value = data.data.url; } 
+                else if(target==='voucher') { document.getElementById('tempVoucher').value = data.data.url; } 
+                else if(target==='receipt') { document.getElementById('tempReceipt').value = data.data.url; } 
+                else { document.getElementById('tempGuideImg').value = data.data.url; } 
+                status.innerText="✅ 上傳成功"; 
+                showToast("圖片上傳成功", "success");
+            } else {
+                status.innerText="❌ 上傳失敗";
+                showToast("上傳失敗: " + (data.error ? data.error.message : "未知錯誤"), "error");
+            }
+        } catch(e) {
+            status.innerText="❌ 連線錯誤";
+            showToast("圖片上傳發生網路錯誤", "error");
+        } 
+    }
+    async function uploadMultipleToImgBB(files, target) { 
+        if(files.length === 0) return; 
+        const status = document.getElementById('photoUploadStatus'); 
+        let d = (new Date().getMonth()+1)+"/"+new Date().getDate(); 
+        let successCount = 0; 
+        for(let i=0; i<files.length; i++) { 
+            let file = files[i]; 
+            if (file.size > 32*1024*1024) { showToast(`⚠️ 檔案 ${file.name} 太大，已跳過`, "warning"); continue; }
+            status.innerText = `⏳ 批次上傳中... (${i+1}/${files.length})`; 
+            let compressed = await compressImage(file);
+            const fd = new FormData(); 
+            fd.append("image", compressed); 
+            try { 
+                const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: fd }); 
+                const data = await res.json(); 
+                if (data.success) { 
+                    try {
+                        await photoRef.push({url:data.data.url, date:d, timestamp:Date.now()});
+                        showToast("儲存成功", "success");
+                    } catch (error) {
+                        console.error(error);
+                        showToast(error.message || "同步失敗", "error");
+                    } 
+                    successCount++; 
+                } else {
+                    console.error("批次上傳單張失敗", data.error);
+                }
+            } catch(e) {
+                console.error("批次上傳連線失敗", e);
+            } 
+        } 
+        status.innerText = `✅ 成功歸檔 ${successCount} 張照片！`; 
+        showToast(`成功上傳並歸檔 ${successCount} 張美照`, "success");
+    }
 
     function speakKorean(text) { if ('speechSynthesis' in window) { let msg = new SpeechSynthesisUtterance(text); msg.lang = 'ko-KR'; msg.rate = 0.85; window.speechSynthesis.speak(msg); } }
 
@@ -571,7 +1126,15 @@
     voiceRef.on("value", s => {
         if(!s.exists()) {
             const defs = [{ tw: "你好 / 謝謝", kr: "안녕하세요 / 감사합니다", icon: "fa-handshake" }, { tw: "多少錢？", kr: "얼마예요?", icon: "fa-won-sign" }, { tw: "我要結帳", kr: "계산해 주세요", icon: "fa-credit-card" }, { tw: "請給我菜單", kr: "메뉴판 주세요", icon: "fa-book-open" }, { tw: "太辣了", kr: "너무 매워요", icon: "fa-pepper-hot" }, { tw: "洗手間在哪？", kr: "화장실이 어디예요?", icon: "fa-restroom" }, { tw: "飲品不加糖、蜂蜜與煉乳", kr: "설탕, 꿀, 연유는 아예 빼주세요.", icon: "fa-mug-hot", custom: true }];
-            defs.forEach(v => voiceRef.push(v));
+            defs.forEach(async v => {
+                try {
+                    await voiceRef.push(v);
+                    showToast("儲存成功", "success");
+                } catch (error) {
+                    console.error(error);
+                    showToast(error.message || "同步失敗", "error");
+                }
+            });
         } else { voiceData = []; s.forEach(ch => { voiceData.push({...ch.val(), key:ch.key}); }); renderVoiceCards(); }
     });
     function renderVoiceCards() {
@@ -582,8 +1145,32 @@
             l.innerHTML += `<div class="voice-card" style="${bgStyle}" onclick="openCardLightbox('${v.tw}', '${v.kr}')">${delBtn}<i class="fa-solid ${v.icon || 'fa-comment-dots'}"></i><span>${v.tw}</span><b>${v.kr}</b></div>`;
         });
     }
-    function addVoiceCard() { let tw = document.getElementById('newCardTw').value; let kr = document.getElementById('newCardKr').value; if(tw && kr) { voiceRef.push({ tw: tw, kr: kr, icon: 'fa-comment-dots', custom: true }); document.getElementById('newCardTw').value = ''; document.getElementById('newCardKr').value = ''; } }
-    function deleteVoiceCard(k) { voiceRef.child(k).remove(); }
+    async function addVoiceCard() { 
+        let tw = document.getElementById('newCardTw').value; 
+        let kr = document.getElementById('newCardKr').value; 
+        if(tw && kr) { 
+            try {
+                await voiceRef.push({ tw: tw, kr: kr, icon: 'fa-comment-dots', custom: true });
+                showToast("儲存成功", "success");
+            } catch (error) {
+                console.error(error);
+                showToast(error.message || "同步失敗", "error");
+            }
+            document.getElementById('newCardTw').value = ''; 
+            document.getElementById('newCardKr').value = ''; 
+        } else {
+            showToast("請填寫中文與韓文！", "warning");
+        }
+    }
+    async function deleteVoiceCard(k) { 
+        try {
+            await voiceRef.child(k).remove();
+            showToast("儲存成功", "success");
+        } catch (error) {
+            console.error(error);
+            showToast(error.message || "同步失敗", "error");
+        }
+    }
 
     let prepData = [];
     prepRef.on("value", s => {
@@ -596,7 +1183,15 @@
                 { text: "花路韓服 預約", link: "https://www.instagram.com/ggotgil_hanbok/", done: false },
                 { text: "韓服判 預約", link: "https://www.instagram.com/gyeongju_hanbokpan?igsh=MTBia3N5dzM2ZmxkMg==", done: false }
             ];
-            defs.forEach(p => prepRef.push(p));
+            defs.forEach(async p => {
+                try {
+                    await prepRef.push(p);
+                    showToast("儲存成功", "success");
+                } catch (error) {
+                    console.error(error);
+                    showToast(error.message || "同步失敗", "error");
+                }
+            });
         } else { prepData = []; s.forEach(ch => { prepData.push({...ch.val(), key:ch.key}); }); renderPrepList(); }
     });
     function renderPrepList() {
@@ -606,7 +1201,15 @@
             l.innerHTML += `<div class="prep-item ${p.done ? 'done' : ''}" onclick="togglePrep('${p.key}', ${p.done})"><div class="prep-check"><i class="fa-solid fa-check"></i></div><div class="prep-text">${p.text}</div>${linkHTML}</div>`;
         });
     }
-    function togglePrep(key, currentStatus) { prepRef.child(key).update({ done: !currentStatus }); }
+    async function togglePrep(key, currentStatus) { 
+        try {
+            await prepRef.child(key).update({ done: !currentStatus });
+            showToast("儲存成功", "success");
+        } catch (error) {
+            console.error(error);
+            showToast(error.message || "同步失敗", "error");
+        }
+    }
 
     // ⭐️ 滿血記帳本 + 預算進度條邏輯
     let privateBills = JSON.parse(localStorage.getItem('busan_v36_p_bills')) || []; let sharedBills = []; let currentBillTab = '公費';
@@ -656,9 +1259,9 @@
         let totalSharedTWD = sU1_TotalTWD_Paid + sU2_TotalTWD_Paid; let halfTWD = totalSharedTWD / 2; let u1Balance = sU1_TotalTWD_Paid - halfTWD;
         
         // ⭐️ 預算進度條渲染邏輯
-        let targetBudget = 50000; // 假設公費總預算為 5 萬台幣
+        let targetBudget = 50000; 
         let currentExpense = currentBillTab === '公費' ? totalSharedTWD : privateBills.reduce((acc, b) => acc + (b.currency === 'KRW' ? b.amt * liveKrwToTwd : b.amt), 0);
-        let target = currentBillTab === '公費' ? targetBudget : 20000; // 私帳預設抓 2 萬
+        let target = currentBillTab === '公費' ? targetBudget : 20000; 
         let pct = Math.min((currentExpense / target) * 100, 100).toFixed(1);
         
         document.getElementById('budgetBar').style.width = `${pct}%`;
@@ -677,11 +1280,54 @@
         if (u1Balance > 0) { settleText += `👉 <b>${u2.avatar} ${u2.name}</b> 應給 <b>${u1.avatar} ${u1.name}</b>：<span style="color:#27AE60; font-size:1.3rem;">$${Math.round(u1Balance).toLocaleString()}</span>`; } 
         else if (u1Balance < 0) { settleText += `👉 <b>${u1.avatar} ${u1.name}</b> 應給 <b>${u2.avatar} ${u2.name}</b>：<span style="color:#27AE60; font-size:1.3rem;">$${Math.round(Math.abs(u1Balance)).toLocaleString()}</span>`; } 
         else { settleText += `✨ 帳目完美平衡！`; }
-        res.innerHTML = settleText;
+        res.innerHTML = settleText; renderTravelModeDashboard();
     }
 
-    function addBill() { let n=document.getElementById('billName').value, a=parseFloat(document.getElementById('billAmt').value), cur=document.getElementById('billCurrency').value, t=document.getElementById('billType').value, m=document.getElementById('payMethod').value, p=document.getElementById('payer').value, rec=document.getElementById('tempReceipt').value; if(n&&a){ let nb={item:n, amt:a, currency:cur, type:t, method:m, payer:p, receipt:rec, timestamp:Date.now(), owner:deviceOwner}; if(t==='公費') billRef.push(nb); else { nb.id=Date.now(); privateBills.push(nb); localStorage.setItem('busan_v36_p_bills', JSON.stringify(privateBills)); renderBills(); } document.getElementById('billName').value=''; document.getElementById('billAmt').value=''; document.getElementById('tempReceipt').value=''; document.getElementById('receiptStatus').innerText=''; } }
-    function deleteSharedBill(k) { billRef.child(k).remove(); } function deletePrivateBill(id) { privateBills = privateBills.filter(b=>b.id!==id); localStorage.setItem('busan_v36_p_bills', JSON.stringify(privateBills)); renderBills(); }
+    async function addBill() { 
+        let n=document.getElementById('billName').value;
+        let a=parseFloat(document.getElementById('billAmt').value);
+        let cur=document.getElementById('billCurrency').value;
+        let t=document.getElementById('billType').value;
+        let m=document.getElementById('payMethod').value;
+        let p=document.getElementById('payer').value;
+        let rec=document.getElementById('tempReceipt').value; 
+        
+        if(!n || isNaN(a) || a <= 0) {
+            showToast("⚠️ 請填寫正確的花費名稱與大於 0 的金額！", "warning");
+            return;
+        }
+        
+        let nb={item:n, amt:a, currency:cur, type:t, method:m, payer:p, receipt:rec, timestamp:Date.now(), owner:deviceOwner}; 
+        if(t==='公費') {
+            try {
+                await billRef.push(nb);
+                showToast("儲存成功", "success");
+            } catch (error) {
+                console.error(error);
+                showToast(error.message || "同步失敗", "error");
+            }
+        } else { 
+            nb.id=Date.now(); 
+            privateBills.push(nb); 
+            localStorage.setItem('busan_v36_p_bills', JSON.stringify(privateBills)); 
+            renderBills(); 
+            showToast("🔒 個人私帳已儲存於本機", "success");
+        } 
+        document.getElementById('billName').value=''; 
+        document.getElementById('billAmt').value=''; 
+        document.getElementById('tempReceipt').value=''; 
+        document.getElementById('receiptStatus').innerText=''; 
+    }
+    async function deleteSharedBill(k) { 
+        try {
+            await billRef.child(k).remove();
+            showToast("儲存成功", "success");
+        } catch (error) {
+            console.error(error);
+            showToast(error.message || "同步失敗", "error");
+        }
+    } 
+    function deletePrivateBill(id) { privateBills = privateBills.filter(b=>b.id!==id); localStorage.setItem('busan_v36_p_bills', JSON.stringify(privateBills)); renderBills(); showToast("個人私帳記錄已刪除", "success"); }
 
     // 拍立得相冊
     photoRef.orderByChild("timestamp").on("value", s => {
@@ -691,15 +1337,699 @@
     });
 
     let ticketData = [];
-    ticketRef.on("value", s => { if(!s.exists()) { ticketRef.push({ type: "🏨 住宿", title: "西面大本營", desc: "11/13 - 11/17", link: "https://map.naver.com/p/search/%EC%84%9C%EB%A9%B4%EC%97%AD", voucher: "" }); } else { ticketData = []; s.forEach(ch => { ticketData.push({...ch.val(), key:ch.key}); }); renderTickets(); } });
-    function renderTickets() { const l = document.getElementById('ticketList'); l.innerHTML = ''; ticketData.forEach(t => { let lh = t.link ? `<a href="${t.link}" target="_blank" class="map-tag" style="margin-top:8px;"><i class="fa-solid fa-map-location-dot"></i> 地圖</a>` : ''; let vh = t.voucher ? `<a href="${t.voucher}" target="_blank" class="map-tag" style="background:var(--primary); margin-top:8px;"><i class="fa-solid fa-image"></i> 看憑證</a>` : ''; l.innerHTML += `<div class="card" style="padding:15px; border-left:5px solid var(--dora); margin-bottom:12px;"><div style="display:flex; justify-content:space-between; align-items:flex-start;"><div><div style="font-weight:900; font-size:1.05rem; margin-bottom:4px;">${t.type} | ${t.title}</div><div style="font-size:0.85rem; color:#7f8c8d; font-weight:700;">${t.desc}</div>${lh} ${vh}</div><button class="btn-delete" onclick="deleteTicket('${t.key}')"><i class="fa-solid fa-trash"></i></button></div></div>`; }); }
-    function addTicket() { let ty=document.getElementById('tkType').value, ti=document.getElementById('tkTitle').value, de=document.getElementById('tkDesc').value, l=document.getElementById('tkLink').value, v=document.getElementById('tempVoucher').value; if(ti) ticketRef.push({type:ty, title:ti, desc:de, link:l, voucher:v}); document.getElementById('tkTitle').value=''; document.getElementById('tkDesc').value=''; document.getElementById('tkLink').value=''; document.getElementById('tempVoucher').value=''; document.getElementById('voucherStatus').innerText='';}
-    function deleteTicket(k) { ticketRef.child(k).remove(); }
+    ticketRef.on("value", s => { 
+        if(!s.exists()) { 
+            (async () => {
+                try {
+                    await ticketRef.push({ 
+                        type: "🏨 住宿", 
+                        title: "城市律動飯店", 
+                        desc: "11/13 - 11/17", 
+                        link: "https://www.trip.com/hotels/busan-hotel-detail-113941372/urban-groove-hotel/", 
+                        voucher: "",
+                        hotelName: "城市律動飯店",
+                        hotelNameKr: "어반그루브호텔",
+                        hotelNameEn: "Urban Groove Hotel",
+                        hotelPhoto: "",
+                        addrZh: "釜山廣域市釜山鎮區荒嶺大路17番街18",
+                        addrKr: "부산광역시 부산진구 황령대로17번길 18",
+                        addrEn: "18 Hwangnyeong-daero 17beon-gil, Busanjin-gu, Busan 47353, South Korea",
+                        checkInDate: "2026-11-13",
+                        checkOutDate: "2026-11-17",
+                        checkInTime: "17:00",
+                        checkOutTime: "12:00",
+                        roomType: "尊貴雙床房",
+                        bookingPlatform: "Trip.com",
+                        bookingNo: "",
+                        note: "尚未填寫",
+                        wifiSsid: "有",
+                        wifiPassword: "",
+                        outletSpec: "尚未填寫",
+                        needAdapter: "尚未填寫",
+                        hairDryer: "尚未填寫",
+                        fridge: "尚未填寫",
+                        washer: "有",
+                        dryer: "尚未填寫",
+                        laundryFee: "尚未填寫",
+                        microwave: "尚未填寫",
+                        luggagePre: "尚未填寫",
+                        luggagePost: "尚未填寫",
+                        hotelPhone: "+82 507-1384-5553",
+                        hotelEmail: "尚未填寫",
+                        hotelWebsite: "",
+                        googleMap: "https://www.google.com/maps/search/?api=1&query=Urban+Groove+Hotel+Busan",
+                        naverMap: "https://map.naver.com/p/search/%EC%96%B4%EB%B0%98%EA%B7%B8%EB%A3%A8%EB%B8%8C%ED%98%B8%ED%85%94",
+                        kakaoMap: "https://map.kakao.com/?q=%EC%96%B4%EB%B0%98%EA%B7%B8%EB%A3%A8%EB%B8%8C%ED%98%B8%ED%85%94",
+                        metro: "凡內谷站 (Beomnaegol Station)",
+                        metroExit: "6號出口",
+                        walkTime: "步行約 3-4 分鐘",
+                        toSeomyeon: "尚未填寫",
+                        toBusan: "尚未填寫",
+                        toHaeundae: "尚未填寫",
+                        toGwangalli: "尚未填寫",
+                        toAirport: "尚未填寫",
+                        nearbyCu: "尚未填寫",
+                        nearbyGs25: "尚未填寫",
+                        nearby711: "尚未填寫",
+                        breakfast: "無餐點",
+                        moneyEx: "尚未填寫",
+                        pharmacy: "尚未填寫",
+                        oliveYoung: "尚未填寫",
+                        agodaLink: "https://www.agoda.com/zh-tw/busan-seomyeon-urban-groove-hotel/hotel/busan-kr.html",
+                        bookingLink: "https://www.booking.com/hotel/kr/urban-groove.zh-tw.html",
+                        tripLink: "https://www.trip.com/hotels/busan-hotel-detail-113941372/urban-groove-hotel/",
+                        googleReviewsLink: "https://www.google.com/maps/search/?api=1&query=Urban+Groove+Hotel+Busan+Reviews",
+                        totalPrice: 10828,
+                        currency: "TWD",
+                        nights: 4,
+                        guests: 2,
+                        roomCapacity: 4,
+                        roomCount: 1,
+                        guestName: "",
+                        roomNo: "",
+                        bedType: "2 張大床",
+                        docTripOrder: "尚未填寫",
+                        docReceipt: "尚未填寫",
+                        docQrCode: "尚未填寫",
+                        docOthers: "尚未填寫",
+                        emgHospital: "尚未填寫",
+                        emgPharmacy: "尚未填寫",
+                        emgPolice: "尚未填寫",
+                        lastUpdate: Date.now()
+                    });
+                    showToast("儲存成功", "success");
+                } catch (error) {
+                    console.error(error);
+                    showToast(error.message || "同步失敗", "error");
+                }
+            })();
+        } else { 
+            ticketData = []; 
+            s.forEach(ch => { ticketData.push({...ch.val(), key:ch.key}); }); 
+            renderTickets(); 
+        } 
+    });
+    function copyAddress(addr) {
+        if (!addr || addr === "尚未填寫") {
+            showToast("地址為空！", "warning");
+            return;
+        }
+        navigator.clipboard.writeText(addr).then(() => {
+            showToast("複製成功", "success");
+        }).catch(err => {
+            console.error(err);
+            showToast(err.message || "複製失敗", "error");
+        });
+    }
+
+    function copyTaxiHelper(addrKr) {
+        if (!addrKr || addrKr === "尚未填寫") {
+            showToast("韓文地址為空，無法複製計程車字條！", "warning");
+            return;
+        }
+        const text = "기사님,\n여기로 부탁드립니다.\n\n" + addrKr;
+        navigator.clipboard.writeText(text).then(() => {
+            showToast("複製成功", "success");
+        }).catch(err => {
+            console.error(err);
+            showToast(err.message || "複製失敗", "error");
+        });
+    }
+
+    function copyWiFi(text) {
+        if (!text || text === "尚未填寫") {
+            showToast("無有效文字可複製", "warning");
+            return;
+        }
+        navigator.clipboard.writeText(text).then(() => {
+            showToast("複製成功", "success");
+        }).catch(err => {
+            console.error(err);
+            showToast(err.message || "複製失敗", "error");
+        });
+    }
+
+    function toggleHotelDetail(el) {
+        const box = el.nextElementSibling;
+        const badge = el.querySelector('.toggle-text');
+        const labelSpan = el.querySelector('span');
+        if (box.style.display === 'none' || box.style.display === '') {
+            box.style.display = 'block';
+            labelSpan.innerHTML = '<i class="fa-solid fa-circle-chevron-up toggle-arrow-icon"></i> 收合詳細飯店與房內設施';
+            badge.innerText = '收合';
+        } else {
+            box.style.display = 'none';
+            labelSpan.innerHTML = '<i class="fa-solid fa-circle-chevron-down toggle-arrow-icon"></i> 展開詳細飯店與房內設施';
+            badge.innerText = '展開';
+        }
+    }
+
+    function valOrPlaceholder(val) {
+        if (val === undefined || val === null || String(val).trim() === "" || String(val).trim() === "null") {
+            return "尚未填寫";
+        }
+        return val;
+    }
+
+    function formatPrice(amt, cur = "TWD") {
+        if (isNaN(amt) || amt === null || amt === undefined) return "尚未填寫";
+        let c = (cur && String(cur).trim() !== "" && String(cur).trim() !== "尚未填寫") ? String(cur).trim() : "TWD";
+        return c + " " + Math.round(amt).toLocaleString();
+    }
+
+    function formatLastUpdate(timestamp) {
+        if (!timestamp || isNaN(timestamp)) return "";
+        let date = new Date(timestamp);
+        let y = date.getFullYear();
+        let m = String(date.getMonth() + 1).padStart(2, '0');
+        let d = String(date.getDate()).padStart(2, '0');
+        let hh = String(date.getHours()).padStart(2, '0');
+        let mm = String(date.getMinutes()).padStart(2, '0');
+        return "最後更新：" + y + "/" + m + "/" + d + " " + hh + ":" + mm;
+    }
+
+    function getLinkButton(url, label, iconClass, bgColor = "var(--dora)", textColor = "white") {
+        if (!url || String(url).trim() === "" || String(url).trim() === "尚未填寫") {
+            return `<button class="map-tag" onclick="showToast('${label}連結尚未填寫', 'warning')" style="background:#bdc3c7; color:#7f8c8d; border:none; border-radius:10px; padding: 6px 12px; font-size:0.8rem; font-weight:900; cursor:not-allowed; margin-top:8px;"><i class="${iconClass}"></i> ${label} (尚未填寫)</button>`;
+        }
+        return `<a href="${url}" target="_blank" class="map-tag" style="background:${bgColor}; color:${textColor}; border:none; border-radius:10px; padding: 6px 12px; font-size:0.8rem; font-weight:900; text-decoration:none; display:inline-block; margin-top:8px;"><i class="${iconClass}"></i> ${label}</a>`;
+    }
+
+    window.editHotel = function(key) {
+        let t = ticketData.find(x => x.key === key);
+        if (!t) return;
+        
+        let modal = document.createElement('div');
+        modal.id = 'dynamicLodgingModal';
+        modal.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:99999; display:flex; justify-content:center; align-items:center; backdrop-filter:blur(5px); padding:20px; box-sizing:border-box;";
+        
+        let form = document.createElement('div');
+        form.style = "background:#FFF9F2; border-radius:24px; width:100%; max-width:500px; max-height:90vh; overflow-y:auto; padding:25px; box-shadow:0 10px 30px rgba(0,0,0,0.3); box-sizing:border-box; font-family:'Noto Sans TC', sans-serif;";
+        
+        form.innerHTML = `<h3 style="margin-top:0; font-weight:900; color:var(--primary); display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-pen-to-square"></i> 編輯住宿資訊</h3>`;
+        
+        let fields = [
+            { key: 'hotelName', label: '飯店名稱(中)' },
+            { key: 'hotelNameKr', label: '飯店名稱(韓)' },
+            { key: 'hotelNameEn', label: '飯店名稱(英)' },
+            { key: 'hotelPhoto', label: '飯店照片連結' },
+            { key: 'addrZh', label: '地址(中)' },
+            { key: 'addrKr', label: '地址(韓)' },
+            { key: 'addrEn', label: '地址(英)' },
+            { key: 'checkInDate', label: '入住日期' },
+            { key: 'checkOutDate', label: '退房日期' },
+            { key: 'checkInTime', label: 'Check-in 時間' },
+            { key: 'checkOutTime', label: 'Check-out 時間' },
+            { key: 'roomType', label: '預訂房型' },
+            { key: 'bedType', label: '床型規格' },
+            { key: 'roomCapacity', label: '房型容量(人數)' },
+            { key: 'roomCount', label: '房間數量' },
+            { key: 'bookingPlatform', label: '訂房平台' },
+            { key: 'bookingNo', label: '訂房編號' },
+            { key: 'guestName', label: '入住人姓名' },
+            { key: 'roomNo', label: '房間號碼' },
+            { key: 'guests', label: '實際入住人數' },
+            { key: 'nights', label: '入住晚數' },
+            { key: 'totalPrice', label: '總金額(房價)' },
+            { key: 'currency', label: '幣別' },
+            { key: 'wifiSsid', label: 'WiFi 名稱(SSID)' },
+            { key: 'wifiPassword', label: 'WiFi 密碼' },
+            { key: 'outletSpec', label: '插座規格' },
+            { key: 'needAdapter', label: '需轉接頭(是/否)' },
+            { key: 'hairDryer', label: '吹風機(有/無)' },
+            { key: 'fridge', label: '冰箱(有/無)' },
+            { key: 'washer', label: '洗衣機(有/無)' },
+            { key: 'dryer', label: '烘衣機(有/無)' },
+            { key: 'laundryFee', label: '洗衣費用' },
+            { key: 'microwave', label: '微波爐(有/無)' },
+            { key: 'luggagePre', label: '入住前可寄放' },
+            { key: 'luggagePost', label: '退房後可寄放' },
+            { key: 'hotelPhone', label: '櫃台電話' },
+            { key: 'hotelEmail', label: 'Email' },
+            { key: 'hotelWebsite', label: '官方網站' },
+            { key: 'googleMap', label: 'Google Map 連結' },
+            { key: 'naverMap', label: 'Naver Map 連結' },
+            { key: 'kakaoMap', label: 'Kakao Map 連結' },
+            { key: 'agodaLink', label: 'Agoda 連結' },
+            { key: 'bookingLink', label: 'Booking.com 連結' },
+            { key: 'tripLink', label: 'Trip.com 飯店連結' },
+            { key: 'googleReviewsLink', label: 'Google 評論連結' },
+            { key: 'metro', label: '最近地鐵站' },
+            { key: 'metroExit', label: '幾號出口' },
+            { key: 'walkTime', label: '步行時間' },
+            { key: 'toSeomyeon', label: '到西面站交通' },
+            { key: 'toBusan', label: '到釜山站交通' },
+            { key: 'toHaeundae', label: '到海雲台交通' },
+            { key: 'toGwangalli', label: '到廣安里交通' },
+            { key: 'toAirport', label: '到金海機場交通' },
+            { key: 'nearbyCu', label: '最近 CU' },
+            { key: 'nearbyGs25', label: '最近 GS25' },
+            { key: 'nearby711', label: '最近 7-11' },
+            { key: 'breakfast', label: '早餐說明' },
+            { key: 'moneyEx', label: '附近換錢所' },
+            { key: 'pharmacy', label: '附近藥局' },
+            { key: 'oliveYoung', label: 'Olive Young' },
+            { key: 'docTripOrder', label: '📄 Trip.com 訂單連結' },
+            { key: 'docReceipt', label: '📄 電子收據連結' },
+            { key: 'docPayment', label: '📄 付款證明連結' },
+            { key: 'docQrCode', label: '📄 入住 QR Code 連結' },
+            { key: 'docOthers', label: '📄 其他住宿文件連結' },
+            { key: 'emgHospital', label: '🚨 最近醫院' },
+            { key: 'emgPharmacy', label: '🚨 最近藥局' },
+            { key: 'emgPolice', label: '🚨 最近派出所' }
+        ];
+
+        let sections = {
+            "基本資訊": ["hotelName", "hotelNameKr", "hotelNameEn", "hotelPhoto", "addrZh", "addrKr", "addrEn"],
+            "入住資訊": ["checkInDate", "checkOutDate", "checkInTime", "checkOutTime", "roomType", "bedType", "roomCapacity", "roomCount", "bookingPlatform", "bookingNo", "guestName", "roomNo", "guests", "nights", "totalPrice", "currency", "breakfast"],
+            "WiFi & 設施": ["wifiSsid", "wifiPassword", "outletSpec", "needAdapter", "hairDryer", "fridge", "washer", "dryer", "laundryFee", "microwave"],
+            "行李 & 聯絡": ["luggagePre", "luggagePost", "hotelPhone", "hotelEmail", "hotelWebsite"],
+            "地圖與平台連結": ["googleMap", "naverMap", "kakaoMap", "agodaLink", "bookingLink", "tripLink", "googleReviewsLink"],
+            "交通資訊": ["metro", "metroExit", "walkTime", "toSeomyeon", "toBusan", "toHaeundae", "toGwangalli", "toAirport"],
+            "周邊生活": ["nearbyCu", "nearbyGs25", "nearby711", "moneyEx", "pharmacy", "oliveYoung"],
+            "📄 我的住宿文件": ["docTripOrder", "docReceipt", "docPayment", "docQrCode", "docOthers"],
+            "🚨 緊急資訊": ["emgHospital", "emgPharmacy", "emgPolice"]
+        };
+
+        let sectionHtml = '';
+        for (let secName in sections) {
+            sectionHtml += `<div style="font-weight:900; color:var(--dora); margin: 15px 0 8px 0; border-bottom:1px solid #e0d0b0; padding-bottom:4px; font-size:0.9rem;">${secName}</div>`;
+            sections[secName].forEach(fKey => {
+                let fItem = fields.find(f => f.key === fKey);
+                let label = fItem ? fItem.label : fKey;
+                let val = t[fKey] || '';
+                if (val === "尚未填寫") val = '';
+                sectionHtml += `
+                    <div style="margin-bottom:8px; display:flex; flex-direction:column; gap:3px;">
+                        <label style="font-size:0.75rem; font-weight:700; color:#7f8c8d;">${label}</label>
+                        <input type="text" id="edit_hotel_${fKey}" class="input-box" value="${val}" style="width:100%; padding:8px 12px; border-radius:10px; border:1px solid #ccc; box-sizing:border-box; font-size:0.85rem;">
+                    </div>
+                `;
+            });
+        }
+
+        let btnGroup = `
+            <div style="display:flex; gap:10px; margin-top:20px; position:sticky; bottom:0; background:#FFF9F2; padding-top:10px; border-top:1px solid #eee;">
+                <button onclick="saveHotelEdits('${key}')" style="flex:1; padding:12px; border-radius:12px; border:none; background:var(--primary); color:white; font-weight:900; cursor:pointer;"><i class="fa-solid fa-save"></i> 儲存修改</button>
+                <button onclick="document.body.removeChild(document.getElementById('dynamicLodgingModal'))" style="flex:1; padding:12px; border-radius:12px; border:none; background:#bdc3c7; color:#333; font-weight:900; cursor:pointer;">取消</button>
+            </div>
+        `;
+        form.innerHTML += sectionHtml + btnGroup;
+        modal.appendChild(form);
+        document.body.appendChild(modal);
+    };
+
+    window.saveHotelEdits = async function(key) {
+        let updateData = {
+            lastUpdate: Date.now()
+        };
+        
+        let allKeys = [
+            "hotelName", "hotelNameKr", "hotelNameEn", "hotelPhoto", "addrZh", "addrKr", "addrEn",
+            "checkInDate", "checkOutDate", "checkInTime", "checkOutTime", "roomType", "bedType",
+            "roomCapacity", "roomCount", "bookingPlatform", "bookingNo", "guestName", "roomNo", "guests",
+            "nights", "totalPrice", "currency", "breakfast", "wifiSsid", "wifiPassword",
+            "outletSpec", "needAdapter", "hairDryer", "fridge", "washer", "dryer", "laundryFee",
+            "microwave", "luggagePre", "luggagePost", "hotelPhone", "hotelEmail", "hotelWebsite",
+            "googleMap", "naverMap", "kakaoMap", "agodaLink", "bookingLink", "tripLink",
+            "googleReviewsLink", "metro", "metroExit", "walkTime", "toSeomyeon", "toBusan",
+            "toHaeundae", "toGwangalli", "toAirport", "nearbyCu", "nearbyGs25", "nearby711",
+            "moneyEx", "pharmacy", "oliveYoung", "docTripOrder", "docReceipt", "docPayment", "docQrCode",
+            "docOthers", "emgHospital", "emgPharmacy", "emgPolice"
+        ];
+        
+        allKeys.forEach(k => {
+            let el = document.getElementById("edit_hotel_" + k);
+            if (el) {
+                let val = el.value.trim();
+                updateData[k] = val === "" ? "尚未填寫" : val;
+            }
+        });
+        
+        if (updateData.totalPrice && updateData.totalPrice !== "尚未填寫") {
+            let p = parseFloat(updateData.totalPrice);
+            updateData.totalPrice = isNaN(p) ? "尚未填寫" : p;
+        }
+        if (updateData.nights && updateData.nights !== "尚未填寫") {
+            let n = parseInt(updateData.nights);
+            updateData.nights = isNaN(n) ? "尚未填寫" : n;
+        }
+        if (updateData.guests && updateData.guests !== "尚未填寫") {
+            let g = parseInt(updateData.guests);
+            updateData.guests = isNaN(g) ? "尚未填寫" : g;
+        }
+        if (updateData.roomCapacity && updateData.roomCapacity !== "尚未填寫") {
+            let rc = parseInt(updateData.roomCapacity);
+            updateData.roomCapacity = isNaN(rc) ? "尚未填寫" : rc;
+        }
+        if (updateData.roomCount && updateData.roomCount !== "尚未填寫") {
+            let rco = parseInt(updateData.roomCount);
+            updateData.roomCount = isNaN(rco) ? "尚未填寫" : rco;
+        }
+        
+        try {
+            await ticketRef.child(key).update(updateData);
+            showToast("儲存成功", "success");
+            let m = document.getElementById('dynamicLodgingModal');
+            if (m) document.body.removeChild(m);
+        } catch (error) {
+            console.error(error);
+            showToast(error.message || "同步失敗", "error");
+        }
+    };
+
+    function renderTickets() {
+        const l = document.getElementById('ticketList');
+        l.innerHTML = '';
+        ticketData.forEach(t => {
+            if (t.type === "🏨 住宿" && (t.hotelName || t.title)) {
+                let googleBtn = getLinkButton(t.googleMap, "Google Maps", "fa-solid fa-map", "#4285F4", "white");
+                let naverBtn = getLinkButton(t.naverMap, "Naver Map", "fa-solid fa-location-arrow", "#03C75A", "white");
+                let kakaoBtn = getLinkButton(t.kakaoMap, "Kakao Map", "fa-solid fa-route", "#FEE500", "#3C1E1E");
+                
+                let agodaBtn = getLinkButton(t.agodaLink, "Agoda", "fa-solid fa-hotel", "#E12F81", "white");
+                let bookingBtn = getLinkButton(t.bookingLink, "Booking.com", "fa-solid fa-h-square", "#003580", "white");
+                let tripBtn = getLinkButton(t.tripLink, "Trip.com", "fa-solid fa-suitcase", "#2577E3", "white");
+                let googleReviewsBtn = getLinkButton(t.googleReviewsLink, "Google 評論", "fa-solid fa-star", "#F4B400", "white");
+                
+                let websiteBtn = t.hotelWebsite ? getLinkButton(t.hotelWebsite, "官方網站", "fa-solid fa-globe", "var(--dora)", "white") : '尚未填寫';
+                
+                let photoHtml = (t.hotelPhoto && t.hotelPhoto !== "尚未填寫") ? `<img src="${t.hotelPhoto}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 16px; margin-bottom: 12px; cursor: zoom-in;" onclick="openLightbox('${t.hotelPhoto}', null)">` : '';
+                let vh = t.voucher ? `<a href="${t.voucher}" target="_blank" class="map-tag" style="background:var(--primary); margin-top:8px; display:inline-block; text-decoration:none;"><i class="fa-solid fa-image"></i> 看憑證</a>` : '';
+                
+                let totalPriceVal = parseFloat(t.totalPrice);
+                let nightsVal = parseInt(t.nights);
+                let guestsVal = parseInt(t.guests);
+                
+                let avgPerNight = "尚未填寫";
+                let avgPerGuest = "尚未填寫";
+                let avgPerGuestNight = "尚未填寫";
+                
+                if (!isNaN(totalPriceVal) && !isNaN(nightsVal) && nightsVal > 0) {
+                    avgPerNight = formatPrice(totalPriceVal / nightsVal, t.currency);
+                }
+                if (!isNaN(totalPriceVal) && !isNaN(guestsVal) && guestsVal > 0) {
+                    avgPerGuest = formatPrice(totalPriceVal / guestsVal, t.currency);
+                }
+                if (!isNaN(totalPriceVal) && !isNaN(guestsVal) && guestsVal > 0 && !isNaN(nightsVal) && nightsVal > 0) {
+                    avgPerGuestNight = formatPrice(totalPriceVal / (guestsVal * nightsVal), t.currency);
+                }
+                
+                l.innerHTML += `
+<div class="card" style="padding: 20px; border-left: 6px solid var(--primary); margin-bottom: 16px; position: relative; border-radius: 24px;">
+    <div style="position: absolute; top: 15px; right: 15px; z-index:10; display:flex; gap:6px;">
+        <button class="btn-edit" onclick="editHotel('${t.key}')" style="background:#f39c12; color:white; border:none; border-radius:8px; padding: 4px 8px; font-size:0.75rem; cursor:pointer;"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn-delete" onclick="deleteTicket('${t.key}')"><i class="fa-solid fa-trash"></i></button>
+    </div>
+    
+    <!-- Header: Photo & Title -->
+    ${photoHtml}
+    <div style="margin-bottom: 12px;">
+        <span style="background: var(--primary); color: white; padding: 3px 8px; border-radius: 8px; font-size: 0.7rem; font-weight: 900; display: inline-block; margin-bottom: 6px;">🏨 住宿資訊卡</span>
+        <h3 style="margin: 0 0 4px 0; font-weight: 900; color: var(--text-dark); font-size: 1.2rem;">${valOrPlaceholder(t.hotelName || t.title)}</h3>
+        <div style="font-size: 0.8rem; color: #7f8c8d; font-weight: 700; line-height: 1.4;">
+            <div>🇰🇷 韓文：${valOrPlaceholder(t.hotelNameKr)}</div>
+            <div>🇺🇸 英文：${valOrPlaceholder(t.hotelNameEn)}</div>
+        </div>
+    </div>
+    
+    <!-- Dates and Times -->
+    <div style="display: flex; gap: 8px; margin-bottom: 12px; background: #fffdf9; padding: 10px; border-radius: 12px; border: 1px solid #f9ebd9;">
+        <div style="flex: 1; text-align: center; border-right: 1px dashed #e0d0b0; padding-right: 4px;">
+            <div style="font-size: 0.7rem; color: #a5b1c2; font-weight: 900;">📅 入住日期</div>
+            <div style="font-size: 0.85rem; font-weight: 900; color: var(--primary); margin: 2px 0;">${valOrPlaceholder(t.checkInDate || t.desc)}</div>
+            <div style="font-size: 0.7rem; color: #7f8c8d; font-weight: 700;">🕒 Check-in: ${valOrPlaceholder(t.checkInTime)}</div>
+        </div>
+        <div style="flex: 1; text-align: center; padding-left: 4px;">
+            <div style="font-size: 0.7rem; color: #a5b1c2; font-weight: 900;">📅 退房日期</div>
+            <div style="font-size: 0.85rem; font-weight: 900; color: var(--text-dark); margin: 2px 0;">${valOrPlaceholder(t.checkOutDate)}</div>
+            <div style="font-size: 0.7rem; color: #7f8c8d; font-weight: 700;">🕒 Check-out: ${valOrPlaceholder(t.checkOutTime)}</div>
+        </div>
+    </div>
+
+    <!-- 住宿費用摘要 -->
+    <div style="margin-bottom: 12px; border-top: 1px dashed #eee; padding-top: 8px;">
+        <div style="font-weight: 900; font-size: 0.8rem; color: var(--primary); margin-bottom: 6px;"><i class="fa-solid fa-calculator"></i> 住宿費用摘要</div>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #555; line-height: 1.5; background: #fffdf9; padding: 10px; border-radius: 12px; border: 1px solid #f9ebd9;">
+            <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 6px; border-bottom: 1px dashed #f0e0d0; padding-bottom: 6px; margin-bottom: 6px; font-size: 0.75rem;">
+                <div>💰 總房價：<b>${formatPrice(t.totalPrice, t.currency)}</b></div>
+                <div>🌙 入住晚數：<b>${valOrPlaceholder(t.nights)} 晚</b></div>
+                <div>👥 入住人數：<b>${valOrPlaceholder(t.guests)} 人</b></div>
+                <div>🛏️ 房間數量：<b>${valOrPlaceholder(t.roomCount)} 間</b></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span>🌙 每晚平均房價：</span>
+                    <span style="font-weight: 900; color: var(--text-dark);">${avgPerNight}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>👤 每人住宿費：</span>
+                    <span style="font-weight: 900; color: var(--text-dark);">${avgPerGuest}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>✨ 每人每晚住宿費：</span>
+                    <span style="font-weight: 900; color: var(--primary);">${avgPerGuestNight}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toggler -->
+    <div onclick="toggleHotelDetail(this)" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #fffdf9; padding: 10px 14px; border-radius: 16px; border: 1px solid #f9ebd9; margin-top: 10px;">
+        <span style="font-weight: 900; font-size: 0.8rem; color: var(--primary);"><i class="fa-solid fa-circle-chevron-down toggle-arrow-icon"></i> 展開詳細飯店與房內設施</span>
+        <span style="font-size: 0.7rem; background: rgba(192, 57, 43, 0.1); padding: 2px 8px; border-radius: 6px; color: var(--primary); font-weight: 900;" class="toggle-text">展開</span>
+    </div>
+
+    <!-- Collapsible Box -->
+    <div class="hotel-details-box" style="display: none; margin-top: 15px; border-top: 1px dashed #eee; padding-top: 12px;">
+        
+        <!-- Room booking platforms -->
+        <div style="font-weight: 900; font-size: 0.8rem; color: var(--dora); margin-bottom: 4px;"><i class="fa-solid fa-receipt"></i> 訂房與房型資訊</div>
+        <div style="font-size: 0.8rem; font-weight: 700; color: #555; line-height: 1.4; background: #fdfdfd; padding: 8px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 12px;">
+            <div>🛏️ 預訂房型：<b>${valOrPlaceholder(t.roomType)}</b></div>
+            <div style="margin: 2px 0;">🛌 床型規格：<b>${valOrPlaceholder(t.bedType)}</b></div>
+            <div style="margin: 2px 0;">👥 房型容量：<b>${valOrPlaceholder(t.roomCapacity)} 人</b></div>
+            <div style="margin: 2px 0;">🖥️ 訂房平台：<b>${valOrPlaceholder(t.bookingPlatform)}</b></div>
+            <div style="margin: 2px 0;">🔢 訂房編號：<b>${valOrPlaceholder(t.bookingNo)}</b></div>
+            <div style="margin: 2px 0;">🔑 房間號碼：<b>${valOrPlaceholder(t.roomNo)}</b></div>
+            <div>👤 入住人：<b>${valOrPlaceholder(t.guestName)}</b></div>
+        </div>
+
+        <!-- WiFi -->
+        <div style="font-weight: 900; font-size: 0.8rem; color: var(--dora); margin-bottom: 4px;"><i class="fa-solid fa-wifi"></i> WiFi 與上網</div>
+        <div style="font-size: 0.8rem; font-weight: 700; color: #555; line-height: 1.4; margin-bottom: 12px;">
+            <div style="background: #fdfdfd; padding: 8px; border-radius: 12px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                <div>📶 WiFi 名稱：<b>${valOrPlaceholder(t.wifiSsid)}</b></div>
+                <button class="btn-edit" onclick="copyWiFi('${t.wifiSsid || ''}')" style="font-size: 0.7rem; padding: 3px 8px; border-radius: 8px;"><i class="fa-solid fa-copy"></i> 複製</button>
+            </div>
+            <div style="background: #fdfdfd; padding: 8px; border-radius: 12px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                <div>🔑 WiFi 密碼：<b>${valOrPlaceholder(t.wifiPassword)}</b></div>
+                <button class="btn-edit" onclick="copyWiFi('${t.wifiPassword || ''}')" style="font-size: 0.7rem; padding: 3px 8px; border-radius: 8px;"><i class="fa-solid fa-copy"></i> 複製</button>
+            </div>
+        </div>
+
+        <!-- Facilities -->
+        <div style="font-weight: 900; font-size: 0.8rem; color: var(--dora); margin-bottom: 4px;"><i class="fa-solid fa-plug"></i> 房間設備與規格</div>
+        <div style="font-size: 0.8rem; font-weight: 700; color: #555; line-height: 1.5; background: #fdfdfd; padding: 8px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 12px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+                <div>🔌 插座規格：<b>${valOrPlaceholder(t.outletSpec)}</b></div>
+                <div>🔌 需轉接頭：<b>${valOrPlaceholder(t.needAdapter)}</b></div>
+                <div>💨 吹風機：<b>${valOrPlaceholder(t.hairDryer)}</b></div>
+                <div>🧊 冰箱：<b>${valOrPlaceholder(t.fridge)}</b></div>
+                <div>🧺 洗衣機：<b>${valOrPlaceholder(t.washer)}</b></div>
+                <div>☀️ 烘衣機：<b>${valOrPlaceholder(t.dryer)}</b></div>
+                <div>🥣 微波爐：<b>${valOrPlaceholder(t.microwave)}</b></div>
+                <div>🪙 洗衣費用：<b>${valOrPlaceholder(t.laundryFee)}</b></div>
+            </div>
+        </div>
+
+        <!-- Luggage Services -->
+        <div style="font-weight: 900; font-size: 0.8rem; color: var(--dora); margin-bottom: 4px;"><i class="fa-solid fa-suitcase-rolling"></i> 行理寄存服務</div>
+        <div style="font-size: 0.8rem; font-weight: 700; color: #555; line-height: 1.4; background: #fdfdfd; padding: 8px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+            <div>🧳 入住前可寄放：<b>${valOrPlaceholder(t.luggagePre)}</b></div>
+            <div>🧳 退房後可寄放：<b>${valOrPlaceholder(t.luggagePost)}</b></div>
+        </div>
+
+        <!-- Hotel Contacts -->
+        <div style="font-weight: 900; font-size: 0.8rem; color: var(--dora); margin-bottom: 4px;"><i class="fa-solid fa-address-book"></i> 聯絡與資訊</div>
+        <div style="font-size: 0.8rem; font-weight: 700; color: #555; line-height: 1.4; background: #fdfdfd; padding: 8px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 12px;">
+            <div>📞 櫃台電話：<b>${valOrPlaceholder(t.hotelPhone)}</b></div>
+            <div style="margin: 2px 0;">📧 電子郵件：<b>${valOrPlaceholder(t.hotelEmail)}</b></div>
+            <div style="display:flex; align-items:center; gap: 6px;">🌐 官方網站：${websiteBtn}</div>
+        </div>
+
+        <!-- Address and Copies -->
+        <div style="margin-bottom: 12px; background: #f8f9fa; padding: 10px; border-radius: 12px; border: 1px solid #eee;">
+            <div style="font-weight: 900; font-size: 0.8rem; color: var(--dora); margin-bottom: 4px;"><i class="fa-solid fa-location-dot"></i> 飯店地址</div>
+            <div style="font-size: 0.8rem; line-height: 1.4; color: var(--text-dark); font-weight: 700; margin-bottom: 6px;">
+                <div>🇨🇳 中文：${valOrPlaceholder(t.addrZh)}</div>
+                <div style="margin: 2px 0;">🇰🇷 韓文：${valOrPlaceholder(t.addrKr)}</div>
+                <div>🇺🇸 英文：${valOrPlaceholder(t.addrEn)}</div>
+            </div>
+            <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+                <button class="btn-edit flex-1" onclick="copyAddress('${t.addrKr || ''}')" style="font-weight: 900; font-size: 0.75rem; padding: 6px;"><i class="fa-solid fa-copy"></i> 複製韓文地址</button>
+                <button class="btn-edit flex-1" onclick="copyAddress('${t.addrEn || ''}')" style="font-weight: 900; font-size: 0.75rem; padding: 6px;"><i class="fa-solid fa-copy"></i> 複製英文地址</button>
+            </div>
+            
+            <!-- Taxi Passenger helper -->
+            <div style="background: #fff; border: 1px solid #f9ebd9; padding: 10px; border-radius: 12px; margin-top: 8px;">
+                <div style="font-size: 0.7rem; color: #a5b1c2; font-weight: 900; margin-bottom: 4px;">🚕 韓國計程車搭車快速字條</div>
+                <div style="font-family: monospace; font-size: 0.8rem; background: #fafafa; padding: 6px; border-radius: 6px; border: 1px solid #eee; margin-bottom: 6px; line-height: 1.3; font-weight: bold; color: var(--text-dark);">
+                    기사님,<br>여기로 부탁드립니다.<br><br>${valOrPlaceholder(t.addrKr)}
+                </div>
+                <button class="btn-edit" onclick="copyTaxiHelper('${t.addrKr || ''}')" style="width: 100%; font-weight: 900; font-size: 0.75rem; padding: 6px; display: flex; justify-content: center; align-items: center; gap: 4px;">
+                    <i class="fa-solid fa-copy"></i> 一鍵複製計程車字條
+                </button>
+            </div>
+        </div>
+
+        <!-- 📄 我的住宿文件 -->
+        <div style="font-weight: 900; font-size: 0.8rem; color: var(--dora); margin-bottom: 4px;"><i class="fa-solid fa-file-invoice"></i> 📄 我的住宿文件</div>
+        <div style="font-size: 0.8rem; font-weight: 700; color: #555; line-height: 1.4; background: #fdfdfd; padding: 8px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 12px;">
+            ${(!t.docTripOrder && !t.docReceipt && !t.docPayment && !t.docQrCode && !t.docOthers) || (t.docTripOrder === "尚未填寫" && t.docReceipt === "尚未填寫" && t.docPayment === "尚未填寫" && t.docQrCode === "尚未填寫" && t.docOthers === "尚未填寫") ? 
+            `<div style="color: #7f8c8d; text-align: center; padding: 4px 0;">尚未新增</div>` : 
+            `<div style="display: flex; flex-direction: column; gap: 6px;">
+                ${t.docTripOrder && t.docTripOrder !== "尚未填寫" ? `<a href="${t.docTripOrder}" target="_blank" style="color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-file-shield"></i> Trip.com 訂單</a>` : ''}
+                ${t.docReceipt && t.docReceipt !== "尚未填寫" ? `<a href="${t.docReceipt}" target="_blank" style="color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-file-invoice-dollar"></i> 電子收據</a>` : ''}
+                ${t.docPayment && t.docPayment !== "尚未填寫" ? `<a href="${t.docPayment}" target="_blank" style="color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-receipt"></i> 付款證明</a>` : ''}
+                ${t.docQrCode && t.docQrCode !== "尚未填寫" ? `<a href="${t.docQrCode}" target="_blank" style="color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-qrcode"></i> 入住 QR Code</a>` : ''}
+                ${t.docOthers && t.docOthers !== "尚未填寫" ? `<a href="${t.docOthers}" target="_blank" style="color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 4px;"><i class="fa-solid fa-folder-open"></i> 其他住宿文件</a>` : ''}
+            </div>`
+            }
+            <div style="margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; border-top: 1px dashed #eee; padding-top: 8px;">
+                <select id="hotelDocType_${t.key}" style="padding: 5px; border-radius: 8px; border: 1px solid #ccc; font-size: 0.75rem; font-weight: bold; background: #fff;">
+                    <option value="docTripOrder">Trip.com 訂單</option>
+                    <option value="docReceipt">電子收據</option>
+                    <option value="docPayment">付款證明</option>
+                    <option value="docQrCode">入住 QR Code</option>
+                    <option value="docOthers">其他文件</option>
+                </select>
+                <label for="hotelDocUpload_${t.key}" class="btn-edit" style="font-size: 0.75rem; padding: 4px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: var(--dora); color: white; border: none; border-radius: 8px; margin:0;">
+                    <i class="fa-solid fa-camera"></i> ＋ 上傳文件
+                </label>
+                <input type="file" id="hotelDocUpload_${t.key}" style="display: none;" accept="image/*" onchange="uploadHotelDocument('${t.key}', this.files[0])">
+                <span id="hotelDocStatus_${t.key}" style="font-size: 0.7rem; color: var(--primary); font-weight: bold; margin-left: 5px;"></span>
+            </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div style="margin-bottom: 12px;">
+            <div style="font-weight: 900; font-size: 0.8rem; color: var(--accent); margin-bottom: 4px;"><i class="fa-solid fa-map-marked-alt"></i> 地圖導航</div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                ${googleBtn} ${naverBtn} ${kakaoBtn}
+            </div>
+        </div>
+
+        <!-- Booking Platforms & Reviews -->
+        <div style="margin-bottom: 12px;">
+            <div style="font-weight: 900; font-size: 0.8rem; color: var(--accent); margin-bottom: 4px;"><i class="fa-solid fa-star-half-stroke"></i> 訂房平台與評價</div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                ${agodaBtn} ${bookingBtn} ${tripBtn} ${googleReviewsBtn}
+            </div>
+        </div>
+
+        <!-- Location & Transit -->
+        <div style="margin-bottom: 12px; border-top: 1px dashed #eee; padding-top: 8px;">
+            <div style="font-weight: 900; font-size: 0.8rem; color: var(--text-dark); margin-bottom: 4px;"><i class="fa-solid fa-train"></i> 鄰近地鐵與步行時間</div>
+            <div style="font-size: 0.8rem; font-weight: 700; color: #555; line-height: 1.4; background: #fdfdfd; padding: 8px; border-radius: 8px; border: 1px solid #eee;">
+                <div>🚉 最近站點：<b>${valOrPlaceholder(t.metro)}</b></div>
+                <div style="margin: 2px 0;">🚪 出口編號：<b>${valOrPlaceholder(t.metroExit)}</b></div>
+                <div>⏱️ 步行時間：<b>${valOrPlaceholder(t.walkTime)}</b></div>
+            </div>
+            
+            <div style="font-weight: 900; font-size: 0.8rem; color: var(--text-dark); margin: 8px 0 4px 0;"><i class="fa-solid fa-arrows-split-up-and-left"></i> 聯外主要交通：</div>
+            <div style="background: #fdfdfd; padding: 8px; border-radius: 12px; border: 1px solid #eee; font-size: 0.75rem; font-weight: 700; line-height: 1.4;">
+                <div>🚇 到西面站：${valOrPlaceholder(t.toSeomyeon)}</div>
+                <div style="margin: 2px 0;">🚇 到釜山站：${valOrPlaceholder(t.toBusan)}</div>
+                <div style="margin: 2px 0;">🚇 到海雲台：${valOrPlaceholder(t.toHaeundae)}</div>
+                <div style="margin: 2px 0;">🚇 到廣安里：${valOrPlaceholder(t.toGwangalli)}</div>
+                <div>🚇 到金海機場：${valOrPlaceholder(t.toAirport)}</div>
+            </div>
+        </div>
+
+        <!-- Neighborhood Life -->
+        <div style="margin-bottom: 12px; border-top: 1px dashed #eee; padding-top: 8px;">
+            <div style="font-weight: 900; font-size: 0.8rem; color: var(--text-dark); margin-bottom: 4px;"><i class="fa-solid fa-store"></i> 周邊生活機能</div>
+            <div style="font-size: 0.8rem; font-weight: 700; color: #555; line-height: 1.4; background: #fdfdfd; padding: 8px; border-radius: 8px; border: 1px solid #eee; display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+                <div>🏪 最近 CU：<b>${valOrPlaceholder(t.nearbyCu)}</b></div>
+                <div>🏪 最近 GS25：<b>${valOrPlaceholder(t.nearbyGs25)}</b></div>
+                <div>🏪 最近 7-11：<b>${valOrPlaceholder(t.nearby711)}</b></div>
+                <div>🍳 推薦早餐：<b>${valOrPlaceholder(t.breakfast)}</b></div>
+                <div>💱 換錢位置：<b>${valOrPlaceholder(t.moneyEx)}</b></div>
+                <div>💊 附近藥局：<b>${valOrPlaceholder(t.pharmacy)}</b></div>
+                <div>💄 Olive Young：<b>${valOrPlaceholder(t.oliveYoung)}</b></div>
+            </div>
+        </div>
+
+        <!-- 🚨 緊急資訊 -->
+        <div style="font-weight: 900; font-size: 0.8rem; color: #C0392B; margin-bottom: 4px;"><i class="fa-solid fa-triangle-exclamation"></i> 🚨 緊急資訊</div>
+        <div style="font-size: 0.8rem; font-weight: 700; color: #555; line-height: 1.4; background: rgba(192, 57, 43, 0.05); padding: 8px; border-radius: 8px; border: 1px solid rgba(192, 57, 43, 0.15); margin-bottom: 12px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; border-bottom: 1px dashed rgba(192, 57, 43, 0.15); padding-bottom: 6px; margin-bottom: 6px; font-size: 0.75rem;">
+                <div>📞 旅遊諮詢：<a href="tel:1330" style="color: #C0392B; text-decoration: none; font-weight:900;">1330</a></div>
+                <div>📞 警察局：<a href="tel:112" style="color: #C0392B; text-decoration: none; font-weight:900;">112</a></div>
+                <div>📞 消防/救護：<a href="tel:119" style="color: #C0392B; text-decoration: none; font-weight:900;">119</a></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.75rem;">
+                <div>🏥 最近醫院：<b>${valOrPlaceholder(t.emgHospital)}</b></div>
+                <div>💊 最近藥局：<b>${valOrPlaceholder(t.emgPharmacy)}</b></div>
+                <div>🚓 最近派出所：<b>${valOrPlaceholder(t.emgPolice)}</b></div>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        ${t.note ? `
+        <div style="border-top: 1px dashed #eee; padding-top: 8px; font-size: 0.75rem; color: #7f8c8d; font-weight: 700; line-height: 1.4;">
+            <i class="fa-solid fa-circle-info"></i> 備註：${t.note}
+        </div>
+        ` : ''}
+        
+        <!-- Voucher -->
+        ${vh ? `<div style="margin-top: 10px;">${vh}</div>` : ''}
+    </div>
+    
+    <!-- Last Update Time -->
+    ${t.lastUpdate ? `<div style="text-align: right; font-size: 0.65rem; color: #a5b1c2; font-weight: 700; margin-top: 10px;">${formatLastUpdate(t.lastUpdate)}</div>` : ''}
+</div>`;
+            } else {
+                let lh = t.link ? `<a href="${t.link}" target="_blank" class="map-tag" style="margin-top:8px;"><i class="fa-solid fa-map-location-dot"></i> 地圖</a>` : '';
+                let vh = t.voucher ? `<a href="${t.voucher}" target="_blank" class="map-tag" style="background:var(--primary); margin-top:8px;"><i class="fa-solid fa-image"></i> 看憑證</a>` : '';
+                l.innerHTML += `<div class="card" style="padding:15px; border-left:5px solid var(--dora); margin-bottom:12px;"><div style="display:flex; justify-content:space-between; align-items:flex-start;"><div><div style="font-weight:900; font-size:1.05rem; margin-bottom:4px;">${t.type} | ${t.title}</div><div style="font-size:0.85rem; color:#7f8c8d; font-weight:700;">${t.desc}</div>${lh} ${vh}</div><button class="btn-delete" onclick="deleteTicket('${t.key}')"><i class="fa-solid fa-trash"></i></button></div></div>`;
+            }
+        });
+    }
+    async function addTicket() { 
+        let ty=document.getElementById('tkType').value, ti=document.getElementById('tkTitle').value, de=document.getElementById('tkDesc').value, l=document.getElementById('tkLink').value, v=document.getElementById('tempVoucher').value; 
+        if(ti) {
+            try {
+                await ticketRef.push({type:ty, title:ti, desc:de, link:l, voucher:v});
+                showToast("儲存成功", "success");
+            } catch (error) {
+                console.error(error);
+                showToast(error.message || "同步失敗", "error");
+            }
+            document.getElementById('tkTitle').value=''; 
+            document.getElementById('tkDesc').value=''; 
+            document.getElementById('tkLink').value=''; 
+            document.getElementById('tempVoucher').value=''; 
+            document.getElementById('voucherStatus').innerText='';
+        } else {
+            showToast("請輸入憑證標題！", "warning");
+        }
+    }
+    async function deleteTicket(k) { 
+        try {
+            await ticketRef.child(k).remove();
+            showToast("儲存成功", "success");
+        } catch (error) {
+            console.error(error);
+            showToast(error.message || "同步失敗", "error");
+        }
+    }
 
     // ⭐️ Vlog 腳本匯出邏輯
     function exportForVlog() {
         let dayData = itineraryData.filter(i => i.day === currentFilterDay).sort((a,b)=>a.time.localeCompare(b.time));
-        if (dayData.length === 0) { alert("今天還沒有建立行程喔！"); return; }
+        if (dayData.length === 0) { showToast("今天還沒有建立行程喔！", "warning"); return; }
         
         let scriptContent = `🎬【${currentFilterDay} 釜山慶州 Vlog 拍攝分鏡表】\n\n`;
         dayData.forEach((it, index) => {
@@ -712,9 +2042,9 @@
         scriptContent += `\n💡 剪輯筆記：記得匯入 Drive 金庫的高畫質原檔！`;
         
         navigator.clipboard.writeText(scriptContent).then(() => {
-            alert("✅ Vlog 腳本已複製！\n現在可以直接打開 CapCut 貼入文字腳本，或進入 Canva 製作排版。");
+            showToast("📋 Vlog 拍攝腳本已複製到剪貼簿", "success");
         }).catch(err => {
-            alert("複製失敗，請重試。");
+            showToast("複製失敗，請手動複製", "error");
         });
     }
 
@@ -727,7 +2057,7 @@
                 { d: "11/14", t: "11:00", tr: "🚋 觀光列車", txt: "海雲台藍線 膠囊火車", map: "https://map.naver.com/p/search/%ED%95%B4%EC%9A%B4%EB%8C%80%EB%B8%94%EB%A3%A8%EB%9D%BC%EC%9D%B8%ED%8C%8C%ED%81%AC" }, 
                 { d: "11/14", t: "14:30", tr: "🚇 15分", txt: "Spa Land 頂級汗蒸幕", map: "https://map.naver.com/p/search/Spa%20Land" }, 
                 { d: "11/14", t: "19:30", tr: "🚶 步行", txt: "廣安里 M 無人機煙火秀", map: "https://map.naver.com/p/search/%EA%B4%91%EC%95%88%EB%A6%AC%ED%95%B4%EC%88%98%EC%9A%95%EC%9E%A5" },
-                { d: "11/15", t: "09:30", tr: "🚄 KTX 30分", txt: "釜山站 ➔ 新慶州站", map: "https://map.naver.com/p/search/%EA%B2%BD%EC%A3%BC%EC%97%AD" }, 
+                { d: "11/15", t: "09:30", tr: "🚕 30分", txt: "釜山站 ➔ 新慶州站", map: "https://map.naver.com/p/search/%EA%B2%BD%EC%A3%BC%EC%97%AD" }, 
                 { d: "11/15", t: "12:00", tr: "🚕 15分", txt: "【午餐】Solsot 釜飯", map: "https://map.naver.com/p/search/%EC%86%94%EC%86%AF%20%EA%B2%BD%EC%A3%BC%ED%99%A9%EB%A6%AC%EB%8B%A8%EA%B8%B8%EC%A0%90" }, 
                 { d: "11/15", t: "13:30", tr: "🚶 步行", txt: "【重點】韓服換裝", map: "https://map.naver.com/p/search/%EA%BD%83%EA%B8%B8%ED%95%9C%EB%B3%B5" }, 
                 { d: "11/15", t: "14:30", tr: "🚶 5分", txt: "大陵苑石牆路 銀杏大道", map: "https://map.naver.com/p/search/%EB%8C%80%EB%A6%89%EC%9B%90" }, 
@@ -739,8 +2069,16 @@
                 { d: "11/17", t: "10:00", tr: "📦 寄件", txt: "Zimcarry 寄行李去機場", map: "" },
                 { d: "11/17", t: "16:30", tr: "✈️ 飛機", txt: "優雅登機，滿載而歸！", map: "" }
             ];
-            dIti.forEach(i => itiRef.push({day:i.d, time:i.t, tr:i.tr, desc:i.txt, map:i.map}));
-        } else { itineraryData = []; s.forEach(ch => { itineraryData.push({...ch.val(), key:ch.key}); }); renderItinerary(); }
+            dIti.forEach(async i => {
+                try {
+                    await itiRef.push({day:i.d, time:i.t, tr:i.tr, desc:i.txt, map:i.map});
+                    showToast("儲存成功", "success");
+                } catch (error) {
+                    console.error(error);
+                    showToast(error.message || "同步失敗", "error");
+                }
+            });
+        } else { itineraryData = []; s.forEach(ch => { itineraryData.push({...ch.val(), key:ch.key}); }); renderItinerary(); renderTravelModeDashboard(); }
     });
     function filterIti(d) { currentFilterDay = d; document.querySelectorAll('#itinerary .day-tab').forEach(b => { b.classList.remove('active'); if(b.innerText.includes(d)) b.classList.add('active'); }); renderItinerary(); }
     function renderItinerary() {
@@ -751,10 +2089,45 @@
             l.innerHTML += `<div class="iti-row"><div class="iti-time">${it.time}</div><div class="iti-desc">${it.desc} ${mapTag}<br>${trTag}</div><div style="display:flex; flex-direction:column; gap:5px;"><button class="btn-edit" onclick="editItinerary('${it.key}')"><i class="fa-solid fa-pen"></i></button><button class="btn-delete" onclick="deleteItinerary('${it.key}')"><i class="fa-solid fa-trash"></i></button></div></div>`; 
         });
     }
-    function saveItinerary() { let d=document.getElementById('itiDay').value, t=document.getElementById('itiTime').value||"12:00", de=document.getElementById('itiDesc').value, tr=document.getElementById('itiTraffic').value, map=document.getElementById('itiMap').value; if(!de) return; if(editingItiKey) { itiRef.child(editingItiKey).update({day:d, time:t, tr:tr, desc:de, map:map}); cancelEditIti(); } else { itiRef.push({day:d, time:t, tr:tr, desc:de, map:map}); document.getElementById('itiDesc').value=''; document.getElementById('itiTraffic').value=''; document.getElementById('itiMap').value=''; filterIti(d); } }
+    async function saveItinerary() { 
+        let d=document.getElementById('itiDay').value, t=document.getElementById('itiTime').value||"12:00", de=document.getElementById('itiDesc').value, tr=document.getElementById('itiTraffic').value, map=document.getElementById('itiMap').value; 
+        if(!de) { showToast("請填寫行程內容！", "warning"); return; } 
+        if(editingItiKey) { 
+            try {
+                await itiRef.child(editingItiKey).update({day:d, time:t, tr:tr, desc:de, map:map});
+                showToast("儲存成功", "success");
+            } catch (error) {
+                console.error(error);
+                showToast(error.message || "同步失敗", "error");
+            }
+            cancelEditIti(); 
+        } else { 
+            try {
+                await itiRef.push({day:d, time:t, tr:tr, desc:de, map:map});
+                showToast("儲存成功", "success");
+            } catch (error) {
+                console.error(error);
+                showToast(error.message || "同步失敗", "error");
+            }
+            document.getElementById('itiDesc').value=''; 
+            document.getElementById('itiTraffic').value=''; 
+            document.getElementById('itiMap').value=''; 
+            filterIti(d); 
+        } 
+    }
     function editItinerary(k) { let it = itineraryData.find(i => i.key === k); if(!it) return; editingItiKey = k; document.getElementById('itiDay').value = it.day; document.getElementById('itiTime').value = it.time; document.getElementById('itiDesc').value = it.desc; document.getElementById('itiTraffic').value = it.tr || ''; document.getElementById('itiMap').value = it.map || ''; document.getElementById('itiFormTitle').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> 修改行程中...'; document.getElementById('btnSaveIti').innerText = "💾 儲存修改"; document.getElementById('btnCancelIti').style.display = "block"; }
     function cancelEditIti() { editingItiKey = null; document.getElementById('itiDesc').value = ''; document.getElementById('itiTraffic').value = ''; document.getElementById('itiMap').value = ''; document.getElementById('itiFormTitle').innerHTML = '<i class="fa-solid fa-pen"></i> 編輯手帳行程'; document.getElementById('btnSaveIti').innerText = "同步至雲端"; document.getElementById('btnCancelIti').style.display = "none"; }
-    function deleteItinerary(k) { if(confirm("確定刪除此行程？")) itiRef.child(k).remove(); }
+    async function deleteItinerary(k) { 
+        if(confirm("確定刪除此行程？")) {
+            try {
+                await itiRef.child(k).remove();
+                showToast("儲存成功", "success");
+            } catch (error) {
+                console.error(error);
+                showToast(error.message || "同步失敗", "error");
+            }
+        }
+    }
 
     // ⭐️ 購物雷達換算器與退稅
     function calcQuickExchange() {
@@ -778,7 +2151,7 @@
 
     function quickAddBill() {
         let krw = parseFloat(document.getElementById('quickKrw').value);
-        if (!krw) { alert("請先輸入金額！"); return; }
+        if (!krw) { showToast("請先輸入金額！", "warning"); return; }
         document.getElementById('billName').value = "血拚購物";
         document.getElementById('billAmt').value = krw;
         document.getElementById('billCurrency').value = "KRW";
@@ -790,7 +2163,7 @@
     }
 
     let shopList = []; let currentShopOwner = "user1";
-    shopRef.on("value", s => { shopList = []; s.forEach(ch => { shopList.push({...ch.val(), key:ch.key}); }); renderShop(); });
+    shopRef.on("value", s => { shopList = []; s.forEach(ch => { shopList.push({...ch.val(), key:ch.key}); }); renderShop(); renderTravelModeDashboard(); });
     function filterShop_Logic(owner) { currentShopOwner = owner; document.querySelectorAll('#shop .day-tab').forEach(b => { b.classList.remove('active'); }); document.getElementById(owner === 'user1' ? 'tabShopU1' : 'tabShopU2').classList.add('active'); renderShop(); }
     function renderShop() {
         const l = document.getElementById('sList'); l.innerHTML = '';
@@ -802,9 +2175,42 @@
             l.innerHTML += `<div class="shop-item ${item.checked ? 'checked' : ''}"><div class="check-box" onclick="toggleShop('${item.key}', ${item.checked})"><i class="fa-solid fa-check"></i></div>${imgHTML}<div class="item-content flex-1" onclick="toggleShop('${item.key}', ${item.checked})"><div class="cat-tag">${item.category}</div><div style="font-weight:900; font-size:1.05rem;">${item.text}</div>${whereHTML}</div><button class="btn-delete" onclick="deleteShop('${item.key}')"><i class="fa-solid fa-trash"></i></button></div>`;
         });
     }
-    function addShopItem() { const cat = document.getElementById('shopCategory').value; const text = document.getElementById('newShop').value; const where = document.getElementById('shopWhere').value; const img = document.getElementById('tempShopImg').value; if(!text) return; shopRef.push({ category: cat, text, where, img, checked: false, owner: currentShopOwner }); document.getElementById('newShop').value = ''; document.getElementById('shopWhere').value = ''; document.getElementById('tempShopImg').value = ''; document.getElementById('shopUploadStatus').innerText = ''; }
-    function toggleShop(key, currentStatus) { shopRef.child(key).update({ checked: !currentStatus }); }
-    function deleteShop(key) { shopRef.child(key).remove(); }
+    async function addShopItem() { 
+        const cat = document.getElementById('shopCategory').value; 
+        const text = document.getElementById('newShop').value; 
+        const where = document.getElementById('shopWhere').value; 
+        const img = document.getElementById('tempShopImg').value; 
+        if(!text) { showToast("請輸入想買的物品名稱！", "warning"); return; } 
+        try {
+            await shopRef.push({ category: cat, text, where, img, checked: false, owner: currentShopOwner });
+            showToast("儲存成功", "success");
+        } catch (error) {
+            console.error(error);
+            showToast(error.message || "同步失敗", "error");
+        }
+        document.getElementById('newShop').value = ''; 
+        document.getElementById('shopWhere').value = ''; 
+        document.getElementById('tempShopImg').value = ''; 
+        document.getElementById('shopUploadStatus').innerText = ''; 
+    }
+    async function toggleShop(key, currentStatus) { 
+        try {
+            await shopRef.child(key).update({ checked: !currentStatus });
+            showToast("儲存成功", "success");
+        } catch (error) {
+            console.error(error);
+            showToast(error.message || "同步失敗", "error");
+        }
+    }
+    async function deleteShop(key) { 
+        try {
+            await shopRef.child(key).remove();
+            showToast("儲存成功", "success");
+        } catch (error) {
+            console.error(error);
+            showToast(error.message || "同步失敗", "error");
+        }
+    }
 
     let guideData = []; let currentGuideTab = "打卡景點"; let editingGuideKey = null;
     const folderMapping = { '工具': [], '美食景點': ['打卡景點', '必吃美食'], '購物': ['伴手禮', '衣物鞋履', '小物配件', '彩妝', '保養', 'Olive Young', '當地藥局'], '超商': ['GS25', 'CU', '7-11'] };
@@ -845,7 +2251,15 @@
                 {type:"CU", title:"延世大生乳包", desc:"超商甜點天花板"}, {type:"CU", title:"冰塊杯+無糖黑咖啡", desc:"韓國人標配"}, {type:"CU", title:"辣炒年糕杯", desc:"宵夜解饞"}, {type:"CU", title:"減糖版香蕉牛奶", desc:"經典國民飲料"}, {type:"CU", title:"濟州限定啤酒", desc:"微醺必備"},
                 {type:"7-11", title:"養樂多軟糖", desc:"伴手禮首選"}, {type:"7-11", title:"濟州牛奶冰淇淋", desc:"香濃綿密"}, {type:"7-11", title:"辣魷魚三角飯糰", desc:"道地口味"}, {type:"7-11", title:"低卡氣泡水", desc:"健康解渴"}, {type:"7-11", title:"高蛋白堅果包", desc:"隨身補充體力"}
             ];
-            defs.forEach(g=>guideRef.push({...g, timestamp:Date.now()}));
+            defs.forEach(async g=> {
+                try {
+                    await guideRef.push({...g, timestamp:Date.now()});
+                    showToast("儲存成功", "success");
+                } catch (error) {
+                    console.error(error);
+                    showToast(error.message || "同步失敗", "error");
+                }
+            });
         } else { guideData=[]; s.forEach(ch=>{ guideData.push({...ch.val(), key:ch.key}); }); renderGuideContent(); }
     });
 
@@ -857,18 +2271,60 @@
             l.innerHTML += `<div class="guide-card">${img}<div style="padding:20px;"><h4>${g.title}</h4><p>${g.desc}</p>${link}<div style="margin-top:15px; display:flex; gap:10px;"><button class="btn-edit" onclick="editGuide('${g.key}')"><i class="fa-solid fa-pen"></i></button><button class="btn-delete" onclick="deleteGuide('${g.key}')"><i class="fa-solid fa-trash"></i></button></div></div></div>`;
         });
     }
-    function addGuideItem() { let t=document.getElementById('gdType').value, ti=document.getElementById('gdTitle').value, de=document.getElementById('gdDesc').value, li=document.getElementById('gdLink').value, i=document.getElementById('tempGuideImg').value; if(!ti) return; if(editingGuideKey) { guideRef.child(editingGuideKey).update({type:t, title:ti, desc:de, link:li, img:i}); editingGuideKey=null; } else { guideRef.push({type:t, title:ti, desc:de, link:li, img:i, timestamp:Date.now()}); } document.getElementById('gdTitle').value=''; document.getElementById('gdDesc').value=''; document.getElementById('gdLink').value=''; document.getElementById('tempGuideImg').value=''; document.getElementById('guideUploadStatus').innerText=''; filterGuideContent(t); }
+    async function addGuideItem() { 
+        let t=document.getElementById('gdType').value;
+        let ti=document.getElementById('gdTitle').value;
+        let de=document.getElementById('gdDesc').value;
+        let li=document.getElementById('gdLink').value;
+        let i=document.getElementById('tempGuideImg').value; 
+        if(!ti) { showToast("請輸入地標名稱！", "warning"); return; } 
+        if(editingGuideKey) { 
+            try {
+                await guideRef.child(editingGuideKey).update({type:t, title:ti, desc:de, link:li, img:i});
+                showToast("儲存成功", "success");
+            } catch (error) {
+                console.error(error);
+                showToast(error.message || "同步失敗", "error");
+            }
+            editingGuideKey=null; 
+        } else { 
+            try {
+                await guideRef.push({type:t, title:ti, desc:de, link:li, img:i, timestamp:Date.now()});
+                showToast("儲存成功", "success");
+            } catch (error) {
+                console.error(error);
+                showToast(error.message || "同步失敗", "error");
+            }
+        } 
+        document.getElementById('gdTitle').value=''; 
+        document.getElementById('gdDesc').value=''; 
+        document.getElementById('gdLink').value=''; 
+        document.getElementById('tempGuideImg').value=''; 
+        document.getElementById('guideUploadStatus').innerText=''; 
+        filterGuideContent(t); 
+    }
     function editGuide(k) { let g = guideData.find(x => x.key === k); if(!g) return; editingGuideKey = k; document.getElementById('gdType').value = g.type; document.getElementById('gdTitle').value = g.title; document.getElementById('gdDesc').value = g.desc || ''; document.getElementById('gdLink').value = g.link || ''; document.getElementById('tempGuideImg').value = g.img || ''; window.scrollTo(0, document.body.scrollHeight); }
-    function deleteGuide(k) { if(confirm("確定刪除？")) guideRef.child(k).remove(); }
+    async function deleteGuide(k) { 
+        if(confirm("確定刪除此地標？")) {
+            try {
+                await guideRef.child(k).remove();
+                showToast("儲存成功", "success");
+            } catch (error) {
+                console.error(error);
+                showToast(error.message || "同步失敗", "error");
+            }
+        }
+    }
 
     // ⭐️ 註冊 Service Worker 實現離線功能
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('sw.js')
-                .then(reg => console.log('Service Worker 註冊成功！', reg.scope))
-                .catch(err => console.log('Service Worker 註冊失敗', err));
+                .then(reg => console.log('Service Worker 註冊成功！範疇為：', reg.scope))
+                .catch(err => console.error('Service Worker 註冊失敗', err));
         });
     }
+
 </script>
 </body>
 </html>
