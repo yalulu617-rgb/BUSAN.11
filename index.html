@@ -525,6 +525,8 @@
 </div>
 
 
+<script src="ute/ute_storage.js"></script>
+<script src="ute/ute_network.js"></script>
 <script src="ute/ute_knowledge.js"></script>
 <script src="ute/ute_place.js"></script>
 <script src="ute/ute_city.js"></script>
@@ -1180,7 +1182,7 @@
     let u2 = { key: 'user2', name: '鴨', avatar: '🦆' };
     let deviceOwner = StorageEngine.get('busan_v36_owner', 'user1').data; 
 
-    NetworkEngine.firebaseOn(DB_PROFILE,'value', s => {
+    NetworkEngine.firebaseOn(DB_PROFILE, s => {
         if(s.exists()) { let data = s.val(); u1 = data.user1 || u1; u2 = data.user2 || u2; } 
         else { 
             (async () => {
