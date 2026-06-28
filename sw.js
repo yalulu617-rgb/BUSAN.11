@@ -1,10 +1,21 @@
-const CACHE_NAME = 'busan-trip-v36-cache-v1';
+const CACHE_NAME = 'busan-trip-v37.2-cache-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
   './icon.png',
   './13972.png',
+  './ute/ute_storage.js',
+  './ute/ute_network.js',
+  './ute/ute_knowledge.js',
+  './ute/ute_place.js',
+  './ute/ute_city.js',
+  './ute/ute_weather.js',
+  './ute/ute_navigation.js',
+  './ute/ute_budget.js',
+  './ute/ute_ai.js',
+  './ute/ute_context.js',
+  './ute/ute_main.js',
   'https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
