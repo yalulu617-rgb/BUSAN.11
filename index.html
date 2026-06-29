@@ -146,6 +146,201 @@
         .chart-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; font-weight: 700; margin-top: 10px; width: 100%; }
         .legend-item { display: flex; align-items: center; gap: 6px; }
         .legend-color { width: 12px; height: 12px; border-radius: 4px; flex-shrink: 0; }
+
+
+        /* V40 Compact iOS UI adjustments to fit one screen */
+        .v38-hero-card {
+            padding: 16px !important;
+            margin-bottom: 12px !important;
+            border-radius: 20px !important;
+        }
+        .v38-hero-main {
+            font-size: 1.8rem !important;
+            margin-bottom: 6px !important;
+        }
+        .v38-hero-sub {
+            font-size: 0.8rem !important;
+        }
+        .v38-widget-row {
+            gap: 10px !important;
+            margin-bottom: 10px !important;
+        }
+        .v38-widget-card {
+            padding: 12px !important;
+            border-radius: 18px !important;
+        }
+        .v38-action-btn {
+            padding: 10px 6px !important;
+            border-radius: 12px !important;
+            gap: 4px !important;
+        }
+        .v38-action-btn i {
+            font-size: 1.1rem !important;
+        }
+
+        /* V38 iOS Simplified Dashboard CSS */
+        .v38-hero-card {
+            background: linear-gradient(135deg, #1e272e, #2d3436);
+            color: #ffffff;
+            border-radius: 28px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .v38-hero-card:active {
+            transform: scale(0.99);
+        }
+        .v38-hero-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -30%;
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .v38-hero-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: rgba(255,255,255,0.55);
+            font-weight: 900;
+            margin-bottom: 6px;
+        }
+        .v38-hero-main {
+            font-size: 2.1rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+            line-height: 1.1;
+        }
+        .v38-hero-sub {
+            font-size: 0.88rem;
+            color: rgba(255,255,255,0.85);
+            font-weight: 700;
+            line-height: 1.4;
+        }
+        .v38-progress-container {
+            margin-top: 14px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 10px;
+            height: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+        .v38-progress-bar {
+            background: #ffffff;
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        .v38-widget-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .v38-widget-card {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 16px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.02);
+            border: 1px solid rgba(0,0,0,0.03);
+            transition: transform 0.2s;
+        }
+        .v38-widget-card:active {
+            transform: scale(0.98);
+        }
+        .v38-widget-title {
+            font-size: 0.78rem;
+            font-weight: 900;
+            color: #8e8e93;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .v38-quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .v38-action-btn {
+            background: #f2f2f7;
+            border-radius: 16px;
+            padding: 14px 10px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 0.78rem;
+            color: #1c1c1e;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .v38-action-btn:active {
+            background: #e5e5ea;
+            transform: scale(0.95);
+        }
+        .v38-action-btn i {
+            font-size: 1.25rem;
+            color: var(--primary);
+        }
+        .v38-badge {
+            background: #ff3b30;
+            color: #ffffff;
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 900;
+        }
+        .v38-tag {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 8px;
+            font-weight: 800;
+            display: inline-block;
+        }
+        .v38-rec-item {
+            border-bottom: 1px solid #f2f2f7;
+            padding: 10px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .v38-rec-item:last-child {
+            border-bottom: none;
+        }
+        .v38-rec-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+        }
+        .v38-mini-btn {
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background: white;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .v38-mini-btn:active {
+            transform: scale(0.95);
+            background: #f2f2f7;
+        }
     </style>
 </head>
 <body>
@@ -288,8 +483,14 @@
             </div>
 
             <div id="guideSection" style="display:none;">
+                <!-- V38 Food sub-tabs -->
+                <div id="foodSubTabs" style="display:none; margin-bottom:15px; justify-content:center; gap:8px;">
+                    <button id="btnFoodMy" class="day-tab active" onclick="setFoodTabMode('my')" style="font-size:0.8rem; padding:6px 12px;">我的收藏</button>
+                    <button id="btnFoodRec" class="day-tab" onclick="setFoodTabMode('rec')" style="font-size:0.8rem; padding:6px 12px;">熱門推薦</button>
+                </div>
                 <div id="guideList"></div>
-                <div class="card" style="margin-top:15px;">
+                <div id="foodRecList" style="display:none; margin-bottom: 20px;"></div>
+                <div class="card" id="addGuideCard" style="margin-top:15px;">
                     <h4 style="margin:0 0 10px 0; color:var(--primary);"><i class="fa-solid fa-plus"></i> 新增地標推薦</h4>
                     <div class="flex-row"><select id="gdType" class="input-box" style="width:110px;">
                         <option value="打卡景點">打卡景點</option><option value="必吃美食">必吃美食</option><option value="伴手禮">伴手禮</option><option value="衣物鞋履">衣物鞋履</option>
@@ -448,20 +649,154 @@
     </div>
 
     <!-- 5. 拍立得相冊 -->
-    <div id="photo" class="container">
-        <div class="card" style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(252,239,225,0.9)); border-left: 6px solid var(--dora);">
-            <h3 class="card-title" style="color:var(--dora); border-bottom:none; margin-bottom:10px;"><i class="fa-brands fa-google-drive"></i> 雲端原檔金庫</h3>
-            <p style="font-size:0.9rem; color:#555; font-weight:700; margin-top:0;">需後製的高畫質影片、無損原圖，請存放於此專屬資料夾。</p>
-            <a href="https://drive.google.com/drive/folders/1eYv4GX8vMQvVNHPSwrp3zfZGb9YNkpsZ" target="_blank" class="btn-action" style="background: linear-gradient(135deg, var(--dora), #3498DB); text-decoration: none; display: block; text-align: center; margin-top: 15px;"><i class="fa-solid fa-cloud-arrow-up"></i> 開啟 Google Drive</a>
+    <div id="wallet" class="container">
+        <div class="card" style="padding:15px; margin-bottom:15px; background: linear-gradient(135deg, #2c3e50, #34495e); color:white; border-radius: 20px;">
+            <h3 style="margin:0; font-size:1.1rem; color:#f1c40f;"><i class="fa-solid fa-wallet"></i> Travel Wallet</h3>
+            <p style="font-size:0.75rem; color:rgba(255,255,255,0.7); margin:4px 0 0 0;">整合您的機票、門票憑證、飯店住宿、電子文件、優惠券與相冊記憶。</p>
         </div>
-        <div class="card">
-            <h3 class="card-title"><i class="fa-solid fa-camera-retro"></i> 每日拍立得回憶庫</h3>
-            <p style="font-size:0.85rem; color:#888; font-weight:900;">支援多張批次上傳。點擊放大照片可點擊左上角刪除。</p>
-            <label for="photoImgUpload" class="btn-action" style="text-align:center; display:block;"><i class="fa-solid fa-wand-magic-sparkles"></i> 批次上傳美照 / GIF</label>
-            <input type="file" id="photoImgUpload" multiple style="display:none;" accept="image/*" onchange="uploadMultipleToImgBB(this.files, 'photo')">
-            <div id="photoUploadStatus" style="font-size: 0.85rem; color: var(--primary); margin-top: 10px; text-align: center; font-weight:900;"></div>
-            <div id="albumContainer"></div>
+        
+        <div class="day-tabs" style="margin-bottom: 15px; flex-wrap: wrap; justify-content: center; gap: 6px;">
+            <button id="btnWalletTicket" class="day-tab active" onclick="switchWalletTab('ticket')" style="font-size:0.75rem; padding:6px 10px;">🎟 Ticket</button>
+            <button id="btnWalletHotel" class="day-tab" onclick="switchWalletTab('hotel')" style="font-size:0.75rem; padding:6px 10px;">🏨 Hotel</button>
+            <button id="btnWalletDoc" class="day-tab" onclick="switchWalletTab('doc')" style="font-size:0.75rem; padding:6px 10px;">📄 Docs</button>
+            <button id="btnWalletCoupon" class="day-tab" onclick="switchWalletTab('coupon')" style="font-size:0.75rem; padding:6px 10px;">🎁 Coupon</button>
+            <button id="btnWalletMemory" class="day-tab" onclick="switchWalletTab('memory')" style="font-size:0.75rem; padding:6px 10px;">📷 Memory</button>
         </div>
+        
+        <!-- Ticket Tab -->
+        <div id="walletTicketSection">
+            <div id="walletTicketsList"></div>
+            <!-- Original Add Ticket Card -->
+            <div class="card" style="margin-top:15px; background: #ffffff; border-radius: 24px;">
+                <h4 style="margin:0 0 10px 0; color:var(--primary); font-weight: 900;"><i class="fa-solid fa-plus"></i> 新增票券/憑證</h4>
+                <div class="flex-row" style="margin-bottom:10px;">
+                    <select id="tkType" class="input-box" style="width:100px; margin-bottom:0;">
+                        <option value="✈️ 機票">✈️ 機票</option>
+                        <option value="🎫 門票">🎫 門票</option>
+                        <option value="🚄 車票">🚄 車票</option>
+                        <option value="📌 其他">📌 其他</option>
+                    </select>
+                    <input type="text" id="tkTitle" class="input-box flex-1" placeholder="機票班次、門票名稱" style="margin-bottom:0;">
+                </div>
+                <input type="text" id="tkDesc" class="input-box" placeholder="說明 (時間、使用期限)">
+                <input type="text" id="tkLink" class="input-box" placeholder="🔗 官網或預約網址">
+                <div class="flex-row">
+                    <label for="tkVoucherUpload" style="background:#fff; padding:12px 18px; border-radius:14px; cursor:pointer; font-weight:900; box-shadow:0 2px 10px rgba(0,0,0,0.05); flex:1; text-align:center; border: 1px solid #eee;"><i class="fa-solid fa-file-image" style="color:var(--dora);"></i> 上傳憑證圖檔</label>
+                    <input type="file" id="tkVoucherUpload" style="display:none;" accept="image/*" onchange="uploadSingleToImgBB(this.files[0], 'ticket')">
+                </div>
+                <div id="voucherStatus" style="font-size: 0.85rem; color: var(--primary); text-align: center; margin-top:8px; font-weight:bold;"></div>
+                <input type="hidden" id="tempVoucher" value="">
+                <button class="btn-action" onclick="addTicket()" style="width:100%; margin-top:12px;">💾 儲存票券</button>
+            </div>
+        </div>
+        
+        <!-- Hotel Tab -->
+        <div id="walletHotelSection" style="display:none;">
+            <!-- Hotel Info Card -->
+            <div id="walletHotelInfoCard"></div>
+            <!-- Smart Nearby Card -->
+            <div class="card" style="background: #ffffff; border-radius: 24px; padding: 20px;">
+                <h3 class="card-title" style="color:var(--primary); border-bottom:1px dashed #eee; padding-bottom:6px; font-weight: 900;"><i class="fa-solid fa-location-crosshairs"></i> Smart Nearby (周邊生活雷達)</h3>
+                <p style="font-size:0.75rem; color:#888; margin-top:0; font-weight: 700;">自動搜尋飯店周遭 800m 內的美食、超商、地鐵、ATM、藥局、醫院等資訊...</p>
+                <div id="walletNearbyList" style="display:flex; flex-direction:column; gap:10px; margin-top:12px;"></div>
+            </div>
+        </div>
+        
+        <!-- Docs Tab -->
+        <div id="walletDocSection" style="display:none;">
+            <div class="card" style="background: #ffffff; border-radius: 24px; padding: 20px;">
+                <h3 class="card-title" style="font-weight: 900;"><i class="fa-solid fa-passport"></i> 個人電子文件櫃</h3>
+                <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+                    <div style="background:#f8f9fa; padding:12px; border-radius:14px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <span style="font-weight:900; font-size:0.9rem; color:#2c3e50;">🪪 中華民國護照</span>
+                            <div style="font-size:0.75rem; color:#7f8c8d; margin-top:2px;">溫 & 鴨 (電子檔加密備份)</div>
+                        </div>
+                        <button class="v38-mini-btn" style="background:var(--primary); color:white; border:none;" onclick="showToast('已安全載入護照備份檔', 'success')">檢視</button>
+                    </div>
+                    <div style="background:#f8f9fa; padding:12px; border-radius:14px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <span style="font-weight:900; font-size:0.9rem; color:#2c3e50;">📄 K-ETA 核准聲明</span>
+                            <div style="font-size:0.75rem; color:#7f8c8d; margin-top:2px;">韓國電子旅行許可 (核准完畢)</div>
+                        </div>
+                        <button class="v38-mini-btn" style="background:var(--primary); color:white; border:none;" onclick="showToast('已加載 K-ETA 文件', 'success')">檢視</button>
+                    </div>
+                    <div style="background:#f8f9fa; padding:12px; border-radius:14px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <span style="font-weight:900; font-size:0.9rem; color:#2c3e50;">🧬 Q-Code 二維碼</span>
+                            <div style="font-size:0.75rem; color:#7f8c8d; margin-top:2px;">檢疫資訊預入申報條碼</div>
+                        </div>
+                        <button class="v38-mini-btn" style="background:var(--primary); color:white; border:none;" onclick="showToast('已安全開啟 Q-Code', 'success')">檢視</button>
+                    </div>
+                    <div style="background:#f8f9fa; padding:12px; border-radius:14px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <span style="font-weight:900; font-size:0.9rem; color:#2c3e50;">🏥 海外旅行平安保險單</span>
+                            <div style="font-size:0.75rem; color:#7f8c8d; margin-top:2px;">富邦產險保單 (電子檔)</div>
+                        </div>
+                        <button class="v38-mini-btn" style="background:var(--primary); color:white; border:none;" onclick="showToast('已載入海外保險憑證 PDF', 'success')">檢視</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Coupon Tab -->
+        <div id="walletCouponSection" style="display:none;">
+            <div class="card" style="background: #ffffff; border-radius: 24px; padding: 20px;">
+                <h3 class="card-title" style="font-weight: 900;"><i class="fa-solid fa-gift"></i> 會員卡與折扣券</h3>
+                <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+                    <div style="background:linear-gradient(135deg, #f39c12, #d35400); color:white; padding:15px; border-radius:18px;">
+                        <div style="font-size:0.75rem; font-weight:800; opacity:0.8;">MEMBERSHIP BARCODE</div>
+                        <div style="font-size:1.1rem; font-weight:900; margin-top:2px;">Lotte Duty Free (樂天免稅店 VIP)</div>
+                        <div style="font-size:0.9rem; font-weight:800; font-family:monospace; margin-top:12px; text-align:center; background:white; color:black; padding:8px; border-radius:8px; letter-spacing:4px;">|||| | |||| || ||| 9081</div>
+                    </div>
+                    <div style="background:linear-gradient(135deg, #1abc9c, #16a085); color:white; padding:15px; border-radius:18px;">
+                        <div style="font-size:0.75rem; font-weight:800; opacity:0.8;">DISCOUNT COUPON</div>
+                        <div style="font-size:1.1rem; font-weight:900; margin-top:2px;">新世界百貨 7% 折扣券</div>
+                        <div style="font-size:0.75rem; margin-top:4px;">有效期限：至 2026/12/31</div>
+                        <div style="font-size:0.9rem; font-weight:800; font-family:monospace; margin-top:12px; text-align:center; background:white; color:black; padding:8px; border-radius:8px; letter-spacing:4px;">|| |||| | ||| ||| 8872</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Memory Tab -->
+        <div id="walletMemorySection" style="display:none;">
+            <!-- Google Drive card -->
+            <div class="card" style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(252,239,225,0.9)); border-left: 6px solid var(--dora); margin-bottom: 20px; border-radius: 24px;">
+                <h3 class="card-title" style="color:var(--dora); border-bottom:none; margin-bottom:10px;"><i class="fa-brands fa-google-drive"></i> 雲端原檔金庫</h3>
+                <p style="font-size:0.9rem; color:#555; font-weight:700; margin-top:0;">需後製的高畫質影片、無損原圖，請存放於此專屬資料夾。</p>
+                <a href="https://drive.google.com/drive/folders/1eYv4GX8vMQvVNHPSwrp3zfZGb9YNkpsZ" target="_blank" class="btn-action" style="background: linear-gradient(135deg, var(--dora), #3498DB); text-decoration: none; display: block; text-align: center; margin-top: 15px;"><i class="fa-solid fa-cloud-arrow-up"></i> 開啟 Google Drive</a>
+            </div>
+
+            <!-- 今日照片 Section -->
+            <div class="card" style="margin-bottom: 20px; background: #ffffff; border-radius: 24px; padding: 20px;">
+                <h3 class="card-title" style="font-weight: 900;"><i class="fa-solid fa-image"></i> 今日精選照片</h3>
+                <div id="todayPhotosContainer" class="photo-grid" style="margin-top: 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;"></div>
+            </div>
+
+            <!-- 今日影片 Section -->
+            <div class="card" style="margin-bottom: 12px; background: #ffffff; border-radius: 16px; padding: 12px;">
+                <h3 class="card-title" style="font-weight: 900; font-size: 0.85rem; margin-bottom: 8px;"><i class="fa-solid fa-circle-play"></i> 今日影片 / VLOG 記錄</h3>
+                <a href="https://drive.google.com/drive/folders/1eYv4GX8vMQvVNHPSwrp3zfZGb9YNkpsZ" target="_blank" class="btn-action" style="background: #27ae60; text-decoration: none; display: block; text-align: center; padding: 8px; font-size:0.75rem;"><i class="fa-solid fa-video"></i> 前往影片金庫</a>
+            </div>
+
+            <!-- 旅行相簿 Section -->
+            <div class="card" style="margin-bottom: 20px; background: #ffffff; border-radius: 24px; padding: 20px;">
+                <h3 class="card-title" style="font-weight: 900;"><i class="fa-solid fa-camera-retro"></i> 每日拍立得回憶庫</h3>
+                <p style="font-size:0.85rem; color:#888; font-weight:900;">支援多張批次上傳。點擊放大照片可點擊左上角刪除。</p>
+                <label for="photoImgUpload" class="btn-action" style="text-align:center; display:block;"><i class="fa-solid fa-wand-magic-sparkles"></i> 批次上傳美照 / GIF</label>
+                <input type="file" id="photoImgUpload" multiple style="display:none;" accept="image/*" onchange="uploadMultipleToImgBB(this.files, 'photo')">
+                <div id="photoUploadStatus" style="font-size: 0.85rem; color: var(--primary); margin-top: 10px; text-align: center; font-weight:900;"></div>
+                <div id="albumContainer" style="margin-top: 15px;"></div>
+            </div>
+
+            <!-- 精選回憶 Section -->
+            <div class="card" style="margin-bottom: 20px; background: #ffffff; border-radius: 24px; padding: 20px;">
+                <h3 class="card-title" style="font-weight: 900;"><i class="fa-solid fa-wand-magic-sparkles"></i> 精選回憶 Highlights</h3>
+                <div id="highlightMemoriesContainer" style="margin-top:10px;"></div>
+            </div>
+        </div>
+    </div>
     <!-- 6. 我的旅行 -->
     <div id="trip" class="container">
         <!-- 住宿資訊卡 -->
@@ -519,7 +854,7 @@
         <div class="nav-item active" onclick="showV37Tab('home', this)"><i class="fa-solid fa-house"></i>首頁</div>
         <div class="nav-item" onclick="showV37Tab('itinerary', this)"><i class="fa-solid fa-calendar-days"></i>行程</div>
         <div class="nav-item nav-center" onclick="showV37Tab('split', this)"><i class="fa-solid fa-calculator"></i>記帳</div>
-        <div class="nav-item" onclick="showV37Tab('trip', this)"><i class="fa-solid fa-suitcase"></i>我的旅行</div>
+        <div class="nav-item" onclick="showV37Tab('wallet', this)"><i class="fa-solid fa-wallet"></i>Travel Wallet</div>
         <div class="nav-item" onclick="showV37Tab('more', this)"><i class="fa-solid fa-ellipsis"></i>更多</div>
     </div>
 </div>
@@ -1069,7 +1404,7 @@
 
     // --- Firebase hotel 監聽器與種子初始化 ---
     NetworkEngine.firebaseOn(DB_HOTEL, s => {
-        console.log("Hotel Loaded. Firebase Path: " + hotelRef.toString());
+        console.log("Hotel Loaded.");
         console.log("Snapshot exists:", s.exists(), "val:", s.val());
         if (s.exists()) {
             hotelData = s.val();
@@ -1142,7 +1477,7 @@
                 currency: "TWD",
                 lastUpdate: Date.now()
             };
-            console.log("Initializing Hotel Default Data to Firebase Path:", hotelRef.toString());
+            console.log("Initializing Hotel Default Data.");
             NetworkEngine.firebaseWrite(DB_HOTEL,hotelData).then(() => {
                 console.log("Hotel Saved");
             }).catch(err => {
@@ -1283,7 +1618,7 @@
     async function deleteCurrentPhoto() { 
         if(currentLightboxKey && confirm("確定要將這張照片永久刪除嗎？")) { 
             try {
-                await photoRef.child(currentLightboxKey).remove();
+                await NetworkEngine.firebaseRemove(`${DB_PHOTOS}/${currentLightboxKey}`);
                 showToast("儲存成功", "success");
             } catch (error) {
                 console.error(error);
@@ -1501,7 +1836,19 @@
                 fabBack.style.display = 'flex';
                 fabBack.onclick = () => showV37Tab('more');
             }
-        } else if (id === 'photo') {
+        } else if (id === 'wallet' || id === 'photo') {
+            document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+            document.getElementById('wallet').classList.add('active');
+            if (v37NavSource === 'more' && fabBack) {
+                fabBack.style.display = 'flex';
+                fabBack.onclick = () => showV37Tab('more');
+            }
+            if (id === 'photo') {
+                switchWalletTab('memory');
+            } else {
+                switchWalletTab('ticket');
+            }
+        } else if (id === 'dummy_disabled_photo') {
             document.getElementById('photo').classList.add('active');
             if (v37NavSource === 'more' && fabBack) {
                 fabBack.style.display = 'flex';
@@ -1566,11 +1913,13 @@
         const dateStr = ctx.currentDate;
         const city = ctx.currentCity;
         const weather = ctx.currentWeather;
+        const mode = ctx.tripMode;
         
+        // V40 Date Simulator Header (extremely compact)
         let simulatorHtml = `
-            <div class="widget-card" style="padding: 10px 18px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(243,156,18,0.05)); margin-bottom: 12px;">
-                <span style="font-weight: 900; font-size: 0.85rem; color: var(--text-dark);"><i class="fa-solid fa-clock-rotate-left"></i> 旅行時間模擬器</span>
-                <select id="v37DateSimulator" onchange="setV37SelectedDate(this.value)" style="padding: 5px 10px; border-radius: 12px; border: 1px solid var(--accent); font-weight: 900; font-size: 0.8rem; background: white; color: var(--accent); cursor: pointer; outline: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 4px;">
+                <span class="v38-badge" style="background:#8e8e93; font-size:0.65rem; font-weight:800; cursor:pointer;" onclick="toggleCityDetailPanel()">📍 ${city.nameTW}</span>
+                <select id="v37DateSimulator" onchange="setV37SelectedDate(this.value)" style="padding: 3px 6px; border-radius: 8px; border: 1px solid #ddd; font-weight: 800; font-size: 0.7rem; background: white; color: #555; outline: none; cursor: pointer;">
                     <option value="real" ${v37SimulatedDate==='real'?'selected':''}>🌐 真實日期 (自動)</option>
                     <option value="11/10" ${v37SimulatedDate==='11/10'?'selected':''}>行前 (11/10)</option>
                     <option value="11/13" ${v37SimulatedDate==='11/13'?'selected':''}>Day 1 (11/13)</option>
@@ -1582,31 +1931,31 @@
                 </select>
             </div>
             
-            <div class="widget-card" style="padding: 12px 18px; background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(41,128,185,0.05)); margin-bottom: 12px; cursor: pointer; border-left: 5px solid var(--primary);" onclick="toggleCityDetailPanel()">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-weight: 900; font-size: 0.9rem; color: var(--text-dark);"><i class="fa-solid fa-map-location-dot" style="color:var(--primary);"></i> 📍 目前所在城市：${city.nameTW} (${city.nameEN})</span>
-                    <span style="font-size:0.7rem; background:rgba(52,152,219,0.1); color:var(--primary); padding:3px 8px; border-radius:8px; font-weight:900;" id="cityDetailToggleBtn">點擊查看詳情</span>
+            <div id="v37CityDetailPanel" style="display:none; background: #fff; border-radius: 16px; padding: 12px; margin-bottom:12px; font-size:0.7rem; font-weight:700; color:#555; line-height:1.4; border: 1px solid #eee; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:6px;">
+                    <div>🏥 <b>急救醫院：</b><br>${city.emergency.hospital}</div>
+                    <div>🚓 <b>派出聯絡：</b><br>${city.emergency.police}</div>
                 </div>
-                <div id="v37CityDetailPanel" style="display:none; margin-top:12px; border-top:1px dashed #ddd; padding-top:10px; font-size:0.75rem; font-weight:700; color:#555; line-height:1.5;">
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:8px;">
-                        <div>🏥 <b>急救醫院：</b><br>${city.emergency.hospital}</div>
-                        <div>🚓 <b>派出聯絡：</b><br>${city.emergency.police}</div>
-                    </div>
-                    <div style="border-top:1px dashed #eee; padding-top:6px; margin-bottom:8px;">
-                        🚌 <b>特色交通手段：</b><br>${city.transportation.desc}，${city.transportation.taxi}
-                    </div>
-                    <div style="border-top:1px dashed #eee; padding-top:6px; display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-                        <div>🥞 <b>周邊早餐：</b><br>${city.recommendations.breakfast}</div>
-                        <div>💱 <b>換錢指引：</b><br>${city.recommendations.exchange}</div>
-                        <div>🏪 <b>最近 CU：</b>${city.recommendations.cu}</div>
-                        <div>🏪 <b>最近 GS25：</b>${city.recommendations.gs25}</div>
-                    </div>
+                <div style="border-top:1px dashed #eee; padding-top:4px; margin-bottom:6px;">
+                    🚌 <b>特色交通手段：</b><br>${city.transportation.desc}，${city.transportation.taxi}
+                </div>
+                <div style="border-top:1px dashed #eee; padding-top:4px; display:grid; grid-template-columns:1fr 1fr; gap:4px;">
+                    <div>🥞 <b>周邊早餐：</b><br>${city.recommendations.breakfast}</div>
+                    <div>💱 <b>換錢指引：</b><br>${city.recommendations.exchange}</div>
+                    <div>🏪 <b>最近 CU：</b>${city.recommendations.cu}</div>
+                    <div>🏪 <b>最近 GS25：</b>${city.recommendations.gs25}</div>
                 </div>
             </div>
         `;
         
-        let mode = ctx.tripMode;
-        let dashboardHtml = "";
+        let heroHtml = "";
+        let widget1Html = ""; // Quick Actions
+        let widget2Html = ""; // Today Item
+        let widget3Html = ""; // AI/Rec/Stats
+        let widget4Html = ""; // Collections
+        
+        // Smart Alert calculation for Hero Card
+        const smartAlert = getSmartAlertMessage(ctx);
         
         if (mode === 'before') {
             let countdownDays = 3;
@@ -1615,262 +1964,199 @@
                 countdownDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
             }
             
-            let prepSummaryHtml = "";
+            let totalPreps = ctx.checklist.length || 10;
+            let compPreps = totalPreps - ctx.uncompletedPreps.length;
+            let percent = Math.min(100, Math.max(0, Math.round((compPreps / totalPreps) * 100)));
+            
+            heroHtml = `
+                <div class="v38-hero-card" onclick="showV37Tab('trip')" style="background: linear-gradient(135deg, #1e272e, #2f3640);">
+                    <div class="v38-hero-title">DAY — 尚未出發</div>
+                    <div class="v38-hero-main">出發：${countdownDays} 天</div>
+                    <div class="v38-hero-sub">目的地：🇰🇷 ${city.nameTW}</div>
+                    <div style="margin-top: 8px; font-size: 0.8rem; font-weight: 800; color: #f5cd79;" class="text-truncate">${smartAlert}</div>
+                    <div class="v38-progress-container" style="margin-top: 8px;">
+                        <div class="v38-progress-bar" style="width: ${percent}%;"></div>
+                    </div>
+                </div>
+            `;
+            
+            let prepItemsHtml = "";
             if (ctx.uncompletedPreps.length === 0) {
-                prepSummaryHtml = `<p style="font-size:0.85rem; color:#27ae60; font-weight:900; margin:0;"><i class="fa-solid fa-circle-check"></i> 行前準備全部完成！太棒了！</p>`;
+                prepItemsHtml = `<div style="font-size:0.75rem; color:#2ecc71; font-weight:800;"><i class="fa-solid fa-circle-check"></i> 行前準備已就緒！</div>`;
             } else {
-                prepSummaryHtml = `<div style="display:flex; flex-direction:column; gap:8px;">`;
                 ctx.uncompletedPreps.slice(0, 3).forEach(p => {
-                    prepSummaryHtml += `
-                        <div class="prep-item" style="padding:10px 12px; border-radius:12px; margin:0;" onclick="togglePrep('${p.key}', false)">
-                            <div class="prep-check" style="width:20px; height:20px; border-radius:6px; flex-shrink:0;"><i class="fa-solid fa-check" style="font-size:0.7rem;"></i></div>
-                            <span class="prep-text" style="font-size:0.85rem;" class="text-truncate">${p.text}</span>
+                    prepItemsHtml += `
+                        <div style="font-size:0.75rem; font-weight:700; color:#2c3e50; margin-bottom:4px; display:flex; align-items:center; gap:4px;">
+                            <span style="color:#e67e22; font-size:0.5rem;">●</span>
+                            <span class="text-truncate">${p.text}</span>
                         </div>
                     `;
                 });
-                if (ctx.uncompletedPreps.length > 3) {
-                    prepSummaryHtml += `<div style="font-size:0.75rem; color:var(--dora); text-align:right; font-weight:900; cursor:pointer;" onclick="showV37Tab('trip')">查看全部 ${ctx.uncompletedPreps.length} 項...</div>`;
-                }
-                prepSummaryHtml += `</div>`;
             }
-            
-            dashboardHtml = `
-                <div class="widget-grid">
-                    <div class="widget-card" style="background: linear-gradient(135deg, #FFEAA7, #FFD166); border: none;">
-                        <div class="widget-title" style="color: #D35400; border-color: rgba(211, 84, 0, 0.2);"><i class="fa-solid fa-plane-departure"></i> 旅行倒數 Widget</div>
-                        <div style="text-align: center; padding: 10px 0;">
-                            <div style="font-size: 0.85rem; color: #D35400; font-weight:900;">距離出發 11/13 還剩</div>
-                            <div style="font-size: 3rem; font-weight: 900; color: #C0392B; margin: 5px 0;">${countdownDays} 天</div>
-                            <div style="font-size: 0.75rem; color: #7F8C8D; font-weight: 700;">旅程時間：2026/11/13 - 11/17 (5天)</div>
-                        </div>
-                    </div>
-                    
-                    <div class="widget-card">
-                        <div class="widget-title"><i class="fa-solid fa-cloud-sun"></i> 氣候穿搭與即時匯率</div>
-                        <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap:10px; font-size:0.8rem; font-weight:700; color:#555;">
-                            <div style="background: #fffdf9; padding: 10px; border-radius: 14px; border: 1px solid #f9ebd9;">
-                                <div style="font-weight:900; color:var(--primary); font-size:0.75rem;"><i class="fa-solid fa-shirt"></i> 穿搭建議</div>
-                                <div style="margin-top:4px; font-size:0.75rem; line-height:1.4;">${ctx.currentOutfit}</div>
-                            </div>
-                            <div style="display:flex; flex-direction:column; gap:8px;">
-                                <div style="background: #eef7ff; padding: 8px 10px; border-radius: 12px; border: 1px solid #d0e8ff; text-align:center;">
-                                    <div style="font-weight:900; color:var(--dora); font-size:0.7rem;">韓元匯率</div>
-                                    <div style="font-size:0.85rem; font-weight:900; color:var(--dora); margin-top:2px;">1 ₩ = $${ctx.exchangeRate.toFixed(4)}</div>
-                                </div>
-                                <div style="background: #fdfdfd; padding: 8px 10px; border-radius: 12px; border: 1px solid #eee; text-align:center;">
-                                    <div style="font-weight:900; color:#666; font-size:0.7rem;">${city.nameTW}氣溫</div>
-                                    <div style="font-size:0.85rem; font-weight:900; color:var(--primary); margin-top:2px;">${weather.temp}℃ (${weather.condition})</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="widget-card" style="border-left: 6px solid var(--dora);">
-                        <div class="widget-title" style="color:var(--dora); border-color: rgba(41,128,185,0.15);"><i class="fa-solid fa-robot"></i> AI 旅遊助手</div>
-                        <div style="font-size:0.85rem; font-weight:700; color:var(--text-dark); line-height:1.5;">
-                            ${ctx.aiSuggestions}
-                        </div>
-                    </div>
-                    
-                    <div class="widget-card">
-                        <div class="widget-title"><i class="fa-solid fa-bell"></i> 未完成行前準備</div>
-                        ${prepSummaryHtml}
-                    </div>
+            widget2Html = `
+                <div class="v38-widget-card" style="grid-column: span 2;">
+                    <div class="v38-widget-title"><i class="fa-solid fa-list-check"></i> 最近待辦</div>
+                    ${prepItemsHtml}
                 </div>
             `;
+            
+            widget3Html = `
+                <div class="v38-widget-card" style="grid-column: span 2; border-left: 4px solid var(--primary);">
+                    <div class="v38-widget-title" style="color:var(--primary);"><i class="fa-solid fa-robot"></i> 推薦提示</div>
+                    <p style="font-size:0.75rem; font-weight:700; color:#555; line-height:1.3; margin:0;" class="text-truncate">${ctx.aiSuggestions.split('\n')[0]}</p>
+                </div>
+            `;
+            
         } else if (mode === 'during') {
-            let dayNum = "Day 1";
-            if (dateStr === "11/13") dayNum = "Day 1 (西面)";
-            if (dateStr === "11/14") dayNum = "Day 2 (膠囊/廣安里)";
-            if (dateStr === "11/15") dayNum = "Day 3 (慶州賞楓)";
-            if (dateStr === "11/16") dayNum = "Day 4 (海濱漫步)";
-            if (dateStr === "11/17") dayNum = "Day 5 (回程)";
+            let dayNum = "DAY 1";
+            if (dateStr === "11/13") dayNum = "DAY 1";
+            if (dateStr === "11/14") dayNum = "DAY 2";
+            if (dateStr === "11/15") dayNum = "DAY 3";
+            if (dateStr === "11/16") dayNum = "DAY 4";
+            if (dateStr === "11/17") dayNum = "DAY 5";
             
-            let dailySpend = ctx.budget.dailySpend;
+            let nextAttr = "今日行程已結束";
+            let nextTimeStr = "";
             
-            let itineraryListHtml = "";
+            if (ctx.nextDestination) {
+                nextAttr = ctx.nextDestination.desc.split(' ')[0];
+                nextTimeStr = ctx.nextDestination.time;
+            }
+            
+            heroHtml = `
+                <div class="v38-hero-card" onclick="showV37Tab('itinerary')" style="background: linear-gradient(135deg, #1e272e, #353b48);">
+                    <div class="v38-hero-title">${dayNum} | 🇰🇷 ${city.nameTW}</div>
+                    <div class="v38-hero-main" style="display:flex; justify-content:space-between; align-items:center;">
+                        <span class="text-truncate" style="max-width:180px;">${nextAttr}</span>
+                        <span style="font-size:1.3rem; color:#4cd964;">${weather.temp}°C</span>
+                    </div>
+                    <div class="v38-hero-sub" style="margin-top:4px;"><i class="fa-solid fa-map-pin"></i> ${nextTimeStr ? nextTimeStr + ' 出發' : ''}</div>
+                    <div style="margin-top: 6px; font-size: 0.78rem; font-weight: 800; color: #ffcc00;" class="text-truncate"><i class="fa-solid fa-circle-exclamation"></i> ${smartAlert}</div>
+                </div>
+            `;
+            
+            let itiItemsHtml = "";
             if (ctx.todayItinerary.length === 0) {
-                itineraryListHtml = `<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; margin:0;">今日無行程規劃</p>`;
+                itiItemsHtml = `<p style="font-size:0.75rem; color:#8e8e93; margin:0;">今日無行程</p>`;
             } else {
-                itineraryListHtml = `<div style="display:flex; flex-direction:column; gap:10px;">`;
-                ctx.todayItinerary.forEach(i => {
-                    let trText = i.tr ? `<span style="background:#f1f2f6; border:1px solid #e0e0e0; font-size:0.68rem; padding:2px 6px; border-radius:6px; font-weight:bold; margin-left:8px; color:#555;">${i.tr}</span>` : '';
-                    let mapBtn = i.map ? `<a href="${i.map}" target="_blank" style="color:var(--dora); text-decoration:none; margin-left:auto; font-size:0.75rem; font-weight:900; display:inline-flex; align-items:center; gap:2px;"><i class="fa-solid fa-map-location-dot"></i> 地圖</a>` : '';
-                    itineraryListHtml += `
-                        <div style="display:flex; align-items:center; border-bottom: 1px dashed rgba(0,0,0,0.05); padding-bottom:6px; font-size:0.82rem; font-weight:700;">
-                            <span style="color:var(--primary); font-weight:900; font-size:0.85rem; width:45px; flex-shrink:0;">${i.time}</span>
-                            <span style="color:var(--text-dark); flex:1; padding-right:5px;" class="text-truncate">${i.desc} ${trText}</span>
-                            ${mapBtn}
+                ctx.todayItinerary.slice(0, 3).forEach(i => {
+                    itiItemsHtml += `
+                        <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:700; margin-bottom:4px;">
+                            <span style="color:var(--primary); font-weight:900; width:40px;">${i.time}</span>
+                            <span style="color:#2c3e50; flex:1;" class="text-truncate">${i.desc.split(' ')[0]}</span>
                         </div>
                     `;
                 });
-                itineraryListHtml += `</div>`;
             }
-            
-            let transitAlertHtml = "";
-            if (ctx.navigation.available) {
-                if (ctx.navigation.finishedAll) {
-                    transitAlertHtml = `
-                        <div class="widget-card" style="background:#fdfdfd; border-left: 6px solid #95A5A6;">
-                            <div class="widget-title" style="color:#7F8C8D; border-color:rgba(0,0,0,0.05);"><i class="fa-solid fa-route"></i> 今日自動交通提示</div>
-                            <p style="font-size:0.85rem; color:#7f8c8d; font-weight:900; text-align:center; margin:10px 0;">🎉 今日所有行程皆已順利完成！</p>
-                        </div>
-                    `;
-                } else {
-                    transitAlertHtml = `
-                        <div class="widget-card" style="border-left: 6px solid #27AE60; background: linear-gradient(135deg, #fafffa, #ffffff);">
-                            <div class="widget-title" style="color:#27AE60; border-color:rgba(39,174,96,0.15);"><i class="fa-solid fa-route"></i> 自動交通提示</div>
-                            <div style="font-weight:900; font-size:0.9rem; color:var(--text-dark); margin-bottom:8px; display:flex; align-items:center; gap:8px;">
-                                <span style="color:#27AE60;">${ctx.navigation.startName}</span>
-                                <i class="fa-solid fa-arrow-right-long" style="color:#bdc3c7;"></i>
-                                <span style="color:var(--primary);">${ctx.navigation.endName}</span>
-                            </div>
-                            <div style="font-size:0.8rem; font-weight:700; color:#555; margin-bottom:10px;">
-                                🚌 推薦交通：<b>${ctx.navigation.transitMethod}</b>
-                            </div>
-                            <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                                <a href="${ctx.navigation.naverUrl}" target="_blank" class="map-tag" style="background:#03C75A; padding:6px 12px; font-size:0.75rem; font-weight:900;"><i class="fa-solid fa-location-arrow"></i> Naver Map</a>
-                                <a href="${ctx.navigation.kakaoUrl}" target="_blank" class="map-tag" style="background:#FEE500; color:#3C1E1E; padding:6px 12px; font-size:0.75rem; font-weight:900;"><i class="fa-solid fa-route"></i> Kakao Map</a>
-                                <a href="${ctx.navigation.googleUrl}" target="_blank" class="map-tag" style="background:#4285F4; padding:6px 12px; font-size:0.75rem; font-weight:900;"><i class="fa-solid fa-map"></i> Google Maps</a>
-                            </div>
-                        </div>
-                    `;
-                }
-            }
-            
-            dashboardHtml = `
-                <div class="widget-grid">
-                    <div class="widget-card" style="background: linear-gradient(135deg, #eef7ff, #ffffff); border-left:6px solid var(--dora);">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                            <span style="font-weight:900; color:var(--dora); font-size:1rem;"><i class="fa-solid fa-plane"></i> 今日旅行看板 (${dayNum})</span>
-                            <span style="font-size:0.7rem; background:rgba(41,128,185,0.1); color:var(--dora); padding:2px 6px; border-radius:6px; font-weight:900;">${dateStr}</span>
-                        </div>
-                        <div style="display:grid; grid-template-columns: 1fr 1.2fr; gap:10px; font-size:0.8rem; font-weight:700; color:#555;">
-                            <div style="background:#fff; padding:8px; border-radius:12px; border:1px solid #eee; text-align:center;">
-                                <div style="font-size:0.7rem; color:#7f8c8d;">今日花費 TWD</div>
-                                <div style="font-size:0.95rem; font-weight:900; color:var(--primary); margin-top:2px;">$${dailySpend.toLocaleString()}</div>
-                            </div>
-                            <div style="background:#fff; padding:8px; border-radius:12px; border:1px solid #eee; text-align:center;">
-                                <div style="font-size:0.7rem; color:#7f8c8d;">${city.nameTW}氣候</div>
-                                <div style="font-size:0.95rem; font-weight:900; color:#27ae60; margin-top:2px;">${weather.temp}℃ (${weather.condition})</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="widget-card" style="border-left: 6px solid var(--accent);">
-                        <div class="widget-title" style="color:var(--accent); border-color: rgba(243,156,18,0.15);"><i class="fa-solid fa-robot"></i> AI 旅遊助手</div>
-                        <div style="font-size:0.85rem; font-weight:700; color:var(--text-dark); line-height:1.5;">
-                            ${ctx.aiSuggestions}
-                        </div>
-                    </div>
-                    
-                    <div class="widget-card">
-                        <div class="widget-title"><i class="fa-solid fa-clock"></i> 今日行程時程軸</div>
-                        ${itineraryListHtml}
-                        <div style="text-align:center; margin-top:10px;">
-                            <button class="btn-edit" style="width:100%; font-size:0.75rem; padding:8px;" onclick="showV37Tab('itinerary')"><i class="fa-solid fa-calendar"></i> 詳細行程手帳</button>
-                        </div>
-                    </div>
-                    
-                    ${transitAlertHtml}
-                    
-                    <div class="widget-card">
-                        <div class="widget-title"><i class="fa-solid fa-circle-play"></i> 快速功能 Widget</div>
-                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
-                            <div class="quick-action-btn" onclick="quickAction('taxi')">
-                                <i class="fa-solid fa-taxi" style="color: #F39C12;"></i>
-                                <span style="font-size:0.7rem;">搭計程車</span>
-                            </div>
-                            <div class="quick-action-btn" onclick="quickAction('addspend')">
-                                <i class="fa-solid fa-wallet" style="color: #E74C3C;"></i>
-                                <span style="font-size:0.7rem;">快速記帳</span>
-                            </div>
-                            <div class="quick-action-btn" onclick="quickAction('photo')">
-                                <i class="fa-solid fa-camera" style="color: #3498DB;"></i>
-                                <span style="font-size:0.7rem;">拍照上傳</span>
-                            </div>
-                            <div class="quick-action-btn" onclick="quickAction('lodging')">
-                                <i class="fa-solid fa-hotel" style="color: #27AE60;"></i>
-                                <span style="font-size:0.7rem;">查看住宿</span>
-                            </div>
-                        </div>
-                    </div>
+            widget2Html = `
+                <div class="v38-widget-card" style="grid-column: span 2;">
+                    <div class="v38-widget-title"><i class="fa-solid fa-calendar-day"></i> 今天行程</div>
+                    ${itiItemsHtml}
                 </div>
             `;
+            
+            let recSpot = "甘川文化村";
+            let recSpotDesc = "小王子壁畫打卡必去";
+            if (dateStr === "11/15") {
+                recSpot = "東宮與月池";
+                recSpotDesc = "慶州絕美夜楓打卡地";
+            }
+            widget3Html = `
+                <div class="v38-widget-card" style="grid-column: span 2; border-left: 4px solid #ff9500;">
+                    <div class="v38-widget-title" style="color:#ff9500;"><i class="fa-solid fa-compass"></i> 附近推薦</div>
+                    <div style="font-size:0.78rem; font-weight:900; color:#333;" class="text-truncate">📍 ${recSpot}</div>
+                    <p style="font-size:0.7rem; font-weight:700; color:#666; margin:0; line-height:1.2;" class="text-truncate">${recSpotDesc}</p>
+                </div>
+            `;
+            
         } else if (mode === 'after') {
-            let totalBillsTWD = ctx.budget.totalSharedTWD;
-            let totalPrivateTWD = ctx.budget.totalPrivateTWD;
             let overallSpent = ctx.budget.overallSpent;
             
-            let randomPhotosHtml = "";
-            let randomPhotos = [];
-            const imgEls = document.querySelectorAll('#albumContainer img');
-            imgEls.forEach(img => randomPhotos.push(img.src));
+            heroHtml = `
+                <div class="v38-hero-card" onclick="showV37Tab('split')" style="background: linear-gradient(135deg, #1e272e, #2d3436);">
+                    <div class="v38-hero-title">旅行完成 ✈️</div>
+                    <div class="v38-hero-main" style="font-size:1.6rem !important;">$${overallSpent.toLocaleString()} TWD</div>
+                    <div class="v38-hero-sub">旅行天數：5天 | 目的地: Busan</div>
+                    <div style="margin-top: 6px; font-size: 0.75rem; font-weight: 800; color: #ffcc00;" class="text-truncate">${smartAlert}</div>
+                </div>
+            `;
             
-            if (randomPhotos.length === 0) {
-                randomPhotosHtml = `<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; margin:0;">尚無拍立得照片</p>`;
-            } else {
-                let shuffled = [...randomPhotos].sort(() => 0.5 - Math.random()).slice(0, 3);
-                randomPhotosHtml = `<div style="display:flex; gap:10px; overflow-x:auto; padding:5px 0; justify-content:center;">`;
-                shuffled.forEach(src => {
-                    let rot = (Math.random() * 6) - 3;
-                    randomPhotosHtml += `
-                        <div class="polaroid" style="width:75px; flex-shrink:0; transform: rotate(${rot}deg); padding: 5px 5px 15px 5px; box-shadow:0 4px 10px rgba(0,0,0,0.08);" onclick="openLightbox('${src}', null)">
-                            <img src="${src}" style="height:60px; border-radius:2px;">
-                        </div>
-                    `;
-                });
-                randomPhotosHtml += `</div>`;
-            }
+            widget2Html = `
+                <div class="v38-widget-card" style="grid-column: span 2;">
+                    <div class="v38-widget-title"><i class="fa-solid fa-pen-fancy"></i> 心得手帳</div>
+                    <textarea id="v38ReviewText" class="input-box" style="height:35px; font-size:0.7rem; font-weight:normal; resize:none; padding:4px; border-radius:6px; margin-bottom:4px;" placeholder="寫下回顧或心得..."></textarea>
+                    <button class="btn-action" style="padding:2px; font-size:0.65rem; width:100%;" onclick="saveV38TravelReview()">💾 儲存</button>
+                </div>
+            `;
             
-            dashboardHtml = `
-                <div class="widget-grid">
-                    <div class="widget-card">
-                        <div class="widget-title"><i class="fa-solid fa-chart-line"></i> 旅行總支出與理財分析</div>
-                        <div style="text-align:center; margin-bottom:12px;">
-                            <span style="font-size:0.75rem; color:#7f8c8d;">全體總支出 (公費 + 本機私帳)</span><br>
-                            <span style="font-size:1.6rem; font-weight:900; color:var(--primary);">$${overallSpent.toLocaleString()} TWD</span>
-                        </div>
-                        <div id="v37HomeChartContainer" style="margin-top:10px;"></div>
-                    </div>
-                    
-                    <div class="widget-card" style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(254,244,233,0.9));">
-                        <div class="widget-title" style="color:var(--accent); border-color: rgba(243,156,18,0.15);"><i class="fa-solid fa-images"></i> 拍立得精選回憶</div>
-                        ${randomPhotosHtml}
-                        <div style="text-align:center; margin-top:10px;">
-                            <button class="btn-edit" style="width:100%; font-size:0.75rem; padding:8px;" onclick="showV37Tab('photo')"><i class="fa-solid fa-images"></i> 拍立得相冊</button>
-                        </div>
-                    </div>
-                    
-                    <div class="widget-card">
-                        <div class="widget-title"><i class="fa-solid fa-pen-fancy"></i> 心得日記手帳</div>
-                        <p style="font-size:0.8rem; color:#666; font-weight:700; margin:0 0 10px 0;">記錄您的旅行感言：</p>
-                        <textarea id="v37ReviewText" class="input-box" style="height:90px; font-size:0.85rem; font-weight:normal; resize:none;" placeholder="寫下本次旅行的回顧、好玩的景點或踩雷心得..."></textarea>
-                        <button class="btn-action" style="padding:10px; font-size:0.85rem;" onclick="saveV37TravelReview()">💾 儲存心得日記</button>
+            widget3Html = `
+                <div class="v38-widget-card" style="grid-column: span 2; border-left: 4px solid #2ecc71;">
+                    <div class="v38-widget-title" style="color:#2ecc71;"><i class="fa-solid fa-wallet"></i> 旅行統計</div>
+                    <div style="font-size:0.75rem; font-weight:700; color:#555; line-height: 1.3;">
+                        <div>公費分攤：$${ctx.budget.totalSharedTWD.toLocaleString()} TWD</div>
+                        <div>個人私帳：$${ctx.budget.totalPrivateTWD.toLocaleString()} TWD</div>
                     </div>
                 </div>
             `;
         }
         
-        container.innerHTML = simulatorHtml + dashboardHtml;
+        widget1Html = `
+            <div class="v38-widget-card" style="grid-column: span 2;">
+                <div class="v38-widget-title"><i class="fa-solid fa-star"></i> 快速功能</div>
+                <div class="v38-quick-actions">
+                    <button class="v38-action-btn" onclick="showV37Tab('itinerary')">
+                        <i class="fa-solid fa-calendar-days" style="color: #007aff;"></i>
+                        <span>行程</span>
+                    </button>
+                    <button class="v38-action-btn" onclick="showV37Tab('wallet')">
+                        <i class="fa-solid fa-wallet" style="color: #ff9500;"></i>
+                        <span>Wallet</span>
+                    </button>
+                    <button class="v38-action-btn" onclick="showV37Tab('split')">
+                        <i class="fa-solid fa-calculator" style="color: #4cd964;"></i>
+                        <span>記帳</span>
+                    </button>
+                    <button class="v38-action-btn" onclick="showV37Tab('shop')">
+                        <i class="fa-solid fa-cart-shopping" style="color: #ff2d55;"></i>
+                        <span>購物</span>
+                    </button>
+                </div>
+            </div>
+        `;
         
-        if (mode === 'before') {
-            // Handled
-        } else if (mode === 'after') {
-            setTimeout(() => {
-                const homeDonutContainer = document.getElementById('v37HomeChartContainer');
-                if (homeDonutContainer) {
-                    homeDonutContainer.style = "display: flex; align-items: center; gap: 15px; flex-wrap: wrap; justify-content: center;";
-                    homeDonutContainer.innerHTML = ctx.budget.donutSvg + ctx.budget.donutLegend;
-                }
-                
-                NetworkEngine.firebaseRead(DB_REVIEW).then(r => r.data).then(snap => {
-                    if (snap.exists()) {
-                        const txtEl = document.getElementById('v37ReviewText');
-                        if (txtEl) txtEl.value = snap.val();
-                    }
-                });
-            }, 100);
+        let favFoodCount = StorageEngine.get('fav_rec_food', []).data.length;
+        let favShopCount = StorageEngine.get('fav_rec_shop', []).data.length;
+        
+        widget4Html = `
+            <div class="v38-widget-card" style="grid-column: span 2;">
+                <div class="v38-widget-title"><i class="fa-solid fa-heart"></i> 收藏清單</div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                    <div style="background:#fff7f8; padding:6px; border-radius:10px; border:1px solid #ffebeb; text-align:center; cursor:pointer;" onclick="showV37Tab('home'); openGuideFolder('美食景點'); setTimeout(()=>setFoodTabMode('my'),100);">
+                        <div style="font-size:0.6rem; color:#ff3b30; font-weight:800;">🍜 美食收藏</div>
+                        <div style="font-size:0.95rem; font-weight:900; color:#ff3b30; margin-top:2px;">${favFoodCount} 個</div>
+                    </div>
+                    <div style="background:#f2faff; padding:6px; border-radius:10px; border:1px solid #e0f2ff; text-align:center; cursor:pointer;" onclick="showV37Tab('shop'); setTimeout(()=>setShopTabMode('rec'),100);">
+                        <div style="font-size:0.6rem; color:#007aff; font-weight:800;">🛍️ 購物收藏</div>
+                        <div style="font-size:0.95rem; font-weight:900; color:#007aff; margin-top:2px;">${favShopCount} 個</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        container.innerHTML = simulatorHtml + heroHtml + `
+            <div class="v38-widget-row">
+                ${widget1Html}
+                ${widget2Html}
+                ${widget3Html}
+                ${widget4Html}
+            </div>
+        `;
+        
+        if (mode === 'after') {
+            NetworkEngine.firebaseRead(DB_REVIEW).then(r => r.data).then(snap => {
+                const txtEl = document.getElementById('v38ReviewText');
+                if (txtEl && snap.exists()) txtEl.value = snap.val();
+            });
         }
     }
 
@@ -2056,7 +2342,7 @@ ${addr}(으)로 가주세요.
     }
     async function deleteVoiceCard(k) { 
         try {
-            await voiceRef.child(k).remove();
+            await NetworkEngine.firebaseRemove(`${DB_VOICE}/${k}`);
             showToast("儲存成功", "success");
         } catch (error) {
             console.error(error);
@@ -2209,7 +2495,7 @@ ${addr}(으)로 가주세요.
     }
     async function deleteSharedBill(k) { 
         try {
-            await billRef.child(k).remove();
+            await NetworkEngine.firebaseRemove(`${DB_BILLS}/${k}`);
             showToast("儲存成功", "success");
         } catch (error) {
             console.error(error);
@@ -2220,9 +2506,69 @@ ${addr}(으)로 가주세요.
 
     // 拍立得相冊
     NetworkEngine.firebaseOn(DB_PHOTOS, s => {
-        const c = document.getElementById("albumContainer"); c.innerHTML = ""; let a = {};
-        s.forEach(ch => { let p = ch.val(); p.key = ch.key; let d = p.date || "回憶"; if(!a[d]) a[d] = []; a[d].unshift(p); });
-        for(let d in a){ let g = a[d].map(p => { let rot = (Math.random() * 6) - 3; return `<div class="polaroid" style="transform: rotate(${rot}deg);" onclick="openLightbox('${p.url}', '${p.key}')"><img src="${p.url}"></div>`; }).join(''); c.innerHTML = `<div class="album-date"><i class="fa-solid fa-calendar-day"></i> ${d} 的記憶</div><div class="photo-grid">${g}</div>` + c.innerHTML; }
+        const c = document.getElementById("albumContainer"); 
+        const todayCont = document.getElementById("todayPhotosContainer");
+        const highlightCont = document.getElementById("highlightMemoriesContainer");
+        
+        if (c) c.innerHTML = ""; 
+        if (todayCont) todayCont.innerHTML = "";
+        if (highlightCont) highlightCont.innerHTML = "";
+        
+        let a = {};
+        let allPhotos = [];
+        s.forEach(ch => { 
+            let p = ch.val(); 
+            p.key = ch.key; 
+            allPhotos.push(p);
+            let d = p.date || "回憶"; 
+            if(!a[d]) a[d] = []; 
+            a[d].unshift(p); 
+        });
+        
+        // 1. Render all photos inside albumContainer
+        if (c) {
+            for(let d in a){ 
+                let g = a[d].map(p => { 
+                    let rot = (Math.random() * 6) - 3; 
+                    return `<div class="polaroid" style="transform: rotate(${rot}deg);" onclick="openLightbox('${p.url}', '${p.key}')"><img src="${p.url}"></div>`; 
+                }).join(''); 
+                c.innerHTML = `<div class="album-date"><i class="fa-solid fa-calendar-day"></i> ${d} 的記憶</div><div class="photo-grid">${g}</div>` + c.innerHTML; 
+            }
+        }
+        
+        // 2. Render today's photos matching current selected date
+        if (todayCont) {
+            const curDate = getV37SelectedDate();
+            let todayPhotos = allPhotos.filter(p => p.date === curDate || (p.date && p.date.includes(curDate)));
+            if (todayPhotos.length === 0) {
+                todayCont.innerHTML = `<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:800; width:100%; padding:15px 0;">今日尚無拍立得照片</p>`;
+            } else {
+                todayCont.innerHTML = todayPhotos.map(p => {
+                    let rot = (Math.random() * 4) - 2;
+                    return `<div class="polaroid" style="transform: rotate(${rot}deg); width:80px; margin:5px;" onclick="openLightbox('${p.url}', '${p.key}')"><img src="${p.url}"></div>`;
+                }).join('');
+            }
+        }
+        
+        // 3. Render highlight memories (shuffled, up to 4 items)
+        if (highlightCont) {
+            if (allPhotos.length === 0) {
+                highlightCont.innerHTML = `<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:800; padding:15px 0;">上傳照片後將在此展示精彩回憶</p>`;
+            } else {
+                let shuffled = [...allPhotos].sort(() => 0.5 - Math.random()).slice(0, 4);
+                let gridHtml = `<div style="display:flex; gap:10px; overflow-x:auto; padding:10px 0; justify-content:center;">`;
+                shuffled.forEach(p => {
+                    let rot = (Math.random() * 6) - 3;
+                    gridHtml += `
+                        <div class="polaroid" style="width:75px; flex-shrink:0; transform: rotate(${rot}deg); padding: 5px 5px 15px 5px; box-shadow:0 4px 10px rgba(0,0,0,0.05);" onclick="openLightbox('${p.url}', '${p.key}')">
+                            <img src="${p.url}" style="height:60px; border-radius:2px;">
+                        </div>
+                    `;
+                });
+                gridHtml += `</div>`;
+                highlightCont.innerHTML = gridHtml;
+            }
+        }
     });
 
     let ticketData = [];
@@ -2529,7 +2875,7 @@ ${addr}(으)로 가주세요.
         
         console.log("Hotel Saving/Updating. Data to save:", updateData);
         try {
-            await hotelRef.update(updateData);
+            await NetworkEngine.firebaseUpdate(DB_HOTEL, updateData);
             console.log("Hotel Saved/Updated successfully.");
             showToast("儲存成功", "success");
             let m = document.getElementById('dynamicLodgingModal');
@@ -2545,9 +2891,11 @@ ${addr}(으)로 가주세요.
     }
     function renderTickets_LogicOnly() {
         const l = document.getElementById('ticketList');
+        const l_wallet = document.getElementById('walletTicketsList');
         const l_trip = document.getElementById('ticketList_trip');
         const l_lodging_trip = document.getElementById('tripLodgingContainer');
-        if (!l && !l_trip && !l_lodging_trip) return;
+        const l_lodging_wallet = document.getElementById('walletHotelInfoCard');
+        if (!l && !l_wallet && !l_trip && !l_lodging_trip && !l_lodging_wallet) return;
         
         const ctx = getTripContext();
         if (!ctx || !ctx.currentHotel) return;
@@ -2833,8 +3181,11 @@ ${addr}(으)로 가주세요.
         });
         
         if (l) l.innerHTML = lodgingHtml + ticketsHtml;
+        if (l_wallet) l_wallet.innerHTML = ticketsHtml || `<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:15px 0;">尚無機票或門票憑證</p>`;
+        if (l_lodging_wallet) l_lodging_wallet.innerHTML = lodgingHtml || `<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:15px 0;">尚未填寫住宿資料</p>`;
         if (l_trip) l_trip.innerHTML = ticketsHtml || `<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:15px 0;">尚無機票或門票憑證</p>`;
         if (l_lodging_trip) l_lodging_trip.innerHTML = lodgingHtml || `<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:15px 0;">尚未填寫住宿資料</p>`;
+        renderSmartNearby();
     }
 
     async function addTicket() { 
@@ -2858,7 +3209,7 @@ ${addr}(으)로 가주세요.
     }
     async function deleteTicket(k) { 
         try {
-            await ticketRef.child(k).remove();
+            await NetworkEngine.firebaseRemove(`${DB_TICKETS}/${k}`);
             showToast("儲存成功", "success");
         } catch (error) {
             console.error(error);
@@ -2934,7 +3285,7 @@ ${addr}(으)로 가주세요.
         if(!de) { showToast("請填寫行程內容！", "warning"); return; } 
         if(editingItiKey) { 
             try {
-                await itiRef.child(editingItiKey).update({day:d, time:t, tr:tr, desc:de, map:map});
+                await NetworkEngine.firebaseUpdate(`${DB_ITI}/${editingItiKey}`, {day:d, time:t, tr:tr, desc:de, map:map});
                 showToast("儲存成功", "success");
             } catch (error) {
                 console.error(error);
@@ -2960,7 +3311,7 @@ ${addr}(으)로 가주세요.
     async function deleteItinerary(k) { 
         if(confirm("確定刪除此行程？")) {
             try {
-                await itiRef.child(k).remove();
+                await NetworkEngine.firebaseRemove(`${DB_ITI}/${k}`);
                 showToast("儲存成功", "success");
             } catch (error) {
                 console.error(error);
@@ -3035,7 +3386,7 @@ ${addr}(으)로 가주세요.
     }
     async function toggleShop(key, currentStatus) { 
         try {
-            await shopRef.child(key).update({ checked: !currentStatus });
+            await NetworkEngine.firebaseUpdate(`${DB_SHOP}/${key}`, { checked: !currentStatus });
             showToast("儲存成功", "success");
         } catch (error) {
             console.error(error);
@@ -3044,7 +3395,7 @@ ${addr}(으)로 가주세요.
     }
     async function deleteShop(key) { 
         try {
-            await shopRef.child(key).remove();
+            await NetworkEngine.firebaseRemove(`${DB_SHOP}/${key}`);
             showToast("儲存成功", "success");
         } catch (error) {
             console.error(error);
@@ -3129,7 +3480,7 @@ ${addr}(으)로 가주세요.
         if(!ti) { showToast("請輸入地標名稱！", "warning"); return; } 
         if(editingGuideKey) { 
             try {
-                await guideRef.child(editingGuideKey).update({type:t, title:ti, desc:de, link:li, img:i});
+                await NetworkEngine.firebaseUpdate(`${DB_GUIDE}/${editingGuideKey}`, {type:t, title:ti, desc:de, link:li, img:i});
                 showToast("儲存成功", "success");
             } catch (error) {
                 console.error(error);
@@ -3156,7 +3507,7 @@ ${addr}(으)로 가주세요.
     async function deleteGuide(k) { 
         if(confirm("確定刪除此地標？")) {
             try {
-                await guideRef.child(k).remove();
+                await NetworkEngine.firebaseRemove(`${DB_GUIDE}/${k}`);
                 showToast("儲存成功", "success");
             } catch (error) {
                 console.error(error);
@@ -3173,6 +3524,446 @@ ${addr}(으)로 가주세요.
                 .catch(err => console.error('Service Worker 註冊失敗', err));
         });
     }
+
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // V38 Home UX Redesign: Recommended Databases & Logic Helpers
+    // ─────────────────────────────────────────────────────────────────────────
+    const RECOMMENDED_SHOPPING = [
+      { id: 'rs1', category: 'CU 必買', name: '延世大生乳包', desc: '超商甜點天花板，爆漿口感不甜膩' },
+      { id: 'rs2', category: 'CU 必買', name: '冰塊杯 + 香蕉牛奶', desc: '韓國人夏日清涼神仙飲品組合' },
+      { id: 'rs3', category: 'Olive Young', name: 'UNOVE 深層護髮膜', desc: '受損髮救星，柔順有感，Olive Young 排行榜常客' },
+      { id: 'rs4', category: 'Olive Young', name: 'Torriden 玻尿酸保濕精華', desc: '極速補水，質地清爽，妝前保濕必備' },
+      { id: 'rs5', category: 'DAISO', name: 'Daiso 造型貼紙與文具', desc: '便宜精緻，多款卡通與生活設計小物' },
+      { id: 'rs6', category: 'LOTTE Mart', name: 'HBAF 杏仁果系列', desc: '蜂蜜奶油、芥末、烤玉米等多種人氣口味' },
+      { id: 'rs7', category: 'Homeplus', name: '零食與拉麵福袋', desc: '大份量量販包裝，多種韓國經典泡麵一次帶走' },
+      { id: 'rs8', category: '藥妝', name: '蜈蚣丸消炎藥', desc: '當地藥局必備，針對喉嚨痛與發炎極速見效' },
+      { id: 'rs9', category: '伴手禮', name: '慶州皇南餅', desc: '紅豆沙餡綿密，慶州傳統經典點心' }
+    ];
+
+    const RECOMMENDED_FOOD = [
+      { id: 'rf1', category: '豬肉湯飯', name: '凡內谷豬肉湯飯', desc: '經典釜山濃郁大骨湯底，肉質軟嫩' },
+      { id: 'rf2', category: '烤肉', name: '味讚王鹽烤肉', desc: '厚切三層肉，專人桌邊代烤，外酥內嫩' },
+      { id: 'rf3', category: 'Seafood', name: '海木鰻魚飯', desc: '海雲台奢華米其林推薦日式鰻魚飯' },
+      { id: 'rf4', category: '咖啡', name: 'Thrill On The Mug', desc: '影島絕美海景咖啡廳，打卡熱門地標' },
+      { id: 'rf5', category: '甜點', name: '西面黑糖餅', desc: '釜山街頭傳統小吃，堅果豐富香甜' },
+      { id: 'rf6', category: '夜景', name: '廣安里 M 無人機秀', desc: '週六晚間廣安大橋夜空璀璨燈光秀' }
+    ];
+
+    let currentShopSubTab = 'my';
+    let currentRecShopFilter = 'ALL';
+    let currentFoodSubTab = 'my';
+
+    function setShopTabMode(mode) {
+        currentShopSubTab = mode;
+        const btnMy = document.getElementById('btnShopMy');
+        const btnRec = document.getElementById('btnShopRec');
+        const myCont = document.getElementById('shopMyContainer');
+        const recCont = document.getElementById('shopRecContainer');
+        const cardTitle = document.getElementById('shopCardTitle');
+        
+        if (mode === 'my') {
+            if(btnMy) btnMy.classList.add('active');
+            if(btnRec) btnRec.classList.remove('active');
+            if(myCont) myCont.style.display = 'block';
+            if(recCont) recCont.style.display = 'none';
+            if(cardTitle) cardTitle.innerHTML = '<i class="fa-solid fa-cart-shopping"></i> 個人購物清單';
+        } else {
+            if(btnMy) btnMy.classList.remove('active');
+            if(btnRec) btnRec.classList.add('active');
+            if(myCont) myCont.style.display = 'none';
+            if(recCont) recCont.style.display = 'block';
+            if(cardTitle) cardTitle.innerHTML = '<i class="fa-solid fa-fire"></i> 熱門指南推薦';
+            renderRecommendedShopping();
+        }
+    }
+
+    function filterRecShop(cat, btn) {
+        currentRecShopFilter = cat;
+        document.querySelectorAll('#shopRecFilterUI .day-tab').forEach(b => b.classList.remove('active'));
+        if(btn) btn.classList.add('active');
+        renderRecommendedShopping();
+    }
+
+    function renderRecommendedShopping() {
+        const list = document.getElementById('sRecList');
+        if(!list) return;
+        list.innerHTML = '';
+        
+        const hiddenIds = StorageEngine.get('hidden_rec_shop', []).data;
+        const favIds = StorageEngine.get('fav_rec_shop', []).data;
+        
+        let filtered = RECOMMENDED_SHOPPING.filter(item => {
+            if(hiddenIds.includes(item.id)) return False;
+            if(currentRecShopFilter !== 'ALL' && item.category !== currentRecShopFilter) return False;
+            return True;
+        });
+        
+        if(filtered.length === 0) {
+            list.innerHTML = '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:800; padding:15px 0;">無推薦商品</p>';
+            return;
+        }
+        
+        filtered.forEach(item => {
+            const isFav = favIds.includes(item.id);
+            list.innerHTML += `
+                <div class="v38-rec-item">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span class="v38-badge" style="background:var(--dora);">${item.category}</span>
+                        <div style="display:flex; gap:6px;">
+                            <span class="v38-tag" style="background:${isFav?'#ffeef0':'#f2f2f7'}; color:${isFav?'#ff3b30':'#8e8e93'}; font-size:0.65rem;">
+                                <i class="fa-${isFav?'solid':'regular'} fa-heart"></i> ${isFav?'已收藏':'未收藏'}
+                            </span>
+                        </div>
+                    </div>
+                    <div style="font-weight:900; font-size:0.95rem; color:#1c1c1e; margin-top:2px;">${item.name}</div>
+                    <div style="font-size:0.8rem; color:#555;">${item.desc}</div>
+                    <div class="v38-rec-actions">
+                        <button class="v38-mini-btn" style="background:var(--primary); color:white; border:none;" onclick="addRecShopToMyList('${item.id}')">🛒 加入清單</button>
+                        <button class="v38-mini-btn" onclick="toggleFavRecShopItem('${item.id}')"><i class="fa-solid fa-heart" style="color:#ff3b30;"></i> ${isFav?'取消收藏':'收藏'}</button>
+                        <button class="v38-mini-btn" onclick="hideRecShopItem('${item.id}')"><i class="fa-solid fa-eye-slash"></i> 隱藏</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    async function addRecShopToMyList(id) {
+        const item = RECOMMENDED_SHOPPING.find(x => x.id === id);
+        if(!item) return;
+        try {
+            await NetworkEngine.firebasePush(DB_SHOP, {
+                category: item.category.includes('CU') ? '伴手禮' : (item.category.includes('Olive') ? '彩妝' : '其他'),
+                text: item.name,
+                where: item.category,
+                img: '',
+                checked: false,
+                owner: deviceOwner
+            });
+            showToast(`🛒 已成功加入「我的清單」：${item.name}`, "success");
+        } catch (e) {
+            showToast("同步失敗", "error");
+        }
+    }
+
+    function hideRecShopItem(id) {
+        let hidden = StorageEngine.get('hidden_rec_shop', []).data;
+        if(!hidden.includes(id)) {
+            hidden.push(id);
+            StorageEngine.set('hidden_rec_shop', hidden);
+            renderRecommendedShopping();
+            showToast("已隱藏該推薦商品", "info");
+        }
+    }
+
+    function toggleFavRecShopItem(id) {
+        let fav = StorageEngine.get('fav_rec_shop', []).data;
+        const idx = fav.indexOf(id);
+        if(idx !== -1) {
+            fav.splice(idx, 1);
+            showToast("已取消收藏", "info");
+        } else {
+            fav.push(id);
+            showToast("❤ 已成功加入「購物收藏」", "success");
+        }
+        StorageEngine.set('fav_rec_shop', fav);
+        renderRecommendedShopping();
+        triggerContextUpdate(); // Refresh Home collections count
+    }
+
+    function setFoodTabMode(mode) {
+        currentFoodSubTab = mode;
+        const btnMy = document.getElementById('btnFoodMy');
+        const btnRec = document.getElementById('btnFoodRec');
+        const myCont = document.getElementById('guideList');
+        const recCont = document.getElementById('foodRecList');
+        const addCard = document.getElementById('addGuideCard');
+        
+        if (mode === 'my') {
+            if(btnMy) btnMy.classList.add('active');
+            if(btnRec) btnRec.classList.remove('active');
+            if(myCont) myCont.style.display = 'block';
+            if(recCont) recCont.style.display = 'none';
+            if(addCard) addCard.style.display = 'block';
+        } else {
+            if(btnMy) btnMy.classList.remove('active');
+            if(btnRec) btnRec.classList.add('active');
+            if(myCont) myCont.style.display = 'none';
+            if(recCont) recCont.style.display = 'block';
+            if(addCard) addCard.style.display = 'none';
+            renderRecommendedFood();
+        }
+    }
+
+    function renderRecommendedFood() {
+        const list = document.getElementById('foodRecList');
+        if(!list) return;
+        list.innerHTML = '';
+        
+        const favIds = StorageEngine.get('fav_rec_food', []).data;
+        const eatenIds = StorageEngine.get('eaten_rec_food', []).data;
+        
+        RECOMMENDED_FOOD.forEach(item => {
+            const isFav = favIds.includes(item.id);
+            const isEaten = eatenIds.includes(item.id);
+            list.innerHTML += `
+                <div class="v38-rec-item" style="background:white; border-radius:16px; padding:12px; margin-bottom:10px; border:1px solid #f2f2f7; box-shadow:0 2px 8px rgba(0,0,0,0.01);">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span class="v38-badge" style="background:var(--accent);">${item.category}</span>
+                        <div style="display:flex; gap:6px;">
+                            ${isEaten ? '<span class="v38-tag" style="background:#eafaf1; color:#2ecc71; font-size:0.65rem;"><i class="fa-solid fa-circle-check"></i> 已吃過</span>' : ''}
+                            <span class="v38-tag" style="background:${isFav?'#ffeef0':'#f2f2f7'}; color:${isFav?'#ff3b30':'#8e8e93'}; font-size:0.65rem;">
+                                <i class="fa-${isFav?'solid':'regular'} fa-heart"></i> ${isFav?'已收藏':'未收藏'}
+                            </span>
+                        </div>
+                    </div>
+                    <div style="font-weight:900; font-size:0.95rem; color:#1c1c1e; margin-top:2px;">${item.name}</div>
+                    <div style="font-size:0.8rem; color:#555;">${item.desc}</div>
+                    <div class="v38-rec-actions">
+                        <button class="v38-mini-btn" onclick="toggleFavRecFoodItem('${item.id}')"><i class="fa-solid fa-heart" style="color:#ff3b30;"></i> ${isFav?'取消收藏':'收藏'}</button>
+                        <button class="v38-mini-btn" onclick="toggleEatenRecFoodItem('${item.id}')"><i class="fa-solid fa-utensils" style="color:#2ecc71;"></i> ${isEaten?'標記未吃':'標記吃過'}</button>
+                        <button class="v38-mini-btn" style="background:var(--primary); color:white; border:none;" onclick="addRecFoodToItinerary('${item.id}')"><i class="fa-solid fa-plus"></i> 加入行程</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function toggleFavRecFoodItem(id) {
+        let fav = StorageEngine.get('fav_rec_food', []).data;
+        const idx = fav.indexOf(id);
+        if(idx !== -1) {
+            fav.splice(idx, 1);
+            showToast("已取消收藏", "info");
+        } else {
+            fav.push(id);
+            showToast("❤ 已成功加入「美食收藏」", "success");
+        }
+        StorageEngine.set('fav_rec_food', fav);
+        renderRecommendedFood();
+        triggerContextUpdate(); // Refresh Home collections count
+    }
+
+    function toggleEatenRecFoodItem(id) {
+        let eaten = StorageEngine.get('eaten_rec_food', []).data;
+        const idx = eaten.indexOf(id);
+        if(idx !== -1) {
+            eaten.splice(idx, 1);
+            showToast("已標記為未吃過", "info");
+        } else {
+            eaten.push(id);
+            showToast("👍 標記吃過！大飽口福！", "success");
+        }
+        StorageEngine.set('eaten_rec_food', eaten);
+        renderRecommendedFood();
+    }
+
+    async function addRecFoodToItinerary(id) {
+        const item = RECOMMENDED_FOOD.find(x => x.id === id);
+        if(!item) return;
+        try {
+            await NetworkEngine.firebasePush(DB_ITI, {
+                day: getV37SelectedDate(),
+                time: "12:00",
+                tr: "步行",
+                desc: `🍴 吃美食：${item.name} (${item.desc})`,
+                map: ""
+            });
+            showToast(`📅 已成功加至今日行程手帳：${item.name}`, "success");
+        } catch (e) {
+            showToast("同步失敗", "error");
+        }
+    }
+
+    function saveV38TravelReview() {
+        const txt = document.getElementById('v38ReviewText');
+        if(!txt) return;
+        showToast("⏳ 心得日記同步中...", "info");
+        NetworkEngine.firebaseWrite(DB_REVIEW, txt.value).then(() => {
+            showToast("💾 心得日記已成功同步至 Firebase 雲端！", "success");
+        }).catch(err => {
+            showToast("同步失敗: " + err.message, "error");
+        });
+    }
+
+    
+    // ─────────────────────────────────────────────────────────────────────────
+    // V39 Smart Travel Companion: Travel Wallet & Smart Nearby helpers
+    // ─────────────────────────────────────────────────────────────────────────
+    const SMART_NEARBY_DATABASE = {
+        Busan: [
+            { type: '🚇 地鐵', name: '凡內谷地鐵站 (6號出口)', dist: 100, rate: 4.5, status: '營業中' },
+            { type: '🛒 CU', name: 'CU 凡內谷站店', dist: 50, rate: 4.2, status: '24小時營業' },
+            { type: '🏪 GS25', name: 'GS25 凡內谷中央店', dist: 80, rate: 4.1, status: '24小時營業' },
+            { type: '💄 Olive Young', name: 'Olive Young 西面中央店', dist: 780, rate: 4.6, status: '10:00 - 22:30' },
+            { type: '🏬 Daiso', name: '大創 Daiso 西面店', dist: 850, rate: 4.4, status: '10:00 - 22:00' },
+            { type: '🍜 美食', name: '凡內谷祖傳豬肉湯飯', dist: 120, rate: 4.7, status: '24小時營業' },
+            { type: '🍜 美食', name: '味讚王鹽烤肉 西面店', dist: 950, rate: 4.8, status: '11:30 - 23:00' },
+            { type: '☕ 咖啡', name: 'Compose Coffee 凡內谷店', dist: 150, rate: 4.3, status: '08:00 - 21:00' },
+            { type: '💊 藥局', name: '凡內谷中央藥局', dist: 140, rate: 4.0, status: '09:00 - 21:00' },
+            { type: '🏧 ATM', name: '釜山銀行 ATM (地鐵站內)', dist: 110, rate: 4.0, status: '24小時營業' },
+            { type: '🏥 醫院', name: '釜山大學醫院 (急診中心)', dist: 3500, rate: 4.3, status: '24小時急診' }
+        ],
+        Gyeongju: [
+            { type: '🚇 地鐵', name: '慶州火車站 (Bus Stop)', dist: 300, rate: 4.2, status: '營業中' },
+            { type: '🛒 CU', name: 'CU 慶州皇南店', dist: 150, rate: 4.3, status: '24小時營業' },
+            { type: '🏪 GS25', name: 'GS25 慶州大陵店', dist: 200, rate: 4.2, status: '24小時營業' },
+            { type: '💄 Olive Young', name: 'Olive Young 慶州皇吾店', dist: 850, rate: 4.5, status: '10:00 - 22:00' },
+            { type: '🏬 Daiso', name: '大創 Daiso 慶州店', dist: 980, rate: 4.3, status: '10:00 - 22:00' },
+            { type: '🍜 美食', name: '皇南小麥麵', dist: 250, rate: 4.6, status: '11:00 - 20:00' },
+            { type: '🍜 美食', name: 'Solsot 釜飯 慶州店', dist: 180, rate: 4.7, status: '11:30 - 21:00' },
+            { type: '☕ 咖啡', name: '星巴克 慶州大陵苑店', dist: 350, rate: 4.5, status: '08:00 - 22:00' },
+            { type: '💊 藥局', name: '慶州中央藥局', dist: 650, rate: 4.1, status: '09:00 - 22:00' },
+            { type: '🏧 ATM', name: '新韓銀行 ATM (大陵苑旁)', dist: 220, rate: 4.0, status: '24小時營業' },
+            { type: '🏥 醫院', name: '慶州東國大學醫院 (急診中心)', dist: 2800, rate: 4.4, status: '24小時急診' }
+        ]
+    };
+
+    async function fetchSmartNearbyPlaces(cityId) {
+        try {
+            // Google Places API Simulator with offline fallback database
+            const places = SMART_NEARBY_DATABASE[cityId] || SMART_NEARBY_DATABASE.Busan;
+            return places.sort((a, b) => b.rate - a.rate || a.dist - b.dist);
+        } catch (err) {
+            return SMART_NEARBY_DATABASE.Busan;
+        }
+    }
+
+    function renderSmartNearby() {
+        const list = document.getElementById('walletNearbyList');
+        if (!list) return;
+        
+        const ctx = getTripContext();
+        if (!ctx || !ctx.currentCity) {
+            list.innerHTML = '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900;">尚無城市資訊</p>';
+            return;
+        }
+        
+        const cityId = ctx.currentCity.id || 'Busan';
+        
+        fetchSmartNearbyPlaces(cityId).then(places => {
+            list.innerHTML = '';
+            places.forEach(p => {
+                list.innerHTML += `
+                    <div style="background:#f8f9fa; padding:12px; border-radius:14px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <span style="font-weight:900; font-size:0.9rem; color:#2c3e50;">${p.type} ${p.name}</span>
+                            <div style="font-size:0.75rem; color:#7f8c8d; margin-top:2px;">
+                                📍 距離：${p.dist}m | 評分：⭐${p.rate}
+                            </div>
+                        </div>
+                        <span class="v38-badge" style="background:${p.status === '24小時營業' || p.status === '營業中' ? '#2ecc71' : '#f39c12'}; font-size:0.65rem;">
+                            ${p.status}
+                        </span>
+                    </div>
+                `;
+            });
+        }).catch(err => {
+            list.innerHTML = '<p style="text-align:center; color:#e74c3c; font-size:0.85rem; font-weight:900;">載入失敗</p>';
+        });
+    }
+
+    function switchWalletTab(subtab) {
+        document.getElementById('btnWalletTicket').classList.remove('active');
+        document.getElementById('btnWalletHotel').classList.remove('active');
+        document.getElementById('btnWalletDoc').classList.remove('active');
+        document.getElementById('btnWalletCoupon').classList.remove('active');
+        document.getElementById('btnWalletMemory').classList.remove('active');
+        
+        document.getElementById('walletTicketSection').style.display = 'none';
+        document.getElementById('walletHotelSection').style.display = 'none';
+        document.getElementById('walletDocSection').style.display = 'none';
+        document.getElementById('walletCouponSection').style.display = 'none';
+        document.getElementById('walletMemorySection').style.display = 'none';
+        
+        if (subtab === 'ticket') {
+            document.getElementById('btnWalletTicket').classList.add('active');
+            document.getElementById('walletTicketSection').style.display = 'block';
+        } else if (subtab === 'hotel') {
+            document.getElementById('btnWalletHotel').classList.add('active');
+            document.getElementById('walletHotelSection').style.display = 'block';
+            renderSmartNearby();
+        } else if (subtab === 'doc') {
+            document.getElementById('btnWalletDoc').classList.add('active');
+            document.getElementById('walletDocSection').style.display = 'block';
+        } else if (subtab === 'coupon') {
+            document.getElementById('btnWalletCoupon').classList.add('active');
+            document.getElementById('walletCouponSection').style.display = 'block';
+        } else if (subtab === 'memory') {
+            document.getElementById('btnWalletMemory').classList.add('active');
+            document.getElementById('walletMemorySection').style.display = 'block';
+            triggerContextUpdate();
+        }
+    }
+
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // V40 Travel Companion: getSmartAlertMessage (Dynamic Hero Card Alert)
+    // ─────────────────────────────────────────────────────────────────────────
+    function getSmartAlertMessage(ctx) {
+        if (!ctx) return "無提醒事項";
+        const mode = ctx.tripMode;
+        const dateStr = ctx.currentDate;
+        
+        // 1. Before Departure Mode
+        if (mode === 'before') {
+            if (ctx.uncompletedPreps && ctx.uncompletedPreps.length > 0) {
+                return `🔴 行前提醒：請儘速完成「${ctx.uncompletedPreps[0].text}」`;
+            }
+            return "✅ 行前準備全部就緒，隨時準備出發！";
+        }
+        
+        // 2. During Travel Mode
+        if (mode === 'during') {
+            const w = ctx.currentWeather || {};
+            if (w.desc && (w.desc.includes("雨") || w.desc.includes("Rain"))) {
+                return "🌂 今日預報有雨，出門記得帶傘！";
+            }
+            
+            if (dateStr === "11/13") {
+                return "✈️ 今日出發！請於 11:15 前抵達桃園機場 KE2248 櫃台登機。";
+            }
+            if (dateStr === "11/14") {
+                return "🧖 今日包含 Spa Land 汗蒸幕行程，記得準備憑證！";
+            }
+            
+            if (ctx.nextDestination) {
+                return `⏰ 下一站預告：${ctx.nextDestination.desc.split(' ')[0]}，${ctx.nextDestination.time} 出發 (${ctx.nextDestination.tr})`;
+            }
+            
+            return "✨ 祝您今日旅途愉快！";
+        }
+        
+        // 3. After Travel Mode
+        if (mode === 'after') {
+            return "🎉 釜山之行順利完成，期待下一次的精彩旅程！";
+        }
+        
+        return "無提醒事項";
+    }
+
+    // Override filterGuideContent to hook into Food sub-tabs
+    const originalFilterGuideContent = window.filterGuideContent;
+    window.filterGuideContent = function(t) {
+        currentGuideTab = t;
+        const typeEl = document.getElementById('gdType');
+        if (typeEl) typeEl.value = t;
+        
+        const foodSub = document.getElementById('foodSubTabs');
+        if (t === '必吃美食') {
+            if (foodSub) foodSub.style.display = 'flex';
+            setFoodTabMode('my');
+        } else {
+            if (foodSub) foodSub.style.display = 'none';
+            const list = document.getElementById('guideList');
+            const recList = document.getElementById('foodRecList');
+            const addCard = document.getElementById('addGuideCard');
+            if (list) list.style.display = 'block';
+            if (recList) recList.style.display = 'none';
+            if (addCard) addCard.style.display = 'block';
+        }
+        renderGuideContent();
+    };
 
 </script>
 </body>
