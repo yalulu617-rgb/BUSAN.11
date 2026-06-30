@@ -1,8 +1,0 @@
-[
-  { "id": "rf1", "category": "豬肉湯飯", "name": "凡內谷豬肉湯飯", "desc": "經典釜山濃郁大骨湯底，肉質軟嫩" },
-  { "id": "rf2", "category": "烤肉", "name": "味讚王鹽烤肉", "desc": "厚切三層肉，專人桌邊代烤，外酥內嫩" },
-  { "id": "rf3", "category": "Seafood", "name": "海木鰻魚飯", "desc": "海雲台奢華米其林推薦日式鰻魚飯" },
-  { "id": "rf4", "category": "咖啡", "name": "Thrill On The Mug", "desc": "影島絕美海景咖啡廳，打卡熱門地標" },
-  { "id": "rf5", "category": "甜點", "name": "西面黑糖餅", "desc": "西面街頭傳統小吃，堅果豐富香甜" },
-  { "id": "rf6", "category": "夜景", "name": "廣安里 M 無人機秀", "desc": "週六晚間廣安大橋夜空璀璨燈光秀" }
-]
