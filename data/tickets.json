@@ -1,0 +1,11 @@
+[
+  { "id": "rs1", "category": "CU 必買", "name": "延世大生乳包", "desc": "超商甜點天花板，爆漿口感不甜膩" },
+  { "id": "rs2", "category": "CU 必買", "name": "冰塊杯 + 香蕉牛奶", "desc": "韓國人夏日清涼神仙飲品組合" },
+  { "id": "rs3", "category": "Olive Young", "name": "UNOVE 深層護髮膜", "desc": "受損髮救星，柔順有感，Olive Young 排行榜常客" },
+  { "id": "rs4", "category": "Olive Young", "name": "Torriden 玻尿酸保濕精華", "desc": "極速補水，質地清爽，妝前保濕必備" },
+  { "id": "rs5", "category": "DAISO", "name": "Daiso 造型貼紙與文具", "desc": "便宜精緻，多款卡通與生活設計小物" },
+  { "id": "rs6", "category": "LOTTE Mart", "name": "HBAF 杏仁果系列", "desc": "蜂蜜奶油、芥慢、烤玉米等多種人氣口味" },
+  { "id": "rs7", "category": "Homeplus", "name": "零食與拉麵福袋", "desc": "大份量量販包裝，多種韓國經典泡麵一次帶走" },
+  { "id": "rs8", "category": "藥妝", "name": "蜈蚣丸消炎藥", "desc": "當地藥局必備，針對喉嚨痛與發炎極速見效" },
+  { "id": "rs9", "category": "伴手禮", "name": "慶州皇南餅", "desc": "紅豆沙餡綿密，慶州傳統經典點心" }
+]
