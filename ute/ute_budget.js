@@ -92,9 +92,11 @@ const BudgetEngine = {
       "其他": { value: 0, color: "#95A5A6" }
     };
     filtered.forEach(b => {
-      const cat = this.getCategory(b.item);
+      // Rule 8: Normalize schema — Firebase stores 'name' (new), legacy may have 'item'
+      const cat = this.getCategory(b.name || b.item || '');
       categoryTotals[cat].value += getTwd(b);
     });
+
     
     const categoriesArray = Object.keys(categoryTotals).map(key => ({
       name: key,
