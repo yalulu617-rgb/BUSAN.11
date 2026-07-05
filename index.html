@@ -115,6 +115,8 @@
             </div>
             <!-- V37.0 新版 Widget 首頁 Dashboard Container -->
             <div id="v37HomeDashboard"></div>
+            <!-- City detail panel — toggled by toggleCityDetailPanel() -->
+            <div id="v37CityDetailPanel" style="display:none; margin-top:10px;"></div>
         </div>
 
         <div id="guideDetail" style="display:none; margin-top:-10px;">
@@ -227,6 +229,11 @@
             
             <button class="btn-action" style="margin-top:12px;" onclick="addBill()"><i class="fa-solid fa-plus"></i> 紀錄支出</button>
             <div id="billList" style="margin-top:20px;"></div>
+            <!-- Shared bills sum — queried by renderBills() -->
+            <div id="sharedBillsSum" style="display:none;"></div>
+            <!-- Private bills list + sum — queried by renderBills() -->
+            <div id="pbList" style="margin-top:10px;"></div>
+            <div id="privateBillsSum" style="display:none;"></div>
             
             <!-- 預算進度條 -->
             <div style="margin-top: 20px; padding: 15px 20px; background: rgba(255,255,255,0.9); border-radius: 20px; box-shadow: var(--shadow);">
@@ -298,7 +305,11 @@
         </div>
 
         <div class="card">
-            <h3 class="card-title"><i class="fa-solid fa-cart-shopping"></i> 個人購物清單</h3>
+            <h3 class="card-title" id="shopCardTitle"><i class="fa-solid fa-cart-shopping"></i> 個人購物清單</h3>
+            <div class="day-tabs" style="margin-bottom:10px;">
+                <button id="btnShopMy" class="day-tab active" onclick="setShopTabMode('my')" style="font-size:0.8rem;">我的清單</button>
+                <button id="btnShopRec" class="day-tab" onclick="setShopTabMode('rec')" style="font-size:0.8rem;">熱門推薦</button>
+            </div>
             <div class="day-tabs" id="shopTabsUI">
                 <!-- 動態注入 User 1 和 User 2 -->
             </div>
@@ -320,7 +331,10 @@
                 <div id="shopUploadStatus" style="font-size: 0.85rem; color: var(--primary); text-align: center; margin-top:8px; font-weight:bold;"></div>
                 <input type="hidden" id="tempShopImg" value="">
             </div>
-            <div id="sList"></div>
+            <!-- My shop list container -->
+            <div id="shopMyContainer"><div id="sList"></div></div>
+            <!-- Recommended shop list container -->
+            <div id="shopRecContainer" style="display:none;"><div id="sRecList"></div></div>
         </div>
     </div>
 
@@ -463,6 +477,7 @@
                 <label for="photoImgUpload" class="btn-action" style="text-align:center; display:block;"><i class="fa-solid fa-wand-magic-sparkles"></i> 批次上傳美照 / GIF</label>
                 <input type="file" id="photoImgUpload" multiple style="display:none;" accept="image/*" onchange="uploadMultipleToImgBB(this.files, 'photo')">
                 <div id="photoUploadStatus" style="font-size: 0.85rem; color: var(--primary); margin-top: 10px; text-align: center; font-weight:900;"></div>
+                <input type="text" id="memorySearchInput" class="input-box" placeholder="🔍 搜尋日期或城市 (例: 11/13、釜山)" style="margin-bottom:10px;" oninput="renderMemoryAlbum()">
                 <div id="albumContainer" style="margin-top: 15px;"></div>
             </div>
 
@@ -547,14 +562,11 @@
 <script src="ute/ute_ai.js"></script>
 <script src="ute/ute_context.js"></script>
 <script src="ute/ute_main.js"></script>
-<script src="services/storage.js"></script>
-    <script src="services/network.js"></script>
-    <script src="services/nearby.js"></script>
+<script src="services/nearby.js"></script>
     <script src="services/utils.js"></script>
     <script src="data/recommended.js"></script>
     <script src="js/firebase.js"></script>
     <script src="js/ui.js"></script>
-    <script src="js/maps.js"></script>
     <script src="js/wallet.js"></script>
     <script src="js/memory.js"></script>
     <script src="js/itinerary.js"></script>
