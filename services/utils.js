@@ -1,5 +1,9 @@
 // ─────────────────────────────────────────────────────────────────────────
-// V41 Ultimate Edition: Utility Services & Global Helpers
+// V41 Refactored: Utility Helpers
+// Canonical source for: safeValue, safePrice, safeUrl, calculateNights,
+// getMapLinks, copyWiFi, copyAddress, copyTaxiHelper, triggerHapticFeedback,
+// compressImage, uploadSingleToImgBB, uploadMultipleToImgBB,
+// isRestrictedPath, addToOfflineQueue, syncOfflineQueue
 // ─────────────────────────────────────────────────────────────────────────
 
 window.safeValue = function(val, fallback = "尚未填寫") {
@@ -17,13 +21,9 @@ window.safePrice = function(val, currency = "TWD") {
     return `${currency === 'KRW' ? '₩' : '$'}${Math.round(num).toLocaleString()}`;
 };
 
-window.safeBoolean = function(val, trueText = "有", falseText = "無") {
-    return val === true || val === "true" || val === "有" ? trueText : falseText;
-};
-
 window.safeUrl = function(url, text, iconClass, bg, color) {
     if (!url || url === "尚未填寫") return '';
-    return `<a href="${url}" target="_blank" class="map-tag" style="background:${bg}; color:${color};" onclick="triggerHapticFeedback()"><i class="${iconClass}"></i> ${text}</a>`;
+    return `<a href="${url}" target="_blank" class="map-tag" style="background:${bg}; color:${color};"><i class="${iconClass}"></i> ${text}</a>`;
 };
 
 window.calculateNights = function(inDate, outDate) {
@@ -46,11 +46,12 @@ window.getMapLinks = function(address) {
     };
 };
 
+window.triggerHapticFeedback = function() {
+    if (navigator.vibrate) navigator.vibrate(15);
+};
+
 window.copyWiFi = function(str) {
-    if(!str || str === "尚未填寫") {
-        showToast("無資料可複製", "warning");
-        return;
-    }
+    if (!str || str === "尚未填寫") { showToast("無資料可複製", "warning"); return; }
     navigator.clipboard.writeText(str).then(() => {
         triggerHapticFeedback();
         showToast(`WiFi 資訊已複製: ${str}`, "success");
@@ -58,84 +59,20 @@ window.copyWiFi = function(str) {
 };
 
 window.copyAddress = function(str) {
-    if(!str || str === "尚未填寫") {
-        showToast("無地址可複製", "warning");
-        return;
-    }
+    if (!str || str === "尚未填寫") { showToast("無地址可複製", "warning"); return; }
     navigator.clipboard.writeText(str).then(() => {
         triggerHapticFeedback();
-        showToast(`地址已複製到剪貼簿`, "success");
+        showToast("地址已複製到剪貼簿", "success");
     });
 };
 
 window.copyTaxiHelper = function(str) {
-    if(!str || str === "尚未填寫") {
-        showToast("無地址可複製", "warning");
-        return;
-    }
+    if (!str || str === "尚未填寫") { showToast("無地址可複製", "warning"); return; }
     const fullText = `기사님, 여기로 부탁드립니다.\n\n${str}`;
     navigator.clipboard.writeText(fullText).then(() => {
         triggerHapticFeedback();
         showToast("計程車字條已複製，可直接貼給司機看！", "success");
     });
-};
-
-window.formatLastUpdate = function(timestamp) {
-    if (!timestamp) return "";
-    const date = new Date(timestamp);
-    return `最後更新：${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
-};
-
-window.triggerHapticFeedback = function() {
-    if (navigator.vibrate) {
-        navigator.vibrate(15);
-    }
-};
-
-window.compressImage = function(file) {
-    return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                let width = img.width;
-                let height = img.height;
-                const maxDim = 1200;
-                if (width > maxDim || height > maxDim) {
-                    if (width > height) {
-                        height = Math.round((height * maxDim) / width);
-                        width = maxDim;
-                    } else {
-                        width = Math.round((width * maxDim) / height);
-                        height = maxDim;
-                    }
-                }
-                const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                canvas.toBlob((blob) => {
-                    const compressedFile = new File([blob], file.name, {
-                        type: 'image/jpeg',
-                        lastModified: Date.now()
-                    });
-                    resolve(compressedFile);
-                }, 'image/jpeg', 0.85);
-            };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    });
-};
-
-window.getRelativePath = function(ref) {
-    const rootUrl = NetworkEngine.firebaseRootUrl();
-    let url = ref.toString();
-    if (url.startsWith(rootUrl)) {
-        return url.substring(rootUrl.length);
-    }
-    return url;
 };
 
 window.isRestrictedPath = function(path) {
@@ -153,55 +90,70 @@ window.syncOfflineQueue = async function() {
     if (window.isSyncing) return;
     window.isSyncing = true;
     let queue = StorageEngine.get('pendingSyncQueue', []).data;
-    if (queue.length === 0) {
-        window.isSyncing = false;
-        return;
-    }
+    if (queue.length === 0) { window.isSyncing = false; return; }
     showToast(`⏳ 偵測到網路恢復，正在同步離線佇列 (${queue.length} 筆)...`, "info");
     let successCount = 0;
     let failed = false;
     while (queue.length > 0) {
         const item = queue[0];
         try {
-            if (item.method === 'SET') {
-                await NetworkEngine.firebaseWrite(item.path, item.data);
-            } else if (item.method === 'UPDATE') {
-                await NetworkEngine.firebaseUpdate(item.path, item.data);
-            } else if (item.method === 'REMOVE') {
-                await NetworkEngine.firebaseRemove(item.path);
-            } else if (item.method === 'PUSH') {
-                await NetworkEngine.firebasePush(item.path, item.data);
-            }
+            if (item.method === 'SET') await NetworkEngine.firebaseWrite(item.path, item.data);
+            else if (item.method === 'UPDATE') await NetworkEngine.firebaseUpdate(item.path, item.data);
+            else if (item.method === 'REMOVE') await NetworkEngine.firebaseRemove(item.path);
+            else if (item.method === 'PUSH') await NetworkEngine.firebasePush(item.path, item.data);
             queue.shift();
             successCount++;
         } catch (err) {
-            console.error("Offline sync error:", err);
             failed = true;
             break;
         }
     }
     StorageEngine.set('pendingSyncQueue', queue);
     window.isSyncing = false;
-    if (successCount > 0) {
-        showToast(`✅ 離線同步完成：已更新 ${successCount} 筆交易！`, "success");
-    }
-    if (failed) {
-        showToast("❌ 部分同步失敗，將於下一次網路恢復時重試", "error");
-    }
+    if (successCount > 0) showToast(`✅ 離線同步完成：已更新 ${successCount} 筆！`, "success");
+    if (failed) showToast("❌ 部分同步失敗，將於網路恢復時重試", "error");
+};
+
+window.compressImage = function(file) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                let { width, height } = img;
+                const maxDim = 1200;
+                if (width > maxDim || height > maxDim) {
+                    if (width > height) { height = Math.round((height * maxDim) / width); width = maxDim; }
+                    else { width = Math.round((width * maxDim) / height); height = maxDim; }
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = width; canvas.height = height;
+                canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+                canvas.toBlob((blob) => {
+                    resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
+                }, 'image/jpeg', 0.85);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
 };
 
 window.uploadSingleToImgBB = async function(file, type) {
-    const status = document.getElementById(type === 'shop' ? 'shopUploadStatus' : 'voucherStatus');
-    const hiddenInput = document.getElementById(type === 'shop' ? 'tempShopImg' : 'tempVoucher');
+    const statusId = { shop: 'shopUploadStatus', receipt: 'receiptStatus', guide: 'guideUploadStatus', ticket: 'voucherStatus' }[type] || 'voucherStatus';
+    const hiddenId = { shop: 'tempShopImg', receipt: 'tempReceipt', guide: 'tempGuideImg', ticket: 'tempVoucher' }[type] || 'tempVoucher';
+    const status = document.getElementById(statusId);
+    const hidden = document.getElementById(hiddenId);
     if (!file) return;
     if (status) status.innerText = "壓縮並上傳中...";
     try {
         const compressed = await compressImage(file);
-        const uploadResult = await NetworkEngine.uploadImage(compressed);
-        const url = uploadResult.data.url;
-        if (hiddenInput) hiddenInput.value = url;
+        const res = await NetworkEngine.uploadImage(compressed);
+        const url = res.data ? res.data.url : (res.data && res.data.url);
+        if (!url) throw new Error("No URL returned");
+        if (hidden) hidden.value = url;
         if (status) status.innerText = "✅ 上傳成功！";
-        showToast("商品圖片上傳並託管成功", "success");
+        showToast("圖片上傳成功", "success");
     } catch (err) {
         if (status) status.innerText = "❌ 上傳失敗";
         showToast("上傳失敗：" + err.message, "error");
@@ -214,21 +166,16 @@ window.uploadMultipleToImgBB = async function(files, type) {
     if (status) status.innerText = `準備上傳 ${files.length} 張照片...`;
     let success = 0;
     for (let i = 0; i < files.length; i++) {
-        if (status) status.innerText = `⏳ 正在上傳第 ${i + 1}/${files.length} 張照片...`;
+        if (status) status.innerText = `⏳ 正在上傳第 ${i + 1}/${files.length} 張...`;
         try {
             const compressed = await compressImage(files[i]);
-            const uploadResult = await NetworkEngine.uploadImage(compressed);
-            const url = uploadResult.data.url;
-            await NetworkEngine.firebasePush(DB_PHOTOS, {
-                url: url,
-                date: getV37SelectedDate(),
-                timestamp: Date.now()
-            });
+            const res = await NetworkEngine.uploadImage(compressed);
+            const url = res.data ? res.data.url : null;
+            if (!url) throw new Error("No URL");
+            await NetworkEngine.firebasePush(DB_PHOTOS, { url, date: getV37SelectedDate(), timestamp: Date.now() });
             success++;
-        } catch (err) {
-            console.error("Multiple upload error at index " + i, err);
-        }
+        } catch (err) { /* skip failed photo */ }
     }
     if (status) status.innerText = `✅ 上傳完成，成功 ${success}/${files.length} 張！`;
-    showToast(`📸 成功批次上傳了 ${success} 張拍立得回憶！`, "success");
+    showToast(`📸 成功批次上傳了 ${success} 張回憶！`, "success");
 };
