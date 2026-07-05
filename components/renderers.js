@@ -1,21 +1,132 @@
 // ─────────────────────────────────────────────────────────────────────────
-// V41 Ultimate Edition: UI Components & DOM Renderers
+// V41 Refactored: UI Components & DOM Renderers
 // ─────────────────────────────────────────────────────────────────────────
 
-window.renderV37HomeDashboard = function() {
-    const container = document.getElementById('v37HomeDashboard');
-    if (!container) return;
-    
-    const ctx = getTripContext();
-    if (!ctx || !ctx.currentDate) return;
-    
-    const dateStr = ctx.currentDate;
-    const city = ctx.currentCity;
-    const weather = ctx.currentWeather;
-    const mode = ctx.tripMode;
-    
-    // V40/V41 Date Simulator Header
-    let simulatorHtml = `
+// ── Helper: Smart Alert Message (called by renderV37HomeDashboard) ──
+window.getSmartAlertMessage = function(ctx) {
+    if (!ctx) return '載入中...';
+    if (ctx.tripMode === 'before') {
+        const uncomp = ctx.uncompletedPreps || [];
+        if (uncomp.length === 0) return '✅ 所有行前準備已完成！';
+        return `📋 待辦：${uncomp[0].text}`;
+    }
+    if (ctx.tripMode === 'after') return '🎉 旅行圓滿完成！';
+    if (ctx.nextDestination) return `⏰ ${ctx.nextDestination.time} → ${ctx.nextDestination.desc.split(' ')[0]}`;
+    return '✨ 今日行程已全部完成';
+};
+
+// ── Helper: Toggle city detail panel ──────────────────────────────────────
+window.toggleCityDetailPanel = function () {
+    const panel = document.getElementById('v37CityDetailPanel');
+    if (!panel) return;
+    panel.style.display = (panel.style.display === 'none' || panel.style.display === '') ? 'block' : 'none';
+};
+
+// ── Guide tab filter ───────────────────────────────────────────────────────
+window.filterGuideContent = function (tab) {
+    window.currentGuideTab = tab;
+    if (typeof renderGuideContent === 'function') renderGuideContent();
+};
+
+// ── Shop CRUD (lives here — tightly coupled to renderShop) ────────────────
+window.addShopItem = async function () {
+    const textEl     = document.getElementById('newShop');
+    const whereEl    = document.getElementById('shopWhere');
+    const categoryEl = document.getElementById('shopCategory');
+    const imgEl      = document.getElementById('tempShopImg');
+
+    const text = textEl?.value?.trim();
+    if (!text) { showToast('請填入商品名稱', 'warning'); return; }
+
+    await NetworkEngine.firebasePush(DB_SHOP, {
+        text,
+        where    : whereEl?.value?.trim()  || '',
+        category : categoryEl?.value       || '其他',
+        img      : imgEl?.value            || '',
+        checked  : false,
+        owner    : window.deviceOwner,
+        ts       : Date.now()
+    });
+    if (textEl)  textEl.value  = '';
+    if (whereEl) whereEl.value = '';
+    if (imgEl)   imgEl.value   = '';
+    showToast('✅ 已加入購物清單', 'success');
+};
+
+window.toggleShop = async function (key, currentChecked) {
+    await NetworkEngine.firebaseUpdate(`${DB_SHOP}/${key}`, { checked: !currentChecked });
+};
+
+window.deleteShop = async function (key) {
+    if (!confirm('確認刪除此購物項目？')) return;
+    await NetworkEngine.firebaseRemove(`${DB_SHOP}/${key}`);
+};
+
+// ── Guide / Food CRUD (lives here — tightly coupled to renderGuideContent) ─
+window.addGuideItem = async function () {
+    const typeEl  = document.getElementById('gdType');
+    const titleEl = document.getElementById('gdTitle');
+    const descEl  = document.getElementById('gdDesc');
+    const linkEl  = document.getElementById('gdLink');
+    const imgEl   = document.getElementById('tempGuideImg');
+
+    const title = titleEl?.value?.trim();
+    if (!title) { showToast('請填入地標名稱', 'warning'); return; }
+
+    await NetworkEngine.firebasePush(DB_GUIDE, {
+        type  : typeEl?.value  || '打卡景點',
+        title,
+        desc  : descEl?.value?.trim() || '',
+        link  : linkEl?.value?.trim() || '',
+        img   : imgEl?.value          || '',
+        ts    : Date.now()
+    });
+    if (titleEl) titleEl.value = '';
+    if (descEl)  descEl.value  = '';
+    if (linkEl)  linkEl.value  = '';
+    if (imgEl)   imgEl.value   = '';
+    showToast('✅ 地標已同步至雲端', 'success');
+};
+
+window.deleteGuide = async function (key) {
+    if (!confirm('確認刪除此地標？')) return;
+    await NetworkEngine.firebaseRemove(`${DB_GUIDE}/${key}`);
+};
+
+// ── Voice Card CRUD (lives here — tightly coupled to renderVoiceList) ──────
+window.addVoiceCard = async function () {
+    const twEl = document.getElementById('newCardTw');
+    const krEl = document.getElementById('newCardKr');
+    const tw   = twEl?.value?.trim();
+    const kr   = krEl?.value?.trim();
+    if (!tw || !kr) { showToast('請填入中文與韓文', 'warning'); return; }
+    await NetworkEngine.firebasePush(DB_VOICE, { title: tw, korean: kr, roman: '', ts: Date.now() });
+    if (twEl) twEl.value = '';
+    if (krEl) krEl.value = '';
+    showToast('✅ 字卡已新增', 'success');
+};
+
+window.deleteVoice = async function (key) {
+    if (!confirm('確認刪除此字卡？')) return;
+    await NetworkEngine.firebaseRemove(`${DB_VOICE}/${key}`);
+};
+
+// ── Prep CRUD (lives here — tightly coupled to renderPrepList) ────────────
+window.togglePrep = async function (key, currentDone) {
+    await NetworkEngine.firebaseUpdate(`${DB_PREP}/${key}`, { done: !currentDone });
+    triggerContextUpdate();
+};
+
+window.deletePrep = async function (key) {
+    if (!confirm('確認刪除此準備事項？')) return;
+    await NetworkEngine.firebaseRemove(`${DB_PREP}/${key}`);
+};
+
+
+
+
+window.renderDateSimulator = function(v37SimulatedDate, city) {
+    return `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 4px;">
             <span class="v38-badge" style="background:#8e8e93; font-size:0.65rem; font-weight:800; cursor:pointer;" onclick="toggleCityDetailPanel()">📍 ${city.nameTW}</span>
             <select id="v37DateSimulator" onchange="setV37SelectedDate(this.value)" style="padding: 4px 8px; border-radius: 10px; border: 1px solid var(--border-color); font-weight: 800; font-size: 0.72rem; background: var(--card-bg); color: var(--text-color); outline: none; cursor: pointer;">
@@ -46,160 +157,164 @@ window.renderV37HomeDashboard = function() {
             </div>
         </div>
     `;
-    
-    let heroHtml = "";
-    let widget1Html = ""; // Quick Actions
-    let widget2Html = ""; // Today Item
-    let widget3Html = ""; // AI/Rec/Stats
-    let widget4Html = ""; // Collections
-    
-    // Smart Alert calculation for Hero Card
-    const smartAlert = getSmartAlertMessage(ctx);
-    
-    if (mode === 'before') {
-        let countdownDays = 3;
-        if (v37SimulatedDate === 'real') {
-            const diffTime = new Date('2026-11-13T00:00:00') - new Date();
-            countdownDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
-        }
-        
-        let totalPreps = ctx.checklist.length || 10;
-        let compPreps = totalPreps - ctx.uncompletedPreps.length;
-        let percent = Math.min(100, Math.max(0, Math.round((compPreps / totalPreps) * 100)));
-        
-        heroHtml = `
-            <div class="v38-hero-card fade-scale-in" onclick="showV37Tab('trip')" style="background: linear-gradient(135deg, #1e272e, #2f3640);">
-                <div class="v38-hero-title">DAY — 尚未出發</div>
-                <div class="v38-hero-main">出發：${countdownDays} 天</div>
-                <div class="v38-hero-sub">目的地：🇰🇷 ${city.nameTW}</div>
-                <div style="margin-top: 8px; font-size: 0.8rem; font-weight: 800; color: #f5cd79;" class="text-truncate">${smartAlert}</div>
-                <div class="v38-progress-container" style="margin-top: 8px;">
-                    <div class="v38-progress-bar" style="width: ${percent}%;"></div>
-                </div>
-            </div>
-        `;
-        
-        let prepItemsHtml = "";
-        if (ctx.uncompletedPreps.length === 0) {
-            prepItemsHtml = `<div style="font-size:0.75rem; color:#2ecc71; font-weight:800;"><i class="fa-solid fa-circle-check"></i> 行前準備已就緒！</div>`;
-        } else {
-            ctx.uncompletedPreps.slice(0, 3).forEach(p => {
-                prepItemsHtml += `
-                    <div style="font-size:0.75rem; font-weight:700; color:var(--text-color); margin-bottom:4px; display:flex; align-items:center; gap:4px;">
-                        <span style="color:#e67e22; font-size:0.5rem;">●</span>
-                        <span class="text-truncate">${p.text}</span>
-                    </div>
-                `;
-            });
-        }
-        widget2Html = `
-            <div class="v38-widget-card card fade-scale-in" style="grid-column: span 2;">
-                <div class="v38-widget-title"><i class="fa-solid fa-list-check"></i> 最近待辦</div>
-                ${prepItemsHtml}
-            </div>
-        `;
-        
-        widget3Html = `
-            <div class="v38-widget-card card fade-scale-in" style="grid-column: span 2; border-left: 4px solid var(--primary);">
-                <div class="v38-widget-title" style="color:var(--primary);"><i class="fa-solid fa-robot"></i> 推薦提示</div>
-                <p style="font-size:0.75rem; font-weight:700; color:var(--text-color); line-height:1.3; margin:0;" class="text-truncate">${ctx.aiSuggestions.split('\\n')[0]}</p>
-            </div>
-        `;
-        
-    } else if (mode === 'during') {
-        let dayNum = "DAY 1";
-        if (dateStr === "11/13") dayNum = "DAY 1";
-        if (dateStr === "11/14") dayNum = "DAY 2";
-        if (dateStr === "11/15") dayNum = "DAY 3";
-        if (dateStr === "11/16") dayNum = "DAY 4";
-        if (dateStr === "11/17") dayNum = "DAY 5";
-        
-        let nextAttr = "今日行程已結束";
-        let nextTimeStr = "";
-        
-        if (ctx.nextDestination) {
-            nextAttr = ctx.nextDestination.desc.split(' ')[0];
-            nextTimeStr = ctx.nextDestination.time;
-        }
-        
-        heroHtml = `
-            <div class="v38-hero-card fade-scale-in" onclick="showV37Tab('itinerary')" style="background: linear-gradient(135deg, #1e272e, #353b48);">
-                <div class="v38-hero-title">${dayNum} | 🇰🇷 ${city.nameTW}</div>
-                <div class="v38-hero-main" style="display:flex; justify-content:space-between; align-items:center;">
-                    <span class="text-truncate" style="max-width:180px;">${nextAttr}</span>
-                    <span style="font-size:1.3rem; color:#4cd964;">${weather.temp}°C</span>
-                </div>
-                <div class="v38-hero-sub" style="margin-top:4px;"><i class="fa-solid fa-map-pin"></i> ${nextTimeStr ? nextTimeStr + ' 出發' : ''}</div>
-                <div style="margin-top: 6px; font-size: 0.78rem; font-weight: 800; color: #ffcc00;" class="text-truncate"><i class="fa-solid fa-circle-exclamation"></i> ${smartAlert}</div>
-            </div>
-        `;
-        
-        let itiItemsHtml = "";
-        if (ctx.todayItinerary.length === 0) {
-            itiItemsHtml = `<p style="font-size:0.75rem; color:#8e8e93; margin:0;">今日無行程</p>`;
-        } else {
-            ctx.todayItinerary.slice(0, 3).forEach(i => {
-                itiItemsHtml += `
-                    <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:700; margin-bottom:4px;">
-                        <span style="color:var(--primary); font-weight:900; width:40px;">${i.time}</span>
-                        <span style="color:var(--text-color); flex:1;" class="text-truncate">${i.desc.split(' ')[0]}</span>
-                    </div>
-                `;
-            });
-        }
-        widget2Html = `
-            <div class="v38-widget-card card fade-scale-in" style="grid-column: span 2;">
-                <div class="v38-widget-title"><i class="fa-solid fa-calendar-day"></i> 今天行程</div>
-                ${itiItemsHtml}
-            </div>
-        `;
-        
-        let recSpot = "甘川文化村";
-        let recSpotDesc = "小王子壁畫打卡必去";
-        if (dateStr === "11/15") {
-            recSpot = "東宮與月池";
-            recSpotDesc = "慶州絕美夜楓打卡地";
-        }
-        widget3Html = `
-            <div class="v38-widget-card card fade-scale-in" style="grid-column: span 2; border-left: 4px solid #ff9500;">
-                <div class="v38-widget-title" style="color:#ff9500;"><i class="fa-solid fa-compass"></i> 附近推薦</div>
-                <div style="font-size:0.78rem; font-weight:900; color:var(--text-color);" class="text-truncate">📍 ${recSpot}</div>
-                <p style="font-size:0.7rem; font-weight:700; color:#666; margin:0; line-height:1.2;" class="text-truncate">${recSpotDesc}</p>
-            </div>
-        `;
-        
-    } else if (mode === 'after') {
-        let overallSpent = ctx.budget.overallSpent;
-        
-        heroHtml = `
-            <div class="v38-hero-card fade-scale-in" onclick="showV37Tab('split')" style="background: linear-gradient(135deg, #1e272e, #2d3436);">
-                <div class="v38-hero-title">旅行完成 ✈️</div>
-                <div class="v38-hero-main" style="font-size:1.6rem !important;">$${overallSpent.toLocaleString()} TWD</div>
-                <div class="v38-hero-sub">旅行天數：5天 | 目的地: Busan</div>
-                <div style="margin-top: 6px; font-size: 0.75rem; font-weight: 800; color: #ffcc00;" class="text-truncate">${smartAlert}</div>
-            </div>
-        `;
-        
-        widget2Html = `
-            <div class="v38-widget-card card fade-scale-in" style="grid-column: span 2;">
-                <div class="v38-widget-title"><i class="fa-solid fa-pen-fancy"></i> 心得手帳</div>
-                <textarea id="v38ReviewText" class="input-box" style="height:35px; font-size:0.7rem; font-weight:normal; resize:none; padding:4px; border-radius:6px; margin-bottom:4px;" placeholder="寫下回顧或心得..."></textarea>
-                <button class="btn-action" style="padding:2px; font-size:0.65rem; width:100%;" onclick="saveV38TravelReview()">💾 儲存</button>
-            </div>
-        `;
-        
-        widget3Html = `
-            <div class="v38-widget-card card fade-scale-in" style="grid-column: span 2; border-left: 4px solid #2ecc71;">
-                <div class="v38-widget-title" style="color:#2ecc71;"><i class="fa-solid fa-wallet"></i> 旅行統計</div>
-                <div style="font-size:0.75rem; font-weight:700; color:var(--text-color); line-height: 1.3;">
-                    <div>公費分攤：$${ctx.budget.totalSharedTWD.toLocaleString()} TWD</div>
-                    <div>個人私帳：$${ctx.budget.totalPrivateTWD.toLocaleString()} TWD</div>
-                </div>
-            </div>
-        `;
+};
+
+window.renderBeforeWidgets = function(ctx, city, smartAlert, v37SimulatedDate) {
+    let countdownDays = 3;
+    if (v37SimulatedDate === 'real') {
+        const diffTime = new Date('2026-11-13T00:00:00') - new Date();
+        countdownDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
     }
     
-    widget1Html = `
+    let totalPreps = ctx.checklist.length || 10;
+    let compPreps = totalPreps - ctx.uncompletedPreps.length;
+    let percent = Math.min(100, Math.max(0, Math.round((compPreps / totalPreps) * 100)));
+    
+    let heroHtml = `
+        <div class="v38-hero-card fade-scale-in" onclick="showV37Tab('trip')" style="background: linear-gradient(135deg, #1e272e, #2f3640);">
+            <div class="v38-hero-title">DAY — 尚未出發</div>
+            <div class="v38-hero-main">出發：${countdownDays} 天</div>
+            <div class="v38-hero-sub">目的地：🇰🇷 ${city.nameTW}</div>
+            <div style="margin-top: 8px; font-size: 0.8rem; font-weight: 800; color: #f5cd79;" class="text-truncate">${smartAlert}</div>
+            <div class="v38-progress-container" style="margin-top: 8px;">
+                <div class="v38-progress-bar" style="width: ${percent}%;"></div>
+            </div>
+        </div>
+    `;
+    
+    let prepItemsHtml = "";
+    if (ctx.uncompletedPreps.length === 0) {
+        prepItemsHtml = `<div style="font-size:0.75rem; color:#2ecc71; font-weight:800;"><i class="fa-solid fa-circle-check"></i> 行前準備已就緒！</div>`;
+    } else {
+        ctx.uncompletedPreps.slice(0, 3).forEach(p => {
+            prepItemsHtml += `
+                <div style="font-size:0.75rem; font-weight:700; color:var(--text-color); margin-bottom:4px; display:flex; align-items:center; gap:4px;">
+                    <span style="color:#e67e22; font-size:0.5rem;">●</span>
+                    <span class="text-truncate">${p.text}</span>
+                </div>
+            `;
+        });
+    }
+    
+    let widget2Html = `
+        <div class="v38-widget-card card fade-scale-in" style="grid-column: span 2;">
+            <div class="v38-widget-title"><i class="fa-solid fa-list-check"></i> 最近待辦</div>
+            ${prepItemsHtml}
+        </div>
+    `;
+    
+    let widget3Html = `
+        <div class="v38-widget-card card fade-scale-in" style="grid-column: span 2; border-left: 4px solid var(--primary);">
+            <div class="v38-widget-title" style="color:var(--primary);"><i class="fa-solid fa-robot"></i> 推薦提示</div>
+            <p style="font-size:0.75rem; font-weight:700; color:var(--text-color); line-height:1.3; margin:0;" class="text-truncate">${ctx.aiSuggestions.split('\n')[0]}</p>
+        </div>
+    `;
+    
+    return { heroHtml, widget2Html, widget3Html };
+};
+
+window.renderDuringWidgets = function(ctx, dateStr, city, weather, smartAlert) {
+    let dayNum = "DAY 1";
+    if (dateStr === "11/13") dayNum = "DAY 1";
+    if (dateStr === "11/14") dayNum = "DAY 2";
+    if (dateStr === "11/15") dayNum = "DAY 3";
+    if (dateStr === "11/16") dayNum = "DAY 4";
+    if (dateStr === "11/17") dayNum = "DAY 5";
+    
+    let nextAttr = "今日行程已結束";
+    let nextTimeStr = "";
+    
+    if (ctx.nextDestination) {
+        nextAttr = ctx.nextDestination.desc.split(' ')[0];
+        nextTimeStr = ctx.nextDestination.time;
+    }
+    
+    let heroHtml = `
+        <div class="v38-hero-card fade-scale-in" onclick="showV37Tab('itinerary')" style="background: linear-gradient(135deg, #1e272e, #353b48);">
+            <div class="v38-hero-title">${dayNum} | 🇰🇷 ${city.nameTW}</div>
+            <div class="v38-hero-main" style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="text-truncate" style="max-width:180px;">${nextAttr}</span>
+                <span style="font-size:1.3rem; color:#4cd964;">${weather.temp}°C</span>
+            </div>
+            <div class="v38-hero-sub" style="margin-top:4px;"><i class="fa-solid fa-map-pin"></i> ${nextTimeStr ? nextTimeStr + ' 出發' : ''}</div>
+            <div style="margin-top: 6px; font-size: 0.78rem; font-weight: 800; color: #ffcc00;" class="text-truncate"><i class="fa-solid fa-circle-exclamation"></i> ${smartAlert}</div>
+        </div>
+    `;
+    
+    let itiItemsHtml = "";
+    if (ctx.todayItinerary.length === 0) {
+        itiItemsHtml = `<p style="font-size:0.75rem; color:#8e8e93; margin:0;">今日無行程</p>`;
+    } else {
+        ctx.todayItinerary.slice(0, 3).forEach(i => {
+            itiItemsHtml += `
+                <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:700; margin-bottom:4px;">
+                    <span style="color:var(--primary); font-weight:900; width:40px;">${i.time}</span>
+                    <span style="color:var(--text-color); flex:1;" class="text-truncate">${i.desc.split(' ')[0]}</span>
+                </div>
+            `;
+        });
+    }
+    
+    let widget2Html = `
+        <div class="v38-widget-card card fade-scale-in" style="grid-column: span 2;">
+            <div class="v38-widget-title"><i class="fa-solid fa-calendar-day"></i> 今天行程</div>
+            ${itiItemsHtml}
+        </div>
+    `;
+    
+    let recSpot = "甘川文化村";
+    let recSpotDesc = "小王子壁畫打卡必去";
+    if (dateStr === "11/15") {
+        recSpot = "東宮與月池";
+        recSpotDesc = "慶州絕美夜楓打卡地";
+    }
+    
+    let widget3Html = `
+        <div class="v38-widget-card card fade-scale-in" style="grid-column: span 2; border-left: 4px solid #ff9500;">
+            <div class="v38-widget-title" style="color:#ff9500;"><i class="fa-solid fa-compass"></i> 附近推薦</div>
+            <div style="font-size:0.78rem; font-weight:900; color:var(--text-color);" class="text-truncate">📍 ${recSpot}</div>
+            <p style="font-size:0.7rem; font-weight:700; color:#666; margin:0; line-height:1.2;" class="text-truncate">${recSpotDesc}</p>
+        </div>
+    `;
+    
+    return { heroHtml, widget2Html, widget3Html };
+};
+
+window.renderAfterWidgets = function(ctx, smartAlert) {
+    let overallSpent = ctx.budget.overallSpent;
+    
+    let heroHtml = `
+        <div class="v38-hero-card fade-scale-in" onclick="showV37Tab('split')" style="background: linear-gradient(135deg, #1e272e, #2d3436);">
+            <div class="v38-hero-title">旅行完成 ✈️</div>
+            <div class="v38-hero-main" style="font-size:1.6rem !important;">$${overallSpent.toLocaleString()} TWD</div>
+            <div class="v38-hero-sub">旅行天數：5天 | 目的地: Busan</div>
+            <div style="margin-top: 6px; font-size: 0.75rem; font-weight: 800; color: #ffcc00;" class="text-truncate">${smartAlert}</div>
+        </div>
+    `;
+    
+    let widget2Html = `
+        <div class="v38-widget-card card fade-scale-in" style="grid-column: span 2;">
+            <div class="v38-widget-title"><i class="fa-solid fa-pen-fancy"></i> 心得手帳</div>
+            <textarea id="v38ReviewText" class="input-box" style="height:35px; font-size:0.7rem; font-weight:normal; resize:none; padding:4px; border-radius:6px; margin-bottom:4px;" placeholder="寫下回顧或心得..."></textarea>
+            <button class="btn-action" style="padding:2px; font-size:0.65rem; width:100%;" onclick="saveV38TravelReview()">💾 儲存</button>
+        </div>
+    `;
+    
+    let widget3Html = `
+        <div class="v38-widget-card card fade-scale-in" style="grid-column: span 2; border-left: 4px solid #2ecc71;">
+            <div class="v38-widget-title" style="color:#2ecc71;"><i class="fa-solid fa-wallet"></i> 旅行統計</div>
+            <div style="font-size:0.75rem; font-weight:700; color:var(--text-color); line-height: 1.3;">
+                <div>公費分攤：$${ctx.budget.totalSharedTWD.toLocaleString()} TWD</div>
+                <div>個人私帳：$${ctx.budget.totalPrivateTWD.toLocaleString()} TWD</div>
+            </div>
+        </div>
+    `;
+    
+    return { heroHtml, widget2Html, widget3Html };
+};
+
+window.renderQuickActions = function() {
+    return `
         <div class="v38-widget-card card fade-scale-in" style="grid-column: span 2;">
             <div class="v38-widget-title"><i class="fa-solid fa-star"></i> 快速功能</div>
             <div class="v38-quick-actions">
@@ -222,11 +337,13 @@ window.renderV37HomeDashboard = function() {
             </div>
         </div>
     `;
-    
+};
+
+window.renderCollections = function() {
     let favFoodCount = StorageEngine.get('fav_rec_food', []).data.length;
     let favShopCount = StorageEngine.get('fav_rec_shop', []).data.length;
     
-    widget4Html = `
+    return `
         <div class="v38-widget-card card fade-scale-in" style="grid-column: span 2;">
             <div class="v38-widget-title"><i class="fa-solid fa-heart"></i> 收藏清單</div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
@@ -241,6 +358,45 @@ window.renderV37HomeDashboard = function() {
             </div>
         </div>
     `;
+};
+
+window.renderV37HomeDashboard = function() {
+    const container = document.getElementById('v37HomeDashboard');
+    if (!container) return;
+    
+    const ctx = getTripContext();
+    if (!ctx || !ctx.currentDate) return;
+    
+    const dateStr = ctx.currentDate;
+    const city = ctx.currentCity;
+    const weather = ctx.currentWeather;
+    const mode = ctx.tripMode;
+    
+    // Decomposed headers
+    let simulatorHtml = renderDateSimulator(v37SimulatedDate, city);
+    
+    let heroHtml = "";
+    let widget1Html = renderQuickActions();
+    let widget2Html = ""; 
+    let widget3Html = ""; 
+    let widget4Html = renderCollections();
+    
+    const smartAlert = getSmartAlertMessage(ctx);
+    
+    let widgets;
+    if (mode === 'before') {
+        widgets = renderBeforeWidgets(ctx, city, smartAlert, v37SimulatedDate);
+    } else if (mode === 'during') {
+        widgets = renderDuringWidgets(ctx, dateStr, city, weather, smartAlert);
+    } else if (mode === 'after') {
+        widgets = renderAfterWidgets(ctx, smartAlert);
+    }
+    
+    if (widgets) {
+        heroHtml = widgets.heroHtml;
+        widget2Html = widgets.widget2Html;
+        widget3Html = widgets.widget3Html;
+    }
     
     container.innerHTML = simulatorHtml + heroHtml + `
         <div class="v38-widget-row">
@@ -428,12 +584,13 @@ window.renderRecommendedFood = function() {
 };
 
 window.renderBills = function() {
-    const list = document.getElementById('bList');
+    const list = document.getElementById('billList');
     if (!list) return;
     list.innerHTML = '';
     
-    let totalShared = 0;
-    let filtered = sharedBills;
+    const ctx = typeof getTripContext === 'function' ? getTripContext() : {};
+    const totalShared = (ctx.budget && ctx.budget.totalSharedTWD) ? ctx.budget.totalSharedTWD : 0;
+    const filtered = sharedBills;
     
     if (filtered.length === 0) {
         list.innerHTML = '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:15px 0;">尚無公費記帳紀錄</p>';
@@ -445,10 +602,7 @@ window.renderBills = function() {
             
             let amtStr = safePrice(b.amt, b.currency);
             if (b.currency === 'KRW') {
-                totalShared += b.amt * liveKrwToTwd;
                 amtStr += ` (≈ $${Math.round(b.amt * liveKrwToTwd)} TWD)`;
-            } else {
-                totalShared += b.amt;
             }
             
             list.innerHTML += `
@@ -481,7 +635,9 @@ window.renderPrivateBill = function() {
     if (!list) return;
     list.innerHTML = '';
     
-    let totalPrivate = 0;
+    const ctx = typeof getTripContext === 'function' ? getTripContext() : {};
+    const totalPrivate = (ctx.budget && ctx.budget.totalPrivateTWD) ? ctx.budget.totalPrivateTWD : 0;
+    
     if (privateBills.length === 0) {
         list.innerHTML = '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:15px 0;">尚無個人私帳記帳紀錄</p>';
     } else {
@@ -489,10 +645,7 @@ window.renderPrivateBill = function() {
             const receiptHtml = b.receipt ? `<img src="${b.receipt}" class="item-img" onclick="openLightbox('${b.receipt}', b.id)">` : '';
             let amtStr = safePrice(b.amt, b.currency);
             if (b.currency === 'KRW') {
-                totalPrivate += b.amt * liveKrwToTwd;
                 amtStr += ` (≈ $${Math.round(b.amt * liveKrwToTwd)} TWD)`;
-            } else {
-                totalPrivate += b.amt;
             }
             
             list.innerHTML += `
@@ -515,7 +668,7 @@ window.renderPrivateBill = function() {
 };
 
 window.renderVoiceList = function() {
-    const list = document.getElementById('voiceList');
+    const list = document.getElementById('voiceGridUI');
     if (!list) return;
     list.innerHTML = '';
     
@@ -537,7 +690,7 @@ window.renderVoiceList = function() {
 };
 
 window.renderPrepList = function() {
-    const list = document.getElementById('pList');
+    const list = document.getElementById('prepListUI');
     if (!list) return;
     list.innerHTML = '';
     
@@ -718,6 +871,12 @@ window.saveV38TravelReview = function() {
     });
 };
 
+window.selectGuideSubTab = function(btn, tab) {
+    document.querySelectorAll('#guideSubTabs .day-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    filterGuideContent(tab);
+};
+
 window.openGuideFolder = function(folderName) {
     document.getElementById('guideDashboard').style.display = 'none';
     document.getElementById('guideDetail').style.display = 'block';
@@ -735,11 +894,7 @@ window.openGuideFolder = function(folderName) {
             let btn = document.createElement('button'); 
             btn.className = `day-tab ${index === 0 ? 'active' : ''}`; 
             btn.innerText = tab;
-            btn.onclick = function() { 
-                document.querySelectorAll('#guideSubTabs .day-tab').forEach(b => b.classList.remove('active')); 
-                this.classList.add('active'); 
-                filterGuideContent(tab); 
-            };
+            btn.setAttribute('onclick', `selectGuideSubTab(this, '${tab}')`);
             tabsContainer.appendChild(btn);
         });
         filterGuideContent(folderMapping[folderName][0]);
