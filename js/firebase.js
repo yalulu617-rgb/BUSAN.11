@@ -29,6 +29,11 @@
     // Initialize Firebase
     if (window.firebase) {
         firebase.initializeApp(firebaseConfig);
+        // Critical: initialize NetworkEngine with the Firebase app so _db is set
+        if (window.NetworkEngine) {
+            const imgbbKey = window.IMGBB_API_KEY || (window.StorageEngine ? StorageEngine.get('ute_imgbb_key', "8a4c0f3b5d2e7a9b1c6f").data : "8a4c0f3b5d2e7a9b1c6f");
+            NetworkEngine.init(firebase.app(), imgbbKey);
+        }
         console.log("Firebase initialized successfully");
     }
 })();
