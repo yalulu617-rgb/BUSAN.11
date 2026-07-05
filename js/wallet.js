@@ -1,6 +1,101 @@
 // ─────────────────────────────────────────────────────────────────────────
-// V41 Ultimate Edition: Wallet Service (Tickets & Hotels Renderers)
+// V41 Refactored: Wallet Module (Tickets, Hotel, Wallet UI)
+// Responsibilities: ticket CRUD, hotel CRUD, wallet tab switching, renderers
 // ─────────────────────────────────────────────────────────────────────────
+
+// ── Ticket CRUD ────────────────────────────────────────────────────────────
+window.addTicket = async function () {
+    const typeEl    = document.getElementById('tkType');
+    const titleEl   = document.getElementById('tkTitle');
+    const descEl    = document.getElementById('tkDesc');
+    const linkEl    = document.getElementById('tkLink');
+    const voucherEl = document.getElementById('tempVoucher');
+
+    const title = titleEl?.value?.trim();
+    if (!title) { showToast('請填入票券名稱', 'warning'); return; }
+
+    const ticket = {
+        type    : typeEl?.value || '🎫 門票',
+        title,
+        desc    : descEl?.value?.trim() || '',
+        link    : linkEl?.value?.trim() || '',
+        voucher : voucherEl?.value || '',
+        booked  : false,
+        ts      : Date.now()
+    };
+    await NetworkEngine.firebasePush(DB_TICKETS, ticket);
+
+    if (titleEl)   titleEl.value   = '';
+    if (descEl)    descEl.value    = '';
+    if (linkEl)    linkEl.value    = '';
+    if (voucherEl) voucherEl.value = '';
+    showToast('✅ 票券已儲存', 'success');
+};
+
+window.deleteTicket = async function (key) {
+    if (!confirm('確認刪除此票券？')) return;
+    await NetworkEngine.firebaseRemove(`${DB_TICKETS}/${key}`);
+};
+
+// ── Hotel CRUD ─────────────────────────────────────────────────────────────
+// editHotel: populate a form modal and let user save changes back to Firebase
+window.editHotel = function () {
+    const h = window.hotelData || {};
+    // Populate the hotel edit modal if it exists; otherwise fall back to direct Firebase link
+    const modalEl = document.getElementById('hotelEditModal');
+    if (!modalEl) {
+        // No dedicated modal in current HTML — guide user to Firebase console
+        showToast('請至 Firebase Realtime Database 編輯飯店資訊', 'info');
+        return;
+    }
+    // Populate fields if modal exists
+    const fields = ['name','nameEN','addressKR','address','checkInDate','checkInTime',
+                    'checkOutDate','checkOutTime','phone','wifiName','wifiPassword',
+                    'website','totalPrice','currency','guestCount','hotelPhoto'];
+    fields.forEach(f => {
+        const el = document.getElementById(`hotel_${f}`);
+        if (el) el.value = h[f] || '';
+    });
+    modalEl.style.display = 'flex';
+};
+
+window.saveHotel = async function () {
+    const fields = ['name','nameEN','addressKR','address','checkInDate','checkInTime',
+                    'checkOutDate','checkOutTime','phone','wifiName','wifiPassword',
+                    'website','totalPrice','currency','guestCount','hotelPhoto'];
+    const data = {};
+    fields.forEach(f => {
+        const el = document.getElementById(`hotel_${f}`);
+        if (el) data[f] = el.value.trim() || '尚未填寫';
+    });
+    await NetworkEngine.firebaseWrite(DB_HOTEL, data);
+    const modalEl = document.getElementById('hotelEditModal');
+    if (modalEl) modalEl.style.display = 'none';
+    showToast('✅ 飯店資料已儲存', 'success');
+};
+
+window.deleteHotelData = async function () {
+    if (!confirm('確認清除所有飯店資料？此操作不可還原。')) return;
+    await NetworkEngine.firebaseWrite(DB_HOTEL, null);
+    window.hotelData = {};
+    if (typeof renderTickets_LogicOnly === 'function') renderTickets_LogicOnly();
+    showToast('飯店資料已清除', 'info');
+};
+
+window.toggleHotelDetail = function (triggerEl) {
+    const card = triggerEl.closest('.card');
+    if (!card) return;
+    const box  = card.querySelector('.hotel-details-box');
+    const txt  = triggerEl.querySelector('.toggle-text');
+    const icon = triggerEl.querySelector('.toggle-arrow-icon');
+    if (!box) return;
+    const isOpen = box.style.display !== 'none';
+    box.style.display = isOpen ? 'none' : 'block';
+    if (txt)  txt.innerText          = isOpen ? '展開' : '收起';
+    if (icon) icon.style.transform   = isOpen ? ''     : 'rotate(180deg)';
+};
+
+
 
 window.renderTickets_LogicOnly = function() {
     const l = document.getElementById('ticketList');
@@ -145,34 +240,29 @@ window.renderTickets_LogicOnly = function() {
 };
 
 window.switchWalletTab = function(subtab) {
-    document.getElementById('btnWalletTicket').classList.remove('active');
-    document.getElementById('btnWalletHotel').classList.remove('active');
-    document.getElementById('btnWalletDoc').classList.remove('active');
-    document.getElementById('btnWalletCoupon').classList.remove('active');
-    document.getElementById('btnWalletMemory').classList.remove('active');
+    const tabs = {
+        ticket: { btn: document.getElementById('btnWalletTicket'), sec: document.getElementById('walletTicketSection') },
+        hotel: { btn: document.getElementById('btnWalletHotel'), sec: document.getElementById('walletHotelSection') },
+        doc: { btn: document.getElementById('btnWalletDoc'), sec: document.getElementById('walletDocSection') },
+        coupon: { btn: document.getElementById('btnWalletCoupon'), sec: document.getElementById('walletCouponSection') },
+        memory: { btn: document.getElementById('btnWalletMemory'), sec: document.getElementById('walletMemorySection') }
+    };
     
-    document.getElementById('walletTicketSection').style.display = 'none';
-    document.getElementById('walletHotelSection').style.display = 'none';
-    document.getElementById('walletDocSection').style.display = 'none';
-    document.getElementById('walletCouponSection').style.display = 'none';
-    document.getElementById('walletMemorySection').style.display = 'none';
+    Object.keys(tabs).forEach(k => {
+        const item = tabs[k];
+        if (item.btn) item.btn.classList.remove('active');
+        if (item.sec) item.sec.style.display = 'none';
+    });
     
-    if (subtab === 'ticket') {
-        document.getElementById('btnWalletTicket').classList.add('active');
-        document.getElementById('walletTicketSection').style.display = 'block';
-    } else if (subtab === 'hotel') {
-        document.getElementById('btnWalletHotel').classList.add('active');
-        document.getElementById('walletHotelSection').style.display = 'block';
+    const active = tabs[subtab];
+    if (active) {
+        if (active.btn) active.btn.classList.add('active');
+        if (active.sec) active.sec.style.display = 'block';
+    }
+    
+    if (subtab === 'hotel') {
         renderSmartNearby();
-    } else if (subtab === 'doc') {
-        document.getElementById('btnWalletDoc').classList.add('active');
-        document.getElementById('walletDocSection').style.display = 'block';
-    } else if (subtab === 'coupon') {
-        document.getElementById('btnWalletCoupon').classList.add('active');
-        document.getElementById('walletCouponSection').style.display = 'block';
     } else if (subtab === 'memory') {
-        document.getElementById('btnWalletMemory').classList.add('active');
-        document.getElementById('walletMemorySection').style.display = 'block';
         triggerContextUpdate();
     }
 };
