@@ -1,10 +1,32 @@
 // ─────────────────────────────────────────────────────────────────────────
-// V41 Ultimate Edition: Memory Service (Memory Album & Search Filters)
+// V41 Refactored: Memory Module (Photo Album + Photo CRUD)
+// Responsibilities: album render, photo delete, photo download
 // ─────────────────────────────────────────────────────────────────────────
+
+// ── Photo CRUD ────────────────────────────────────────────────────────────
+window.deleteCurrentPhoto = async function () {
+    if (!window.currentLightboxKey) { showToast('無法識別照片', 'warning'); return; }
+    if (!confirm('確認刪除此照片？此操作不可還原。')) return;
+    await NetworkEngine.firebaseRemove(`${DB_PHOTOS}/${window.currentLightboxKey}`);
+    closeLightbox();
+    showToast('照片已刪除', 'success');
+};
+
+window.downloadImage = function () {
+    const url = window.currentLightboxUrl;
+    if (!url) { showToast('無圖片可下載', 'warning'); return; }
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `busan_photo_${Date.now()}.jpg`;
+    a.target   = '_blank';
+    a.click();
+};
+
+
 
 (function() {
     window.renderMemoryAlbum = function() {
-        const grid = document.getElementById('photoGrid');
+        const grid = document.getElementById('albumContainer');
         if (!grid) return;
         
         grid.innerHTML = '';
