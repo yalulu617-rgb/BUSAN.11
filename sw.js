@@ -15,7 +15,7 @@ const LOCAL_ASSETS = [
     './manifest.json',
     './icon.png',
     './13972.png',
-    './assets/css/style.css',
+    './style.css',
     './ute/ute_storage.js',
     './ute/ute_network.js',
     './ute/ute_knowledge.js',
