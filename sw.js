@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────
-// V41 Refactored Service Worker
+// V41.1 Refactored Service Worker (Force Cache Flush)
 // ─────────────────────────────────────────────────────────────────────────
 // Rules:
 // - Cache ONLY local files that physically exist in this repository
@@ -7,7 +7,7 @@
 // - Each file cached individually so one 404 never kills the install
 // ─────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'busan-trip-v41-refactored-v1';
+const CACHE_NAME = 'busan-trip-v41-refactored-v2';
 
 const LOCAL_ASSETS = [
     './',
