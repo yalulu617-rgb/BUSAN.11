@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────
-// V41.3 Ultimate Production Entry Point (Safe Boot Architecture)
+// V41.4 Production Entry Point (Safe Recovery Edition)
 // ─────────────────────────────────────────────────────────────────────────
 
 (function () {
@@ -38,13 +38,13 @@
         '超商': ['GS25', 'CU', '7-11']
     };
 
-    // ── 2. 主畫面強制解鎖機制 (徹底消除米黃死白) ──────────────────────────
-    window.forceShowApp = function () {
+    // ── 2. 進入 APP 開關 ─────────────────────────────────────────────────
+    window.enterApp = function () {
         const splash = document.getElementById('splash');
         const app = document.getElementById('mainApp');
         if (splash) {
-            splash.style.display = 'none';
             splash.style.opacity = '0';
+            setTimeout(() => { splash.style.display = 'none'; }, 400);
         }
         if (app) {
             app.style.display = 'block';
@@ -52,11 +52,7 @@
         }
     };
 
-    window.enterApp = function () {
-        window.forceShowApp();
-    };
-
-    // ── 3. 安全模式切換 Tab ─────────────────────────────────────────────
+    // ── 3. 切換 Tab ──────────────────────────────────────────────────────
     window.showV37Tab = function (id, btn) {
         try {
             if (typeof triggerHapticFeedback === 'function') triggerHapticFeedback();
@@ -82,7 +78,7 @@
                 switchWalletTab('memory');
             }
         } catch (err) {
-            console.warn('[Tab Switch Shield]:', err);
+            console.warn('[Tab Switch Safe Shield]:', err);
         }
     };
 
@@ -313,11 +309,8 @@
         });
     }
 
-    // ── 7. 啟動與安全盾 (Bootstrap) ──────────────────────────────────────
+    // ── 7. 啟動防護網 (Bootstrap) ──────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
-        // 第一優先：立刻強迫 UI 顯影，絕不允許死白
-        window.forceShowApp();
-
         try {
             initFirebaseListeners();
 
@@ -342,7 +335,6 @@
             showV37Tab('home', firstNavBtn);
         } catch (bootErr) {
             console.error('[Boot Shield Handled Failure]:', bootErr);
-            window.forceShowApp();
         }
     });
 
