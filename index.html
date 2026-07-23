@@ -17,6 +17,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <link rel="stylesheet" href="style.css">
+    
 </head>
 <body>
 
@@ -79,12 +80,11 @@
 
 <div class="fab-back" id="fabBack" onclick="closeGuideFolder()"><i class="fa-solid fa-arrow-left"></i></div>
 
-<div id="mainApp" style="display:block; opacity:1;">
+<div id="mainApp">
 
     <div id="guide" class="container active">
         <div id="guideDashboard">
-            <!-- 移除 style="display:none;" 確保主頁內容直接渲染 -->
-            <div id="v36HomeContent">
+            <div id="v36HomeContent" style="display:none;">
                 <div class="card" style="background: linear-gradient(135deg, rgba(255,234,234,0.9), rgba(255,255,255,0.9)); border-left: 6px solid #E74C3C;">
                     <h4 style="color: #E74C3C; margin: 0 0 12px 0; font-size: 1.1rem;"><i class="fa-solid fa-triangle-exclamation fa-fade"></i> 行前必備與翻譯捷徑</h4>
                     <div style="font-size: 0.95rem; line-height: 1.6; color: #444; font-weight: 700; margin-bottom:15px;">🚨 <b>K-ETA：</b>出發前 72 小時申請。<br>🚨 <b>Q-Code：</b>出發前 3 天內填寫。<br>🚨 <b>隨身清單：</b>護照、WOWPASS、行動電源。</div>
@@ -96,6 +96,10 @@
                     <div class="flex-row" style="gap:10px;">
                         <div style="flex:1; background:rgba(255,255,255,0.8); border-radius:14px; padding:10px;"><div style="font-weight:900; text-align:center; color:var(--primary); font-size:0.85rem;">📍 釜山</div><iframe src="https://wttr.in/Busan?format=1" style="width:100%; height:30px; border:none;" scrolling="no"></iframe></div>
                         <div style="flex:1; background:rgba(255,255,255,0.8); border-radius:14px; padding:10px;"><div style="font-weight:900; text-align:center; color:var(--primary); font-size:0.85rem;">📍 慶州</div><iframe src="https://wttr.in/Gyeongju?format=1" style="width:100%; height:30px; border:none;" scrolling="no"></iframe></div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.5)); border-radius: 18px; padding: 15px; border-left: 5px solid var(--accent); margin-top:12px;">
+                        <div style="font-weight:900; color:var(--primary); margin-bottom:5px; font-size:0.95rem;"><i class="fa-solid fa-shirt fa-bounce"></i> 專屬氣候穿搭演算</div>
+                        <div id="dynamicOutfit" style="font-size:0.9rem; color:#555; line-height:1.6; font-weight:700;">載入中...</div>
                     </div>
                 </div>
 
@@ -109,7 +113,7 @@
             </div>
             <!-- V37.0 新版 Widget 首頁 Dashboard Container -->
             <div id="v37HomeDashboard"></div>
-            <!-- City detail panel -->
+            <!-- City detail panel — toggled by toggleCityDetailPanel() -->
             <div id="v37CityDetailPanel" style="display:none; margin-top:10px;"></div>
         </div>
 
@@ -118,6 +122,7 @@
             <p style="font-size:0.8rem; color:#bdc3c7; text-align:center; margin:0 0 10px 0;"><i class="fa-solid fa-arrow-right-arrow-left"></i> 畫面往右滑動可快速返回目錄</p>
             
             <div id="toolSection" style="display:none;">
+                
                 <div class="card">
                     <h3 class="card-title"><i class="fa-solid fa-list-check"></i> 行前預約進度表</h3>
                     <div class="prep-list" id="prepListUI"></div>
@@ -154,6 +159,7 @@
             </div>
 
             <div id="guideSection" style="display:none;">
+                <!-- V38 Food sub-tabs -->
                 <div id="foodSubTabs" style="display:none; margin-bottom:15px; justify-content:center; gap:8px;">
                     <button id="btnFoodMy" class="day-tab active" onclick="setFoodTabMode('my')" style="font-size:0.8rem; padding:6px 12px;">我的收藏</button>
                     <button id="btnFoodRec" class="day-tab" onclick="setFoodTabMode('rec')" style="font-size:0.8rem; padding:6px 12px;">熱門推薦</button>
@@ -180,7 +186,7 @@
         </div>
     </div>
 
-    <!-- 2. 記帳本 -->
+    <!-- 2. 滿血記帳本 -->
     <div id="split" class="container">
         <div class="fx-card">
             <div><div style="font-size:0.85rem; font-weight:900; opacity:0.8;">🌐 即時匯率同步</div><div style="font-size:1.4rem; font-weight:900; margin-top:4px;" id="liveFxRate"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
@@ -221,10 +227,13 @@
             
             <button class="btn-action" style="margin-top:12px;" onclick="addBill()"><i class="fa-solid fa-plus"></i> 紀錄支出</button>
             <div id="billList" style="margin-top:20px;"></div>
+            <!-- Shared bills sum — queried by renderBills() -->
             <div id="sharedBillsSum" style="display:none;"></div>
+            <!-- Private bills list + sum — queried by renderBills() -->
             <div id="pbList" style="margin-top:10px;"></div>
             <div id="privateBillsSum" style="display:none;"></div>
             
+            <!-- 預算進度條 -->
             <div style="margin-top: 20px; padding: 15px 20px; background: rgba(255,255,255,0.9); border-radius: 20px; box-shadow: var(--shadow);">
                 <div style="display: flex; justify-content: space-between; font-weight: 900; font-size: 0.95rem;">
                     <span style="color: var(--text-dark);"><i class="fa-solid fa-chart-pie"></i> 預算水位</span>
@@ -234,6 +243,7 @@
                 <div style="text-align: right; font-size: 0.8rem; color: #7f8c8d; font-weight: 700; margin-top: 5px;" id="budgetText">已花費 $0 / 設定預算 $50,000</div>
             </div>
 
+            <!-- V37.0 SVG Spending Chart -->
             <div style="margin-top: 20px; padding: 15px 20px; background: rgba(255,255,255,0.9); border-radius: 20px; box-shadow: var(--shadow);">
                 <div style="font-weight: 900; font-size: 0.95rem; color: var(--text-dark); margin-bottom: 10px;">
                     <i class="fa-solid fa-chart-donut"></i> 花費類別分析
@@ -255,6 +265,7 @@
             <button class="day-tab" onclick="filterIti('11/17')">17日(賦歸)</button>
         </div>
         
+        <!-- Vlog 腳本匯出按鈕 -->
         <button class="btn-search" style="margin-bottom: 12px; width: 100%; border-color: var(--dora); color: var(--dora);" onclick="exportForVlog()"><i class="fa-solid fa-wand-magic-sparkles"></i> 匯出本日 Vlog 腳本 (供 CapCut/Canva 剪輯)</button>
 
         <div class="card"><div id="itiContent"></div></div>
@@ -274,8 +285,9 @@
         </div>
     </div>
 
-    <!-- 4. 購物車 -->
+    <!-- 4. 專屬購物車 -->
     <div id="shop" class="container">
+        <!-- 購物換算與退稅神器 -->
         <div class="card" style="background: linear-gradient(135deg, #2C3E50, #1A252F); color: white; padding: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                 <h3 style="margin: 0; font-size: 1.1rem; color: #F39C12;"><i class="fa-solid fa-calculator"></i> 購物匯率與退稅雷達</h3>
@@ -296,7 +308,9 @@
                 <button id="btnShopMy" class="day-tab active" onclick="setShopTabMode('my')" style="font-size:0.8rem;">我的清單</button>
                 <button id="btnShopRec" class="day-tab" onclick="setShopTabMode('rec')" style="font-size:0.8rem;">熱門推薦</button>
             </div>
-            <div class="day-tabs" id="shopTabsUI"></div>
+            <div class="day-tabs" id="shopTabsUI">
+                <!-- 動態注入 User 1 和 User 2 -->
+            </div>
             
             <div style="background: rgba(255,255,255,0.6); padding: 18px; border-radius: 22px; margin-bottom: 20px; border:1px solid #fff;">
                 <div class="flex-row" style="margin-bottom:10px;">
@@ -315,7 +329,9 @@
                 <div id="shopUploadStatus" style="font-size: 0.85rem; color: var(--primary); text-align: center; margin-top:8px; font-weight:bold;"></div>
                 <input type="hidden" id="tempShopImg" value="">
             </div>
+            <!-- My shop list container -->
             <div id="shopMyContainer"><div id="sList"></div></div>
+            <!-- Recommended shop list container -->
             <div id="shopRecContainer" style="display:none;"><div id="sRecList"></div></div>
         </div>
     </div>
@@ -335,8 +351,10 @@
             <button id="btnWalletMemory" class="day-tab" onclick="switchWalletTab('memory')" style="font-size:0.75rem; padding:6px 10px;">📷 Memory</button>
         </div>
         
+        <!-- Ticket Tab -->
         <div id="walletTicketSection">
             <div id="walletTicketsList"></div>
+            <!-- Original Add Ticket Card -->
             <div class="card" style="margin-top:15px; background: #ffffff; border-radius: 24px;">
                 <h4 style="margin:0 0 10px 0; color:var(--primary); font-weight: 900;"><i class="fa-solid fa-plus"></i> 新增票券/憑證</h4>
                 <div class="flex-row" style="margin-bottom:10px;">
@@ -360,8 +378,11 @@
             </div>
         </div>
         
+        <!-- Hotel Tab -->
         <div id="walletHotelSection" style="display:none;">
+            <!-- Hotel Info Card -->
             <div id="walletHotelInfoCard"></div>
+            <!-- Smart Nearby Card -->
             <div class="card" style="background: #ffffff; border-radius: 24px; padding: 20px;">
                 <h3 class="card-title" style="color:var(--primary); border-bottom:1px dashed #eee; padding-bottom:6px; font-weight: 900;"><i class="fa-solid fa-location-crosshairs"></i> Smart Nearby (周邊生活雷達)</h3>
                 <p style="font-size:0.75rem; color:#888; margin-top:0; font-weight: 700;">自動搜尋飯店周遭 800m 內的美食、超商、地鐵、ATM、藥局、醫院等資訊...</p>
@@ -369,6 +390,7 @@
             </div>
         </div>
         
+        <!-- Docs Tab -->
         <div id="walletDocSection" style="display:none;">
             <div class="card" style="background: #ffffff; border-radius: 24px; padding: 20px;">
                 <h3 class="card-title" style="font-weight: 900;"><i class="fa-solid fa-passport"></i> 個人電子文件櫃</h3>
@@ -380,17 +402,73 @@
                         </div>
                         <button class="v38-mini-btn" style="background:var(--primary); color:white; border:none;" onclick="showToast('已安全載入護照備份檔', 'success')">檢視</button>
                     </div>
+                    <div style="background:#f8f9fa; padding:12px; border-radius:14px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <span style="font-weight:900; font-size:0.9rem; color:#2c3e50;">📄 K-ETA 核准聲明</span>
+                            <div style="font-size:0.75rem; color:#7f8c8d; margin-top:2px;">韓國電子旅行許可 (核准完畢)</div>
+                        </div>
+                        <button class="v38-mini-btn" style="background:var(--primary); color:white; border:none;" onclick="showToast('已加載 K-ETA 文件', 'success')">檢視</button>
+                    </div>
+                    <div style="background:#f8f9fa; padding:12px; border-radius:14px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <span style="font-weight:900; font-size:0.9rem; color:#2c3e50;">🧬 Q-Code 二維碼</span>
+                            <div style="font-size:0.75rem; color:#7f8c8d; margin-top:2px;">檢疫資訊預入申報條碼</div>
+                        </div>
+                        <button class="v38-mini-btn" style="background:var(--primary); color:white; border:none;" onclick="showToast('已安全開啟 Q-Code', 'success')">檢視</button>
+                    </div>
+                    <div style="background:#f8f9fa; padding:12px; border-radius:14px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <span style="font-weight:900; font-size:0.9rem; color:#2c3e50;">🏥 海外旅行平安保險單</span>
+                            <div style="font-size:0.75rem; color:#7f8c8d; margin-top:2px;">富邦產險保單 (電子檔)</div>
+                        </div>
+                        <button class="v38-mini-btn" style="background:var(--primary); color:white; border:none;" onclick="showToast('已載入海外保險憑證 PDF', 'success')">檢視</button>
+                    </div>
                 </div>
             </div>
         </div>
         
+        <!-- Coupon Tab -->
         <div id="walletCouponSection" style="display:none;">
             <div class="card" style="background: #ffffff; border-radius: 24px; padding: 20px;">
                 <h3 class="card-title" style="font-weight: 900;"><i class="fa-solid fa-gift"></i> 會員卡與折扣券</h3>
+                <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+                    <div style="background:linear-gradient(135deg, #f39c12, #d35400); color:white; padding:15px; border-radius:18px;">
+                        <div style="font-size:0.75rem; font-weight:800; opacity:0.8;">MEMBERSHIP BARCODE</div>
+                        <div style="font-size:1.1rem; font-weight:900; margin-top:2px;">Lotte Duty Free (樂天免稅店 VIP)</div>
+                        <div style="font-size:0.9rem; font-weight:800; font-family:monospace; margin-top:12px; text-align:center; background:white; color:black; padding:8px; border-radius:8px; letter-spacing:4px;">|||| | |||| || ||| 9081</div>
+                    </div>
+                    <div style="background:linear-gradient(135deg, #1abc9c, #16a085); color:white; padding:15px; border-radius:18px;">
+                        <div style="font-size:0.75rem; font-weight:800; opacity:0.8;">DISCOUNT COUPON</div>
+                        <div style="font-size:1.1rem; font-weight:900; margin-top:2px;">新世界百貨 7% 折扣券</div>
+                        <div style="font-size:0.75rem; margin-top:4px;">有效期限：至 2026/12/31</div>
+                        <div style="font-size:0.9rem; font-weight:800; font-family:monospace; margin-top:12px; text-align:center; background:white; color:black; padding:8px; border-radius:8px; letter-spacing:4px;">|| |||| | ||| ||| 8872</div>
+                    </div>
+                </div>
             </div>
         </div>
         
+        <!-- Memory Tab -->
         <div id="walletMemorySection" style="display:none;">
+            <!-- Google Drive card -->
+            <div class="card" style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(252,239,225,0.9)); border-left: 6px solid var(--dora); margin-bottom: 20px; border-radius: 24px;">
+                <h3 class="card-title" style="color:var(--dora); border-bottom:none; margin-bottom:10px;"><i class="fa-brands fa-google-drive"></i> 雲端原檔金庫</h3>
+                <p style="font-size:0.9rem; color:#555; font-weight:700; margin-top:0;">需後製的高畫質影片、無損原圖，請存放於此專屬資料夾。</p>
+                <a href="https://drive.google.com/drive/folders/1eYv4GX8vMQvVNHPSwrp3zfZGb9YNkpsZ" target="_blank" class="btn-action" style="background: linear-gradient(135deg, var(--dora), #3498DB); text-decoration: none; display: block; text-align: center; margin-top: 15px;"><i class="fa-solid fa-cloud-arrow-up"></i> 開啟 Google Drive</a>
+            </div>
+
+            <!-- 今日照片 Section -->
+            <div class="card" style="margin-bottom: 20px; background: #ffffff; border-radius: 24px; padding: 20px;">
+                <h3 class="card-title" style="font-weight: 900;"><i class="fa-solid fa-image"></i> 今日精選照片</h3>
+                <div id="todayPhotosContainer" class="photo-grid" style="margin-top: 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;"></div>
+            </div>
+
+            <!-- 今日影片 Section -->
+            <div class="card" style="margin-bottom: 12px; background: #ffffff; border-radius: 16px; padding: 12px;">
+                <h3 class="card-title" style="font-weight: 900; font-size: 0.85rem; margin-bottom: 8px;"><i class="fa-solid fa-circle-play"></i> 今日影片 / VLOG 記錄</h3>
+                <a href="https://drive.google.com/drive/folders/1eYv4GX8vMQvVNHPSwrp3zfZGb9YNkpsZ" target="_blank" class="btn-action" style="background: #27ae60; text-decoration: none; display: block; text-align: center; padding: 8px; font-size:0.75rem;"><i class="fa-solid fa-video"></i> 前往影片金庫</a>
+            </div>
+
+            <!-- 旅行相簿 Section -->
             <div class="card" style="margin-bottom: 20px; background: #ffffff; border-radius: 24px; padding: 20px;">
                 <h3 class="card-title" style="font-weight: 900;"><i class="fa-solid fa-camera-retro"></i> 每日拍立得回憶庫</h3>
                 <p style="font-size:0.85rem; color:#888; font-weight:900;">支援多張批次上傳。點擊放大照片可點擊左上角刪除。</p>
@@ -400,10 +478,34 @@
                 <input type="text" id="memorySearchInput" class="input-box" placeholder="🔍 搜尋日期或城市 (例: 11/13、釜山)" style="margin-bottom:10px;" oninput="renderMemoryAlbum()">
                 <div id="albumContainer" style="margin-top: 15px;"></div>
             </div>
+
+            <!-- 精選回憶 Section -->
+            <div class="card" style="margin-bottom: 20px; background: #ffffff; border-radius: 24px; padding: 20px;">
+                <h3 class="card-title" style="font-weight: 900;"><i class="fa-solid fa-wand-magic-sparkles"></i> 精選回憶 Highlights</h3>
+                <div id="highlightMemoriesContainer" style="margin-top:10px;"></div>
+            </div>
         </div>
     </div>
 
-    <!-- 6. 更多選單九宮格 -->
+    <!-- 6. 我的旅行 -->
+    <div id="trip" class="container">
+        <!-- 住宿資訊卡 -->
+        <div id="tripLodgingContainer"></div>
+        
+        <!-- 行前預約進度表 -->
+        <div class="card">
+            <h3 class="card-title"><i class="fa-solid fa-list-check"></i> 行前預約進度表</h3>
+            <div class="prep-list" id="prepListUI_trip"></div>
+        </div>
+
+        <!-- 憑證與門票夾 -->
+        <div class="card">
+            <h3 class="card-title"><i class="fa-solid fa-bed"></i> 雲端機票門票夾</h3>
+            <div id="ticketList_trip"></div>
+        </div>
+    </div>
+
+    <!-- 7. 更多選單九宮格 -->
     <div id="more" class="container">
         <div class="card" style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(252,239,225,0.9)); border-left: 6px solid var(--accent); padding: 18px 20px;">
             <h3 style="margin: 0 0 5px 0; font-weight: 900; color: var(--accent); font-size: 1.1rem;"><i class="fa-solid fa-compass"></i> 全境旅遊功能金庫</h3>
@@ -447,6 +549,7 @@
     </div>
 </div>
 
+<!-- 腳本嚴格載入順序：底層 Engine ➔ Services ➔ Data ➔ Firebase ➔ UI & Moduls ➔ Entry App -->
 <script src="ute/ute_storage.js"></script>
 <script src="ute/ute_network.js"></script>
 <script src="ute/ute_knowledge.js"></script>
