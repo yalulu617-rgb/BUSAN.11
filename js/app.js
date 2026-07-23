@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────
-// V41.2 Ultimate Production Entry Point (Safe Boot Architecture)
+// V41.3 Ultimate Production Entry Point (Safe Boot Architecture)
 // ─────────────────────────────────────────────────────────────────────────
 
 (function () {
@@ -38,13 +38,13 @@
         '超商': ['GS25', 'CU', '7-11']
     };
 
-    // ── 2. 主畫面強制顯影機制 (防死白核心) ──────────────────────────────────
+    // ── 2. 主畫面強制解鎖機制 (徹底消除米黃死白) ──────────────────────────
     window.forceShowApp = function () {
         const splash = document.getElementById('splash');
         const app = document.getElementById('mainApp');
         if (splash) {
-            splash.style.opacity = '0';
             splash.style.display = 'none';
+            splash.style.opacity = '0';
         }
         if (app) {
             app.style.display = 'block';
@@ -82,7 +82,7 @@
                 switchWalletTab('memory');
             }
         } catch (err) {
-            console.warn('[Tab Switch Safe Shield]:', err);
+            console.warn('[Tab Switch Shield]:', err);
         }
     };
 
@@ -313,7 +313,7 @@
         });
     }
 
-    // ── 7. 啟動與防護網 (Bootstrap) ──────────────────────────────────────
+    // ── 7. 啟動與安全盾 (Bootstrap) ──────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
         // 第一優先：立刻強迫 UI 顯影，絕不允許死白
         window.forceShowApp();
@@ -341,8 +341,8 @@
             const firstNavBtn = document.querySelector('.bottom-nav .nav-item');
             showV37Tab('home', firstNavBtn);
         } catch (bootErr) {
-            console.error('[System Boot Shield Handled Failure]:', bootErr);
-            // 即便初始化失敗，畫面依然會被 forceShowApp 展開
+            console.error('[Boot Shield Handled Failure]:', bootErr);
+            window.forceShowApp();
         }
     });
 
