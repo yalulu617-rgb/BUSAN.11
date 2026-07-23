@@ -37,7 +37,7 @@ function triggerContextUpdateImmediate() {
       TripContextEngine.updateContext(dateStr, globals);
     }
     
-    // 2. 分發更新至各個組件渲染器 (嚴格防禦性呼叫)
+    // 2. 分發更新至各個組件渲染器 (調用正確名稱 renderBills)
     if (typeof window.renderV37HomeDashboard === "function") {
       window.renderV37HomeDashboard();
     }
@@ -51,7 +51,7 @@ function triggerContextUpdateImmediate() {
       window.renderPrepList();
     }
   } catch (err) {
-        console.error('[UTE Orchestrator Safe Handled]:', err);
+    console.error('[UTE Orchestrator Safe Handled]:', err);
   }
 }
 
