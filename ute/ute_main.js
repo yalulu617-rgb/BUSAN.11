@@ -31,25 +31,25 @@ function triggerContextUpdateImmediate() {
     currentBillTab: window.currentBillTab || "公費"
   };
   
-  // Single context generation run
+  // 1. 產生單一真理 Context
   TripContextEngine.updateContext(dateStr, globals);
   
-  // Distribute updates to widgets/renderers in index.html
+  // 2. 分發更新至各個組件渲染器 (加上安全存在性檢查)
   if (typeof window.renderV37HomeDashboard === "function") {
     window.renderV37HomeDashboard();
   }
   if (typeof window.renderBills === "function") {
-    // Avoid infinite loop if renderBills calls triggerContextUpdate internally
-    window.renderBills_LogicOnly(); 
+    window.renderBills();
   }
-  if (typeof window.renderTickets === "function") {
+  if (typeof window.renderTickets_LogicOnly === "function") {
     window.renderTickets_LogicOnly();
   }
   if (typeof window.renderPrepList === "function") {
-    window.renderPrepList_LogicOnly();
+    window.renderPrepList();
   }
 }
 
 if (typeof window !== "undefined") {
   window.triggerContextUpdate = triggerContextUpdate;
+  window.triggerContextUpdateImmediate = triggerContextUpdateImmediate;
 }
