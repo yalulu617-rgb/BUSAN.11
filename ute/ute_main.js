@@ -11,7 +11,7 @@ function triggerContextUpdate() {
   }
   debounceTimeout = setTimeout(() => {
     triggerContextUpdateImmediate();
-  }, 30); // 30ms debouncing window
+  }, 30);
 }
 
 function triggerContextUpdateImmediate() {
@@ -37,7 +37,7 @@ function triggerContextUpdateImmediate() {
       TripContextEngine.updateContext(dateStr, globals);
     }
     
-    // 2. 分發更新至各個組件渲染器 (調用正確名稱 renderBills)
+    // 2. 分發更新至各個組件渲染器 (嚴格防禦性呼叫)
     if (typeof window.renderV37HomeDashboard === "function") {
       window.renderV37HomeDashboard();
     }
