@@ -26,8 +26,8 @@ function triggerContextUpdateImmediate() {
       prepData: window.prepData || [],
       ticketData: window.ticketData || [],
       hotelData: window.hotelData || {},
-      u1: window.u1,
-      u2: window.u2,
+      u1: window.u1 || { name: "溫", avatar: "👩" },
+      u2: window.u2 || { name: "鴨", avatar: "🦆" },
       deviceOwner: window.deviceOwner || "user1",
       currentBillTab: window.currentBillTab || "公費"
     };
@@ -57,4 +57,5 @@ function triggerContextUpdateImmediate() {
 
 if (typeof window !== "undefined") {
   window.triggerContextUpdate = triggerContextUpdate;
+  window.triggerContextUpdateImmediate = triggerContextUpdateImmediate;
 }
