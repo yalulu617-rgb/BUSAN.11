@@ -11,7 +11,7 @@ function triggerContextUpdate() {
   }
   debounceTimeout = setTimeout(() => {
     triggerContextUpdateImmediate();
-  }, 30);
+  }, 30); // 30ms debouncing window
 }
 
 function triggerContextUpdateImmediate() {
@@ -26,18 +26,18 @@ function triggerContextUpdateImmediate() {
       prepData: window.prepData || [],
       ticketData: window.ticketData || [],
       hotelData: window.hotelData || {},
-      u1: window.u1 || { name: "溫", avatar: "👩" },
-      u2: window.u2 || { name: "鴨", avatar: "🦆" },
+      u1: window.u1,
+      u2: window.u2,
       deviceOwner: window.deviceOwner || "user1",
       currentBillTab: window.currentBillTab || "公費"
     };
     
-    // 1. 產生單一真理 Context
+    // Single context generation run
     if (window.TripContextEngine && typeof window.TripContextEngine.updateContext === "function") {
       TripContextEngine.updateContext(dateStr, globals);
     }
     
-    // 2. 分發更新至各個組件渲染器 (嚴格防禦性呼叫)
+    // Distribute updates to widgets/renderers in index.html
     if (typeof window.renderV37HomeDashboard === "function") {
       window.renderV37HomeDashboard();
     }
@@ -51,11 +51,10 @@ function triggerContextUpdateImmediate() {
       window.renderPrepList();
     }
   } catch (err) {
-    console.error('[UTE Orchestrator Safe Handled]:', err);
+    console.error("[UTE] triggerContextUpdateImmediate error:", err);
   }
 }
 
 if (typeof window !== "undefined") {
   window.triggerContextUpdate = triggerContextUpdate;
-  window.triggerContextUpdateImmediate = triggerContextUpdateImmediate;
 }
