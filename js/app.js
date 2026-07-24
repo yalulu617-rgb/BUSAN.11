@@ -1,20 +1,31 @@
 // ─────────────────────────────────────────────────────────────────────────
-// V41.4 Production Entry Point (Safe Recovery Edition)
+// V41 Refactored: Application Entry Point
+// Responsibilities: Global state init, tab routing, bootstrap, Firebase listeners,
+//                   bill CRUD (public+private), auth/PIN, profile, SW management
+// ─────────────────────────────────────────────────────────────────────────
+// NOT the place for: ticket CRUD → wallet.js
+//                   itinerary CRUD → itinerary.js
+//                   shop/guide/voice/prep CRUD → renderers.js
+//                   photo CRUD → memory.js
+//                   hotel CRUD → wallet.js
+//                   speakKorean → ui.js
+//                   dark mode → ui.js (canonical)
 // ─────────────────────────────────────────────────────────────────────────
 
 (function () {
-    // ── 1. 全域變數安全初始化 ──────────────────────────────────────────────
-    window.hotelData        = window.hotelData || {};
-    window.u1               = window.u1 || { key: 'user1', name: '溫', avatar: '👩' };
-    window.u2               = window.u2 || { key: 'user2', name: '鴨', avatar: '🦆' };
-    window.deviceOwner      = (window.StorageEngine && StorageEngine.get) ? StorageEngine.get('busan_v36_owner', 'user1').data : 'user1';
-    window.liveKrwToTwd     = 0.0240;
-    window.v37SimulatedDate = 'real';
+
+    // ── Global State ──────────────────────────────────────────────────────
+    window.hotelData        = {};
+    window.u1               = { key: 'user1', name: '溫', avatar: '👩' };
+    window.u2               = { key: 'user2', name: '鴨', avatar: '🦆' };
+    window.deviceOwner      = StorageEngine.get('busan_v36_owner', 'user1').data;
+    window.liveKrwToTwd     = parseFloat(StorageEngine.get('busan_v36_live_rate', 0.024).data) || 0.024;
+    window.v37SimulatedDate = StorageEngine.get('busan_v37_simulated_date', 'real').data;
     window.currentLightboxUrl = '';
     window.currentLightboxKey = '';
     window.voiceData        = [];
     window.prepData         = [];
-    window.privateBills     = (window.StorageEngine && StorageEngine.get) ? StorageEngine.get('busan_v36_p_bills', []).data : [];
+    window.privateBills     = StorageEngine.get('busan_v36_p_bills', []).data;
     window.sharedBills      = [];
     window.currentBillTab   = '公費';
     window.currentShopSubTab  = 'my';
@@ -38,75 +49,147 @@
         '超商': ['GS25', 'CU', '7-11']
     };
 
-    // ── 2. 進入 APP 開關 ─────────────────────────────────────────────────
+    // ── Theme Init (ui.js owns toggleDarkMode; we only apply saved value here) ──
+    const savedTheme = StorageEngine.get('busan_v36_theme', 'light').data;
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    // ── PWA Service Worker ────────────────────────────────────────────────
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').then(reg => {
+                if (reg.waiting) _showSwUpdateBanner(reg.waiting);
+                reg.addEventListener('updatefound', () => {
+                    const nw = reg.installing;
+                    nw.addEventListener('statechange', () => {
+                        if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+                            _showSwUpdateBanner(nw);
+                        }
+                    });
+                });
+            }).catch(() => {/* SW unavailable — no crash */});
+
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!refreshing) { refreshing = true; window.location.reload(); }
+            });
+        });
+    }
+
+    function _showSwUpdateBanner(worker) {
+        const d = document.createElement('div');
+        d.style.cssText = 'position:fixed;bottom:80px;right:16px;background:#2c3e50;color:#fff;' +
+            'padding:10px 14px;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,.25);' +
+            'z-index:9999;display:flex;gap:10px;align-items:center;font-size:.82rem;font-weight:700;';
+        d.innerHTML = '<span>發現新版，立即更新</span>' +
+            '<button id="swUpdateBtn" style="background:#2ecc71;border:none;color:#fff;' +
+            'padding:4px 10px;border-radius:8px;cursor:pointer;font-weight:700;">更新</button>';
+        document.body.appendChild(d);
+        document.getElementById('swUpdateBtn').onclick = () => {
+            worker.postMessage({ action: 'skipWaiting' });
+            d.remove();
+        };
+    }
+
+    // ── Date Helpers ──────────────────────────────────────────────────────
+    window.getTravelDay = function () {
+        if (window.v37SimulatedDate === 'real') {
+            const d = new Date().getDate();
+            const m = new Date().getMonth() + 1;
+            if (m === 11) {
+                if (d >= 13 && d <= 17) return `11/${d}`;
+            }
+            return '11/10'; // before trip default
+        }
+        return window.v37SimulatedDate;
+    };
+
+    window.getV37SelectedDate = function () { return getTravelDay(); };
+
+    window.setV37SelectedDate = function (val) {
+        window.v37SimulatedDate = val;
+        StorageEngine.set('busan_v37_simulated_date', val);
+        triggerContextUpdate();
+    };
+
+    // ── Splash / Entry ────────────────────────────────────────────────────
     window.enterApp = function () {
         const splash = document.getElementById('splash');
-        const app = document.getElementById('mainApp');
-        if (splash) {
-            splash.style.opacity = '0';
-            setTimeout(() => { splash.style.display = 'none'; }, 400);
-        }
-        if (app) {
-            app.style.display = 'block';
-            app.style.opacity = '1';
+        const app    = document.getElementById('mainApp');
+        if (splash) { splash.style.opacity = '0'; setTimeout(() => { splash.style.display = 'none'; }, 400); }
+        if (app)    { app.style.display = 'block'; app.style.opacity = '1'; }
+    };
+
+    window.forceShowApp = function () {
+        const splash = document.getElementById('splash');
+        const app    = document.getElementById('mainApp');
+        if (splash) { splash.style.display = 'none'; splash.style.opacity = '0'; }
+        if (app)    { app.style.display = 'block'; app.style.opacity = '1'; }
+    };
+
+    // ── PIN ───────────────────────────────────────────────────────────────
+    window.submitPin = function () {
+        const pin = document.getElementById('pinInput');
+        if (!pin) return;
+        if (pin.value === '1313') {
+            document.getElementById('pinModal').style.display = 'none';
+            if (typeof window._pinResolve === 'function') { window._pinResolve(); window._pinResolve = null; }
+        } else {
+            const msg = document.getElementById('pinMsg');
+            if (msg) msg.innerText = '密碼錯誤，請重試';
+            pin.value = '';
         }
     };
 
-    // ── 3. 切換 Tab ──────────────────────────────────────────────────────
+    window.cancelPin = function () {
+        const modal = document.getElementById('pinModal');
+        if (modal) modal.style.display = 'none';
+        window.currentBillTab = '公費';
+    };
+
+    // ── Tab Navigation ────────────────────────────────────────────────────
     window.showV37Tab = function (id, btn) {
         try {
-            if (typeof triggerHapticFeedback === 'function') triggerHapticFeedback();
+            triggerHapticFeedback();
             document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
+            // index.html uses id="guide" for the home container
             const targetId = (id === 'home') ? 'guide' : id;
             const el = document.getElementById(targetId);
             if (el) el.classList.add('active');
             if (btn) btn.classList.add('active');
 
-            if ((id === 'home' || id === 'guide') && typeof renderV37HomeDashboard === 'function') {
-                renderV37HomeDashboard();
-            } else if (id === 'itinerary' && typeof filterItineraryDay === 'function') {
+            // Trigger appropriate lazy initialisation per tab
+            if (id === 'home' || id === 'guide') {
+                if (typeof renderV37HomeDashboard === 'function') renderV37HomeDashboard();
+            } else if (id === 'itinerary') {
                 filterItineraryDay(getV37SelectedDate(), null);
-            } else if (id === 'split' && typeof renderBills === 'function') {
-                renderBills();
-            } else if (id === 'wallet' && typeof switchWalletTab === 'function') {
-                switchWalletTab('ticket');
-            } else if (id === 'shop' && typeof setShopTabMode === 'function') {
-                setShopTabMode('my');
-            } else if (id === 'photo' && typeof switchWalletTab === 'function') {
-                switchWalletTab('memory');
+            } else if (id === 'split') {
+                if (typeof renderBills === 'function') renderBills();
+            } else if (id === 'wallet') {
+                if (typeof switchWalletTab === 'function') switchWalletTab('ticket');
+            } else if (id === 'shop') {
+                if (typeof setShopTabMode === 'function') setShopTabMode('my');
+            } else if (id === 'photo') {
+                if (typeof switchWalletTab === 'function') switchWalletTab('memory');
             }
         } catch (err) {
-            console.warn('[Tab Switch Safe Shield]:', err);
+            console.error('[App] showV37Tab failed:', err);
         }
     };
 
-    // ── 4. 日期與捷徑輔助 ────────────────────────────────────────────────
-    window.getTravelDay = function () {
-        if (window.v37SimulatedDate === 'real') {
-            const d = new Date().getDate();
-            const m = new Date().getMonth() + 1;
-            if (m === 11 && d >= 13 && d <= 17) return `11/${d}`;
-            return '11/10';
-        }
-        return window.v37SimulatedDate;
-    };
-    window.getV37SelectedDate = function () { return getTravelDay(); };
-    window.setV37SelectedDate = function (val) {
-        window.v37SimulatedDate = val;
-        if (window.StorageEngine) StorageEngine.set('busan_v37_simulated_date', val);
-        if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
+    // ── Misc UI Shortcuts ─────────────────────────────────────────────────
+    window.openPapago = function () {
+        window.open('https://papago.naver.com/', '_blank');
     };
 
-    window.openPapago = function () { window.open('https://papago.naver.com/', '_blank'); };
     window.autoFetchMap = function (titleId, linkId) {
         const titleEl = document.getElementById(titleId);
         if (!titleEl || !titleEl.value) return;
-        const q = encodeURIComponent(titleEl.value);
+        const q      = encodeURIComponent(titleEl.value);
         const linkEl = document.getElementById(linkId);
         if (linkEl) linkEl.value = `https://map.naver.com/v5/search/${q}`;
-        if (typeof showToast === 'function') showToast('已自動填入 Naver Map 連結', 'info');
+        showToast('已自動填入 Naver Map 連結', 'info');
     };
 
     window.openMoreShortcut = function (type) {
@@ -121,7 +204,7 @@
         if (actions[type]) actions[type]();
     };
 
-    // ── 5. 使用者身分與記帳 CRUD ──────────────────────────────────────────
+    // ── Profile ───────────────────────────────────────────────────────────
     window.saveProfiles = function () {
         const fields = {
             editU1Avatar: (v) => { window.u1.avatar = v || '👩'; },
@@ -135,17 +218,18 @@
         });
         const modal = document.getElementById('profileModal');
         if (modal) modal.style.display = 'none';
-        if (typeof showToast === 'function') showToast('✅ 頭像與名稱已儲存', 'success');
-        if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
+        showToast('✅ 頭像與名稱已儲存', 'success');
+        triggerContextUpdate();
     };
 
     window.updateOwner = function () {
         const sel = document.getElementById('deviceOwner');
         if (!sel) return;
         window.deviceOwner = sel.value;
-        if (window.StorageEngine) StorageEngine.set('busan_v36_owner', sel.value);
+        StorageEngine.set('busan_v36_owner', sel.value);
     };
 
+    // ── Bill CRUD (public+private) — belongs here because it bridges Firebase + localStorage ──
     window.togglePayerSelect = function () {
         const typeEl  = document.getElementById('billType');
         const payerEl = document.getElementById('payer');
@@ -167,7 +251,7 @@
         if (shared)  shared.classList.toggle('active',  type === '公費');
         if (priv)    priv.classList.toggle('active',    type === '私帳');
         if (typeof renderBills === 'function') renderBills();
-        if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
+        triggerContextUpdate();
     };
 
     window.calcQuickExchange = function () {
@@ -181,7 +265,8 @@
         const twd = Math.round(krw * window.liveKrwToTwd);
         if (twdEl) twdEl.innerText = `$${twd.toLocaleString()}`;
         const taxRefund = krw >= 30000 ? Math.round(krw * 0.1) : 0;
-        if (taxEl) taxEl.innerHTML = `<i class="fa-solid fa-money-bill-wave"></i> 預估可退稅：₩${taxRefund.toLocaleString()}`;
+        if (taxEl) taxEl.innerHTML =
+            `<i class="fa-solid fa-money-bill-wave"></i> 預估可退稅：₩${taxRefund.toLocaleString()}`;
         resultEl.style.display = 'block';
     };
 
@@ -192,7 +277,7 @@
         if (!krwEl || !krwEl.value) return;
         if (amtEl) amtEl.value = krwEl.value;
         if (curEl) curEl.value = 'KRW';
-        if (typeof showToast === 'function') showToast('已填入金額，請輸入項目名稱後儲存', 'info');
+        showToast('已填入金額，請輸入項目名稱後儲存', 'info');
     };
 
     window.addBill = async function () {
@@ -213,15 +298,17 @@
         const receipt  = receiptEl?.value || '';
 
         if (!name || isNaN(amt) || amt <= 0) {
-            if (typeof showToast === 'function') showToast('請填入項目名稱與金額', 'warning');
+            showToast('請填入項目名稱與金額', 'warning');
             return;
         }
 
-        const bill = { name, amt, currency, type, payer, method, receipt, day: getV37SelectedDate(), ts: Date.now() };
+        // Schema: use field "name" consistently (BudgetEngine reads b.name || b.item)
+        const bill = { name, amt, currency, type, payer, method, receipt,
+                       day: getV37SelectedDate(), ts: Date.now() };
 
-        if (type === '公費' && window.NetworkEngine) {
+        if (type === '公費') {
             await NetworkEngine.firebasePush(DB_BILLS, bill);
-        } else if (window.StorageEngine) {
+        } else {
             const pb = StorageEngine.get('busan_v36_p_bills', []).data;
             pb.push({ ...bill, id: String(Date.now()) });
             StorageEngine.set('busan_v36_p_bills', pb);
@@ -231,110 +318,159 @@
         if (nameEl)    nameEl.value    = '';
         if (amtEl)     amtEl.value     = '';
         if (receiptEl) receiptEl.value = '';
-        if (typeof showToast === 'function') showToast('✅ 已記帳', 'success');
-        if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
+        showToast('✅ 已記帳', 'success');
+        triggerContextUpdate();
     };
 
     window.deleteSharedBill = async function (key) {
         if (!confirm('確認刪除此筆公費記帳？')) return;
-        if (window.NetworkEngine) await NetworkEngine.firebaseRemove(`${DB_BILLS}/${key}`);
+        await NetworkEngine.firebaseRemove(`${DB_BILLS}/${key}`);
     };
 
     window.deletePrivateBill = function (id) {
         if (!confirm('確認刪除此筆私帳？')) return;
         window.privateBills = window.privateBills.filter(b => b.id !== id);
-        if (window.StorageEngine) StorageEngine.set('busan_v36_p_bills', window.privateBills);
+        StorageEngine.set('busan_v36_p_bills', window.privateBills);
         if (typeof renderBills === 'function') renderBills();
-        if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
+        triggerContextUpdate();
     };
 
-    // ── 6. Firebase 資料庫監聽器 ──────────────────────────────────────────
+    // ── Firebase Listeners (centralised — all data flows into global arrays) ──
     function initFirebaseListeners() {
-        if (!window.NetworkEngine || !NetworkEngine._db) return;
+        try {
+            if (!window.NetworkEngine || !NetworkEngine._db) {
+                console.warn('[App] NetworkEngine not ready — Firebase listeners skipped');
+                return;
+            }
 
-        NetworkEngine.firebaseOn(DB_HOTEL, snap => {
-            window.hotelData = snap.exists() ? snap.val() : {};
-            if (typeof renderTickets_LogicOnly === 'function') renderTickets_LogicOnly();
-        });
+            NetworkEngine.firebaseOn(DB_HOTEL, snap => {
+                try {
+                    window.hotelData = snap.exists() ? snap.val() : {};
+                    if (typeof renderTickets_LogicOnly === 'function') renderTickets_LogicOnly();
+                } catch (e) { console.error('[FirebaseOn DB_HOTEL]', e); }
+            });
 
-        NetworkEngine.firebaseOn(DB_BILLS, snap => {
-            window.sharedBills = [];
-            snap.forEach(ch => window.sharedBills.push({ ...ch.val(), key: ch.key }));
-            if (typeof renderBills === 'function') renderBills();
-            if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
-        });
+            NetworkEngine.firebaseOn(DB_BILLS, snap => {
+                try {
+                    window.sharedBills = [];
+                    snap.forEach(ch => window.sharedBills.push({ ...ch.val(), key: ch.key }));
+                    if (typeof renderBills === 'function') renderBills();
+                    if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
+                } catch (e) { console.error('[FirebaseOn DB_BILLS]', e); }
+            });
 
-        NetworkEngine.firebaseOn(DB_SHOP, snap => {
-            window.shopList = [];
-            snap.forEach(ch => window.shopList.push({ ...ch.val(), key: ch.key }));
-            if (typeof renderShop === 'function') renderShop();
-        });
+            NetworkEngine.firebaseOn(DB_SHOP, snap => {
+                try {
+                    window.shopList = [];
+                    snap.forEach(ch => window.shopList.push({ ...ch.val(), key: ch.key }));
+                    if (typeof renderShop === 'function') renderShop();
+                } catch (e) { console.error('[FirebaseOn DB_SHOP]', e); }
+            });
 
-        NetworkEngine.firebaseOn(DB_GUIDE, snap => {
-            window.guideData = [];
-            snap.forEach(ch => window.guideData.push({ ...ch.val(), key: ch.key }));
-            if (typeof renderGuideContent === 'function') renderGuideContent();
-        });
+            NetworkEngine.firebaseOn(DB_GUIDE, snap => {
+                try {
+                    window.guideData = [];
+                    snap.forEach(ch => window.guideData.push({ ...ch.val(), key: ch.key }));
+                    if (typeof renderGuideContent === 'function') renderGuideContent();
+                } catch (e) { console.error('[FirebaseOn DB_GUIDE]', e); }
+            });
 
-        NetworkEngine.firebaseOn(DB_PHOTOS, snap => {
-            window.photoList = [];
-            snap.forEach(ch => window.photoList.push({ ...ch.val(), key: ch.key }));
-            if (typeof renderMemoryAlbum === 'function') renderMemoryAlbum();
-        });
+            NetworkEngine.firebaseOn(DB_PHOTOS, snap => {
+                try {
+                    window.photoList = [];
+                    snap.forEach(ch => window.photoList.push({ ...ch.val(), key: ch.key }));
+                    if (typeof renderMemoryAlbum === 'function') renderMemoryAlbum();
+                } catch (e) { console.error('[FirebaseOn DB_PHOTOS]', e); }
+            });
 
-        NetworkEngine.firebaseOn(DB_ITI, snap => {
-            window.itineraryData = [];
-            snap.forEach(ch => window.itineraryData.push({ ...ch.val(), key: ch.key }));
-            if (typeof renderItinerary === 'function') renderItinerary();
-            if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
-        });
+            NetworkEngine.firebaseOn(DB_ITI, snap => {
+                try {
+                    window.itineraryData = [];
+                    snap.forEach(ch => window.itineraryData.push({ ...ch.val(), key: ch.key }));
+                    if (typeof renderItinerary === 'function') renderItinerary();
+                    if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
+                } catch (e) { console.error('[FirebaseOn DB_ITI]', e); }
+            });
 
-        NetworkEngine.firebaseOn(DB_PREP, snap => {
-            window.prepData = [];
-            snap.forEach(ch => window.prepData.push({ ...ch.val(), key: ch.key }));
-            if (typeof renderPrepList === 'function') renderPrepList();
-            if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
-        });
+            NetworkEngine.firebaseOn(DB_PREP, snap => {
+                try {
+                    window.prepData = [];
+                    snap.forEach(ch => window.prepData.push({ ...ch.val(), key: ch.key }));
+                    if (typeof renderPrepList === 'function') renderPrepList();
+                    if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
+                } catch (e) { console.error('[FirebaseOn DB_PREP]', e); }
+            });
 
-        NetworkEngine.firebaseOn(DB_TICKETS, snap => {
-            window.ticketData = [];
-            snap.forEach(ch => window.ticketData.push({ ...ch.val(), key: ch.key }));
-            if (typeof renderTickets_LogicOnly === 'function') renderTickets_LogicOnly();
-        });
+            NetworkEngine.firebaseOn(DB_TICKETS, snap => {
+                try {
+                    window.ticketData = [];
+                    snap.forEach(ch => window.ticketData.push({ ...ch.val(), key: ch.key }));
+                    if (typeof renderTickets_LogicOnly === 'function') renderTickets_LogicOnly();
+                } catch (e) { console.error('[FirebaseOn DB_TICKETS]', e); }
+            });
 
-        NetworkEngine.firebaseOn(DB_VOICE, snap => {
-            window.voiceData = [];
-            snap.forEach(ch => window.voiceData.push({ ...ch.val(), key: ch.key }));
-            if (typeof renderVoiceList === 'function') renderVoiceList();
-        });
+            NetworkEngine.firebaseOn(DB_VOICE, snap => {
+                try {
+                    window.voiceData = [];
+                    snap.forEach(ch => window.voiceData.push({ ...ch.val(), key: ch.key }));
+                    if (typeof renderVoiceList === 'function') renderVoiceList();
+                } catch (e) { console.error('[FirebaseOn DB_VOICE]', e); }
+            });
+        } catch (err) {
+            console.error('[App] initFirebaseListeners failed:', err);
+        }
     }
 
-    // ── 7. 啟動防護網 (Bootstrap) ──────────────────────────────────────
+    // ── Offline Sync (15-second interval — runs in app.js because it owns the queue) ──
+    setInterval(() => { if (navigator.onLine) syncOfflineQueue(); }, 15000);
+
+    // ── Bootstrap ─────────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
+        // Guarantee UI visibility regardless of network or API failure
+        try {
+            if (typeof window.forceShowApp === 'function') {
+                window.forceShowApp();
+            }
+        } catch (e) {
+            console.error('[App] forceShowApp failed:', e);
+        }
+
+        // Firebase is initialised by firebase.js which loads before app.js
         try {
             initFirebaseListeners();
+        } catch (e) {
+            console.error('[App] initFirebaseListeners failed:', e);
+        }
 
+        // Exchange rate (NetworkEngine.getExchangeRate only exists in ute/ute_network.js)
+        try {
             if (window.NetworkEngine && NetworkEngine.getExchangeRate) {
                 NetworkEngine.getExchangeRate().then(res => {
                     if (res && res.data && res.data.krwToTwd) {
                         window.liveKrwToTwd = res.data.krwToTwd;
                         const el = document.getElementById('liveFxRate');
                         if (el) el.innerText = `1 KRW ≈ ${res.data.krwToTwd.toFixed(4)} TWD`;
-                        if (window.StorageEngine) StorageEngine.set('busan_v36_live_rate', res.data.krwToTwd);
+                        StorageEngine.set('busan_v36_live_rate', res.data.krwToTwd);
                     }
-                });
+                }).catch(err => console.warn('[App] getExchangeRate failed:', err));
             }
+        } catch (e) {
+            console.warn('[App] Exchange rate setup error:', e);
+        }
 
-            if (typeof togglePayerSelect === 'function') togglePayerSelect();
+        // Payer dropdown initial state
+        try {
+            togglePayerSelect();
+        } catch (e) {
+            console.warn('[App] togglePayerSelect error:', e);
+        }
 
-            if (window.triggerContextUpdateImmediate) {
-                triggerContextUpdateImmediate();
-            }
-
+        // Show home tab
+        try {
             const firstNavBtn = document.querySelector('.bottom-nav .nav-item');
             showV37Tab('home', firstNavBtn);
-        } catch (bootErr) {
-            console.error('[Boot Shield Handled Failure]:', bootErr);
+        } catch (e) {
+            console.error('[App] showV37Tab initial error:', e);
         }
     });
 
