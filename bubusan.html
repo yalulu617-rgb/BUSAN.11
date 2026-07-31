@@ -1,0 +1,195 @@
+from weasyprint import HTML
+
+html_content = """
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+    @page {
+        size: A4;
+        margin: 15mm 12mm;
+        background-color: #f7f9fa;
+    }
+    body {
+        font-family: 'PingFang TC', 'Heiti TC', 'Microsoft JhengHei', sans-serif;
+        color: #2c3e50;
+        margin: 0;
+        padding: 0;
+        line-height: 1.5;
+        font-size: 10pt;
+    }
+    * { box-sizing: border-box; }
+    .header {
+        background-color: #1a365d;
+        color: white;
+        margin: -15mm -12mm 20px -12mm;
+        padding: 25px 12mm;
+    }
+    .header h1 {
+        margin: 0;
+        font-size: 18pt;
+        font-weight: bold;
+        letter-spacing: 1px;
+    }
+    .header p {
+        margin: 5px 0 0 0;
+        font-size: 10pt;
+        color: #cbd5e1;
+    }
+    .meta-box {
+        background-color: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 12px;
+        margin-bottom: 20px;
+    }
+    .meta-grid {
+        display: table;
+        width: 100%;
+    }
+    .meta-col {
+        display: table-cell;
+        width: 33%;
+    }
+    .section-title {
+        font-size: 13pt;
+        color: #1a365d;
+        border-left: 5px solid #3182ce;
+        padding-left: 8px;
+        margin: 20px 0 10px 0;
+        font-weight: bold;
+        page-break-after: avoid;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        background: white;
+    }
+    th {
+        background-color: #2d3748;
+        color: white;
+        font-weight: bold;
+        text-align: center;
+        padding: 8px;
+        font-size: 9.5pt;
+        border: 1px solid #2d3748;
+    }
+    td {
+        padding: 8px;
+        border: 1px solid #e2e8f0;
+        font-size: 9pt;
+        vertical-align: middle;
+    }
+    .center { text-align: center; }
+    .price { font-weight: bold; color: #c53030; }
+    .recommend-box {
+        background-color: #ebf8ff;
+        border-left: 5px solid #3182ce;
+        padding: 12px;
+        border-radius: 0 6px 6px 0;
+        margin-bottom: 15px;
+    }
+    .recommend-box h3 {
+        margin: 0 0 5px 0;
+        color: #2b6cb0;
+        font-size: 11pt;
+    }
+    ul { margin: 5px 0; padding-left: 20px; }
+    li { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>台北(TPE) ↔ 釜山(PUS) 直飛機票嚴格覆核分析報告</h1>
+    <p>日期區間：2026.11.13 (五) ~ 2026.11.17 (二) 五天四夜 | 數據校正版本：V3.Final</p>
+</div>
+
+<div class="meta-box">
+    <div class="meta-grid">
+        <div class="meta-col"><strong>核心對象：</strong> 4人好友同行群組</div>
+        <div class="meta-col"><strong>驗證基準：</strong> 依據大韓官網實時截圖與各大航冬季班表</div>
+        <div class="meta-col" style="text-align:right;"><strong>分析經理：</strong> 旅遊與APP開發資深團隊</div>
+    </div>
+</div>
+
+<div class="section-title">一、 五大航空公司直飛航班與票價嚴格對比表</div>
+<table>
+    <thead>
+        <tr>
+            <th style="width: 15%;">航空公司</th>
+            <th style="width: 20%;">去程航班與精準時間<br>(11/13 週五)</th>
+            <th style="width: 20%;">回程航班與精準時間<br>(11/17 週二)</th>
+            <th style="width: 15%;">來回總價<br>(含稅/托運)</th>
+            <th style="width: 30%;">硬體與軟體服務體驗分析</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="center"><strong>星宇航空<br>(JX)</strong></td>
+            <td class="center"><strong>JX900</strong><br>08:25 - 11:45<br><span style="color:#2b6cb0;">[早去]</span></td>
+            <td class="center"><strong>JX901</strong><br>12:55 - 14:15<br><span style="color:#718096;">[午回]</span></td>
+            <td class="center class=price">NT$ 9,960 起</td>
+            <td><strong>硬體最強：</strong> A321neo新機，全機4K大螢幕、支援自備藍牙耳機連線。<br><strong>餐飲：</strong> 招牌胡同燒肉飯、經濟艙免費特調調酒、免費文字Wi-Fi。</td>
+        </tr>
+        <tr>
+            <td class="center"><strong>中華航空<br>(CI)</strong></td>
+            <td class="center"><strong>CI188</strong><br>07:55 - 11:15<br><span style="color:#2b6cb0;">[早去]</span></td>
+            <td class="center"><strong>CI189</strong><br>12:15 - 13:40<br><span style="color:#718096;">[午回]</span></td>
+            <td class="center class=price">NT$ 9,650 起</td>
+            <td><strong>新機配置：</strong> A321neo全新客機，獨立高畫質觸控螢幕，座距達31吋，體驗極佳。<br><strong>餐飲：</strong> 華航經典熱食與在地知名品牌聯名點心，服務精緻穩定。</td>
+        </tr>
+        <tr>
+            <td class="center"><strong>大韓航空<br>(KE)</strong></td>
+            <td class="center"><strong>KE2086</strong><br>17:30 - 20:45<br><span style="color:#e53e3e;">[晚去]</span></td>
+            <td class="center"><strong>KE2085</strong><br>14:50 - 16:30<br><span style="color:#2b6cb0;">[午/下午回]</span><br><small style="color:#3182ce;">★依官網截圖校正</small></td>
+            <td class="center class=price">NT$ 9,330 起</td>
+            <td><strong>常規配置：</strong> B737/A321neo混飛，全機配置個人影音娛樂系統。<br><strong>餐飲：</strong> 道地正宗韓式機上熱食（韓式拌飯/牛肉飯），提供韓國原產啤酒與堅果。</td>
+        </tr>
+        <tr>
+            <td class="center"><strong>長榮航空<br>(BR)</strong></td>
+            <td class="center"><strong>BR164</strong><br>14:40 - 18:00<br><span style="color:#718096;">[午去]</span></td>
+            <td class="center"><strong>BR163</strong><br>19:10 - 20:35<br><span style="color:#2f855a;">[晚回]</span></td>
+            <td class="center class=price">NT$ 10,460 起</td>
+            <td><strong>硬體較舊：</strong> A321-200窄體機，<strong>無個人螢幕</strong>（僅有頂部公共電視）。<br><strong>餐飲：</strong> 台式經典機上熱食，外站地勤效率極高，班機準點率極為強悍。</td>
+        </tr>
+        <tr>
+            <td class="center"><strong>釜山航空<br>(BX)</strong><br><small>※冬季預估</small></td>
+            <td class="center"><strong>BX794</strong><br>13:20 - 16:30<br><span style="color:#718096;">[午去]</span></td>
+            <td class="center"><strong>BX793</strong><br>11:05 - 12:40<br><span style="color:#e53e3e;">[早回]</span></td>
+            <td class="center class=price">NT$ 8,500 左右</td>
+            <td><strong>廉航定位：</strong> A321系列無個人螢幕，基本座距較窄（約29吋）。<br><strong>服務：</strong> 票價不含機上餐食與托運行李，冬季班表開賣時可能會有清艙促銷。</td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="section-title">二、 基於精準數據的「最聰明買法與策略分析」</div>
+
+<div class="recommend-box">
+    <h3>💡 方案 A：時間價值最大化（單程跨航空混搭買法）—— 去程【華航/星宇】 + 回程【長榮】</h3>
+    <ul>
+        <li><strong>去程選華航(07:55)或星宇(08:25)：</strong> 中午11點多就落地釜山，第一天等同於完整的一天，直接多賺一個下午。</li>
+        <li><strong>回程選長榮(19:10)：</strong> 這是當天最晚回台北的班機，你們可以在第五天（11/17）玩到下午四點半再前往機場，完美的五天四夜。</li>
+        <li><strong>費用精算：</strong> 兩個單程拆開購買，總票價約在 <strong>NT$ 11,500 ~ 11,800</strong> 之間。雖然比單買一家來回貴約兩千，但賺到了整整「早去晚回」的頂級時間帶。</li>
+    </ul>
+</div>
+
+<div class="recommend-box" style="background-color: #f0fff4; border-left-color: #38a169;">
+    <h3>💡 方案 B：萬元內高質感、免折騰（來回買同公司）—— 首選【中華航空】或【星宇航空】</h3>
+    <ul>
+        <li><strong>校正後大韓航空的痛點：</strong> 雖然大韓來回最便宜（NT$ 9,330），但去程17:30出發、到釜山20:45，第一天直接報銷；且回程14:50起飛，中午12點半就得前往機場。</li>
+        <li><strong>為什麼首選華航/星宇來回：</strong> 兩家皆為 <strong>NT$ 9,600 ~ 9,960</strong>。時間帶同為「早去午回」。第一天早到賺飽，最後一天吃完美味的早午餐後前往機場。最重要的是，兩家在此航線皆配置<strong>全新 A321neo</strong>，硬體與個人大螢幕體驗完勝大韓與長榮！</li>
+    </ul>
+</div>
+
+</body>
+</html>
+"""
+
+with open("flight_analysis_report_2026.html", "w", encoding="utf-8") as f:
+    f.write(html_content)
+
+HTML("flight_analysis_report_2026.html").write_pdf("flight_analysis_report_2026.pdf")
+print("PDF file successfully written to disk.")

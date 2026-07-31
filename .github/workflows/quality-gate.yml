@@ -162,10 +162,10 @@ jobs:
           retention-days: 14
 
   # ─────────────────────────────────────────────────────
-  # JOB 3: Accessibility & Responsive Checks
+  # JOB 3: Accessibility, UX & Travel Data Checks
   # ─────────────────────────────────────────────────────
-  accessibility-check:
-    name: ♿ Accessibility & Responsive
+  accessibility-ux-travel:
+    name: ♿ UX, Travel Data & Accessibility
     needs: static-validation
     runs-on: ubuntu-latest
     steps:
@@ -190,14 +190,16 @@ jobs:
           serve -s . -l 8080 &
           sleep 3
 
-      - name: Run Accessibility tests
-        run: npx playwright test --project=chromium tests/accessibility.spec.js --reporter=list
+      - name: Run Accessibility, UX & Travel tests
+        run: npx playwright test tests/accessibility.spec.js tests/ux.spec.js tests/travel.spec.js tests/critical.spec.js --reporter=list
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
 
-      - name: Upload accessibility report
+      - name: Upload reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: accessibility-report
+          name: accessibility-ux-report
           path: playwright-report/
           retention-days: 14
 
@@ -206,7 +208,7 @@ jobs:
   # ─────────────────────────────────────────────────────
   deploy:
     name: 🚀 Deploy to GitHub Pages
-    needs: [static-validation, e2e-tests, accessibility-check]
+    needs: [static-validation, e2e-tests, accessibility-ux-travel]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     environment:
@@ -229,6 +231,14 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
+      - name: Post-deployment Live Site Verification
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npx playwright test tests/critical.spec.js --project=chromium
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: https://yalulu617-rgb.github.io/BUSAN.11/
+
       - name: Deployment summary
         run: |
           echo "## 🚀 Deployment Successful" >> $GITHUB_STEP_SUMMARY
@@ -238,7 +248,6 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### ✅ Quality Gate Passed" >> $GITHUB_STEP_SUMMARY
           echo "- Static Validation: PASS" >> $GITHUB_STEP_SUMMARY
-          echo "- E2E Tests (Chromium): PASS" >> $GITHUB_STEP_SUMMARY
-          echo "- E2E Tests (Firefox): PASS" >> $GITHUB_STEP_SUMMARY
-          echo "- E2E Tests (WebKit): PASS" >> $GITHUB_STEP_SUMMARY
-          echo "- Accessibility: PASS" >> $GITHUB_STEP_SUMMARY
+          echo "- E2E Tests (Chromium, Firefox, WebKit): PASS" >> $GITHUB_STEP_SUMMARY
+          echo "- Accessibility, UX & Travel Safety: PASS" >> $GITHUB_STEP_SUMMARY
+          echo "- Live Production Site Verification: PASS" >> $GITHUB_STEP_SUMMARY
