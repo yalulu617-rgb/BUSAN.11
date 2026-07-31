@@ -286,6 +286,7 @@ window.switchWalletTab = function(subtab) {
     if (subtab === 'hotel') {
         if (typeof renderSmartNearby === 'function') renderSmartNearby();
     } else if (subtab === 'memory') {
+        if (typeof renderMemoryAlbum === 'function') renderMemoryAlbum();
         triggerContextUpdate();
     }
 };

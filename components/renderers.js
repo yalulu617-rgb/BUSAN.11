@@ -38,19 +38,47 @@ window.addShopItem = async function () {
     const text = textEl?.value?.trim();
     if (!text) { showToast('請填入商品名稱', 'warning'); return; }
 
+    const newItem = {
+        key: 'local_' + Date.now(),
+        text,
+        where    : whereEl?.value?.trim()  || '',
+        category : categoryEl?.value       || '其他',
+        img      : imgEl?.value            || '',
+        checked  : false,
+        owner    : window.deviceOwner,
+        ts       : Date.now()
+    };
+
+    // Optimistically update local array and render
+    window.shopList = window.shopList || [];
+    window.shopList.push(newItem);
+    StorageEngine.set('busan_v36_shopList', window.shopList);
+    if (typeof renderShop === 'function') renderShop();
+
     try {
         await NetworkEngine.firebasePush(DB_SHOP, {
-            text,
-            where    : whereEl?.value?.trim()  || '',
-            category : categoryEl?.value       || '其他',
-            img      : imgEl?.value            || '',
-            checked  : false,
-            owner    : window.deviceOwner,
-            ts       : Date.now()
+            text: newItem.text,
+            where: newItem.where,
+            category: newItem.category,
+            img: newItem.img,
+            checked: newItem.checked,
+            owner: newItem.owner,
+            ts: newItem.ts
         });
     } catch (e) {
         console.error('[Renderers] addShopItem failed:', e);
-        showToast('新增購物項目失敗', 'error');
+        showToast('已保存至本機，連線恢復時將同步至雲端', 'info');
+        if (typeof addToOfflineQueue === 'function') {
+            addToOfflineQueue('PUSH', DB_SHOP, {
+                text: newItem.text,
+                where: newItem.where,
+                category: newItem.category,
+                img: newItem.img,
+                checked: newItem.checked,
+                owner: newItem.owner,
+                ts: newItem.ts
+            });
+        }
         return;
     }
     if (textEl)  textEl.value  = '';
@@ -60,20 +88,40 @@ window.addShopItem = async function () {
 };
 
 window.toggleShop = async function (key, currentChecked) {
+    // Optimistic local update
+    window.shopList = (window.shopList || []).map(s => {
+        if (s.key === key) s.checked = !currentChecked;
+        return s;
+    });
+    StorageEngine.set('busan_v36_shopList', window.shopList);
+    if (typeof renderShop === 'function') renderShop();
+
     try {
         await NetworkEngine.firebaseUpdate(`${DB_SHOP}/${key}`, { checked: !currentChecked });
     } catch (e) {
         console.error('[Renderers] toggleShop failed:', e);
+        if (typeof addToOfflineQueue === 'function') {
+            addToOfflineQueue('UPDATE', `${DB_SHOP}/${key}`, { checked: !currentChecked });
+        }
     }
 };
 
 window.deleteShop = async function (key) {
     if (!confirm('確認刪除此購物項目？')) return;
+
+    // Optimistic local update
+    window.shopList = (window.shopList || []).filter(s => s.key !== key);
+    StorageEngine.set('busan_v36_shopList', window.shopList);
+    if (typeof renderShop === 'function') renderShop();
+
     try {
         await NetworkEngine.firebaseRemove(`${DB_SHOP}/${key}`);
     } catch (e) {
         console.error('[Renderers] deleteShop failed:', e);
         showToast('刪除購物項目失敗', 'error');
+        if (typeof addToOfflineQueue === 'function') {
+            addToOfflineQueue('REMOVE', `${DB_SHOP}/${key}`);
+        }
     }
 };
 
@@ -150,21 +198,41 @@ window.deleteVoice = async function (key) {
 
 // ── Prep CRUD (lives here — tightly coupled to renderPrepList) ────────────
 window.togglePrep = async function (key, currentDone) {
+    // Optimistic local update
+    window.prepData = (window.prepData || []).map(p => {
+        if (p.key === key) p.done = !currentDone;
+        return p;
+    });
+    StorageEngine.set('busan_v36_prepData', window.prepData);
+    if (typeof renderPrepList === 'function') renderPrepList();
+
     try {
         await NetworkEngine.firebaseUpdate(`${DB_PREP}/${key}`, { done: !currentDone });
     } catch (e) {
         console.error('[Renderers] togglePrep failed:', e);
+        if (typeof addToOfflineQueue === 'function') {
+            addToOfflineQueue('UPDATE', `${DB_PREP}/${key}`, { done: !currentDone });
+        }
     }
     triggerContextUpdate();
 };
 
 window.deletePrep = async function (key) {
     if (!confirm('確認刪除此準備事項？')) return;
+
+    // Optimistic local update
+    window.prepData = (window.prepData || []).filter(p => p.key !== key);
+    StorageEngine.set('busan_v36_prepData', window.prepData);
+    if (typeof renderPrepList === 'function') renderPrepList();
+
     try {
         await NetworkEngine.firebaseRemove(`${DB_PREP}/${key}`);
     } catch (e) {
         console.error('[Renderers] deletePrep failed:', e);
         showToast('刪除準備事項失敗', 'error');
+        if (typeof addToOfflineQueue === 'function') {
+            addToOfflineQueue('REMOVE', `${DB_PREP}/${key}`);
+        }
     }
 };
 
@@ -359,26 +427,32 @@ window.renderAfterWidgets = function(ctx, smartAlert) {
     return { heroHtml, widget2Html, widget3Html };
 };
 
+window.emergencyRescue = function() {
+    const ctx = typeof getTripContext === 'function' ? getTripContext() : {};
+    const city = (ctx && ctx.currentCity) ? ctx.currentCity : { nameTW: "釜山", emergency: { hospital: "釜山大學醫院 (+82-51-240-5114)", police: "釜山鎮警察署 (+82-51-890-9224)" } };
+    alert(`🚨 【緊急救援與聯絡資訊】\n\n📍 目前城市：${city.nameTW}\n🏥 急救醫院：${city.emergency.hospital}\n🚓 派出聯絡：${city.emergency.police}\n📞 旅遊諮詢：1330\n🚨 報警：112\n🚑 急救/火災：119`);
+};
+
 window.renderQuickActions = function() {
     return `
         <div class="v38-widget-card card fade-scale-in" style="grid-column: span 2;">
-            <div class="v38-widget-title"><i class="fa-solid fa-star"></i> 快速功能</div>
+            <div class="v38-widget-title"><i class="fa-solid fa-star"></i> 快速入口</div>
             <div class="v38-quick-actions">
                 <button class="v38-action-btn" onclick="showV37Tab('itinerary')">
-                    <i class="fa-solid fa-calendar-days" style="color: #007aff;"></i>
-                    <span>行程</span>
+                    <i class="fa-solid fa-calendar-day" style="color: #007aff;"></i>
+                    <span>今日行程</span>
                 </button>
-                <button class="v38-action-btn" onclick="showV37Tab('wallet')">
-                    <i class="fa-solid fa-wallet" style="color: #ff9500;"></i>
-                    <span>Wallet</span>
+                <button class="v38-action-btn" onclick="showV37Tab('home'); toggleCityDetailPanel();">
+                    <i class="fa-solid fa-cloud-sun-rain" style="color: #ff9500;"></i>
+                    <span>天氣與匯率</span>
                 </button>
-                <button class="v38-action-btn" onclick="showV37Tab('split')">
-                    <i class="fa-solid fa-calculator" style="color: #4cd964;"></i>
-                    <span>記帳</span>
+                <button class="v38-action-btn" onclick="showV37Tab('split'); setTimeout(() => document.getElementById('billName')?.focus(), 200);">
+                    <i class="fa-solid fa-comment-dollar" style="color: #2ecc71;"></i>
+                    <span>快速記帳</span>
                 </button>
-                <button class="v38-action-btn" onclick="showV37Tab('shop')">
-                    <i class="fa-solid fa-cart-shopping" style="color: #ff2d55;"></i>
-                    <span>購物</span>
+                <button class="v38-action-btn" onclick="if (typeof emergencyRescue === 'function') emergencyRescue();">
+                    <i class="fa-solid fa-life-ring" style="color: #ff3b30;"></i>
+                    <span>地圖救援</span>
                 </button>
             </div>
         </div>
@@ -497,7 +571,16 @@ window.renderShop = function() {
     if (!list) return;
     list.innerHTML = '';
     
-    let filtered = (window.shopList || []).filter(s => s.owner === (window.currentShopOwner || 'user1'));
+    let displayList = window.shopList || [];
+    if (displayList.length === 0) {
+        const localData = StorageEngine.get('busan_v36_shopList');
+        if (localData && localData.success && Array.isArray(localData.data) && localData.data.length > 0) {
+            displayList = localData.data;
+            window.shopList = displayList;
+        }
+    }
+    
+    let filtered = displayList.filter(s => s.owner === (window.currentShopOwner || 'user1'));
     if (filtered.length === 0) {
         list.innerHTML = '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:20px 0;">無購物項目，請於上方欄位新增！</p>';
         return;
@@ -725,7 +808,7 @@ window.renderVoiceList = function() {
     
     (window.voiceData || []).forEach(v => {
         list.innerHTML += `
-            <div class="voice-card card" onclick="openCardLightbox('${v.title}', '${v.korean}', '${v.roman}', '${v.audio || ''}')">
+            <div class="voice-card card" onclick="event.stopPropagation(); openCardLightbox('${v.title}', '${v.korean}', '${v.roman}', '${v.audio || ''}')">
                 <button class="del-voice" onclick="event.stopPropagation(); deleteVoice('${v.key}')"><i class="fa-solid fa-xmark"></i></button>
                 <i class="fa-solid fa-ear-listen"></i>
                 <span>${v.title}</span>
@@ -737,27 +820,41 @@ window.renderVoiceList = function() {
 
 window.renderPrepList = function() {
     const list = document.getElementById('prepListUI');
-    if (!list) return;
-    list.innerHTML = '';
+    const listTrip = document.getElementById('prepListUI_trip');
+    if (!list && !listTrip) return;
     
-    if ((window.prepData || []).length === 0) {
-        list.innerHTML = '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:15px 0;">尚無準備清單項目</p>';
-        return;
+    let displayList = window.prepData || [];
+    if (displayList.length === 0) {
+        const localData = StorageEngine.get('busan_v36_prepData');
+        if (localData && localData.success && Array.isArray(localData.data) && localData.data.length > 0) {
+            displayList = localData.data;
+            window.prepData = displayList;
+        }
     }
     
-    (window.prepData || []).forEach(p => {
-        const isDone = p.done ? 'done' : '';
-        const linkIcon = p.link ? `<a href="${p.link}" target="_blank" class="prep-link" onclick="event.stopPropagation()"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : '';
-        
-        list.innerHTML += `
-            <div class="prep-item ${isDone}" onclick="togglePrep('${p.key}', ${p.done})">
-                <div class="prep-check"><i class="fa-solid fa-check"></i></div>
-                <div class="prep-text">${p.text}</div>
-                ${linkIcon}
-                <button class="btn-delete" onclick="event.stopPropagation(); deletePrep('${p.key}')" style="padding: 4px 8px;"><i class="fa-solid fa-trash"></i></button>
-            </div>
-        `;
-    });
+    const renderHtml = (items) => {
+        if (items.length === 0) {
+            return '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:15px 0;">尚無準備清單項目</p>';
+        }
+        let html = '';
+        items.forEach(p => {
+            const isDone = p.done ? 'done' : '';
+            const linkIcon = p.link ? `<a href="${p.link}" target="_blank" class="prep-link" onclick="event.stopPropagation()"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : '';
+            html += `
+                <div class="prep-item ${isDone}" onclick="togglePrep('${p.key}', ${p.done})">
+                    <div class="prep-check"><i class="fa-solid fa-check"></i></div>
+                    <div class="prep-text">${p.text}</div>
+                    ${linkIcon}
+                    <button class="btn-delete" onclick="event.stopPropagation(); deletePrep('${p.key}')" style="padding: 4px 8px;"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            `;
+        });
+        return html;
+    };
+
+    const finalHtml = renderHtml(displayList);
+    if (list) list.innerHTML = finalHtml;
+    if (listTrip) listTrip.innerHTML = finalHtml;
 };
 
 window.setShopTabMode = function(mode) {

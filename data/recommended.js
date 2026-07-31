@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────
-// V41 Ultimate Edition: Recommended Guides & Radars Static Databases
+// V42 Production: Recommended Guides & Radars Static Databases
 // ─────────────────────────────────────────────────────────────────────────
 
 window.RECOMMENDED_SHOPPING = [
@@ -34,7 +34,7 @@ window.SMART_NEARBY_DATABASE = {
     { type: '🍜 美食', name: '味讚王鹽烤肉 西面店', dist: 950, rate: 4.8, status: '11:30 - 23:00', naver: 'https://map.naver.com/p/entry/place/11571731', kakao: 'https://map.kakao.com/?id=7937320', google: 'https://maps.app.goo.gl/chan_seom' },
     { type: '☕ 咖啡', name: 'Compose Coffee 凡內谷店', dist: 150, rate: 4.3, status: '08:00 - 21:00', naver: 'https://map.naver.com/p/entry/place/13479633', kakao: 'https://map.kakao.com/?id=21160752', google: 'https://maps.app.goo.gl/compose_beom' },
     { type: '💊 藥局', name: '凡內谷中央藥局', dist: 140, rate: 4.0, status: '09:00 - 21:00', naver: 'https://map.naver.com/p/entry/place/13491807', kakao: 'https://map.kakao.com/?id=8116260', google: 'https://maps.app.goo.gl/ph_beom' },
-    { type: '🏧 ATM', name: '釜山銀行 ATM (地鐵站內)', dist: 110, rate: 4.0, status: '24小時營業', naver: 'https://map.naver.com/p/entry/place/11571617', kakao: 'https://map.kakao.com/?id=7874945', google: 'https://maps.app.goo.gl/atm_beom' },
+    { type: '🏪 ATM', name: '釜山銀行 ATM (地鐵站內)', dist: 110, rate: 4.0, status: '24小時營業', naver: 'https://map.naver.com/p/entry/place/11571617', kakao: 'https://map.kakao.com/?id=7874945', google: 'https://maps.app.goo.gl/atm_beom' },
     { type: '🏥 醫院', name: '釜山大學醫院 (急診中心)', dist: 3500, rate: 4.3, status: '24小時急診', naver: 'https://map.naver.com/p/entry/place/13491823', kakao: 'https://map.kakao.com/?id=7937367', google: 'https://maps.app.goo.gl/hosp_univ' }
   ],
   Gyeongju: [
@@ -47,7 +47,47 @@ window.SMART_NEARBY_DATABASE = {
     { type: '🍜 美食', name: 'Solsot 釜飯 慶州店', dist: 180, rate: 4.7, status: '11:30 - 21:00', naver: 'https://map.naver.com/p/entry/place/11571731', kakao: 'https://map.kakao.com/?id=7937320', google: 'https://maps.app.goo.gl/rice_gj' },
     { type: '☕ 咖啡', name: '星巴克 慶州大陵苑店', dist: 350, rate: 4.5, status: '08:00 - 22:00', naver: 'https://map.naver.com/p/entry/place/13479633', kakao: 'https://map.kakao.com/?id=21160752', google: 'https://maps.app.goo.gl/star_gj' },
     { type: '💊 藥局', name: '慶州中央藥局', dist: 650, rate: 4.1, status: '09:00 - 22:00', naver: 'https://map.naver.com/p/entry/place/13491807', kakao: 'https://map.kakao.com/?id=8116260', google: 'https://maps.app.goo.gl/ph_gj' },
-    { type: '🏧 ATM', name: '新韓銀行 ATM (大陵苑旁)', dist: 220, rate: 4.0, status: '24小時營業', naver: 'https://map.naver.com/p/entry/place/11571617', kakao: 'https://map.kakao.com/?id=7874945', google: 'https://maps.app.goo.gl/atm_gj' },
+    { type: '🏪 ATM', name: '新韓銀行 ATM (大陵苑旁)', dist: 220, rate: 4.0, status: '24小時營業', naver: 'https://map.naver.com/p/entry/place/11571617', kakao: 'https://map.kakao.com/?id=7874945', google: 'https://maps.app.goo.gl/atm_gj' },
     { type: '🏥 醫院', name: '慶州東國大學醫院 (急診中心)', dist: 2800, rate: 4.4, status: '24小時急診', naver: 'https://map.naver.com/p/entry/place/13491823', kakao: 'https://map.kakao.com/?id=7937367', google: 'https://maps.app.goo.gl/hosp_gj' }
   ]
 };
+
+window.RECOMMENDED_ITINERARY = [
+  // Day 1 (11/13) - 西面
+  { key: "rec_d1_1", day: "11/13", time: "08:25", desc: "✈️ 【出發】星宇航空 JX900 啟航赴釜山", tr: "✈️ 飛機", map: "" },
+  { key: "rec_d1_2", day: "11/13", time: "11:45", desc: "🛬 抵達釜山金海國際機場", tr: "🚇 輕軌+地鐵", map: "https://map.naver.com/p/entry/place/11585098" },
+  { key: "rec_d1_3", day: "11/13", time: "13:00", desc: "🏨 城市律動飯店 (Urban Groove Hotel) 寄放行李", tr: "🚶 步行", map: "https://map.naver.com/p/entry/place/13479629" },
+  { key: "rec_d1_4", day: "11/13", time: "13:30", desc: "🍜 【午餐】西面老奶奶換錢所 + 凡內谷祖傳豬肉湯飯", tr: "🚶 步行", map: "https://map.naver.com/p/entry/place/13491414" },
+  { key: "rec_d1_5", day: "11/13", time: "15:00", desc: "🛍️ 【西面商圈】西面地下街 + Olive Young 血拚", tr: "🚶 步行", map: "https://map.naver.com/p/entry/place/1057416399" },
+  { key: "rec_d1_6", day: "11/13", time: "18:30", desc: "🥩 【晚餐】味讚王鹽烤肉 (西面店) 專人桌邊代烤三層肉", tr: "🚶 步行", map: "https://map.naver.com/p/entry/place/11571731" },
+
+  // Day 2 (11/14) - 膠囊/廣安里
+  { key: "rec_d2_1", day: "11/14", time: "09:30", desc: "🥞 【早餐】西面黑糖餅 / 輕食咖啡", tr: "🚇 地鐵 2 號線", map: "" },
+  { key: "rec_d2_2", day: "11/14", time: "11:00", desc: "🚡 【海雲台藍線公園】尾浦搭乘七彩天空膠囊列車", tr: "🚶 步行", map: "https://map.naver.com/p/entry/place/1335043818" },
+  { key: "rec_d2_3", day: "11/14", time: "13:00", desc: "🦀 【午餐】海雲台名店海木鰻魚飯 / 鱈魚湯", tr: "🚶 步行", map: "" },
+  { key: "rec_d2_4", day: "11/14", time: "15:30", desc: "🏖️ 海雲台沙灘漫步與冬柏島散策", tr: "🚶 步行", map: "" },
+  { key: "rec_d2_5", day: "11/14", time: "18:00", desc: "🌉 【廣安里】欣賞廣安大橋浪漫夕陽夜景", tr: "🚕 計程車", map: "https://map.naver.com/p/entry/place/13491414" },
+  { key: "rec_d2_6", day: "11/14", time: "20:00", desc: "🎇 廣安里 M 無人機秀 (週六限定璀璨燈光秀)", tr: "🚶 步行", map: "" },
+
+  // Day 3 (11/15) - 慶州韓服
+  { key: "rec_d3_1", day: "11/15", time: "08:30", desc: "🚌 搭乘巴士/火車前往千年古都慶州", tr: "🚌 高速巴士", map: "" },
+  { key: "rec_d3_2", day: "11/15", time: "10:30", desc: "🎎 【皇理團路】韓屋體驗與精緻韓服換裝", tr: "🚶 步行", map: "https://map.naver.com/p/entry/place/1057416399" },
+  { key: "rec_d3_3", day: "11/15", time: "12:30", desc: "🍚 【午餐】Solsot 釜飯 (慶州店) 韓屋裡品嚐美味釜飯", tr: "🚶 步行", map: "https://map.naver.com/p/entry/place/11571731" },
+  { key: "rec_d3_4", day: "11/15", time: "14:30", desc: "🌲 【大陵苑】參觀巨大歷史古墓群與天馬塚", tr: "🚶 步行", map: "https://map.naver.com/p/entry/place/13491807" },
+  { key: "rec_d3_5", day: "11/15", time: "16:00", desc: "🏛️ 瞻星台天文歷史地標打卡", tr: "🚶 步行", map: "https://map.naver.com/p/entry/place/11571617" },
+  { key: "rec_d3_6", day: "11/15", time: "18:00", desc: "🍁 【東宮與月池】欣賞月池絕美夜景與夜楓倒影", tr: "🚶 步行", map: "https://map.naver.com/p/entry/place/13491823" },
+
+  // Day 4 (11/16) - 海濱漫步
+  { key: "rec_d4_1", day: "11/16", time: "09:30", desc: "🚶 前往影島松島天空步道", tr: "🚇 地鐵+公車", map: "https://map.naver.com/p/entry/place/36735520" },
+  { key: "rec_d4_2", day: "11/16", time: "11:00", desc: "🌊 松島海上纜車 (水晶車廂俯瞰無敵海景)", tr: "🚡 纜車", map: "" },
+  { key: "rec_d4_3", day: "11/16", time: "12:30", desc: "🍜 【午餐】札嘎其海鮮市場品嚐海鮮百匯 / 西面美食", tr: "🚇 地鐵", map: "" },
+  { key: "rec_d4_4", day: "11/16", time: "14:00", desc: "🎨 【白淺灘文化村】懸崖彩繪藝術村散策", tr: "🚌 公車", map: "" },
+  { key: "rec_d4_5", day: "11/16", time: "15:00", desc: "🦶 【足浴體驗】足浴 Cafe View 2號店 (족욕카페뷰 2호점)", tr: "🚶 步行", map: "" },
+  { key: "rec_d4_6", day: "11/16", time: "16:30", desc: "☕ 【影島咖啡】P.ARK 海景複合咖啡館 (備選: Thrill On The Mug / Aether)", tr: "🚕 計程車", map: "" },
+
+  // Day 5 (11/17) - 賦歸
+  { key: "rec_d5_1", day: "11/17", time: "09:30", desc: "🛍️ 樂天百貨/樂天超市最後採購伴手禮", tr: "🚶 步行", map: "" },
+  { key: "rec_d5_2", day: "11/17", time: "11:30", desc: "🍜 【午餐】回味首日凡內谷豬肉湯飯", tr: "🚶 步行", map: "https://map.naver.com/p/entry/place/13491807" },
+  { key: "rec_d5_3", day: "11/17", time: "12:30", desc: "🚕 前往金海國際機場並辦理退稅手續", tr: "🚇 地鐵+輕軌", map: "https://map.naver.com/p/entry/place/11585098" },
+  { key: "rec_d5_4", day: "11/17", time: "14:50", desc: "✈️ 【回程】搭乘大韓航空 KE2085 班機返台", tr: "✈️ 飛機", map: "" }
+];

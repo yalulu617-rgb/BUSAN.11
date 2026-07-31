@@ -112,18 +112,50 @@
     };
 
     // ── Splash / Entry ────────────────────────────────────────────────────
-    window.enterApp = function () {
+    let bootTimeout = null;
+    let hasBooted = false;
+
+    function bootApp() {
+        if (hasBooted) return;
+        hasBooted = true;
+        if (bootTimeout) {
+            clearTimeout(bootTimeout);
+            bootTimeout = null;
+        }
         const splash = document.getElementById('splash');
         const app    = document.getElementById('mainApp');
-        if (splash) { splash.style.opacity = '0'; setTimeout(() => { splash.style.display = 'none'; }, 400); }
-        if (app)    { app.style.display = 'block'; app.style.opacity = '1'; }
+        if (splash) {
+            splash.style.transition = 'opacity 300ms ease';
+            splash.style.opacity = '0';
+            setTimeout(() => {
+                splash.style.display = 'none';
+                if (app) {
+                    app.style.display = 'block';
+                    app.offsetHeight; // force reflow
+                    app.style.opacity = '1';
+                }
+            }, 300);
+        } else if (app) {
+            app.style.display = 'block';
+            app.offsetHeight;
+            app.style.opacity = '1';
+        }
+    }
+
+    // Safety fallback: boot after 2.5s regardless of image loading
+    bootTimeout = setTimeout(() => {
+        bootApp();
+    }, 2500);
+
+    window.enterApp = function () {
+        bootApp();
     };
 
     window.forceShowApp = function () {
-        const splash = document.getElementById('splash');
-        const app    = document.getElementById('mainApp');
-        if (splash) { splash.style.display = 'none'; splash.style.opacity = '0'; }
-        if (app)    { app.style.display = 'block'; app.style.opacity = '1'; }
+        // Keep splash visible for 1.2s then fade out
+        setTimeout(() => {
+            bootApp();
+        }, 1200);
     };
 
     // ── PIN ───────────────────────────────────────────────────────────────
@@ -172,6 +204,7 @@
                 if (typeof setShopTabMode === 'function') setShopTabMode('my');
             } else if (id === 'photo') {
                 if (typeof switchWalletTab === 'function') switchWalletTab('memory');
+                if (typeof renderMemoryAlbum === 'function') renderMemoryAlbum();
             }
         } catch (err) {
             console.error('[App] showV37Tab failed:', err);
@@ -363,6 +396,9 @@
                 try {
                     window.shopList = [];
                     snap.forEach(ch => window.shopList.push({ ...ch.val(), key: ch.key }));
+                    if (window.shopList.length > 0) {
+                        StorageEngine.set('busan_v36_shopList', window.shopList);
+                    }
                     if (typeof renderShop === 'function') renderShop();
                 } catch (e) { console.error('[FirebaseOn DB_SHOP]', e); }
             });
@@ -387,6 +423,9 @@
                 try {
                     window.itineraryData = [];
                     snap.forEach(ch => window.itineraryData.push({ ...ch.val(), key: ch.key }));
+                    if (window.itineraryData.length > 0) {
+                        StorageEngine.set('busan_v36_itinerary', window.itineraryData);
+                    }
                     if (typeof renderItinerary === 'function') renderItinerary();
                     if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
                 } catch (e) { console.error('[FirebaseOn DB_ITI]', e); }
@@ -396,6 +435,9 @@
                 try {
                     window.prepData = [];
                     snap.forEach(ch => window.prepData.push({ ...ch.val(), key: ch.key }));
+                    if (window.prepData.length > 0) {
+                        StorageEngine.set('busan_v36_prepData', window.prepData);
+                    }
                     if (typeof renderPrepList === 'function') renderPrepList();
                     if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
                 } catch (e) { console.error('[FirebaseOn DB_PREP]', e); }

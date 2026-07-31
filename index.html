@@ -54,7 +54,7 @@
     <div class="fc-box">
         <div class="fc-tw" id="fc-tw">中文</div>
         <div class="fc-kr" id="fc-kr">韓文</div>
-        <button class="btn-action" style="margin-top:25px; width:auto; padding:12px 35px; border-radius:40px; font-size:1.2rem; box-shadow: 0 8px 25px rgba(192, 57, 43, 0.4);" onclick="speakKorean(document.getElementById('fc-kr').innerText)">
+        <button class="btn-action" style="margin-top:25px; width:auto; padding:12px 35px; border-radius:40px; font-size:1.2rem; box-shadow: 0 8px 25px rgba(192, 57, 43, 0.4);" onclick="event.stopPropagation(); speakKorean(document.getElementById('fc-kr').innerText)">
             <i class="fa-solid fa-volume-high fa-beat"></i> 播放發音
         </button>
         <div style="margin-top:25px; color:#bdc3c7; font-size:0.8rem;"><i class="fa-solid fa-hand-pointer"></i> 點擊背景空白處關閉</div>
@@ -462,8 +462,6 @@
             <div class="card" style="margin-bottom: 20px; background: #ffffff; border-radius: 24px; padding: 20px;">
                 <h3 class="card-title" style="font-weight: 900;"><i class="fa-solid fa-image"></i> 今日精選照片</h3>
                 <div id="todayPhotosContainer" class="photo-grid" style="margin-top: 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;"></div>
-            </div>
-
             <!-- 今日影片 Section -->
             <div class="card" style="margin-bottom: 12px; background: #ffffff; border-radius: 16px; padding: 12px;">
                 <h3 class="card-title" style="font-weight: 900; font-size: 0.85rem; margin-bottom: 8px;"><i class="fa-solid fa-circle-play"></i> 今日影片 / VLOG 記錄</h3>
@@ -506,47 +504,63 @@
         </div>
     </div>
 
-    <!-- 7. 更多選單九宮格 -->
+    <!-- 7. 更多功能選單 -->
     <div id="more" class="container">
-        <div class="card" style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(252,239,225,0.9)); border-left: 6px solid var(--accent); padding: 18px 20px;">
-            <h3 style="margin: 0 0 5px 0; font-weight: 900; color: var(--accent); font-size: 1.1rem;"><i class="fa-solid fa-compass"></i> 全境旅遊功能金庫</h3>
-            <p style="margin: 0; font-size: 0.85rem; color: #555; font-weight: 700; line-height:1.4;">點擊下方快捷功能圖示，即可切換至該子模組或工具。</p>
+        <div class="card-title-main" style="padding: 10px 4px; margin-bottom: 15px;">
+            <h2 style="margin: 0; font-size: 1.3rem; font-weight: 900; color: var(--primary);"><i class="fa-solid fa-grid-2"></i> 更多功能金庫</h2>
+            <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #7f8c8d; font-weight: 700;">探索與管理您的完整旅遊助手工具箱</p>
         </div>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
-            <div class="quick-action-btn" onclick="openMoreShortcut('attractions')">
-                <i class="fa-solid fa-map-location-dot" style="color: #1ABC9C;"></i>
-                <span style="margin-top: 4px;">景點美食</span>
+        
+        <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px;">
+            <!-- 1. 🗣️ 韓語語音翻譯 -->
+            <div class="card fade-scale-in" style="cursor: pointer; display: flex; align-items: center; gap: 15px; padding: 18px; border-left: 6px solid #E74C3C; border-radius: 20px; background: var(--card-bg);" onclick="showV37Tab('home'); openGuideFolder('工具');">
+                <div style="font-size: 2.2rem;">🗣️</div>
+                <div style="flex: 1;">
+                    <h4 style="margin: 0; font-weight: 900; font-size: 1.05rem; color: var(--text-color);">韓語語音翻譯</h4>
+                    <p style="margin: 4px 0 0 0; font-size: 0.78rem; color: #7f8c8d; font-weight: 700;">常用韓語方塊大字卡，支援語音朗讀播放</p>
+                </div>
+                <i class="fa-solid fa-chevron-right" style="color: #bdc3c7;"></i>
             </div>
-            <div class="quick-action-btn" onclick="openMoreShortcut('shop')">
-                <i class="fa-solid fa-cart-shopping" style="color: #E1306C;"></i>
-                <span style="margin-top: 4px;">購物清單</span>
+
+            <!-- 2. 🛒 必買購物清單 -->
+            <div class="card fade-scale-in" style="cursor: pointer; display: flex; align-items: center; gap: 15px; padding: 18px; border-left: 6px solid #E1306C; border-radius: 20px; background: var(--card-bg);" onclick="showV37Tab('shop');">
+                <div style="font-size: 2.2rem;">🛒</div>
+                <div style="flex: 1;">
+                    <h4 style="margin: 0; font-weight: 900; font-size: 1.05rem; color: var(--text-color);">必買購物清單</h4>
+                    <p style="margin: 4px 0 0 0; font-size: 0.78rem; color: #7f8c8d; font-weight: 700;">個人購物車與熱門藥妝、超商伴手禮推薦</p>
+                </div>
+                <i class="fa-solid fa-chevron-right" style="color: #bdc3c7;"></i>
             </div>
-            <div class="quick-action-btn" onclick="openMoreShortcut('photo')">
-                <i class="fa-solid fa-images" style="color: #3498DB;"></i>
-                <span style="margin-top: 4px;">拍立得</span>
+
+            <!-- 3. 📸 拍立得紀念冊 -->
+            <div class="card fade-scale-in" style="cursor: pointer; display: flex; align-items: center; gap: 15px; padding: 18px; border-left: 6px solid #3498DB; border-radius: 20px; background: var(--card-bg);" onclick="showV37Tab('photo');">
+                <div style="font-size: 2.2rem;">📸</div>
+                <div style="flex: 1;">
+                    <h4 style="margin: 0; font-weight: 900; font-size: 1.05rem; color: var(--text-color);">拍立得紀念冊</h4>
+                    <p style="margin: 4px 0 0 0; font-size: 0.78rem; color: #7f8c8d; font-weight: 700;">保存珍極旅行瞬間，支援照片批次上傳與搜尋</p>
+                </div>
+                <i class="fa-solid fa-chevron-right" style="color: #bdc3c7;"></i>
             </div>
-            <div class="quick-action-btn" onclick="openMoreShortcut('tickets')">
-                <i class="fa-solid fa-ticket" style="color: #9B59B6;"></i>
-                <span style="margin-top: 4px;">門票憑證</span>
-            </div>
-            <div class="quick-action-btn" onclick="openMoreShortcut('korean')">
-                <i class="fa-solid fa-language" style="color: #E74C3C;"></i>
-                <span style="margin-top: 4px;">實用韓文</span>
-            </div>
-            <div class="quick-action-btn" onclick="openMoreShortcut('settings')">
-                <i class="fa-solid fa-gear" style="color: #7F8C8D;"></i>
-                <span style="margin-top: 4px;">系統設定</span>
+
+            <!-- 4. 🧳 出發準備清單 -->
+            <div class="card fade-scale-in" style="cursor: pointer; display: flex; align-items: center; gap: 15px; padding: 18px; border-left: 6px solid #2ECC71; border-radius: 20px; background: var(--card-bg);" onclick="showV37Tab('home'); openGuideFolder('工具');">
+                <div style="font-size: 2.2rem;">🧳</div>
+                <div style="flex: 1;">
+                    <h4 style="margin: 0; font-weight: 900; font-size: 1.05rem; color: var(--text-color);">出發準備清單</h4>
+                    <p style="margin: 4px 0 0 0; font-size: 0.78rem; color: #7f8c8d; font-weight: 700;">行前代辦事項檢核，確保護照、網路與 K-ETA 已就緒</p>
+                </div>
+                <i class="fa-solid fa-chevron-right" style="color: #bdc3c7;"></i>
             </div>
         </div>
     </div>
 
     <!-- 底部導航 -->
     <div class="bottom-nav">
-        <div class="nav-item active" onclick="showV37Tab('home', this)"><i class="fa-solid fa-house"></i>首頁</div>
-        <div class="nav-item" onclick="showV37Tab('itinerary', this)"><i class="fa-solid fa-calendar-days"></i>行程</div>
-        <div class="nav-item nav-center" onclick="showV37Tab('split', this)"><i class="fa-solid fa-calculator"></i>記帳</div>
-        <div class="nav-item" onclick="showV37Tab('wallet', this)"><i class="fa-solid fa-wallet"></i>Travel Wallet</div>
-        <div class="nav-item" onclick="showV37Tab('more', this)"><i class="fa-solid fa-ellipsis"></i>更多</div>
+        <div id="tab-home" class="nav-item active" onclick="showV37Tab('home', this)"><i class="fa-solid fa-house"></i>首頁/導覽</div>
+        <div id="tab-itinerary" class="nav-item" onclick="showV37Tab('itinerary', this)"><i class="fa-solid fa-calendar-days"></i>行程表</div>
+        <div id="tab-bill" class="nav-item nav-center" onclick="showV37Tab('split', this)"><i class="fa-solid fa-calculator"></i>分攤記帳</div>
+        <div id="tab-wallet" class="nav-item" onclick="showV37Tab('wallet', this)"><i class="fa-solid fa-wallet"></i>票券/錢包</div>
+        <div id="tab-more" class="nav-item" onclick="showV37Tab('more', this)"><i class="fa-solid fa-ellipsis"></i>更多功能</div>
     </div>
 </div>
 

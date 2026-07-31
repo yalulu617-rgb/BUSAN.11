@@ -144,4 +144,13 @@
         if (btn) btn.classList.add('active');
         renderItinerary();
     };
+
+    // Seed/Load itineraryData from cache, fallback to RECOMMENDED_ITINERARY if empty
+    const cachedItinerary = StorageEngine.get('busan_v36_itinerary');
+    if (!cachedItinerary || !cachedItinerary.success || !Array.isArray(cachedItinerary.data) || cachedItinerary.data.length === 0) {
+        window.itineraryData = window.RECOMMENDED_ITINERARY || [];
+        StorageEngine.set('busan_v36_itinerary', window.itineraryData);
+    } else {
+        window.itineraryData = cachedItinerary.data;
+    }
 })();

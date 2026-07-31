@@ -45,7 +45,7 @@ window.downloadImage = function () {
         }
         
         if (filtered.length === 0) {
-            grid.innerHTML = '<p style="grid-column: span 2; text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:20px 0;">尚無照片，開始批次上傳吧！</p>';
+            grid.innerHTML = "<div class='empty-state' style='grid-column: span 2; text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:20px 0;'>📸 尚無拍立得照片，點擊下方按鈕上傳第一張旅行回憶吧！</div>";
             return;
         }
         
