@@ -38,15 +38,21 @@ window.addShopItem = async function () {
     const text = textEl?.value?.trim();
     if (!text) { showToast('請填入商品名稱', 'warning'); return; }
 
-    await NetworkEngine.firebasePush(DB_SHOP, {
-        text,
-        where    : whereEl?.value?.trim()  || '',
-        category : categoryEl?.value       || '其他',
-        img      : imgEl?.value            || '',
-        checked  : false,
-        owner    : window.deviceOwner,
-        ts       : Date.now()
-    });
+    try {
+        await NetworkEngine.firebasePush(DB_SHOP, {
+            text,
+            where    : whereEl?.value?.trim()  || '',
+            category : categoryEl?.value       || '其他',
+            img      : imgEl?.value            || '',
+            checked  : false,
+            owner    : window.deviceOwner,
+            ts       : Date.now()
+        });
+    } catch (e) {
+        console.error('[Renderers] addShopItem failed:', e);
+        showToast('新增購物項目失敗', 'error');
+        return;
+    }
     if (textEl)  textEl.value  = '';
     if (whereEl) whereEl.value = '';
     if (imgEl)   imgEl.value   = '';
@@ -54,12 +60,21 @@ window.addShopItem = async function () {
 };
 
 window.toggleShop = async function (key, currentChecked) {
-    await NetworkEngine.firebaseUpdate(`${DB_SHOP}/${key}`, { checked: !currentChecked });
+    try {
+        await NetworkEngine.firebaseUpdate(`${DB_SHOP}/${key}`, { checked: !currentChecked });
+    } catch (e) {
+        console.error('[Renderers] toggleShop failed:', e);
+    }
 };
 
 window.deleteShop = async function (key) {
     if (!confirm('確認刪除此購物項目？')) return;
-    await NetworkEngine.firebaseRemove(`${DB_SHOP}/${key}`);
+    try {
+        await NetworkEngine.firebaseRemove(`${DB_SHOP}/${key}`);
+    } catch (e) {
+        console.error('[Renderers] deleteShop failed:', e);
+        showToast('刪除購物項目失敗', 'error');
+    }
 };
 
 // ── Guide / Food CRUD (lives here — tightly coupled to renderGuideContent) ─
@@ -73,14 +88,20 @@ window.addGuideItem = async function () {
     const title = titleEl?.value?.trim();
     if (!title) { showToast('請填入地標名稱', 'warning'); return; }
 
-    await NetworkEngine.firebasePush(DB_GUIDE, {
-        type  : typeEl?.value  || '打卡景點',
-        title,
-        desc  : descEl?.value?.trim() || '',
-        link  : linkEl?.value?.trim() || '',
-        img   : imgEl?.value          || '',
-        ts    : Date.now()
-    });
+    try {
+        await NetworkEngine.firebasePush(DB_GUIDE, {
+            type  : typeEl?.value  || '打卡景點',
+            title,
+            desc  : descEl?.value?.trim() || '',
+            link  : linkEl?.value?.trim() || '',
+            img   : imgEl?.value          || '',
+            ts    : Date.now()
+        });
+    } catch (e) {
+        console.error('[Renderers] addGuideItem failed:', e);
+        showToast('地標新增失敗', 'error');
+        return;
+    }
     if (titleEl) titleEl.value = '';
     if (descEl)  descEl.value  = '';
     if (linkEl)  linkEl.value  = '';
@@ -90,7 +111,12 @@ window.addGuideItem = async function () {
 
 window.deleteGuide = async function (key) {
     if (!confirm('確認刪除此地標？')) return;
-    await NetworkEngine.firebaseRemove(`${DB_GUIDE}/${key}`);
+    try {
+        await NetworkEngine.firebaseRemove(`${DB_GUIDE}/${key}`);
+    } catch (e) {
+        console.error('[Renderers] deleteGuide failed:', e);
+        showToast('刪除地標失敗', 'error');
+    }
 };
 
 // ── Voice Card CRUD (lives here — tightly coupled to renderVoiceList) ──────
@@ -100,7 +126,13 @@ window.addVoiceCard = async function () {
     const tw   = twEl?.value?.trim();
     const kr   = krEl?.value?.trim();
     if (!tw || !kr) { showToast('請填入中文與韓文', 'warning'); return; }
-    await NetworkEngine.firebasePush(DB_VOICE, { title: tw, korean: kr, roman: '', ts: Date.now() });
+    try {
+        await NetworkEngine.firebasePush(DB_VOICE, { title: tw, korean: kr, roman: '', ts: Date.now() });
+    } catch (e) {
+        console.error('[Renderers] addVoiceCard failed:', e);
+        showToast('字卡新增失敗', 'error');
+        return;
+    }
     if (twEl) twEl.value = '';
     if (krEl) krEl.value = '';
     showToast('✅ 字卡已新增', 'success');
@@ -108,18 +140,32 @@ window.addVoiceCard = async function () {
 
 window.deleteVoice = async function (key) {
     if (!confirm('確認刪除此字卡？')) return;
-    await NetworkEngine.firebaseRemove(`${DB_VOICE}/${key}`);
+    try {
+        await NetworkEngine.firebaseRemove(`${DB_VOICE}/${key}`);
+    } catch (e) {
+        console.error('[Renderers] deleteVoice failed:', e);
+        showToast('刪除字卡失敗', 'error');
+    }
 };
 
 // ── Prep CRUD (lives here — tightly coupled to renderPrepList) ────────────
 window.togglePrep = async function (key, currentDone) {
-    await NetworkEngine.firebaseUpdate(`${DB_PREP}/${key}`, { done: !currentDone });
+    try {
+        await NetworkEngine.firebaseUpdate(`${DB_PREP}/${key}`, { done: !currentDone });
+    } catch (e) {
+        console.error('[Renderers] togglePrep failed:', e);
+    }
     triggerContextUpdate();
 };
 
 window.deletePrep = async function (key) {
     if (!confirm('確認刪除此準備事項？')) return;
-    await NetworkEngine.firebaseRemove(`${DB_PREP}/${key}`);
+    try {
+        await NetworkEngine.firebaseRemove(`${DB_PREP}/${key}`);
+    } catch (e) {
+        console.error('[Renderers] deletePrep failed:', e);
+        showToast('刪除準備事項失敗', 'error');
+    }
 };
 
 
@@ -373,7 +419,7 @@ window.renderV37HomeDashboard = function() {
     const mode = ctx.tripMode;
     
     // Decomposed headers
-    let simulatorHtml = renderDateSimulator(v37SimulatedDate, city);
+    let simulatorHtml = renderDateSimulator(window.v37SimulatedDate, city);
     
     let heroHtml = "";
     let widget1Html = renderQuickActions();
@@ -451,7 +497,7 @@ window.renderShop = function() {
     if (!list) return;
     list.innerHTML = '';
     
-    let filtered = shopList.filter(s => s.owner === currentShopOwner);
+    let filtered = (window.shopList || []).filter(s => s.owner === (window.currentShopOwner || 'user1'));
     if (filtered.length === 0) {
         list.innerHTML = '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:20px 0;">無購物項目，請於上方欄位新增！</p>';
         return;
@@ -525,7 +571,7 @@ window.renderGuideContent = function() {
     if (!list) return;
     list.innerHTML = '';
     
-    let filtered = guideData.filter(g => g.type === currentGuideTab);
+    let filtered = (window.guideData || []).filter(g => g.type === (window.currentGuideTab || '打卡景點'));
     if (filtered.length === 0) {
         list.innerHTML = '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:20px 0;">尚無自訂地標，歡迎新增！</p>';
         return;
@@ -590,7 +636,7 @@ window.renderBills = function() {
     
     const ctx = typeof getTripContext === 'function' ? getTripContext() : {};
     const totalShared = (ctx.budget && ctx.budget.totalSharedTWD) ? ctx.budget.totalSharedTWD : 0;
-    const filtered = sharedBills;
+    const filtered = window.sharedBills || [];
     
     if (filtered.length === 0) {
         list.innerHTML = '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:15px 0;">尚無公費記帳紀錄</p>';
@@ -627,7 +673,7 @@ window.renderBills = function() {
     if (sharedSumEl) sharedSumEl.innerText = `$${Math.round(totalShared).toLocaleString()} TWD`;
     
     // Auto settle logic outputs
-    renderPrivateBill();
+    if (typeof renderPrivateBill === 'function') renderPrivateBill();
 };
 
 window.renderPrivateBill = function() {
@@ -638,10 +684,10 @@ window.renderPrivateBill = function() {
     const ctx = typeof getTripContext === 'function' ? getTripContext() : {};
     const totalPrivate = (ctx.budget && ctx.budget.totalPrivateTWD) ? ctx.budget.totalPrivateTWD : 0;
     
-    if (privateBills.length === 0) {
+    if ((window.privateBills || []).length === 0) {
         list.innerHTML = '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:15px 0;">尚無個人私帳記帳紀錄</p>';
     } else {
-        privateBills.forEach(b => {
+        (window.privateBills || []).forEach(b => {
             const receiptHtml = b.receipt ? `<img src="${b.receipt}" class="item-img" onclick="openLightbox('${b.receipt}', b.id)">` : '';
             let amtStr = safePrice(b.amt, b.currency);
             if (b.currency === 'KRW') {
@@ -672,12 +718,12 @@ window.renderVoiceList = function() {
     if (!list) return;
     list.innerHTML = '';
     
-    if (voiceData.length === 0) {
+    if ((window.voiceData || []).length === 0) {
         list.innerHTML = '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:15px 0;">尚無常用韓語發音紀錄</p>';
         return;
     }
     
-    voiceData.forEach(v => {
+    (window.voiceData || []).forEach(v => {
         list.innerHTML += `
             <div class="voice-card card" onclick="openCardLightbox('${v.title}', '${v.korean}', '${v.roman}', '${v.audio || ''}')">
                 <button class="del-voice" onclick="event.stopPropagation(); deleteVoice('${v.key}')"><i class="fa-solid fa-xmark"></i></button>
@@ -694,12 +740,12 @@ window.renderPrepList = function() {
     if (!list) return;
     list.innerHTML = '';
     
-    if (prepData.length === 0) {
+    if ((window.prepData || []).length === 0) {
         list.innerHTML = '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:15px 0;">尚無準備清單項目</p>';
         return;
     }
     
-    prepData.forEach(p => {
+    (window.prepData || []).forEach(p => {
         const isDone = p.done ? 'done' : '';
         const linkIcon = p.link ? `<a href="${p.link}" target="_blank" class="prep-link" onclick="event.stopPropagation()"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : '';
         

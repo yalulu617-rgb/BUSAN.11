@@ -23,7 +23,13 @@ window.addTicket = async function () {
         booked  : false,
         ts      : Date.now()
     };
-    await NetworkEngine.firebasePush(DB_TICKETS, ticket);
+    try {
+        await NetworkEngine.firebasePush(DB_TICKETS, ticket);
+    } catch (e) {
+        console.error('[Wallet] addTicket push failed:', e);
+        showToast('票券儲存失敗，請稍後重試', 'error');
+        return;
+    }
 
     if (titleEl)   titleEl.value   = '';
     if (descEl)    descEl.value    = '';
@@ -34,7 +40,12 @@ window.addTicket = async function () {
 
 window.deleteTicket = async function (key) {
     if (!confirm('確認刪除此票券？')) return;
-    await NetworkEngine.firebaseRemove(`${DB_TICKETS}/${key}`);
+    try {
+        await NetworkEngine.firebaseRemove(`${DB_TICKETS}/${key}`);
+    } catch (e) {
+        console.error('[Wallet] deleteTicket failed:', e);
+        showToast('刪除票券失敗', 'error');
+    }
 };
 
 // ── Hotel CRUD ─────────────────────────────────────────────────────────────
@@ -68,7 +79,13 @@ window.saveHotel = async function () {
         const el = document.getElementById(`hotel_${f}`);
         if (el) data[f] = el.value.trim() || '尚未填寫';
     });
-    await NetworkEngine.firebaseWrite(DB_HOTEL, data);
+    try {
+        await NetworkEngine.firebaseWrite(DB_HOTEL, data);
+    } catch (e) {
+        console.error('[Wallet] saveHotel failed:', e);
+        showToast('飯店資料儲存失敗', 'error');
+        return;
+    }
     const modalEl = document.getElementById('hotelEditModal');
     if (modalEl) modalEl.style.display = 'none';
     showToast('✅ 飯店資料已儲存', 'success');
@@ -76,7 +93,13 @@ window.saveHotel = async function () {
 
 window.deleteHotelData = async function () {
     if (!confirm('確認清除所有飯店資料？此操作不可還原。')) return;
-    await NetworkEngine.firebaseWrite(DB_HOTEL, null);
+    try {
+        await NetworkEngine.firebaseWrite(DB_HOTEL, null);
+    } catch (e) {
+        console.error('[Wallet] deleteHotelData failed:', e);
+        showToast('清除飯店資料失敗', 'error');
+        return;
+    }
     window.hotelData = {};
     if (typeof renderTickets_LogicOnly === 'function') renderTickets_LogicOnly();
     showToast('飯店資料已清除', 'info');
@@ -197,7 +220,7 @@ window.renderTickets_LogicOnly = function() {
 </div>`;
     }
 
-    ticketData.forEach(t => {
+    (window.ticketData || []).forEach(t => {
         if (t.type !== "🏨 住宿") {
             let lh = t.link ? `<a href="${t.link}" target="_blank" class="map-tag" style="background:#03C75A; color:white;"><i class="fa-solid fa-globe"></i> 官方預約</a>` : '';
             let vh = t.voucher ? `<a href="${t.voucher}" target="_blank" class="map-tag" style="background:var(--primary); color:white;"><i class="fa-solid fa-image"></i> 看憑證</a>` : '';
@@ -261,7 +284,7 @@ window.switchWalletTab = function(subtab) {
     }
     
     if (subtab === 'hotel') {
-        renderSmartNearby();
+        if (typeof renderSmartNearby === 'function') renderSmartNearby();
     } else if (subtab === 'memory') {
         triggerContextUpdate();
     }

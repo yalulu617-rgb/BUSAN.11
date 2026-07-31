@@ -7,7 +7,7 @@
 // - Each file cached individually so one 404 never kills the install
 // ─────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'busan-trip-v41-refactored-v3';
+const CACHE_NAME = 'busan-trip-v41-refactored-v4';
 
 const LOCAL_ASSETS = [
     './',

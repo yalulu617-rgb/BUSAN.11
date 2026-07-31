@@ -7,7 +7,13 @@
 window.deleteCurrentPhoto = async function () {
     if (!window.currentLightboxKey) { showToast('無法識別照片', 'warning'); return; }
     if (!confirm('確認刪除此照片？此操作不可還原。')) return;
-    await NetworkEngine.firebaseRemove(`${DB_PHOTOS}/${window.currentLightboxKey}`);
+    try {
+        await NetworkEngine.firebaseRemove(`${DB_PHOTOS}/${window.currentLightboxKey}`);
+    } catch (e) {
+        console.error('[Memory] deleteCurrentPhoto failed:', e);
+        showToast('刪除照片失敗', 'error');
+        return;
+    }
     closeLightbox();
     showToast('照片已刪除', 'success');
 };

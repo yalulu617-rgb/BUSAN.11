@@ -32,13 +32,19 @@
             map  : mapEl?.value?.trim()     || ''
         };
 
-        if (editingItiKey) {
-            await NetworkEngine.firebaseUpdate(`${DB_ITI}/${editingItiKey}`, data);
-            editingItiKey = null;
-            if (saveBtn)   saveBtn.innerText          = '💾 儲存';
-            if (cancelBtn) cancelBtn.style.display    = 'none';
-        } else {
-            await NetworkEngine.firebasePush(DB_ITI, data);
+        try {
+            if (editingItiKey) {
+                await NetworkEngine.firebaseUpdate(`${DB_ITI}/${editingItiKey}`, data);
+                editingItiKey = null;
+                if (saveBtn)   saveBtn.innerText          = '💾 儲存';
+                if (cancelBtn) cancelBtn.style.display    = 'none';
+            } else {
+                await NetworkEngine.firebasePush(DB_ITI, data);
+            }
+        } catch (e) {
+            console.error('[Itinerary] save failed:', e);
+            showToast('行程儲存失敗，請稍後重試', 'error');
+            return;
         }
         if (descEl) descEl.value = '';
         if (mapEl)  mapEl.value  = '';
@@ -76,7 +82,12 @@
     // ── Delete ────────────────────────────────────────────────────────────────
     window.deleteItinerary = async function (key) {
         if (!confirm('確認刪除此行程？')) return;
-        await NetworkEngine.firebaseRemove(`${DB_ITI}/${key}`);
+        try {
+            await NetworkEngine.firebaseRemove(`${DB_ITI}/${key}`);
+        } catch (e) {
+            console.error('[Itinerary] delete failed:', e);
+            showToast('刪除行程失敗', 'error');
+        }
     };
 
     // ── Vlog export ───────────────────────────────────────────────────────────
@@ -97,7 +108,7 @@
         if (!list) return;
         list.innerHTML = '';
         
-        let filtered = itineraryData.filter(i => i.day === currentFilterDay);
+        let filtered = (window.itineraryData || []).filter(i => i.day === (window.currentFilterDay || '11/13'));
         if (filtered.length === 0) {
             list.innerHTML = '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:20px 0;">本日尚無行程規劃，請點擊下方按鈕新增！</p>';
             return;
