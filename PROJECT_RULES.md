@@ -37,9 +37,18 @@ Build a production-ready, offline-ready, parent-friendly, and one-hand usable tr
 ### Attraction & Restaurant Verification
 - Every spot must be validated against Google Maps, Naver Map, Kakao Map, official web sources, latest reviews, and notices.
 - **Thrill On The Mug (影島咖啡)**:
-  - If availability for November 2026 is uncertain, mark as `UNSAFE` and automatically substitute.
+  - **STATUS: ⛔ UNSAFE — PERMANENTLY CLOSED**
+  - Official Instagram announcement: Permanently closed as of **2026-06-06** (June 6, 2026).
+  - Verified via live search. Removed from all itinerary data and recommendation lists.
+  - **Replacement**: Lisboa Café (흰여울문화마을) — verified open, widest ocean-view terrace in Yeongdo.
 - **Foot Bath Cafe View 2 (족욕카페뷰 2호점)**:
-  - Automatically verified and scheduled in the Day 4 (11/16) itinerary.
+  - **STATUS: ✅ VERIFIED OPEN**
+  - Address: 흰여울길 207, 영도구 부산 (Yeongdo-gu, NOT Haeundae)
+  - Hours: ~10:00–19:30 (may vary by season)
+  - Price: ₩15,000–16,000 per 30 minutes (cash/bank transfer discount available)
+  - Reservation: Walk-in queue system; arrive early at peak hours
+  - **⚠️ WARNING**: 절영해안산책로 (coastal walkway) is under construction and closed until December 2026 due to wall collapse risk. Access via village alley lanes instead.
+  - Inserted into Day 4 (11/16) itinerary at 15:00.
 
 ### Transportation & Routes
 - Prioritize low-friction pathways for suitcases and parents (avoiding steep slopes, stairs, and long walks).

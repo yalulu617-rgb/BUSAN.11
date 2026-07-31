@@ -18,7 +18,7 @@ window.RECOMMENDED_FOOD = [
   { id: 'rf1', category: '豬肉湯飯', name: '凡內谷豬肉湯飯', desc: '經典釜山濃郁大骨湯底，肉質軟嫩' },
   { id: 'rf2', category: '烤肉', name: '味讚王鹽烤肉', desc: '厚切三層肉，專人桌邊代烤，外酥內嫩' },
   { id: 'rf3', category: 'Seafood', name: '海木鰻魚飯', desc: '海雲台奢華米其林推薦日式鰻魚飯' },
-  { id: 'rf4', category: '咖啡', name: 'Thrill On The Mug', desc: '影島絕美海景咖啡廳，打卡熱門地標' },
+  { id: 'rf4', category: '咖啡', name: '⚠️ [UNSAFE] Thrill On The Mug (已永久停業 2026-06-06)', desc: '⚠️ 已於 2026 年 6 月 6 日永久停業，請勿前往。替代推薦：Lisboa 咖啡館 (흰여울문화마을)' },
   { id: 'rf5', category: '甜點', name: '西面黑糖餅', desc: '西面街頭傳統小吃，堅果豐富香甜' },
   { id: 'rf6', category: '夜景', name: '廣安里 M 無人機秀', desc: '週六晚間廣安大橋夜空璀璨燈光秀' }
 ];
@@ -82,8 +82,8 @@ window.RECOMMENDED_ITINERARY = [
   { key: "rec_d4_2", day: "11/16", time: "11:00", desc: "🌊 松島海上纜車 (水晶車廂俯瞰無敵海景)", tr: "🚡 纜車", map: "" },
   { key: "rec_d4_3", day: "11/16", time: "12:30", desc: "🍜 【午餐】札嘎其海鮮市場品嚐海鮮百匯 / 西面美食", tr: "🚇 地鐵", map: "" },
   { key: "rec_d4_4", day: "11/16", time: "14:00", desc: "🎨 【白淺灘文化村】懸崖彩繪藝術村散策", tr: "🚌 公車", map: "" },
-  { key: "rec_d4_5", day: "11/16", time: "15:00", desc: "🦶 【足浴體驗】足浴 Cafe View 2號店 (족욕카페뷰 2호점)", tr: "🚶 步行", map: "" },
-  { key: "rec_d4_6", day: "11/16", time: "16:30", desc: "☕ 【影島咖啡】P.ARK 海景複合咖啡館 (備選: Thrill On The Mug / Aether)", tr: "🚕 計程車", map: "" },
+  { key: "rec_d4_5", day: "11/16", time: "15:00", desc: "🦶 【足浴體驗】족욕카페뷰 2호점 (흰여울길 207, 10:00-19:30, 約 ₩16,000/30分, 步行走馬路內巷，⚠️ 절영해안산책路施工封閉至2026年12月)", tr: "🚌 公車 7/71/508 號", map: "https://map.naver.com/p/search/%EC%A1%B1%EC%9A%95%EC%B9%B4%ED%8E%98%EB%B7%B02%ED%98%B8%EC%A0%90" },
+  { key: "rec_d4_6", day: "11/16", time: "16:30", desc: "☕ 【影島咖啡】Lisboa 咖啡館 (흰여울문화마을, 最寬闊海景露台, 已驗證 2026 正常營業) ✅ SAFE", tr: "🚶 步行", map: "https://map.naver.com/p/search/LISBOA+%EC%98%81%EB%8F%84" },
 
   // Day 5 (11/17) - 賦歸
   { key: "rec_d5_1", day: "11/17", time: "09:30", desc: "🛍️ 樂天百貨/樂天超市最後採購伴手禮", tr: "🚶 步行", map: "" },
