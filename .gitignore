@@ -1,0 +1,20 @@
+# Node modules
+node_modules/
+
+# Playwright test output
+playwright-report/
+test-results/
+*.png
+!icon.png
+!13972.png
+
+# Temp files
+.DS_Store
+Thumbs.db
+
+# Environment secrets
+.env
+.env.local
+
+# npm lock (keep package-lock.json for CI reproducibility)
+# package-lock.json

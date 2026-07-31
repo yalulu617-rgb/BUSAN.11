@@ -1,0 +1,244 @@
+name: V42 Quality Gate & Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Prevent concurrent deployments
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  # ─────────────────────────────────────────────────────
+  # JOB 1: Syntax & Static Validation
+  # ─────────────────────────────────────────────────────
+  static-validation:
+    name: 🔍 Static Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate JS syntax (all 21 modules)
+        run: |
+          node -e "
+          const fs = require('fs');
+          const files = [
+            'ute/ute_storage.js','ute/ute_network.js','ute/ute_knowledge.js',
+            'ute/ute_place.js','ute/ute_city.js','ute/ute_weather.js',
+            'ute/ute_navigation.js','ute/ute_budget.js','ute/ute_ai.js',
+            'ute/ute_context.js','ute/ute_main.js',
+            'services/nearby.js','services/utils.js',
+            'data/recommended.js',
+            'js/firebase.js','js/ui.js','js/wallet.js',
+            'js/memory.js','js/itinerary.js','js/app.js',
+            'components/renderers.js'
+          ];
+          let pass = 0; let fail = 0;
+          files.forEach(f => {
+            try {
+              new Function(fs.readFileSync(f, 'utf8'));
+              console.log('✅ OK:', f);
+              pass++;
+            } catch(e) {
+              console.error('❌ ERR:', f, e.message);
+              fail++;
+            }
+          });
+          console.log('\n--- Syntax Result: PASS=' + pass + ' FAIL=' + fail + ' ---');
+          if (fail > 0) process.exit(1);
+          "
+
+      - name: Validate manifest.json
+        run: node -e "JSON.parse(require('fs').readFileSync('manifest.json','utf8')); console.log('✅ manifest.json valid');"
+
+      - name: Validate data/places.json
+        run: node -e "JSON.parse(require('fs').readFileSync('data/places.json','utf8')); console.log('✅ places.json valid');"
+
+      - name: Validate data/restaurants.json
+        run: node -e "JSON.parse(require('fs').readFileSync('data/restaurants.json','utf8')); console.log('✅ restaurants.json valid');"
+
+      - name: Validate data/hotels.json
+        run: node -e "JSON.parse(require('fs').readFileSync('data/hotels.json','utf8')); console.log('✅ hotels.json valid');"
+
+      - name: Validate data/tickets.json
+        run: node -e "JSON.parse(require('fs').readFileSync('data/tickets.json','utf8')); console.log('✅ tickets.json valid');"
+
+      - name: Check critical assets exist
+        run: |
+          test -f index.html && echo "✅ index.html exists"
+          test -f style.css && echo "✅ style.css exists"
+          test -f sw.js && echo "✅ sw.js exists"
+          test -f manifest.json && echo "✅ manifest.json exists"
+          test -f icon.png && echo "✅ icon.png exists"
+          test -f 13972.png && echo "✅ 13972.png (Doraemon hero) exists"
+
+      - name: Verify UNSAFE venues removed from itinerary
+        run: |
+          node -e "
+          const content = require('fs').readFileSync('data/recommended.js', 'utf8');
+          // Thrill On The Mug must be marked UNSAFE, not as active destination
+          const lines = content.split('\n');
+          let thrillLines = lines.filter(l => l.includes('Thrill On The Mug') && !l.includes('[UNSAFE]') && !l.includes('UNSAFE'));
+          if (thrillLines.length > 0) {
+            console.error('❌ BLOCKED: Thrill On The Mug (permanently closed 2026-06-06) appears as active venue');
+            thrillLines.forEach(l => console.error('   ', l.trim()));
+            process.exit(1);
+          }
+          console.log('✅ Venue safety check passed - no permanently closed venues in active itinerary');
+          "
+
+  # ─────────────────────────────────────────────────────
+  # JOB 2: Playwright E2E Browser Tests
+  # ─────────────────────────────────────────────────────
+  e2e-tests:
+    name: 🎭 E2E Browser Tests (${{ matrix.project }})
+    needs: static-validation
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, firefox, webkit]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers (${{ matrix.project }} only)
+        run: npx playwright install --with-deps ${{ matrix.project }}
+
+      - name: Start local HTTP server
+        run: |
+          npm install -g serve
+          serve -s . -l 8080 &
+          echo "Waiting for server..."
+          sleep 3
+          curl -f http://localhost:8080/ || (echo "❌ Server failed to start" && exit 1)
+          echo "✅ Server running on port 8080"
+
+      - name: Run Playwright E2E tests (${{ matrix.project }})
+        run: npx playwright test --project=${{ matrix.project }} --reporter=html,list
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
+          CI: true
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ matrix.project }}
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload test screenshots (failures only)
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-screenshots-${{ matrix.project }}
+          path: test-results/
+          retention-days: 14
+
+  # ─────────────────────────────────────────────────────
+  # JOB 3: Accessibility & Responsive Checks
+  # ─────────────────────────────────────────────────────
+  accessibility-check:
+    name: ♿ Accessibility & Responsive
+    needs: static-validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Start local HTTP server
+        run: |
+          npm install -g serve
+          serve -s . -l 8080 &
+          sleep 3
+
+      - name: Run Accessibility tests
+        run: npx playwright test --project=chromium tests/accessibility.spec.js --reporter=list
+
+      - name: Upload accessibility report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: accessibility-report
+          path: playwright-report/
+          retention-days: 14
+
+  # ─────────────────────────────────────────────────────
+  # JOB 4: Deploy to GitHub Pages (ONLY when all tests pass)
+  # ─────────────────────────────────────────────────────
+  deploy:
+    name: 🚀 Deploy to GitHub Pages
+    needs: [static-validation, e2e-tests, accessibility-check]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Deployment summary
+        run: |
+          echo "## 🚀 Deployment Successful" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**URL**: ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Quality Gate Passed" >> $GITHUB_STEP_SUMMARY
+          echo "- Static Validation: PASS" >> $GITHUB_STEP_SUMMARY
+          echo "- E2E Tests (Chromium): PASS" >> $GITHUB_STEP_SUMMARY
+          echo "- E2E Tests (Firefox): PASS" >> $GITHUB_STEP_SUMMARY
+          echo "- E2E Tests (WebKit): PASS" >> $GITHUB_STEP_SUMMARY
+          echo "- Accessibility: PASS" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,22 @@
+{
+  "name": "busan-v42-travel-app",
+  "version": "42.0.0",
+  "description": "BUSAN Ultimate Travel Platform V42 - Production-grade PWA",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:chromium": "playwright test --project=chromium",
+    "test:firefox": "playwright test --project=firefox",
+    "test:webkit": "playwright test --project=webkit",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:accessibility": "playwright test tests/accessibility.spec.js",
+    "report": "playwright show-report",
+    "serve": "serve -s . -l 8080",
+    "lint:js": "node scripts/syntax-check.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "serve": "^14.2.3"
+  }
+}
