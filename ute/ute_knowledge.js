@@ -18,7 +18,7 @@ const travelKnowledge = {
         medical: "119"
       },
       transportation: {
-        desc: "🚇 地鐵 1~4 號線 / 輕軌 / 一般公車",
+        desc: "🚇 地鐵 1~4 號線 / 輕軌 / 一般公車 / WOWPASS / T‑money / Kakao T / KTX",
         taxi: "起步價約 4,800 KRW，支援 Kakao T 叫車"
       },
       recommendations: {

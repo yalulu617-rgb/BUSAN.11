@@ -82,7 +82,7 @@ window.RECOMMENDED_ITINERARY = [
   { key: "rec_d4_2", day: "11/16", time: "11:00", desc: "🌊 松島海上纜車 (水晶車廂俯瞰無敵海景)", tr: "🚡 纜車", map: "" },
   { key: "rec_d4_3", day: "11/16", time: "12:30", desc: "🍜 【午餐】札嘎其海鮮市場品嚐海鮮百匯 / 西面美食", tr: "🚇 地鐵", map: "" },
   { key: "rec_d4_4", day: "11/16", time: "14:00", desc: "🎨 【白淺灘文化村】懸崖彩繪藝術村散策", tr: "🚌 公車", map: "" },
-  { key: "rec_d4_5", day: "11/16", time: "15:00", desc: "🦶 【足浴體驗】족욕카페뷰 2호점 (흰여울길 207, 10:00-19:30, 約 ₩16,000/30分, 步行走馬路內巷，⚠️ 절영해안산책路施工封閉至2026年12月)", tr: "🚌 公車 7/71/508 號", map: "https://map.naver.com/p/search/%EC%A1%B1%EC%9A%95%EC%B9%B4%ED%8E%98%EB%B7%B02%ED%98%B8%EC%A0%90" },
+  { key: "rec_d4_5", day: "11/16", time: "15:00", desc: "⚠️ [UNSAFE] 🦶 【足浴體驗】족욕카페뷰 2호점 (흰여울길 207, 10:00-19:30, 約 ₩16,000/30分, 步行走馬路內巷，⚠️ 절영해안산책路施工封閉至2026年12月)", tr: "🚌 公車 7/71/508 號", map: "https://map.naver.com/p/search/%EC%A1%B1%EC%9A%95%EC%B9%B4%ED%8E%98%EB%B7%B02%ED%98%B8%EC%A0%90" },
   { key: "rec_d4_6", day: "11/16", time: "16:30", desc: "☕ 【影島咖啡】Lisboa 咖啡館 (흰여울문화마을, 最寬闊海景露台, 已驗證 2026 正常營業) ✅ SAFE", tr: "🚶 步行", map: "https://map.naver.com/p/search/LISBOA+%EC%98%81%EB%8F%84" },
 
   // Day 5 (11/17) - 賦歸
