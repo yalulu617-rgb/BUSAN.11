@@ -146,7 +146,7 @@ test.describe('Accessibility: One-Hand Usability (Mobile 390px)', () => {
     
     expect(box, 'Bottom nav not found').toBeTruthy();
     // Nav should be at the bottom (within bottom 20% of 844px screen)
-    expect(box!.y, 'Bottom nav not in thumb zone').toBeGreaterThan(600);
+    expect(box.y, 'Bottom nav not in thumb zone').toBeGreaterThan(600);
   });
 
   test('Primary action buttons are within thumb reach zone', async ({ page }) => {
