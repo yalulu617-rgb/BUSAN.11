@@ -1,13 +1,14 @@
 // ─────────────────────────────────────────────────────────────────────────
-// V41 Refactored Service Worker
+// V45 Production Service Worker
 // ─────────────────────────────────────────────────────────────────────────
 // Rules:
 // - Cache ONLY local files that physically exist in this repository
 // - Do NOT cache CDN URLs (Firebase, FontAwesome, Google Fonts, wttr.in, etc.)
-// - Each file cached individually so one 404 never kills the install
+// - Network-first for HTML navigation to prevent stale version lock-in
+// - Cache-first with network fallback for local static assets
 // ─────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'busan-trip-v42-production';
+const CACHE_NAME = 'busan-trip-v45-production-v1';
 
 const LOCAL_ASSETS = [
     './',
@@ -16,6 +17,12 @@ const LOCAL_ASSETS = [
     './icon.png',
     './13972.png',
     './style.css',
+    './data/release.json',
+    './data/recommended.js',
+    './data/places.json',
+    './data/restaurants.json',
+    './data/hotels.json',
+    './data/tickets.json',
     './ute/ute_storage.js',
     './ute/ute_network.js',
     './ute/ute_knowledge.js',
@@ -29,11 +36,6 @@ const LOCAL_ASSETS = [
     './ute/ute_main.js',
     './services/nearby.js',
     './services/utils.js',
-    './data/recommended.js',
-    './data/places.json',
-    './data/restaurants.json',
-    './data/hotels.json',
-    './data/tickets.json',
     './js/firebase.js',
     './js/ui.js',
     './js/wallet.js',
@@ -60,8 +62,9 @@ function isNetworkOnly(url) {
     return NETWORK_ONLY_DOMAINS.some(d => url.includes(d));
 }
 
-// ── Install: cache each asset individually so one failure doesn't abort all ──
+// ── Install: precache local assets and immediately take over ──
 self.addEventListener('install', event => {
+    self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NAME).then(async cache => {
             const results = await Promise.allSettled(
@@ -73,17 +76,17 @@ self.addEventListener('install', event => {
             );
             const failed = results.filter(r => r.status === 'rejected').length;
             if (failed > 0) console.warn(`[SW] ${failed} assets failed to cache — continuing install`);
-        }).then(() => self.skipWaiting())
+        })
     );
 });
 
-// ── Activate: remove all old caches ──
+// ── Activate: aggressively remove all previous/stale caches ──
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(keys =>
             Promise.all(keys.map(key => {
                 if (key !== CACHE_NAME) {
-                    console.log('[SW] Removing old cache:', key);
+                    console.log('[SW] Purging old cache:', key);
                     return caches.delete(key);
                 }
             }))
@@ -91,17 +94,33 @@ self.addEventListener('activate', event => {
     );
 });
 
-// ── Fetch: cache-first for local, network-only for external ──
+// ── Fetch strategy ──
 self.addEventListener('fetch', event => {
     const url = event.request.url;
 
-    // Always use network for external APIs
+    // 1. External APIs: Network only
     if (isNetworkOnly(url)) {
         event.respondWith(fetch(event.request).catch(() => new Response('', { status: 503 })));
         return;
     }
 
-    // Cache-first for local assets
+    // 2. HTML Navigation: Network-first with offline cache fallback
+    if (event.request.mode === 'navigate' || event.request.headers.get('accept')?.includes('text/html')) {
+        event.respondWith(
+            fetch(event.request)
+                .then(response => {
+                    if (response.status === 200) {
+                        const copy = response.clone();
+                        caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+                    }
+                    return response;
+                })
+                .catch(() => caches.match('./index.html'))
+        );
+        return;
+    }
+
+    // 3. Local static assets: Cache-first with network fallback
     event.respondWith(
         caches.match(event.request).then(cached => {
             if (cached) return cached;
@@ -111,15 +130,14 @@ self.addEventListener('fetch', event => {
                 }
                 return response;
             }).catch(() => {
-                if (event.request.headers.get('accept')?.includes('text/html')) {
-                    return caches.match('./index.html');
-                }
+                // Fallback if asset is missing
+                return new Response('', { status: 404 });
             });
         })
     );
 });
 
-// ── Message: skipWaiting for update banner ──
+// ── Message: skipWaiting support ──
 self.addEventListener('message', event => {
     if (event.data && event.data.action === 'skipWaiting') {
         self.skipWaiting();

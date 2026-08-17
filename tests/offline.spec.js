@@ -42,7 +42,7 @@ test.describe('Service Worker', () => {
       './icon.png',
       './13972.png',
       './style.css',
-      './sw.js',
+      './data/release.json',
       './js/app.js',
       './components/renderers.js',
       './ute/ute_storage.js',

@@ -658,7 +658,7 @@ test.describe('PWA & Offline Infrastructure', () => {
     expect(response.status()).toBe(200);
     
     const body = await response.text();
-    expect(body).toContain('busan-trip-v42-production');
+    expect(body).toContain('busan-trip-v45-production-v1');
     expect(body).toContain('install');
     expect(body).toContain('activate');
     expect(body).toContain('fetch');
