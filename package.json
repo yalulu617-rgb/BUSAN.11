@@ -16,7 +16,10 @@
     "test:webkit": "playwright test --project=webkit",
     "report": "playwright show-report",
     "serve": "serve -s . -l 8080",
-    "lint:js": "node scripts/syntax-check.js"
+    "lint:js": "node scripts/syntax-check.js",
+    "verify:fast": "playwright test --config=playwright.fast.config.js",
+    "verify:full": "playwright test --config=playwright.config.js",
+    "verify:production": "playwright test --config=playwright.production.config.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

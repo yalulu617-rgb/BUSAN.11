@@ -179,17 +179,25 @@
     };
 
     // ── Tab Navigation ────────────────────────────────────────────────────
-    window.showV37Tab = function (id, btn) {
+    window.showV37Tab = function (id, btn, options = {}) {
         try {
-            triggerHapticFeedback();
+            if (!options || options.haptic !== false) {
+                triggerHapticFeedback();
+            }
             document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => {
+                n.classList.remove('active');
+                n.setAttribute('aria-selected', 'false');
+            });
 
             // index.html uses id="guide" for the home container
             const targetId = (id === 'home') ? 'guide' : id;
             const el = document.getElementById(targetId);
             if (el) el.classList.add('active');
-            if (btn) btn.classList.add('active');
+            if (btn) {
+                btn.classList.add('active');
+                btn.setAttribute('aria-selected', 'true');
+            }
 
             // Trigger appropriate lazy initialisation per tab
             if (id === 'home' || id === 'guide') {
@@ -507,10 +515,24 @@
             console.warn('[App] togglePayerSelect error:', e);
         }
 
+        // Keyboard navigation for bottom tabs
+        try {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('keydown', e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        item.click();
+                    }
+                });
+            });
+        } catch (e) {
+            console.warn('[App] nav-item keyboard setup error:', e);
+        }
+
         // Show home tab
         try {
             const firstNavBtn = document.querySelector('.bottom-nav .nav-item');
-            showV37Tab('home', firstNavBtn);
+            showV37Tab('home', firstNavBtn, { haptic: false });
         } catch (e) {
             console.error('[App] showV37Tab initial error:', e);
         }

@@ -32,11 +32,11 @@
     <button class="btn-enter" onclick="enterApp()">進入專屬系統 <i class="fa-solid fa-plane-departure"></i></button>
 </div>
 
-<div id="pinModal">
+<div id="pinModal" role="dialog" aria-modal="true" aria-labelledby="pinTitle">
     <div class="pin-box">
-        <h3 style="color:var(--primary); margin:0 0 10px 0;"><i class="fa-solid fa-lock"></i> 私密空間解鎖</h3>
+        <h3 id="pinTitle" style="color:var(--primary); margin:0 0 10px 0;"><i class="fa-solid fa-lock" aria-hidden="true"></i> 私密空間解鎖</h3>
         <p style="font-size:0.95rem; color:#666; font-weight:700; margin-bottom:20px;" id="pinMsg">請輸入旅行專屬密碼</p>
-        <input type="password" id="pinInput" class="pin-input" maxlength="4" pattern="\d*" inputmode="numeric">
+        <input type="password" id="pinInput" class="pin-input" maxlength="4" pattern="\d*" inputmode="numeric" aria-label="輸入4位數旅行密碼">
         <div style="display:flex; gap:12px;">
             <button onclick="cancelPin()" style="flex:1; padding:15px; border-radius:16px; border:none; background:#ecf0f1; color:#7f8c8d; font-weight:900; font-size:1.05rem;">取消</button>
             <button onclick="submitPin()" style="flex:1; padding:15px; border-radius:16px; border:none; background:var(--primary); color:white; font-weight:900; font-size:1.05rem;">解鎖</button>
@@ -44,34 +44,34 @@
     </div>
 </div>
 
-<div id="lightbox">
-    <div class="lightbox-controls-left"><button class="btn-lb del" onclick="deleteCurrentPhoto()"><i class="fa-solid fa-trash"></i> 刪除</button></div>
-    <div class="lightbox-controls"><button class="btn-lb dl" onclick="downloadImage()"><i class="fa-solid fa-download"></i> 原圖</button><button class="btn-lb" onclick="closeLightbox()"><i class="fa-solid fa-xmark"></i></button></div>
-    <img id="lightbox-img" src="">
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="照片全螢幕預覽">
+    <div class="lightbox-controls-left"><button class="btn-lb del" aria-label="刪除照片" onclick="deleteCurrentPhoto()"><i class="fa-solid fa-trash" aria-hidden="true"></i> 刪除</button></div>
+    <div class="lightbox-controls"><button class="btn-lb dl" aria-label="下載原圖" onclick="downloadImage()"><i class="fa-solid fa-download" aria-hidden="true"></i> 原圖</button><button class="btn-lb" aria-label="關閉照片預覽" onclick="closeLightbox()"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div>
+    <img id="lightbox-img" src="" alt="全螢幕照片預覽">
 </div>
 
-<div id="flashcardModal" onclick="if(event.target.id === 'flashcardModal') closeFlashcard()">
+<div id="flashcardModal" role="dialog" aria-modal="true" aria-label="韓語翻譯字卡" onclick="if(event.target.id === 'flashcardModal') closeFlashcard()">
     <div class="fc-box">
         <div class="fc-tw" id="fc-tw">中文</div>
         <div class="fc-kr" id="fc-kr">韓文</div>
-        <button class="btn-action" style="margin-top:25px; width:auto; padding:12px 35px; border-radius:40px; font-size:1.2rem; box-shadow: 0 8px 25px rgba(192, 57, 43, 0.4);" onclick="event.stopPropagation(); speakKorean(document.getElementById('fc-kr').innerText)">
-            <i class="fa-solid fa-volume-high fa-beat"></i> 播放發音
+        <button class="btn-action" aria-label="播放韓語發音" style="margin-top:25px; width:auto; padding:12px 35px; border-radius:40px; font-size:1.2rem; box-shadow: 0 8px 25px rgba(192, 57, 43, 0.4);" onclick="event.stopPropagation(); speakKorean(document.getElementById('fc-kr').innerText)">
+            <i class="fa-solid fa-volume-high fa-beat" aria-hidden="true"></i> 播放發音
         </button>
-        <div style="margin-top:25px; color:#bdc3c7; font-size:0.8rem;"><i class="fa-solid fa-hand-pointer"></i> 點擊背景空白處關閉</div>
+        <div style="margin-top:25px; color:#bdc3c7; font-size:0.8rem;"><i class="fa-solid fa-hand-pointer" aria-hidden="true"></i> 點擊背景空白處關閉</div>
     </div>
 </div>
 
-<div id="profileModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10001; justify-content:center; align-items:center; backdrop-filter:blur(15px);">
+<div id="profileModal" role="dialog" aria-modal="true" aria-labelledby="profileTitle" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10001; justify-content:center; align-items:center; backdrop-filter:blur(15px);">
     <div class="pin-box">
-        <h3 style="color:var(--dora); margin:0 0 15px 0;"><i class="fa-solid fa-user-astronaut"></i> 專屬頭像與名稱設定</h3>
+        <h3 id="profileTitle" style="color:var(--dora); margin:0 0 15px 0;"><i class="fa-solid fa-user-astronaut" aria-hidden="true"></i> 專屬頭像與名稱設定</h3>
         <p style="font-size:0.85rem; color:#7f8c8d; font-weight:900; margin-top:0;">設定後將同步更新記帳本與購物車的顯示名稱。</p>
         <div class="flex-row" style="margin-bottom:10px;">
-            <input type="text" id="editU1Avatar" class="input-box" style="width:60px; text-align:center; font-size:1.5rem; padding:10px;" placeholder="👩" value="👩">
-            <input type="text" id="editU1Name" class="input-box flex-1" placeholder="名稱 (原: 溫)" value="溫">
+            <input type="text" id="editU1Avatar" class="input-box" style="width:60px; text-align:center; font-size:1.5rem; padding:10px;" placeholder="👩" value="👩" aria-label="成員一頭像">
+            <input type="text" id="editU1Name" class="input-box flex-1" placeholder="名稱 (原: 溫)" value="溫" aria-label="成員一名稱">
         </div>
         <div class="flex-row" style="margin-bottom:20px;">
-            <input type="text" id="editU2Avatar" class="input-box" style="width:60px; text-align:center; font-size:1.5rem; padding:10px;" placeholder="🦆" value="鴨">
-            <input type="text" id="editU2Name" class="input-box flex-1" placeholder="名稱 (原: 鴨)" value="鴨">
+            <input type="text" id="editU2Avatar" class="input-box" style="width:60px; text-align:center; font-size:1.5rem; padding:10px;" placeholder="🦆" value="鴨" aria-label="成員二頭像">
+            <input type="text" id="editU2Name" class="input-box flex-1" placeholder="名稱 (原: 鴨)" value="鴨" aria-label="成員二名稱">
         </div>
         <div style="display:flex; gap:12px;">
             <button onclick="document.getElementById('profileModal').style.display='none'" style="flex:1; padding:15px; border-radius:16px; border:none; background:#ecf0f1; color:#7f8c8d; font-weight:900; font-size:1.05rem;">取消</button>
@@ -80,7 +80,7 @@
     </div>
 </div>
 
-<div class="fab-back" id="fabBack" onclick="closeGuideFolder()"><i class="fa-solid fa-arrow-left"></i></div>
+<div class="fab-back" id="fabBack" role="button" tabindex="0" aria-label="返回目錄" onclick="closeGuideFolder()"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></div>
 
 <div id="mainApp">
 
@@ -462,6 +462,7 @@
             <div class="card" style="margin-bottom: 20px; background: #ffffff; border-radius: 24px; padding: 20px;">
                 <h3 class="card-title" style="font-weight: 900;"><i class="fa-solid fa-image"></i> 今日精選照片</h3>
                 <div id="todayPhotosContainer" class="photo-grid" style="margin-top: 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;"></div>
+            </div>
             <!-- 今日影片 Section -->
             <div class="card" style="margin-bottom: 12px; background: #ffffff; border-radius: 16px; padding: 12px;">
                 <h3 class="card-title" style="font-weight: 900; font-size: 0.85rem; margin-bottom: 8px;"><i class="fa-solid fa-circle-play"></i> 今日影片 / VLOG 記錄</h3>
@@ -555,12 +556,12 @@
     </div>
 
     <!-- 底部導航 -->
-    <div class="bottom-nav">
-        <div id="tab-home" class="nav-item active" onclick="showV37Tab('home', this)"><i class="fa-solid fa-house"></i>首頁/導覽</div>
-        <div id="tab-itinerary" class="nav-item" onclick="showV37Tab('itinerary', this)"><i class="fa-solid fa-calendar-days"></i>行程表</div>
-        <div id="tab-bill" class="nav-item nav-center" onclick="showV37Tab('split', this)"><i class="fa-solid fa-calculator"></i>分攤記帳</div>
-        <div id="tab-wallet" class="nav-item" onclick="showV37Tab('wallet', this)"><i class="fa-solid fa-wallet"></i>票券/錢包</div>
-        <div id="tab-more" class="nav-item" onclick="showV37Tab('more', this)"><i class="fa-solid fa-ellipsis"></i>更多功能</div>
+    <div class="bottom-nav" role="tablist" aria-label="底部主要導航選單">
+        <div id="tab-home" class="nav-item active" role="tab" tabindex="0" aria-selected="true" aria-label="首頁與全境導覽" onclick="showV37Tab('home', this)"><i class="fa-solid fa-house" aria-hidden="true"></i>首頁/導覽</div>
+        <div id="tab-itinerary" class="nav-item" role="tab" tabindex="0" aria-selected="false" aria-label="行程表" onclick="showV37Tab('itinerary', this)"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i>行程表</div>
+        <div id="tab-bill" class="nav-item nav-center" role="tab" tabindex="0" aria-selected="false" aria-label="分攤記帳" onclick="showV37Tab('split', this)"><i class="fa-solid fa-calculator" aria-hidden="true"></i>分攤記帳</div>
+        <div id="tab-wallet" class="nav-item" role="tab" tabindex="0" aria-selected="false" aria-label="票券與錢包" onclick="showV37Tab('wallet', this)"><i class="fa-solid fa-wallet" aria-hidden="true"></i>票券/錢包</div>
+        <div id="tab-more" class="nav-item" role="tab" tabindex="0" aria-selected="false" aria-label="更多功能" onclick="showV37Tab('more', this)"><i class="fa-solid fa-ellipsis" aria-hidden="true"></i>更多功能</div>
     </div>
 </div>
 

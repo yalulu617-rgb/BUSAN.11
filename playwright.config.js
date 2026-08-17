@@ -3,7 +3,14 @@ import { defineConfig, devices } from '@playwright/test';
 /**
  * BUSAN V42 Playwright Configuration
  * Full E2E testing for all browsers, responsive viewports, and offline scenarios.
+ *
+ * Server: Auto-started via webServer block (port 8080, npm run serve).
+ *         reuseExistingServer: true so manually-running servers are not killed.
+ *         Production verification uses playwright.production.config.js — no webServer there.
  */
+
+const BASE_URL = process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:8080';
+
 export default defineConfig({
   testDir: './tests',
   
@@ -28,7 +35,7 @@ export default defineConfig({
   
   use: {
     // Base URL — override with PLAYWRIGHT_TEST_BASE_URL env in CI
-    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:8080',
+    baseURL: BASE_URL,
     
     // Capture screenshot only on failure
     screenshot: 'only-on-failure',
@@ -45,6 +52,18 @@ export default defineConfig({
     // Navigation timeout
     navigationTimeout: 30000,
   },
+
+  // ── Auto-start dev server ──────────────────────────────────────────────────
+  // Only active when running against localhost (not a remote/production URL).
+  // Set PLAYWRIGHT_TEST_BASE_URL=https://... to bypass this and hit the real site.
+  webServer: BASE_URL.includes('localhost') ? {
+    command: 'npm run serve',
+    url: 'http://localhost:8080',
+    timeout: 30000,
+    reuseExistingServer: true,
+    stdout: 'pipe',
+    stderr: 'pipe',
+  } : undefined,
 
   projects: [
     // ── Desktop Browsers ───────────────────────────────────

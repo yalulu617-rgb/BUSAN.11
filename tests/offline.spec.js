@@ -7,17 +7,8 @@ import { test, expect } from '@playwright/test';
  *        LocalStorage, IndexedDB availability, offline ticket/hotel access.
  */
 
-async function bootApp(page) {
-  await page.goto('/');
-  await page.waitForSelector('#splash, #mainApp', { timeout: 15000 });
-  const splash = page.locator('#splash');
-  if (await splash.isVisible().catch(() => false)) {
-    const enterBtn = page.locator('.btn-enter');
-    if (await enterBtn.isVisible()) await enterBtn.click();
-  }
-  await page.waitForSelector('#mainApp', { state: 'visible', timeout: 10000 });
-  await page.waitForTimeout(1000); // allow SW registration
-}
+import { bootApp } from './helpers/boot.js';
+
 
 // ── Service Worker ────────────────────────────────────────────────────────────
 test.describe('Service Worker', () => {

@@ -3,7 +3,9 @@ node_modules/
 
 # Playwright test output
 playwright-report/
+playwright-report-fast/
 test-results/
+test-results-fast/
 *.png
 !icon.png
 !13972.png

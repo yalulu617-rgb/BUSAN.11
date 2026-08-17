@@ -47,7 +47,16 @@ window.getMapLinks = function(address) {
 };
 
 window.triggerHapticFeedback = function() {
-    if (navigator.vibrate) navigator.vibrate(15);
+    if (navigator.vibrate) {
+        if (navigator.userActivation && !navigator.userActivation.hasBeenActive) {
+            return;
+        }
+        try {
+            navigator.vibrate(15);
+        } catch (e) {
+            // Silently ignore if blocked by browser policy
+        }
+    }
 };
 
 window.copyWiFi = function(str) {
