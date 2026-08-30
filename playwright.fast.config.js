@@ -65,6 +65,7 @@ export default defineConfig({
         '**/critical.spec.js',
         '**/travel.spec.js',
         '**/main.spec.js',
+        '**/content_regression.spec.js',
       ],
     },
   ],

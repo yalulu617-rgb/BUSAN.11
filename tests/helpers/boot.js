@@ -33,7 +33,7 @@
  * @param {import('@playwright/test').Page} page
  */
 export async function bootApp(page) {
-  await page.goto('/');
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
 
   // Phase 1: Wait for the app to signal readiness via one of two selectors.
   // #mainApp    → app already auto-booted (fast path, no click needed)
@@ -102,6 +102,6 @@ export async function bootApp(page) {
  * @param {number} [timeout=12000]
  */
 export async function waitForApp(page, timeout = 12000) {
-  await page.goto('/');
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('#mainApp', { state: 'visible', timeout });
 }

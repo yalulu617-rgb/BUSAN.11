@@ -30,7 +30,7 @@ test.describe('Boot Helper Smoke Test', () => {
 
   test('bootApp helper is idempotent when app already auto-booted', async ({ page }) => {
     // Navigate manually and wait for auto-boot
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     // Wait for the 2.5s auto-boot to definitely have fired
     await page.waitForSelector('#mainApp', { state: 'visible', timeout: 8000 });
 

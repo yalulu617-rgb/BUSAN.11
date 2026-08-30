@@ -12,7 +12,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Travel Knowledge & Itinerary Safety Verification', () => {
 
   test('Thrill On The Mug is marked UNSAFE in itinerary and data files', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     const unsafeStatus = await page.evaluate(() => {
       const recStr = JSON.stringify(window.RECOMMENDED_ITINERARY || {});
@@ -26,7 +26,7 @@ test.describe('Travel Knowledge & Itinerary Safety Verification', () => {
   });
 
   test('Foot Bath Cafe View 2 (족욕카페뷰 2호점) has verified details', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     const footBathDetails = await page.evaluate(() => {
       const recStr = JSON.stringify(window.RECOMMENDED_ITINERARY || {});
@@ -44,7 +44,7 @@ test.describe('Travel Knowledge & Itinerary Safety Verification', () => {
   });
 
   test('All day 1-5 itineraries have valid places and non-empty transport tips', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     const itineraryValid = await page.evaluate(() => {
       const iti = window.RECOMMENDED_ITINERARY || [];

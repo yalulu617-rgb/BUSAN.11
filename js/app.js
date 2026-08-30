@@ -15,32 +15,35 @@
 (function () {
 
     // ── Global State ──────────────────────────────────────────────────────
-    window.hotelData        = {};
-    window.u1               = { key: 'user1', name: '溫', avatar: '👩' };
-    window.u2               = { key: 'user2', name: '鴨', avatar: '🦆' };
+    window.hotelData        = window.hotelData || {};
+    window.u1               = window.u1 || { key: 'user1', name: '溫', avatar: '👩' };
+    window.u2               = window.u2 || { key: 'user2', name: '鴨', avatar: '🦆' };
     window.deviceOwner      = StorageEngine.get('busan_v36_owner', 'user1').data;
     window.liveKrwToTwd     = parseFloat(StorageEngine.get('busan_v36_live_rate', 0.024).data) || 0.024;
     window.v37SimulatedDate = StorageEngine.get('busan_v37_simulated_date', 'real').data;
     window.currentLightboxUrl = '';
     window.currentLightboxKey = '';
-    window.voiceData        = [];
-    window.prepData         = [];
-    window.privateBills     = StorageEngine.get('busan_v36_p_bills', []).data;
-    window.sharedBills      = [];
+    window.voiceData        = (Array.isArray(window.voiceData) && window.voiceData.length > 0) ? window.voiceData : (StorageEngine.get('busan_v36_voice', []).data || []);
+    window.prepData         = (Array.isArray(window.prepData) && window.prepData.length > 0) ? window.prepData : (StorageEngine.get('busan_v36_prepData', []).data || []);
+    window.privateBills     = StorageEngine.get('busan_v36_p_bills', []).data || [];
+    window.sharedBills      = window.sharedBills || [];
     window.currentBillTab   = '公費';
     window.currentShopSubTab  = 'my';
     window.currentFoodSubTab  = 'my';
     window.currentRecShopFilter = 'ALL';
-    window.ticketData       = [];
-    window.itineraryData    = [];
+    window.ticketData       = (Array.isArray(window.ticketData) && window.ticketData.length > 0) ? window.ticketData : (StorageEngine.get('busan_v36_tickets', []).data || []);
+    window.itineraryData    = (Array.isArray(window.itineraryData) && window.itineraryData.length > 0) ? window.itineraryData : (StorageEngine.get('busan_v36_itinerary', []).data || []);
+    if (!window.itineraryData || window.itineraryData.length === 0) {
+        window.itineraryData = window.RECOMMENDED_ITINERARY || [];
+    }
     window.currentFilterDay = '11/13';
     window.editingItiKey    = null;
-    window.shopList         = [];
+    window.shopList         = (Array.isArray(window.shopList) && window.shopList.length > 0) ? window.shopList : (StorageEngine.get('busan_v36_shopList', []).data || []);
     window.currentShopOwner = 'user1';
-    window.guideData        = [];
+    window.guideData        = (Array.isArray(window.guideData) && window.guideData.length > 0) ? window.guideData : (StorageEngine.get('busan_v36_guide', []).data || []);
     window.currentGuideTab  = '打卡景點';
     window.editingGuideKey  = null;
-    window.photoList        = [];
+    window.photoList        = window.photoList || [];
     window.isSyncing        = false;
     window.folderMapping    = {
         '工具': [],
@@ -56,6 +59,7 @@
     // ── PWA Service Worker ────────────────────────────────────────────────
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
+            const hadController = !!navigator.serviceWorker.controller;
             navigator.serviceWorker.register('sw.js').then(reg => {
                 if (reg.waiting) _showSwUpdateBanner(reg.waiting);
                 reg.addEventListener('updatefound', () => {
@@ -70,19 +74,24 @@
 
             let refreshing = false;
             navigator.serviceWorker.addEventListener('controllerchange', () => {
-                if (!refreshing) { refreshing = true; window.location.reload(); }
+                if (hadController && !refreshing) {
+                    refreshing = true;
+                    window.location.reload();
+                }
             });
         });
     }
 
     function _showSwUpdateBanner(worker) {
+        if (document.getElementById('swUpdateBanner')) return;
         const d = document.createElement('div');
-        d.style.cssText = 'position:fixed;bottom:80px;right:16px;background:#2c3e50;color:#fff;' +
-            'padding:10px 14px;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,.25);' +
-            'z-index:9999;display:flex;gap:10px;align-items:center;font-size:.82rem;font-weight:700;';
-        d.innerHTML = '<span>發現新版，立即更新</span>' +
+        d.id = 'swUpdateBanner';
+        d.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#2c3e50;color:#fff;' +
+            'padding:10px 18px;border-radius:20px;box-shadow:0 8px 25px rgba(0,0,0,.35);' +
+            'z-index:9999;display:flex;gap:12px;align-items:center;font-size:.85rem;font-weight:700;white-space:nowrap;';
+        d.innerHTML = '<span>🚀 發現新版，立即更新</span>' +
             '<button id="swUpdateBtn" style="background:#2ecc71;border:none;color:#fff;' +
-            'padding:4px 10px;border-radius:8px;cursor:pointer;font-weight:700;">更新</button>';
+            'padding:6px 14px;border-radius:12px;cursor:pointer;font-weight:900;">更新</button>';
         document.body.appendChild(d);
         document.getElementById('swUpdateBtn').onclick = () => {
             worker.postMessage({ action: 'skipWaiting' });
@@ -197,6 +206,12 @@
             if (btn) {
                 btn.classList.add('active');
                 btn.setAttribute('aria-selected', 'true');
+            }
+
+            // Hide fabBack when switching away from guide
+            if (id !== 'home' && id !== 'guide') {
+                const fab = document.getElementById('fabBack');
+                if (fab) fab.style.display = 'none';
             }
 
             // Trigger appropriate lazy initialisation per tab
@@ -394,7 +409,9 @@
             NetworkEngine.firebaseOn(DB_BILLS, snap => {
                 try {
                     window.sharedBills = [];
-                    snap.forEach(ch => window.sharedBills.push({ ...ch.val(), key: ch.key }));
+                    if (snap && typeof snap.forEach === 'function') {
+                        snap.forEach(ch => { window.sharedBills.push({ ...ch.val(), key: ch.key }); });
+                    }
                     if (typeof renderBills === 'function') renderBills();
                     if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
                 } catch (e) { console.error('[FirebaseOn DB_BILLS]', e); }
@@ -402,9 +419,12 @@
 
             NetworkEngine.firebaseOn(DB_SHOP, snap => {
                 try {
-                    window.shopList = [];
-                    snap.forEach(ch => window.shopList.push({ ...ch.val(), key: ch.key }));
-                    if (window.shopList.length > 0) {
+                    const loaded = [];
+                    if (snap && typeof snap.forEach === 'function') {
+                        snap.forEach(ch => { loaded.push({ ...ch.val(), key: ch.key }); });
+                    }
+                    if (loaded.length > 0) {
+                        window.shopList = loaded;
                         StorageEngine.set('busan_v36_shopList', window.shopList);
                     }
                     if (typeof renderShop === 'function') renderShop();
@@ -413,8 +433,14 @@
 
             NetworkEngine.firebaseOn(DB_GUIDE, snap => {
                 try {
-                    window.guideData = [];
-                    snap.forEach(ch => window.guideData.push({ ...ch.val(), key: ch.key }));
+                    const loaded = [];
+                    if (snap && typeof snap.forEach === 'function') {
+                        snap.forEach(ch => { loaded.push({ ...ch.val(), key: ch.key }); });
+                    }
+                    if (loaded.length > 0) {
+                        window.guideData = loaded;
+                        StorageEngine.set('busan_v36_guide', window.guideData);
+                    }
                     if (typeof renderGuideContent === 'function') renderGuideContent();
                 } catch (e) { console.error('[FirebaseOn DB_GUIDE]', e); }
             });
@@ -422,17 +448,32 @@
             NetworkEngine.firebaseOn(DB_PHOTOS, snap => {
                 try {
                     window.photoList = [];
-                    snap.forEach(ch => window.photoList.push({ ...ch.val(), key: ch.key }));
+                    if (snap && typeof snap.forEach === 'function') {
+                        snap.forEach(ch => { window.photoList.push({ ...ch.val(), key: ch.key }); });
+                    }
                     if (typeof renderMemoryAlbum === 'function') renderMemoryAlbum();
                 } catch (e) { console.error('[FirebaseOn DB_PHOTOS]', e); }
             });
 
             NetworkEngine.firebaseOn(DB_ITI, snap => {
                 try {
-                    window.itineraryData = [];
-                    snap.forEach(ch => window.itineraryData.push({ ...ch.val(), key: ch.key }));
-                    if (window.itineraryData.length > 0) {
+                    const loaded = [];
+                    if (snap && typeof snap.forEach === 'function') {
+                        snap.forEach(ch => { loaded.push({ ...ch.val(), key: ch.key }); });
+                    }
+                    if (loaded.length > 0) {
+                        window.itineraryData = loaded;
                         StorageEngine.set('busan_v36_itinerary', window.itineraryData);
+                    } else {
+                        // Do NOT wipe out existing itineraryData if snapshot is empty
+                        if (!window.itineraryData || window.itineraryData.length === 0) {
+                            const cached = StorageEngine.get('busan_v36_itinerary');
+                            if (cached && cached.success && Array.isArray(cached.data) && cached.data.length > 0) {
+                                window.itineraryData = cached.data;
+                            } else if (window.RECOMMENDED_ITINERARY && window.RECOMMENDED_ITINERARY.length > 0) {
+                                window.itineraryData = window.RECOMMENDED_ITINERARY;
+                            }
+                        }
                     }
                     if (typeof renderItinerary === 'function') renderItinerary();
                     if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
@@ -441,9 +482,12 @@
 
             NetworkEngine.firebaseOn(DB_PREP, snap => {
                 try {
-                    window.prepData = [];
-                    snap.forEach(ch => window.prepData.push({ ...ch.val(), key: ch.key }));
-                    if (window.prepData.length > 0) {
+                    const loaded = [];
+                    if (snap && typeof snap.forEach === 'function') {
+                        snap.forEach(ch => { loaded.push({ ...ch.val(), key: ch.key }); });
+                    }
+                    if (loaded.length > 0) {
+                        window.prepData = loaded;
                         StorageEngine.set('busan_v36_prepData', window.prepData);
                     }
                     if (typeof renderPrepList === 'function') renderPrepList();
@@ -453,16 +497,28 @@
 
             NetworkEngine.firebaseOn(DB_TICKETS, snap => {
                 try {
-                    window.ticketData = [];
-                    snap.forEach(ch => window.ticketData.push({ ...ch.val(), key: ch.key }));
+                    const loaded = [];
+                    if (snap && typeof snap.forEach === 'function') {
+                        snap.forEach(ch => { loaded.push({ ...ch.val(), key: ch.key }); });
+                    }
+                    if (loaded.length > 0) {
+                        window.ticketData = loaded;
+                        StorageEngine.set('busan_v36_tickets', window.ticketData);
+                    }
                     if (typeof renderTickets_LogicOnly === 'function') renderTickets_LogicOnly();
                 } catch (e) { console.error('[FirebaseOn DB_TICKETS]', e); }
             });
 
             NetworkEngine.firebaseOn(DB_VOICE, snap => {
                 try {
-                    window.voiceData = [];
-                    snap.forEach(ch => window.voiceData.push({ ...ch.val(), key: ch.key }));
+                    const loaded = [];
+                    if (snap && typeof snap.forEach === 'function') {
+                        snap.forEach(ch => { loaded.push({ ...ch.val(), key: ch.key }); });
+                    }
+                    if (loaded.length > 0) {
+                        window.voiceData = loaded;
+                        StorageEngine.set('busan_v36_voice', window.voiceData);
+                    }
                     if (typeof renderVoiceList === 'function') renderVoiceList();
                 } catch (e) { console.error('[FirebaseOn DB_VOICE]', e); }
             });
@@ -527,6 +583,21 @@
             });
         } catch (e) {
             console.warn('[App] nav-item keyboard setup error:', e);
+        }
+
+        // Keyboard navigation for fab-back
+        try {
+            const fabBack = document.getElementById('fabBack');
+            if (fabBack) {
+                fabBack.addEventListener('keydown', e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        if (typeof closeGuideFolder === 'function') closeGuideFolder();
+                    }
+                });
+            }
+        } catch (e) {
+            console.warn('[App] fabBack keyboard setup error:', e);
         }
 
         // Show home tab

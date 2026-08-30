@@ -19,6 +19,8 @@
     "lint:js": "node scripts/syntax-check.js",
     "verify:fast": "playwright test --config=playwright.fast.config.js",
     "verify:full": "playwright test --config=playwright.config.js",
+    "verify:content": "playwright test tests/content_regression.spec.js",
+    "verify:runtime": "node scripts/verify_runtime.js",
     "verify:production": "playwright test --config=playwright.production.config.js"
   },
   "devDependencies": {

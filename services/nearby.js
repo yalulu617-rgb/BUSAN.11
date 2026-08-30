@@ -3,6 +3,10 @@
 // ─────────────────────────────────────────────────────────────────────────
 
 window.fetchSmartNearbyPlaces = async function(cityId) {
+    const key = (cityId || 'Busan').toLowerCase() === 'gyeongju' ? 'Gyeongju' : 'Busan';
+    if (window.SMART_NEARBY_DATABASE && window.SMART_NEARBY_DATABASE[key]) {
+        return window.SMART_NEARBY_DATABASE[key];
+    }
     try {
         // Fetch recommendations from data files
         const res = await fetch('data/places.json');
@@ -27,6 +31,9 @@ window.fetchSmartNearbyPlaces = async function(cityId) {
         });
     } catch (err) {
         console.warn("Places API error, falling back to local list:", err);
+        if (window.SMART_NEARBY_DATABASE && window.SMART_NEARBY_DATABASE[key]) {
+            return window.SMART_NEARBY_DATABASE[key];
+        }
         // Local Fallback list
         const fallbackList = [
             { type: '🚇 地鐵', name: '凡內谷地鐵站 (6號出口)', dist: 100, rate: 4.5, status: '營業中', naver: 'https://map.naver.com/p/entry/place/13479629', kakao: 'https://map.kakao.com/?id=21160751', google: 'https://maps.app.goo.gl/beameom' },

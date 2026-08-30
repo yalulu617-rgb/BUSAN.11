@@ -29,7 +29,7 @@ test.describe('Homepage & Splash Screen', () => {
   
   test('Page loads with correct title', async ({ page }) => {
     const errors = collectErrors(page);
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('domcontentloaded');
     
     const title = await page.title();
@@ -47,14 +47,14 @@ test.describe('Homepage & Splash Screen', () => {
   });
 
   test('Splash screen is visible on first load', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     const splash = page.locator('#splash');
     await expect(splash).toBeVisible({ timeout: 5000 });
     await expect(page.locator('#splash h1')).toContainText('2026 BUSAN');
   });
 
   test('Enter button exists and clicking it shows mainApp', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     const enterBtn = page.locator('.btn-enter');
     await expect(enterBtn).toBeAttached({ timeout: 5000 });
     if (await enterBtn.isVisible()) {
@@ -64,7 +64,7 @@ test.describe('Homepage & Splash Screen', () => {
   });
 
   test('Safety fallback boots app within 3 seconds without clicking Enter', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     // Wait up to 3.5 seconds — forceShowApp has 1.2s delay + 300ms fade
     await page.waitForSelector('#mainApp', { state: 'visible', timeout: 3500 });
     await expect(page.locator('#mainApp')).toBeVisible();
@@ -78,7 +78,7 @@ test.describe('Homepage & Splash Screen', () => {
       }
     });
     
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await page.waitForLoadState('networkidle').catch(() => {});
     
     // Verify the image file is accessible

@@ -25,6 +25,19 @@ window.toggleCityDetailPanel = function () {
 // ── Guide tab filter ───────────────────────────────────────────────────────
 window.filterGuideContent = function (tab) {
     window.currentGuideTab = tab;
+    const foodTabs = document.getElementById('foodSubTabs');
+    if (foodTabs) {
+        foodTabs.style.display = (tab === '必吃美食') ? 'flex' : 'none';
+    }
+    if (tab === '必吃美食') {
+        const myFoodItems = (window.guideData || []).filter(g => g.type === '必吃美食');
+        if (myFoodItems.length === 0) {
+            setFoodTabMode('rec');
+            return;
+        }
+    } else {
+        setFoodTabMode('my');
+    }
     if (typeof renderGuideContent === 'function') renderGuideContent();
 };
 
@@ -175,7 +188,7 @@ window.addVoiceCard = async function () {
     const kr   = krEl?.value?.trim();
     if (!tw || !kr) { showToast('請填入中文與韓文', 'warning'); return; }
     try {
-        await NetworkEngine.firebasePush(DB_VOICE, { title: tw, korean: kr, roman: '', ts: Date.now() });
+        await NetworkEngine.firebasePush(DB_VOICE, { tw, kr, title: tw, korean: kr, icon: 'fa-ear-listen', roman: '', ts: Date.now() });
     } catch (e) {
         console.error('[Renderers] addVoiceCard failed:', e);
         showToast('字卡新增失敗', 'error');
@@ -566,8 +579,14 @@ window.renderSmartNearby = function() {
     });
 };
 
+window.filterShopOwner = function(owner) {
+    window.currentShopOwner = owner;
+    renderShop();
+};
+
 window.renderShop = function() {
     const list = document.getElementById('sList');
+    const tabsUI = document.getElementById('shopTabsUI');
     if (!list) return;
     list.innerHTML = '';
     
@@ -577,6 +596,35 @@ window.renderShop = function() {
         if (localData && localData.success && Array.isArray(localData.data) && localData.data.length > 0) {
             displayList = localData.data;
             window.shopList = displayList;
+        }
+    }
+    
+    // Inject owner tabs if shopTabsUI exists
+    if (tabsUI) {
+        const u1Active = window.currentShopOwner === 'user1' ? 'active' : '';
+        const u2Active = window.currentShopOwner === 'user2' ? 'active' : '';
+        tabsUI.innerHTML = `
+            <button class="day-tab ${u1Active}" onclick="filterShopOwner('user1')">${window.u1?.avatar || '👩'} ${window.u1?.name || '溫'}</button>
+            <button class="day-tab ${u2Active}" onclick="filterShopOwner('user2')">${window.u2?.avatar || '🦆'} ${window.u2?.name || '鴨'}</button>
+        `;
+    }
+    
+    // If the currently selected owner has 0 items, but the other owner has items, auto-select the owner with items
+    if (displayList.length > 0) {
+        const currentFiltered = displayList.filter(s => s.owner === (window.currentShopOwner || 'user1'));
+        if (currentFiltered.length === 0) {
+            const alternateOwner = displayList.find(s => s.owner)?.owner;
+            if (alternateOwner) {
+                window.currentShopOwner = alternateOwner;
+                if (tabsUI) {
+                    const u1Active = window.currentShopOwner === 'user1' ? 'active' : '';
+                    const u2Active = window.currentShopOwner === 'user2' ? 'active' : '';
+                    tabsUI.innerHTML = `
+                        <button class="day-tab ${u1Active}" onclick="filterShopOwner('user1')">${window.u1?.avatar || '👩'} ${window.u1?.name || '溫'}</button>
+                        <button class="day-tab ${u2Active}" onclick="filterShopOwner('user2')">${window.u2?.avatar || '🦆'} ${window.u2?.name || '鴨'}</button>
+                    `;
+                }
+            }
         }
     }
     
@@ -801,18 +849,33 @@ window.renderVoiceList = function() {
     if (!list) return;
     list.innerHTML = '';
     
-    if ((window.voiceData || []).length === 0) {
+    let displayList = window.voiceData || [];
+    if (displayList.length === 0) {
+        const localData = StorageEngine.get('busan_v36_voice');
+        if (localData && localData.success && Array.isArray(localData.data) && localData.data.length > 0) {
+            displayList = localData.data;
+            window.voiceData = displayList;
+        }
+    }
+    
+    if (displayList.length === 0) {
         list.innerHTML = '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:15px 0;">尚無常用韓語發音紀錄</p>';
         return;
     }
     
-    (window.voiceData || []).forEach(v => {
+    const esc = s => String(s || '').replace(/'/g, "\\'");
+    displayList.forEach(v => {
+        const twText = v.tw ?? v.title ?? '';
+        const krText = v.kr ?? v.korean ?? '';
+        const icon = v.icon ? (v.icon.startsWith('fa-') ? v.icon : `fa-${v.icon}`) : 'fa-ear-listen';
+        const roman = v.roman || '';
+        const audio = v.audio || '';
         list.innerHTML += `
-            <div class="voice-card card" onclick="event.stopPropagation(); openCardLightbox('${v.title}', '${v.korean}', '${v.roman}', '${v.audio || ''}')">
+            <div class="voice-card card" onclick="event.stopPropagation(); openCardLightbox('${esc(twText)}', '${esc(krText)}', '${esc(roman)}', '${esc(audio)}')">
                 <button class="del-voice" onclick="event.stopPropagation(); deleteVoice('${v.key}')"><i class="fa-solid fa-xmark"></i></button>
-                <i class="fa-solid fa-ear-listen"></i>
-                <span>${v.title}</span>
-                <b>${v.korean}</b>
+                <i class="fa-solid ${icon}"></i>
+                <span>${twText}</span>
+                <b>${krText}</b>
             </div>
         `;
     });
@@ -1021,30 +1084,48 @@ window.selectGuideSubTab = function(btn, tab) {
 };
 
 window.openGuideFolder = function(folderName) {
-    document.getElementById('guideDashboard').style.display = 'none';
-    document.getElementById('guideDetail').style.display = 'block';
-    if(folderName === '工具') {
-        document.getElementById('toolSection').style.display = 'block'; 
-        document.getElementById('guideSection').style.display = 'none'; 
-        document.getElementById('guideSubTabs').style.display = 'none';
+    const dash = document.getElementById('guideDashboard');
+    const detail = document.getElementById('guideDetail');
+    const fab = document.getElementById('fabBack');
+    if (dash) dash.style.display = 'none';
+    if (detail) detail.style.display = 'block';
+    if (fab) fab.style.display = 'flex';
+
+    if (folderName === '工具') {
+        const tool = document.getElementById('toolSection');
+        const guide = document.getElementById('guideSection');
+        const subtabs = document.getElementById('guideSubTabs');
+        if (tool) tool.style.display = 'block';
+        if (guide) guide.style.display = 'none';
+        if (subtabs) subtabs.style.display = 'none';
     } else {
-        document.getElementById('toolSection').style.display = 'none'; 
-        document.getElementById('guideSection').style.display = 'block'; 
-        document.getElementById('guideSubTabs').style.display = 'flex';
-        const tabsContainer = document.getElementById('guideSubTabs'); 
-        tabsContainer.innerHTML = '';
-        folderMapping[folderName].forEach((tab, index) => {
-            let btn = document.createElement('button'); 
-            btn.className = `day-tab ${index === 0 ? 'active' : ''}`; 
-            btn.innerText = tab;
-            btn.setAttribute('onclick', `selectGuideSubTab(this, '${tab}')`);
-            tabsContainer.appendChild(btn);
-        });
-        filterGuideContent(folderMapping[folderName][0]);
+        const tool = document.getElementById('toolSection');
+        const guide = document.getElementById('guideSection');
+        const tabsContainer = document.getElementById('guideSubTabs');
+        if (tool) tool.style.display = 'none';
+        if (guide) guide.style.display = 'block';
+        if (tabsContainer) {
+            tabsContainer.style.display = 'flex';
+            tabsContainer.innerHTML = '';
+            if (window.folderMapping && window.folderMapping[folderName]) {
+                window.folderMapping[folderName].forEach((tab, index) => {
+                    let btn = document.createElement('button');
+                    btn.className = `day-tab ${index === 0 ? 'active' : ''}`;
+                    btn.innerText = tab;
+                    btn.setAttribute('onclick', `selectGuideSubTab(this, '${tab}')`);
+                    tabsContainer.appendChild(btn);
+                });
+                filterGuideContent(window.folderMapping[folderName][0]);
+            }
+        }
     }
 };
 
 window.closeGuideFolder = function() {
-    document.getElementById('guideDashboard').style.display = 'block';
-    document.getElementById('guideDetail').style.display = 'none';
+    const dash = document.getElementById('guideDashboard');
+    const detail = document.getElementById('guideDetail');
+    const fab = document.getElementById('fabBack');
+    if (dash) dash.style.display = 'block';
+    if (detail) detail.style.display = 'none';
+    if (fab) fab.style.display = 'none';
 };

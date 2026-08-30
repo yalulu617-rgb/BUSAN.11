@@ -183,7 +183,7 @@ body {
         .folder-card i { font-size: 2.5rem; margin-bottom: 15px; background: -webkit-linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .folder-card h3 { margin: 0; font-size: 1.1rem; color: var(--text-color); font-weight: 900; }
         
-        .fab-back { position: fixed; bottom: 100px; right: 20px; background: rgba(255,255,255,0.95); color: var(--primary); border: 2px solid var(--primary); width: 55px; height: 55px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; box-shadow: 0 10px 25px rgba(192,57,43,0.3); z-index: 1999; cursor: pointer; backdrop-filter: blur(10px); transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: none;}
+        .fab-back { position: fixed; bottom: 100px; right: 20px; background: rgba(255,255,255,0.95); color: var(--primary); border: 2px solid var(--primary); width: 55px; height: 55px; border-radius: 50%; display: none; justify-content: center; align-items: center; font-size: 1.5rem; box-shadow: 0 10px 25px rgba(192,57,43,0.3); z-index: 1999; cursor: pointer; backdrop-filter: blur(10px); transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         
         .prep-list { display: flex; flex-direction: column; gap: 10px; }
         .prep-item { background: rgba(255,255,255,0.9); padding: 15px; border-radius: 16px; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #eee; transition: 0.2s; cursor:pointer;}

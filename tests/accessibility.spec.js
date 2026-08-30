@@ -101,7 +101,7 @@ test.describe('Accessibility: Readable Font Sizes', () => {
 test.describe('Accessibility: Keyboard Navigation', () => {
 
   test('Enter key on splash button triggers app boot', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('.btn-enter', { state: 'visible', timeout: 10000 });
     
     const enterBtn = page.locator('.btn-enter');

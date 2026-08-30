@@ -24,8 +24,16 @@ test.describe('Critical UI Validation', () => {
     await expect(page.locator('#mainApp')).toBeVisible();
   });
 
+  test('Enter button is clickable immediately without timeout', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    const splash = page.locator('#splash');
+    await expect(splash).toBeAttached();
+    // Splash contains title and enter button
+    await expect(page.locator('#splash h1')).toContainText('2026 BUSAN');
+  });
+
   test('Doraemon splash screen is rendered on first load', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
     const splash = page.locator('#splash');
     await expect(splash).toBeAttached();
     // Splash contains title and enter button
