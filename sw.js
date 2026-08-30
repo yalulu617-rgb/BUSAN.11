@@ -8,7 +8,7 @@
 // - Cache-first with network fallback for local static assets
 // ─────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'busan-trip-v45-production-v1';
+const CACHE_NAME = 'busan-trip-v45-production-v2';
 
 const LOCAL_ASSETS = [
     './',
