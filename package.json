@@ -18,6 +18,7 @@
     "serve": "serve -s . -l 8080",
     "lint:js": "node scripts/syntax-check.js",
     "verify:fast": "playwright test --config=playwright.fast.config.js",
+    "verify:travel-content": "node scripts/verify_travel_content.js",
     "verify:full": "playwright test --config=playwright.config.js",
     "verify:content": "playwright test tests/content_regression.spec.js",
     "verify:runtime": "node scripts/verify_runtime.js",

@@ -8,7 +8,7 @@
 // - Cache-first with network fallback for local static assets
 // ─────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'busan-trip-v45-production-v2';
+const CACHE_NAME = 'busan-trip-v45-production-v3';
 
 const LOCAL_ASSETS = [
     './',
@@ -19,6 +19,7 @@ const LOCAL_ASSETS = [
     './style.css',
     './data/release.json',
     './data/recommended.js',
+    './data/travel-content.js',
     './data/places.json',
     './data/restaurants.json',
     './data/hotels.json',
