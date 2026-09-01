@@ -216,7 +216,7 @@ test.describe('Wallet (Ticket / Hotel / Docs / Coupon / Memory)', () => {
   test('Wallet header renders', async ({ page }) => {
     await expect(page.locator('#wallet .card').first()).toBeVisible();
     const walletTitle = page.locator('#wallet h3').first();
-    await expect(walletTitle).toContainText('Travel Wallet');
+    await expect(walletTitle).toContainText('票券住宿');
   });
 
   test('All 5 wallet sub-tabs are clickable', async ({ page }) => {
