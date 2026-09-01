@@ -79,7 +79,12 @@ const TripContextEngine = {
     
     const navigation = NavigationEngine.calculateNavigation(todayItinerary, nextDestination, currentCity);
     const uncompletedPreps = prepData.filter(p => !p.done);
-    
+
+    const canonical = (typeof window !== "undefined" && window.TRAVEL_CONTENT_V45) || (typeof globalThis !== "undefined" && globalThis.TRAVEL_CONTENT_V45) || {};
+    const dayToRainKey = { '11/14': 'day2', '11/15': 'day3', '11/16': 'day4' };
+    const rainPlanKey = dayToRainKey[dateStr];
+    const todayRainPlan = rainPlanKey && canonical.rainPlans ? canonical.rainPlans[rainPlanKey] : null;
+
     this.tripContext = {
       currentDate,
       currentDay,
@@ -90,6 +95,8 @@ const TripContextEngine = {
       currentWeather,
       currentOutfit,
       todayItinerary,
+      todayRainPlan,
+      rainPhrases: canonical.rainPlans ? canonical.rainPlans.phrases : [],
       nextDestination,
       budget,
       navigation,

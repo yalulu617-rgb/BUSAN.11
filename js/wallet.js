@@ -255,8 +255,39 @@ window.renderTickets_LogicOnly = function() {
         }
     });
     
+    const canonical = (typeof window !== "undefined" && window.TRAVEL_CONTENT_V45) || (typeof globalThis !== "undefined" && globalThis.TRAVEL_CONTENT_V45) || {};
+    const canonicalSummaryHtml = `
+        <div class="card fade-scale-in" style="background: linear-gradient(135deg, #1a252f, #2c3e50) !important; color:#ffffff !important; border-radius: 20px; padding: 16px; margin-bottom: 16px; border-left: 6px solid #f1c40f; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <span style="font-weight:900; font-size:1.05rem; color:#f1c40f;"><i class="fa-solid fa-plane-departure"></i> 本次旅程資訊</span>
+                <span class="v38-badge" style="background:#f1c40f; color:#2c3e50; font-weight:900; font-size:0.68rem; padding:3px 8px;">官方行程手帳</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px; font-size:0.82rem; line-height:1.5; color:#f8f9fa;">
+                <div style="background:rgba(255,255,255,0.08); padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.12);">
+                    ✈️ <b style="color:#ffffff;">去程航班：</b><span style="color:#f5cd79; font-weight:900;">${canonical.flights?.outbound?.flightNo || 'BX572'}</span> (${canonical.flights?.outbound?.airline || '釜山航空'})<br>
+                    <span style="font-size:0.75rem; color:#dfe4ea; margin-left:22px;">11/13 TPE 13:25 → PUS 17:00 (含託運 15kg)</span>
+                </div>
+                <div style="background:rgba(255,255,255,0.08); padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.12);">
+                    ✈️ <b style="color:#ffffff;">回程航班：</b><span style="color:#f5cd79; font-weight:900;">${canonical.flights?.return?.flightNo || 'KE2085'}</span> (${canonical.flights?.return?.airline || '大韓航空'})<br>
+                    <span style="font-size:0.75rem; color:#dfe4ea; margin-left:22px;">11/17 PUS 14:50 → TPE 16:30 (含託運 23kg)</span>
+                </div>
+                <div style="background:rgba(255,255,255,0.08); padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.12);">
+                    🏨 <b style="color:#ffffff;">住宿飯店：</b><span style="color:#ffffff; font-weight:800;">${canonical.hotel?.nameTW || '城市律動飯店'}</span><br>
+                    <span style="font-size:0.75rem; color:#dfe4ea; margin-left:22px;">西面商圈 · 凡內谷站 6 號出口步行 3 分鐘 (11/13~11/17 共4晚)</span>
+                </div>
+                <div style="background:rgba(255,255,255,0.08); padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.12);">
+                    🎫 <b style="color:#ffffff;">觀光通票：</b><span style="color:#54a0ff; font-weight:900;">Visit Busan Pass (${canonical.visitBusanPass?.recommendedPlan || 'BIG3 Mobile'})</span><br>
+                    <span style="font-size:0.75rem; color:#dfe4ea; margin-left:22px;">45,000 KRW · 包含 1 個 A 組 (X the SKY / Spa Land) + 2 個 B 組</span>
+                </div>
+            </div>
+        </div>
+        <div style="font-weight:900; font-size:0.95rem; color:var(--primary); margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+            <i class="fa-solid fa-folder-open"></i> 我的已存票券 / 個人憑證
+        </div>
+    `;
+
     if (l) l.innerHTML = lodgingHtml + ticketsHtml;
-    if (l_wallet) l_wallet.innerHTML = ticketsHtml || `<p style="text-align:center; color:#95a5a6; font-size:0.8rem; font-weight:900; padding:15px 0;">尚無機票或門票憑證</p>`;
+    if (l_wallet) l_wallet.innerHTML = canonicalSummaryHtml + (ticketsHtml || `<p style="text-align:center; color:#95a5a6; font-size:0.8rem; font-weight:900; padding:15px 0;">尚無個人上傳憑證</p>`);
     if (l_lodging_wallet) l_lodging_wallet.innerHTML = lodgingHtml || `<p style="text-align:center; color:#95a5a6; font-size:0.8rem; font-weight:900; padding:15px 0;">尚未填寫住宿資料</p>`;
     if (l_trip) l_trip.innerHTML = ticketsHtml || `<p style="text-align:center; color:#95a5a6; font-size:0.8rem; font-weight:900; padding:15px 0;">尚無憑證資料</p>`;
     if (l_lodging_trip) l_lodging_trip.innerHTML = lodgingHtml || `<p style="text-align:center; color:#95a5a6; font-size:0.8rem; font-weight:900; padding:15px 0;">尚未填寫住宿</p>`;
@@ -282,9 +313,32 @@ window.switchWalletTab = function(subtab) {
         if (active.btn) active.btn.classList.add('active');
         if (active.sec) active.sec.style.display = 'block';
     }
+
+    const titleEl = document.getElementById('walletHeaderTitle');
+    const subTitleEl = document.getElementById('walletHeaderSubtitle');
+    if (titleEl && subTitleEl) {
+        if (subtab === 'ticket') {
+            titleEl.innerHTML = '<i class="fa-solid fa-ticket"></i> 票券住宿';
+            subTitleEl.textContent = 'Travel Wallet';
+        } else if (subtab === 'hotel') {
+            titleEl.innerHTML = '<i class="fa-solid fa-hotel"></i> 飯店住宿';
+            subTitleEl.textContent = 'Travel Wallet · Hotel';
+        } else if (subtab === 'doc') {
+            titleEl.innerHTML = '<i class="fa-solid fa-suitcase-rolling"></i> 行前準備';
+            subTitleEl.textContent = 'Travel Wallet · Docs';
+        } else if (subtab === 'coupon') {
+            titleEl.innerHTML = '<i class="fa-solid fa-gift"></i> 優惠券專區';
+            subTitleEl.textContent = 'Travel Wallet · Coupon';
+        } else if (subtab === 'memory') {
+            titleEl.innerHTML = '<i class="fa-solid fa-camera-retro"></i> 旅行回憶';
+            subTitleEl.textContent = 'Travel Wallet · Memory';
+        }
+    }
     
     if (subtab === 'hotel') {
         if (typeof renderSmartNearby === 'function') renderSmartNearby();
+    } else if (subtab === 'doc') {
+        if (typeof renderPrepList === 'function') renderPrepList();
     } else if (subtab === 'memory') {
         if (typeof renderMemoryAlbum === 'function') renderMemoryAlbum();
         triggerContextUpdate();

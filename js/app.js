@@ -199,8 +199,8 @@
                 n.setAttribute('aria-selected', 'false');
             });
 
-            // index.html uses id="guide" for the home container
-            const targetId = (id === 'home') ? 'guide' : id;
+            // index.html uses id="guide" for home container, and memory lives inside wallet container
+            const targetId = (id === 'home') ? 'guide' : (id === 'photo' ? 'wallet' : id);
             const el = document.getElementById(targetId);
             if (el) el.classList.add('active');
             if (btn) {
@@ -562,6 +562,17 @@
             }
         } catch (e) {
             console.warn('[App] Exchange rate setup error:', e);
+        }
+
+        // Live Weather fetch on boot
+        try {
+            if (window.WeatherEngine && typeof WeatherEngine.fetchAll === 'function') {
+                WeatherEngine.fetchAll().then(() => {
+                    if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
+                }).catch(err => console.warn('[App] Weather fetch error:', err));
+            }
+        } catch (e) {
+            console.warn('[App] WeatherEngine.fetchAll setup error:', e);
         }
 
         // Payer dropdown initial state

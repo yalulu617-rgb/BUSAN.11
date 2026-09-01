@@ -6,9 +6,7 @@
 window.getSmartAlertMessage = function(ctx) {
     if (!ctx) return '載入中...';
     if (ctx.tripMode === 'before') {
-        const uncomp = ctx.uncompletedPreps || [];
-        if (uncomp.length === 0) return '✅ 所有行前準備已完成！';
-        return `📋 待辦：${uncomp[0].text}`;
+        return '✅ K-ETA：本次免申請（至 2026/12/31）｜ 📝 e-Arrival Card 申報';
     }
     if (ctx.tripMode === 'after') return '🎉 旅行圓滿完成！';
     if (ctx.nextDestination) return `⏰ ${ctx.nextDestination.time} → ${ctx.nextDestination.desc.split(' ')[0]}`;
@@ -296,13 +294,60 @@ window.renderBeforeWidgets = function(ctx, city, smartAlert, v37SimulatedDate) {
     let totalPreps = ctx.checklist.length || 10;
     let compPreps = totalPreps - ctx.uncompletedPreps.length;
     let percent = Math.min(100, Math.max(0, Math.round((compPreps / totalPreps) * 100)));
+    const weather = (ctx && ctx.currentWeather) ? ctx.currentWeather : null;
+
+    const formatWeatherTime = (ts) => {
+        if (!ts) return '';
+        const d = new Date(ts);
+        return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    };
+
+    let weatherBoxHtml = '';
+    if (weather && !weather.unavailable && weather.temp !== null && weather.temp !== undefined) {
+        const timeStr = weather.timestamp ? formatWeatherTime(weather.timestamp) : '';
+        const updateLabel = weather.isCached ? `最後更新：${timeStr}` : (timeStr ? `更新：${timeStr}` : '');
+        const condStr = weather.conditionZH || (window.WeatherEngine ? WeatherEngine.localizeCondition(weather.condition) : weather.condition) || '多雲';
+        weatherBoxHtml = `
+            <div class="v45-home-weather-box" style="margin-top:8px; padding:6px 10px; background:rgba(255,255,255,0.08); border-radius:10px; border:1px solid rgba(255,255,255,0.12); font-size:0.75rem; color:#f1f2f6;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-weight:900;"><i class="fa-solid fa-cloud-sun"></i> 釜山目前｜${weather.temp}°C｜${condStr}</span>
+                    ${updateLabel ? `<span style="font-size:0.65rem; color:#bdc3c7;">${updateLabel}</span>` : ''}
+                </div>
+                <div style="font-size:0.68rem; color:#dfe4ea; margin-top:2px;">
+                    📅 11/13~11/17 氣候預報：出發前 7–10 天提供詳細預報
+                </div>
+            </div>
+        `;
+    } else {
+        weatherBoxHtml = `
+            <div class="v45-home-weather-box" style="margin-top:8px; padding:6px 10px; background:rgba(255,255,255,0.08); border-radius:10px; border:1px solid rgba(255,255,255,0.12); font-size:0.75rem; color:#f1f2f6;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-weight:800; color:#f5cd79;"><i class="fa-solid fa-triangle-exclamation"></i> ⚠️ 即時天氣暫時無法更新</span>
+                    <span style="font-size:0.65rem; color:#bdc3c7;">出發倒數中</span>
+                </div>
+                <div style="font-size:0.68rem; color:#dfe4ea; margin-top:2px;">
+                    📅 11/13~11/17 氣候預報：出發前 7–10 天提供詳細預報
+                </div>
+            </div>
+        `;
+    }
     
     let heroHtml = `
-        <div class="v38-hero-card fade-scale-in" onclick="showV37Tab('trip')" style="background: linear-gradient(135deg, #1e272e, #2f3640);">
+        <div class="v38-hero-card hero-card fade-scale-in" onclick="showV37Tab('itinerary')" style="background: linear-gradient(135deg, #1e272e, #2f3640); cursor:pointer;">
             <div class="v38-hero-title">DAY — 尚未出發</div>
             <div class="v38-hero-main">出發：${countdownDays} 天</div>
             <div class="v38-hero-sub">目的地：🇰🇷 ${city.nameTW}</div>
-            <div style="margin-top: 8px; font-size: 0.8rem; font-weight: 800; color: #f5cd79;" class="text-truncate">${smartAlert}</div>
+
+            <!-- 🌤️ Home Weather Context -->
+            ${weatherBoxHtml}
+
+            <!-- ✅ Entry Status & Prep Summary -->
+            <div style="margin-top: 8px; font-size: 0.78rem; font-weight: 800; color: #2ecc71;">
+                <i class="fa-solid fa-circle-check"></i> K-ETA：本次免申請（至 2026/12/31）
+            </div>
+            <div style="font-size: 0.72rem; font-weight: 700; color: #f5cd79; margin-top:2px;">
+                📝 e-Arrival Card 電子申報 ｜ 🔄 Q-CODE：Q4出發前RECHECK
+            </div>
             <div class="v38-progress-container" style="margin-top: 8px;">
                 <div class="v38-progress-bar" style="width: ${percent}%;"></div>
             </div>
@@ -356,14 +401,59 @@ window.renderDuringWidgets = function(ctx, dateStr, city, weather, smartAlert) {
         nextTimeStr = ctx.nextDestination.time;
     }
     
+    const isRainDay = (dateStr === "11/14" || dateStr === "11/15" || dateStr === "11/16");
+    const isRainActive = (window.currentWeatherMode === "rain");
+
+    const formatWeatherTime = (ts) => {
+        if (!ts) return '';
+        const d = new Date(ts);
+        return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    };
+
+    let weatherDuringHtml = '';
+    if (weather && !weather.unavailable && weather.temp !== null && weather.temp !== undefined) {
+        const timeStr = weather.timestamp ? formatWeatherTime(weather.timestamp) : '';
+        const updateLabel = weather.isCached ? `最後更新：${timeStr}` : (timeStr ? `更新：${timeStr}` : '');
+        const condStr = weather.conditionZH || (window.WeatherEngine ? WeatherEngine.localizeCondition(weather.condition) : weather.condition) || '多雲';
+        weatherDuringHtml = `
+            <div class="v45-home-weather-box" style="margin-top:6px; padding:6px 10px; background:rgba(255,255,255,0.08); border-radius:10px; border:1px solid rgba(255,255,255,0.12); font-size:0.75rem; color:#f1f2f6;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-weight:900;">🌤️ ${city.nameTW}目前｜${weather.temp}°C｜${condStr}</span>
+                    <span style="font-size:0.68rem; color:#dfe4ea;">體感 ${weather.feelsLike || weather.temp}°C ${updateLabel ? `(${updateLabel})` : ''}</span>
+                </div>
+                <div style="font-size:0.7rem; color:#dfe4ea; margin-top:2px; display:flex; justify-content:space-between;">
+                    <span>🧥 ${ctx.currentOutfit || '防風外套+洋蔥穿法'}</span>
+                    ${isRainDay ? `<span style="color:${isRainActive ? '#74b9ff' : '#f5cd79'}; font-weight:800;">${isRainActive ? '☔ 雨天備案中' : '☔ 建議查看雨天備案'}</span>` : ''}
+                </div>
+            </div>
+        `;
+    } else {
+        weatherDuringHtml = `
+            <div class="v45-home-weather-box" style="margin-top:6px; padding:6px 10px; background:rgba(255,255,255,0.08); border-radius:10px; border:1px solid rgba(255,255,255,0.12); font-size:0.75rem; color:#f1f2f6;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-weight:800; color:#f5cd79;">🌤️ ${city.nameTW}｜⚠️ 即時天氣暫時無法更新</span>
+                    <span style="font-size:0.65rem; color:#bdc3c7;">旅途中</span>
+                </div>
+                <div style="font-size:0.7rem; color:#dfe4ea; margin-top:2px; display:flex; justify-content:space-between;">
+                    <span>🧥 ${ctx.currentOutfit || '防風外套+洋蔥穿法'}</span>
+                    ${isRainDay ? `<span style="color:${isRainActive ? '#74b9ff' : '#f5cd79'}; font-weight:800;">${isRainActive ? '☔ 雨天備案中' : '☔ 建議查看雨天備案'}</span>` : ''}
+                </div>
+            </div>
+        `;
+    }
+
     let heroHtml = `
-        <div class="v38-hero-card fade-scale-in" onclick="showV37Tab('itinerary')" style="background: linear-gradient(135deg, #1e272e, #353b48);">
+        <div class="v38-hero-card hero-card fade-scale-in" onclick="showV37Tab('itinerary')" style="background: linear-gradient(135deg, #1e272e, #353b48); cursor:pointer;">
             <div class="v38-hero-title">${dayNum} | 🇰🇷 ${city.nameTW}</div>
             <div class="v38-hero-main" style="display:flex; justify-content:space-between; align-items:center;">
                 <span class="text-truncate" style="max-width:180px;">${nextAttr}</span>
-                <span style="font-size:1.3rem; color:#4cd964;">${weather.temp}°C</span>
+                <span style="font-size:1.3rem; color:#4cd964;">${(weather && !weather.unavailable && weather.temp !== null) ? weather.temp + '°C' : '--'}</span>
             </div>
             <div class="v38-hero-sub" style="margin-top:4px;"><i class="fa-solid fa-map-pin"></i> ${nextTimeStr ? nextTimeStr + ' 出發' : ''}</div>
+
+            <!-- 🌤️ Weather Context & Rain Advisory (Suggestion only, user controlled) -->
+            ${weatherDuringHtml}
+
             <div style="margin-top: 6px; font-size: 0.78rem; font-weight: 800; color: #ffcc00;" class="text-truncate"><i class="fa-solid fa-circle-exclamation"></i> ${smartAlert}</div>
         </div>
     `;
@@ -411,7 +501,7 @@ window.renderAfterWidgets = function(ctx, smartAlert) {
     let overallSpent = ctx.budget.overallSpent;
     
     let heroHtml = `
-        <div class="v38-hero-card fade-scale-in" onclick="showV37Tab('split')" style="background: linear-gradient(135deg, #1e272e, #2d3436);">
+        <div class="v38-hero-card hero-card fade-scale-in" onclick="showV37Tab('split')" style="background: linear-gradient(135deg, #1e272e, #2d3436);">
             <div class="v38-hero-title">旅行完成 ✈️</div>
             <div class="v38-hero-main" style="font-size:1.6rem !important;">$${overallSpent.toLocaleString()} TWD</div>
             <div class="v38-hero-sub">旅行天數：5天 | 目的地: Busan</div>
@@ -455,17 +545,17 @@ window.renderQuickActions = function() {
                     <i class="fa-solid fa-calendar-day" style="color: #007aff;"></i>
                     <span>今日行程</span>
                 </button>
-                <button class="v38-action-btn" onclick="showV37Tab('home'); toggleCityDetailPanel();">
-                    <i class="fa-solid fa-cloud-sun-rain" style="color: #ff9500;"></i>
-                    <span>天氣與匯率</span>
+                <button class="v38-action-btn" onclick="showV37Tab('split')">
+                    <i class="fa-solid fa-coins" style="color: #ff9500;"></i>
+                    <span>即時匯率</span>
                 </button>
                 <button class="v38-action-btn" onclick="showV37Tab('split'); setTimeout(() => document.getElementById('billName')?.focus(), 200);">
-                    <i class="fa-solid fa-comment-dollar" style="color: #2ecc71;"></i>
+                    <i class="fa-solid fa-calculator" style="color: #2ecc71;"></i>
                     <span>快速記帳</span>
                 </button>
-                <button class="v38-action-btn" onclick="if (typeof emergencyRescue === 'function') emergencyRescue();">
+                <button class="v38-action-btn" onclick="showV37Tab('more');">
                     <i class="fa-solid fa-life-ring" style="color: #ff3b30;"></i>
-                    <span>地圖救援</span>
+                    <span>緊急求助</span>
                 </button>
             </div>
         </div>
@@ -487,6 +577,80 @@ window.renderCollections = function() {
                 <div style="background:rgba(0, 122, 255, 0.05); padding:6px; border-radius:10px; border:1px solid rgba(0,122,255,0.1); text-align:center; cursor:pointer;" onclick="showV37Tab('shop'); setTimeout(()=>setShopTabMode('rec'),100);">
                     <div style="font-size:0.6rem; color:#007aff; font-weight:800;">🛍️ 購物收藏</div>
                     <div style="font-size:0.95rem; font-weight:900; color:#007aff; margin-top:2px;">${favShopCount} 個</div>
+                </div>
+            </div>
+        </div>
+    `;
+};
+
+window.renderHomeNineGrid = function() {
+    return `
+        <div class="v45-home-nine-grid fade-scale-in">
+            <div style="font-weight: 900; font-size: 0.95rem; color: var(--primary); margin-bottom: 10px; display:flex; align-items:center; gap:6px;">
+                <i class="fa-solid fa-compass"></i> 全境旅遊功能導覽
+            </div>
+            <div class="v45-nine-grid">
+                <!-- 1. 🗓️ 今日行程 -->
+                <div class="v45-nine-card" onclick="showV37Tab('itinerary')">
+                    <div class="v45-nine-icon"><i class="fa-solid fa-calendar-day" style="color:#3498db;"></i></div>
+                    <div class="v45-nine-title">今日行程</div>
+                    <div class="v45-nine-sub">5日手帳 / 備案</div>
+                </div>
+
+                <!-- 2. 🍽️ 景點美食 -->
+                <div class="v45-nine-card" onclick="openGuideFolder('美食景點')">
+                    <div class="v45-nine-icon"><i class="fa-solid fa-utensils" style="color:#e67e22;"></i></div>
+                    <div class="v45-nine-title">景點美食</div>
+                    <div class="v45-nine-sub">必吃名店/慶州</div>
+                </div>
+
+                <!-- 3. 🏪 韓國超商 -->
+                <div class="v45-nine-card" onclick="showV37Tab('shop'); setTimeout(()=>setShopTabMode('convenience'),50);">
+                    <div class="v45-nine-icon"><i class="fa-solid fa-store" style="color:#2ecc71;"></i></div>
+                    <div class="v45-nine-title">韓國超商</div>
+                    <div class="v45-nine-sub">6大入口/混搭</div>
+                </div>
+
+                <!-- 4. 🛍️ 快樂購 -->
+                <div class="v45-nine-card" onclick="showV37Tab('shop'); setTimeout(()=>setShopTabMode('my'),50);">
+                    <div class="v45-nine-icon"><i class="fa-solid fa-bag-shopping" style="color:#e84393;"></i></div>
+                    <div class="v45-nine-title">快樂購</div>
+                    <div class="v45-nine-sub">Olive Young/伴手禮</div>
+                </div>
+
+                <!-- 5. 🎟️ 票券住宿 -->
+                <div class="v45-nine-card" onclick="showV37Tab('wallet'); setTimeout(()=>switchWalletTab('ticket'),50);">
+                    <div class="v45-nine-icon"><i class="fa-solid fa-ticket" style="color:#9b59b6;"></i></div>
+                    <div class="v45-nine-title">票券住宿</div>
+                    <div class="v45-nine-sub">機票/飯店/憑證</div>
+                </div>
+
+                <!-- 6. 💰 旅行記帳 -->
+                <div class="v45-nine-card" onclick="showV37Tab('split')">
+                    <div class="v45-nine-icon"><i class="fa-solid fa-wallet" style="color:#f39c12;"></i></div>
+                    <div class="v45-nine-title">旅行記帳</div>
+                    <div class="v45-nine-sub">公費分攤/匯率</div>
+                </div>
+
+                <!-- 7. 🗣️ 翻譯 SOS -->
+                <div class="v45-nine-card" onclick="showV37Tab('more')">
+                    <div class="v45-nine-icon"><i class="fa-solid fa-language" style="color:#e74c3c;"></i></div>
+                    <div class="v45-nine-title">翻譯 SOS</div>
+                    <div class="v45-nine-sub">韓語字卡/救援</div>
+                </div>
+
+                <!-- 8. 🧳 行前準備 -->
+                <div class="v45-nine-card" onclick="showV37Tab('wallet'); setTimeout(()=>switchWalletTab('doc'),50);">
+                    <div class="v45-nine-icon"><i class="fa-solid fa-suitcase-rolling" style="color:#1abc9c;"></i></div>
+                    <div class="v45-nine-title">行前準備</div>
+                    <div class="v45-nine-sub">代辦清單/文件</div>
+                </div>
+
+                <!-- 9. 📸 旅行回憶 -->
+                <div class="v45-nine-card" onclick="showV37Tab('photo')">
+                    <div class="v45-nine-icon"><i class="fa-solid fa-camera-retro" style="color:#00cec9;"></i></div>
+                    <div class="v45-nine-title">旅行回憶</div>
+                    <div class="v45-nine-sub">拍立得相簿/Vlog</div>
                 </div>
             </div>
         </div>
@@ -531,7 +695,7 @@ window.renderV37HomeDashboard = function() {
         widget3Html = widgets.widget3Html;
     }
     
-    container.innerHTML = simulatorHtml + heroHtml + `
+    container.innerHTML = simulatorHtml + heroHtml + renderHomeNineGrid() + `
         <div class="v38-widget-row">
             ${widget1Html}
             ${widget2Html}
@@ -540,6 +704,7 @@ window.renderV37HomeDashboard = function() {
         </div>
     `;
 };
+
 
 window.renderSmartNearby = function() {
     const list = document.getElementById('walletNearbyList');
@@ -651,6 +816,722 @@ window.renderShop = function() {
         `;
     });
 };
+
+window.currentShopMode = 'my';
+window.currentConveniencePortal = null; // null = home screen (6 portal buttons)
+window.currentConvenienceFilter = 'all';
+window.currentRadarCategory = 'all';
+window.currentRadarStore = 'all';
+
+// ── SHOP TAB MODE SWITCHER ──────────────────────────────────────────────────
+window.setShopTabMode = function(mode) {
+    window.currentShopMode = mode;
+    const btnMy = document.getElementById('btnShopMy');
+    const btnConvenience = document.getElementById('btnShopConvenience');
+    const btnRec = document.getElementById('btnShopRec');
+
+    const myContainer = document.getElementById('shopMyContainer');
+    const convenienceContainer = document.getElementById('shopConvenienceContainer');
+    const recContainer = document.getElementById('shopRecContainer');
+    const addBox = document.getElementById('addShopBox');
+    const ownerTabs = document.getElementById('shopTabsUI');
+
+    if (btnMy) btnMy.classList.toggle('active', mode === 'my');
+    if (btnConvenience) btnConvenience.classList.toggle('active', mode === 'convenience');
+    if (btnRec) btnRec.classList.toggle('active', mode === 'rec');
+
+    if (myContainer) myContainer.style.display = (mode === 'my') ? 'block' : 'none';
+    if (convenienceContainer) convenienceContainer.style.display = (mode === 'convenience') ? 'block' : 'none';
+    if (recContainer) recContainer.style.display = (mode === 'rec') ? 'block' : 'none';
+
+    if (addBox) addBox.style.display = (mode === 'my') ? 'block' : 'none';
+    if (ownerTabs) ownerTabs.style.display = (mode === 'my') ? 'flex' : 'none';
+
+    if (mode === 'my') {
+        renderShop();
+    } else if (mode === 'convenience') {
+        window.currentConveniencePortal = null;
+        renderConvenienceHome();
+    } else if (mode === 'rec') {
+        renderRecommendedShopping();
+    }
+};
+
+// ── NAVIGATE INTO A PORTAL ──────────────────────────────────────────────────
+window.enterConveniencePortal = function(portalId) {
+    window.currentConveniencePortal = portalId;
+    renderConvenienceStoreMatrix();
+};
+
+// ── BACK TO HOME SCREEN ─────────────────────────────────────────────────────
+window.exitConveniencePortal = function() {
+    window.currentConveniencePortal = null;
+    renderConvenienceHome();
+};
+
+// ── PERSONAL STATE HELPERS ──────────────────────────────────────────────────
+function _getConvState() {
+    const raw = StorageEngine.get('busan_v45_convenience_state');
+    if (raw && raw.success && raw.data && typeof raw.data === 'object' && Object.keys(raw.data).length > 0) {
+        return raw.data;
+    }
+    const fallback = StorageEngine.get('busan_v45_convenience_user_state');
+    if (fallback && fallback.success && fallback.data && typeof fallback.data === 'object') {
+        StorageEngine.set('busan_v45_convenience_state', fallback.data);
+        return fallback.data;
+    }
+    return (raw && raw.success && raw.data && typeof raw.data === 'object') ? raw.data : {};
+}
+function _setConvState(state) {
+    StorageEngine.set('busan_v45_convenience_state', state);
+}
+function _getComboState() {
+    const raw = StorageEngine.get('busan_v45_combo_state');
+    return (raw && raw.success && raw.data) ? raw.data : {};
+}
+function _setComboState(state) {
+    StorageEngine.set('busan_v45_combo_state', state);
+}
+
+const RADAR_CATEGORY_MAP = {
+    drink: '飲料',
+    dessert: '甜點',
+    ramen: '泡麵',
+    readyMeal: '熟食',
+    snack: '零食',
+    iceCream: '冰品',
+    dailyGoods: '生活用品'
+};
+
+function _categoryLabel(catId) {
+    return RADAR_CATEGORY_MAP[catId] || catId;
+}
+
+// ── BUILD ALL CANONICAL RADAR ITEMS ────────────────────────────────────────
+function _buildRadarItems() {
+    const canonical = window.TRAVEL_CONTENT_V45 || globalThis.TRAVEL_CONTENT_V45 || {};
+    const cs = canonical.convenienceStore || canonical.convenienceStores || {};
+    const cuItems = (cs.cu || []).map((item, idx) => {
+        const catId = _inferCategory(item);
+        return { id: 'cu_' + (idx + 1), store: 'CU', categoryId: catId, category: _categoryLabel(catId), ...item };
+    });
+    const gsItems = (cs.gs25 || []).map((item, idx) => {
+        const catId = _inferCategory(item);
+        return { id: 'gs_' + (idx + 1), store: 'GS25', categoryId: catId, category: _categoryLabel(catId), ...item };
+    });
+    const sevenItems = (cs.sevenEleven || []).map((item, idx) => {
+        const catId = _inferCategory(item);
+        return { id: 'seven_' + (idx + 1), store: '7-Eleven', categoryId: catId, category: _categoryLabel(catId), ...item };
+    });
+    const emartItems = (cs.emart24 || []).map((item, idx) => {
+        const catId = _inferCategory(item);
+        return { id: 'emart_' + (idx + 1), store: 'Emart24', categoryId: catId, category: _categoryLabel(catId), ...item };
+    });
+    return [...cuItems, ...gsItems, ...sevenItems, ...emartItems];
+}
+
+function _inferCategory(item) {
+    if (item.categoryId) return item.categoryId;
+    const name = (item.name || '') + (item.desc || '');
+    if (/麵|泡麵|拉麵/.test(name)) return 'ramen';
+    if (/冰沙|冰棒|冰品|刨冰/.test(name)) return 'iceCream';
+    if (/蛋糕|捲|甜|布丁|乳包|月餅|點心/.test(name)) return 'dessert';
+    if (/牛奶|咖啡|飲|奶茶/.test(name)) return 'drink';
+    if (/飯糰|便當|飯|三角|熟食/.test(name)) return 'readyMeal';
+    if (/牙刷|濕紙巾|衛生紙|生活|日用|轉接頭|雨衣|傘/.test(name)) return 'dailyGoods';
+    if (/零|脆|洋芋|餅|薯/.test(name)) return 'snack';
+    return 'snack';
+}
+
+// ── TOGGLE ITEM WANT/BOUGHT STATE ───────────────────────────────────────────
+window.toggleConvenienceItemState = function(itemId, type) {
+    const state = _getConvState();
+    if (!state[itemId]) state[itemId] = { want: false, bought: false };
+
+    if (type === 'want') {
+        state[itemId].want = !state[itemId].want;
+        if (state[itemId].want && typeof showToast === 'function')
+            showToast('❤️ 已加入想買清單', 'info');
+    } else if (type === 'bought') {
+        state[itemId].bought = !state[itemId].bought;
+        if (state[itemId].bought && typeof showToast === 'function')
+            showToast('✅ 戰利品入袋！', 'success');
+    }
+    _setConvState(state);
+    renderConvenienceStoreMatrix();
+};
+
+// ── TOGGLE COMBO INGREDIENT ─────────────────────────────────────────────────
+window.toggleComboIngredient = function(comboIdx, ingIdx) {
+    const comboState = _getComboState();
+    if (!comboState[comboIdx]) comboState[comboIdx] = { ingredients: {}, unlocked: false };
+    if (!comboState[comboIdx].ingredients) comboState[comboIdx].ingredients = {};
+
+    comboState[comboIdx].ingredients[ingIdx] = !comboState[comboIdx].ingredients[ingIdx];
+
+    const canonical = window.TRAVEL_CONTENT_V45 || globalThis.TRAVEL_CONTENT_V45 || {};
+    const combos = canonical.convenienceStore?.combos || canonical.convenienceCombos || [];
+    const combo = combos[comboIdx];
+
+    if (combo && combo.formula) {
+        const parts = combo.formula.split('＋').map(p => p.trim());
+        const allChecked = parts.every((_, idx) => !!comboState[comboIdx].ingredients[idx]);
+        if (allChecked) {
+            comboState[comboIdx].unlocked = true;
+            if (typeof showToast === 'function')
+                showToast('🏆 恭喜解鎖神級混搭：' + combo.name + '！', 'success');
+        }
+    }
+    _setComboState(comboState);
+    renderConvenienceStoreMatrix();
+};
+
+// ── DIRECT UNLOCK/RELOCK COMBO ──────────────────────────────────────────────
+window.unlockComboDirect = function(comboIdx) {
+    const comboState = _getComboState();
+    if (!comboState[comboIdx]) comboState[comboIdx] = { ingredients: {}, unlocked: false };
+    comboState[comboIdx].unlocked = !comboState[comboIdx].unlocked;
+
+    const canonical = window.TRAVEL_CONTENT_V45 || globalThis.TRAVEL_CONTENT_V45 || {};
+    const combos = canonical.convenienceStore?.combos || canonical.convenienceCombos || [];
+    const combo = combos[comboIdx];
+
+    if (comboState[comboIdx].unlocked && typeof showToast === 'function')
+        showToast('🏆 恭喜解鎖：' + (combo ? combo.name : '神級混搭') + '！', 'success');
+
+    _setComboState(comboState);
+    renderConvenienceStoreMatrix();
+};
+
+// ── CONVENIENCE STORE HOME (6 FUNCTIONAL PORTAL BUTTONS) ───────────────────
+window.renderConvenienceHome = function() {
+    const list = document.getElementById('sConvenienceList');
+    if (!list) return;
+
+    const state = _getConvState();
+    const allItems = _buildRadarItems();
+    const canonical = window.TRAVEL_CONTENT_V45 || globalThis.TRAVEL_CONTENT_V45 || {};
+    const combos = canonical.convenienceStore?.combos || canonical.convenienceCombos || [];
+
+    const comboState = _getComboState();
+
+    let wantCount = 0, boughtCount = 0, unlockedCombos = 0;
+    allItems.forEach(item => {
+        if (state[item.id]?.want) wantCount++;
+        if (state[item.id]?.bought) boughtCount++;
+    });
+    combos.forEach((_, idx) => { if (comboState[idx]?.unlocked) unlockedCombos++; });
+
+    const portals = [
+        { id: 'discount', icon: '🏷️', title: '①優惠怎麼看', sub: '1+1 / 2+1 / 行사상품 掃法', color: '#e17055' },
+        { id: 'compare', icon: '⚔️', title: '②GS25 vs CU', sub: '自有品牌 / 熟食 / 甜點 / 聯名', color: '#0984e3' },
+        { id: 'radar', icon: '📡', title: '③必買雷達', sub: `${allItems.length} 款推薦｜分類篩選`, color: '#00b894' },
+        { id: 'microwave', icon: '🍱', title: '④熟食＆微波教室', sub: '怎麼拆 / 怎麼熱 / 韓語對照', color: '#fdcb6e' },
+        { id: 'combos', icon: '🍜', title: '⑤神級混搭', sub: `${unlockedCombos}/${combos.length} 已解鎖`, color: '#a29bfe' },
+        { id: 'loot', icon: '🛍️', title: '⑥我的超商戰利品', sub: `想買 ${wantCount}　已買 ${boughtCount}　混搭 ${unlockedCombos}/${combos.length}`, color: '#fd79a8' }
+    ];
+
+    let html = `
+        <div style="text-align:center; padding:8px 0 14px 0;">
+            <div style="font-size:0.75rem; font-weight:800; color:#7f8c8d;">🇰🇷 韓國超商攻略助理 — 選擇入口</div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; padding-bottom:10px;">
+    `;
+    portals.forEach(p => {
+        html += `
+            <div onclick="enterConveniencePortal('${p.id}')" style="
+                background:var(--card-bg); border-radius:16px; padding:14px 10px;
+                border-left:4px solid ${p.color}; cursor:pointer;
+                box-shadow:0 2px 8px rgba(0,0,0,0.1);
+                display:flex; flex-direction:column; gap:4px;
+                transition:transform 0.15s;
+                -webkit-tap-highlight-color:transparent;
+            " class="fade-scale-in">
+                <div style="font-size:1.6rem; line-height:1;">${p.icon}</div>
+                <div style="font-size:0.82rem; font-weight:900; color:var(--text-color); line-height:1.2;">${p.title}</div>
+                <div style="font-size:0.68rem; color:#7f8c8d; font-weight:700; line-height:1.2;">${p.sub}</div>
+            </div>
+        `;
+    });
+    html += `</div>`;
+    list.innerHTML = html;
+};
+
+// ── SHARED BACK BUTTON HEADER ────────────────────────────────────────────────
+function _convBackHeader(title) {
+    return `
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--border-color);">
+            <button onclick="exitConveniencePortal()" style="background:transparent; border:none; cursor:pointer; padding:4px 8px; border-radius:8px; font-size:0.8rem; font-weight:900; color:var(--primary);">← 返回</button>
+            <span style="font-size:0.9rem; font-weight:900; color:var(--text-color);">${title}</span>
+        </div>
+    `;
+}
+
+// ── MAIN ROUTER: RENDER ACTIVE PORTAL ───────────────────────────────────────
+window.renderConvenienceStoreMatrix = function() {
+    const list = document.getElementById('sConvenienceList');
+    if (!list) return;
+    list.innerHTML = '';
+
+    const portal = window.currentConveniencePortal;
+    if (!portal) { renderConvenienceHome(); return; }
+
+    if (portal === 'discount') _renderPortalDiscount(list);
+    else if (portal === 'compare') _renderPortalCompare(list);
+    else if (portal === 'radar') _renderPortalRadar(list);
+    else if (portal === 'microwave') _renderPortalMicrowave(list);
+    else if (portal === 'combos') _renderPortalCombos(list);
+    else if (portal === 'loot') _renderPortalLoot(list);
+    else renderConvenienceHome();
+};
+
+// ── PORTAL ① 優惠怎麼看 ────────────────────────────────────────────────────
+function _renderPortalDiscount(list) {
+    const sections = [
+        {
+            tag: '1+1',
+            kr: '원플러스원 / 1+1',
+            desc: '買一送一。拿 2 件同商品結帳，系統自動折扣——不用跟店員說。',
+            tip: '可以混不同口味嗎？→ 部分品項「加 1 元換購」才能混，看標籤上是否有「+1원 교환」字樣。'
+        },
+        {
+            tag: '2+1',
+            kr: '투플러스원 / 2+1',
+            desc: '買二送一。拿 3 件同商品，最便宜那件免費。可跨口味（看標示）。',
+            tip: '建議一次跟朋友湊滿 3 件，不然只買 2 件等於沒省到。'
+        },
+        {
+            tag: '행사상품',
+            kr: '行사상품（활인 상품）',
+            desc: '促銷商品。黃色/橘色標籤或 LED 促銷牌標示，折扣比例不固定。',
+            tip: '結帳前確認是否已套用折扣——若有疑問可問店員「이거 행사 맞아요?」'
+        },
+        {
+            tag: '특가상품',
+            kr: '特價商品',
+            desc: '限時特價，通常是庫存出清或新品導入期間。',
+            tip: '當天可能結束，看到直接買。'
+        },
+        {
+            tag: '混口味攻略',
+            kr: '다른 맛으로 바꿀 수 있어요?',
+            desc: '詢問能否換口味。1+1 中有些品項可混換，但需標示「맛 교환 가능」。',
+            tip: '不確定時：「이 1+1 다른 맛으로 바꿀 수 있어요?」→「這個 1+1 可以換別的口味嗎？」'
+        },
+        {
+            tag: '結帳實例',
+            kr: '結帳語助手',
+            desc: '「이거 행사 적용 됐나요?」→ 這個有套用優惠嗎？\n「따로따로 해주세요.」→ 請幫我分開算。',
+            tip: '行動支付：T-money / WOWPASS / 信用卡均可，部分自助結帳機僅限卡。'
+        }
+    ];
+
+    let html = _convBackHeader('① 優惠怎麼看');
+    html += `<p style="font-size:0.72rem; color:#7f8c8d; font-weight:700; margin:0 0 12px 0; line-height:1.4;">⚠️ 以下為超商促銷通用規則說明，非當前特定促銷活動——實際活動以現場標示為準。</p>`;
+    sections.forEach(s => {
+        html += `
+            <div class="v45-store-card fade-scale-in" style="border-left:3px solid #e17055;">
+                <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                    <span class="v38-badge" style="background:#e17055;">${s.tag}</span>
+                    <span style="font-size:0.7rem; color:#7f8c8d; font-weight:700;">${s.kr}</span>
+                </div>
+                <p style="font-size:0.78rem; color:var(--text-color); font-weight:800; margin:0 0 4px 0; line-height:1.4;">${s.desc}</p>
+                <p style="font-size:0.72rem; color:#e17055; font-weight:700; margin:0; line-height:1.4;">💡 ${s.tip}</p>
+            </div>
+        `;
+    });
+    list.innerHTML = html;
+}
+
+// ── PORTAL ② GS25 vs CU ────────────────────────────────────────────────────
+function _renderPortalCompare(list) {
+    const dims = [
+        {
+            dim: '自有品牌',
+            gs: 'YOU US（美妝、日用）、GS25 Premium 冰淇淋',
+            cu: 'HEYROO（泡麵/零食）、CU Café 咖啡系列'
+        },
+        {
+            dim: '熟食招牌',
+            gs: '惠子便當系列（혜자도시락）、束草홍게 蟹膏系列',
+            cu: '全州拌飯三角飯糰、各式炒碼麵系列'
+        },
+        {
+            dim: '甜點首選',
+            gs: '奶油生乳瑞士捲（모찌롤）、生乳白熊冰棒',
+            cu: '延世大學生乳包、布丁/慕斯系列'
+        },
+        {
+            dim: '咖啡',
+            gs: 'CAFÉ25（門市內咖啡機，需門市設有）',
+            cu: 'CU Café（較多門市設有咖啡機）'
+        },
+        {
+            dim: '聯名新品',
+            gs: '共和春炸醬麵（百年老店聯名）、養樂多系列',
+            cu: '寶可夢週邊、各大IP合作商品'
+        }
+    ];
+
+    let html = _convBackHeader('② GS25 vs CU 比較');
+    html += `
+        <div class="v45-store-card fade-scale-in" style="background:rgba(9,132,227,0.07); border:1px solid rgba(9,132,227,0.2); margin-bottom:12px;">
+            <p style="font-size:0.78rem; font-weight:900; color:#0984e3; margin:0; line-height:1.4;">
+                📍 附近哪間就先逛，不需要為品牌特地繞路。<br>
+                <span style="font-weight:700; color:var(--text-color);">兩家各有擅場，差異在「獨家商品」而非「品質高下」。</span>
+            </p>
+        </div>
+    `;
+    dims.forEach(d => {
+        html += `
+            <div class="v45-store-card fade-scale-in" style="padding:10px 12px;">
+                <div style="font-size:0.72rem; font-weight:900; color:#7f8c8d; margin-bottom:6px; letter-spacing:0.5px;">${d.dim}</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                    <div>
+                        <span class="v38-badge" style="background:#0070BA; margin-bottom:4px;">GS25</span>
+                        <p style="font-size:0.75rem; color:var(--text-color); font-weight:700; margin:0; line-height:1.4;">${d.gs}</p>
+                    </div>
+                    <div>
+                        <span class="v38-badge" style="background:#00A859; margin-bottom:4px;">CU</span>
+                        <p style="font-size:0.75rem; color:var(--text-color); font-weight:700; margin:0; line-height:1.4;">${d.cu}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    list.innerHTML = html;
+}
+
+// ── PORTAL ③ 必買雷達 ────────────────────────────────────────────────────────
+window.filterConvenienceFilter = function(filter) {
+    window.currentConvenienceFilter = filter;
+    if (window.currentConveniencePortal === 'radar') _renderPortalRadar(document.getElementById('sConvenienceList'));
+    else if (window.currentConveniencePortal === 'loot') _renderPortalLoot(document.getElementById('sConvenienceList'));
+};
+
+window.filterRadarCategory = function(cat) {
+    window.currentRadarCategory = cat;
+    _renderPortalRadar(document.getElementById('sConvenienceList'));
+};
+
+window.filterRadarStore = function(store) {
+    window.currentRadarStore = store;
+    _renderPortalRadar(document.getElementById('sConvenienceList'));
+};
+
+function _renderPortalRadar(list) {
+    const allItems = _buildRadarItems();
+    const state = _getConvState();
+
+    const catFilter = window.currentRadarCategory || 'all';
+    const storeFilter = window.currentRadarStore || 'all';
+
+    const categories = [
+        { id: 'all', label: '全部分類' },
+        { id: 'drink', label: '飲料' },
+        { id: 'dessert', label: '甜點' },
+        { id: 'ramen', label: '泡麵' },
+        { id: 'readyMeal', label: '熟食' },
+        { id: 'snack', label: '零食' },
+        { id: 'iceCream', label: '冰品' },
+        { id: 'dailyGoods', label: '生活用品' }
+    ];
+    const stores = ['all', 'CU', 'GS25', '7-Eleven', 'Emart24'];
+    const storeColors = { CU: '#00A859', GS25: '#0070BA', '7-Eleven': '#008000', Emart24: '#FFB800' };
+
+    let filtered = allItems;
+    if (catFilter !== 'all') {
+        filtered = filtered.filter(i => i.categoryId === catFilter || i.category === catFilter || _categoryLabel(catFilter) === i.category);
+    }
+    if (storeFilter !== 'all') filtered = filtered.filter(i => i.store === storeFilter);
+
+    let wantInFilter = filtered.filter(i => state[i.id]?.want).length;
+    let boughtInFilter = filtered.filter(i => state[i.id]?.bought).length;
+
+    let html = _convBackHeader('③ 必買雷達');
+
+    // Category filter row
+    html += `<div style="display:flex; gap:6px; overflow-x:auto; padding-bottom:8px; margin-bottom:8px; scrollbar-width:none;">`;
+    categories.forEach(c => {
+        const active = (catFilter === c.id || catFilter === c.label);
+        html += `<button class="v38-mini-btn" style="white-space:nowrap; flex-shrink:0; ${active ? 'background:var(--primary); color:white; border-color:var(--primary);' : ''}" onclick="filterRadarCategory('${c.id}')">${c.label}</button>`;
+    });
+    html += `</div>`;
+
+
+    // Store filter row
+    html += `<div style="display:flex; gap:6px; overflow-x:auto; padding-bottom:8px; margin-bottom:12px; scrollbar-width:none;">`;
+    stores.forEach(s => {
+        const active = storeFilter === s;
+        const color = storeColors[s] || 'var(--primary)';
+        html += `<button class="v38-mini-btn" style="white-space:nowrap; flex-shrink:0; ${active ? `background:${color}; color:white; border-color:${color};` : ''}" onclick="filterRadarStore('${s}')">${s === 'all' ? '全部門市' : s}</button>`;
+    });
+    html += `</div>`;
+
+    // Count summary
+    html += `<div style="font-size:0.72rem; color:#7f8c8d; font-weight:700; margin-bottom:10px;">共 ${filtered.length} 款　❤️ 想買 ${wantInFilter}　✅ 已買 ${boughtInFilter}</div>`;
+
+    if (filtered.length === 0) {
+        html += `<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:25px 0;">此組合無符合商品</p>`;
+    } else {
+        filtered.forEach(item => {
+            const iState = state[item.id] || {};
+            const isWant = !!iState.want;
+            const isBought = !!iState.bought;
+            const badgeColor = storeColors[item.store] || 'var(--dora)';
+            html += `
+                <div class="v45-store-card ${isBought ? 'bought' : ''} fade-scale-in">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div style="display:flex; gap:4px; align-items:center; flex-wrap:wrap;">
+                            <span class="v38-badge" style="background:${badgeColor};">${item.store}</span>
+                            <span class="v38-badge" style="background:#636e72; font-size:0.6rem;">${item.category}</span>
+                        </div>
+                        <div style="display:flex; gap:5px; flex-shrink:0;">
+                            <button class="v45-btn-state ${isWant ? 'active-want' : ''}" onclick="toggleConvenienceItemState('${item.id}', 'want')">
+                                <i class="fa-${isWant ? 'solid' : 'regular'} fa-heart" style="${isWant ? 'color:#d63031;' : ''}"></i> ${isWant ? '已想買' : '想買'}
+                            </button>
+                            <button class="v45-btn-state ${isBought ? 'active-bought' : ''}" onclick="toggleConvenienceItemState('${item.id}', 'bought')">
+                                <i class="fa-solid ${isBought ? 'fa-check-circle' : 'fa-circle'}" style="${isBought ? 'color:#00b894;' : ''}"></i> ${isBought ? '已買' : '買了'}
+                            </button>
+                        </div>
+                    </div>
+                    <div style="font-weight:900; font-size:0.92rem; color:var(--text-color); margin-top:6px;">${item.name}</div>
+                    <div style="font-size:0.73rem; color:#666; margin-top:2px; line-height:1.4;">${item.desc}</div>
+                </div>
+            `;
+        });
+    }
+    list.innerHTML = html;
+}
+
+// ── PORTAL ④ 熟食＆微波教室 ────────────────────────────────────────────────
+function _renderPortalMicrowave(list) {
+    const glossary = [
+        { kr: '전자레인지', tw: '微波爐' },
+        { kr: '조리방법', tw: '加熱方式' },
+        { kr: '몇 분 돌려요?', tw: '要微波幾分鐘？' },
+        { kr: '뚜껑을 열어주세요', tw: '請打開蓋子' },
+        { kr: '냉장 / 냉동', tw: '冷藏 / 冷凍' }
+    ];
+
+    const guides = [
+        {
+            icon: '🍱',
+            type: '便當 도시락',
+            how_open: '撕開薄膜角落留一小口透氣，不要完全封死。',
+            how_heat: '微波 2–3 分鐘（1000W）。過程中依便當大小可停機攪拌一次。',
+            notes: '部分有獨立醬包，先取出再微波，結束後再加入。'
+        },
+        {
+            icon: '🍙',
+            type: '飯糰 삼각김밥',
+            how_open: '按箭頭方向 1→2→3 撕開包裝，讓海苔與米飯貼合。',
+            how_heat: '通常不用微波——直接吃。若喜歡溫熱：去除包裝後微波 20–30 秒。',
+            notes: '海苔遇水會軟，建議開封後盡快吃完。'
+        },
+        {
+            icon: '🍜',
+            type: '杯麵 컵라면',
+            how_open: '撕開蓋子至一半，加熱水至標線，蓋回靜置 3 分鐘。',
+            how_heat: '超商有熱水機（온수기）免費使用——即沸熱水最佳。',
+            notes: '勿使用微波爐加熱杯麵（紙杯/塑膠杯有安全風險）。'
+        },
+        {
+            icon: '🥤',
+            type: '冰杯 얼음컵',
+            how_open: '直接開蓋。',
+            how_heat: '不加熱——加入咖啡袋裝 / 養樂多 / 飲品即完成。',
+            notes: '冰杯分「大/중/소」，咖啡袋裝通常搭中杯剛好。'
+        },
+        {
+            icon: '🥪',
+            type: '三明治 샌드위치',
+            how_open: '側面撕開，注意餡料方向避免外漏。',
+            how_heat: '冷藏取出後直接食用。若需微波：去包裝後 20–30 秒。',
+            notes: '蛋沙拉款勿長時間微波，易分離。'
+        }
+    ];
+
+    let html = _convBackHeader('④ 熟食＆微波教室');
+
+    guides.forEach(g => {
+        html += `
+            <div class="v45-store-card fade-scale-in" style="border-left:3px solid #fdcb6e;">
+                <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                    <span style="font-size:1.5rem;">${g.icon}</span>
+                    <span style="font-size:0.88rem; font-weight:900; color:var(--text-color);">${g.type}</span>
+                </div>
+                <div style="font-size:0.75rem; color:var(--text-color); line-height:1.5;">
+                    <div style="margin-bottom:4px;"><span style="font-weight:900; color:#e17055;">怎麼拆：</span>${g.how_open}</div>
+                    <div style="margin-bottom:4px;"><span style="font-weight:900; color:#0984e3;">怎麼熱：</span>${g.how_heat}</div>
+                    <div><span style="font-weight:900; color:#00b894;">注意：</span>${g.notes}</div>
+                </div>
+            </div>
+        `;
+    });
+
+    html += `
+        <div class="v45-store-card fade-scale-in" style="background:rgba(253,203,110,0.1); border:1px solid rgba(253,203,110,0.3); margin-top:4px;">
+            <div style="font-size:0.8rem; font-weight:900; color:var(--text-color); margin-bottom:8px;">🗣️ 韓語微波教室用語</div>
+            ${glossary.map(g => `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:4px 0; border-bottom:1px solid var(--border-color);">
+                    <span style="font-size:0.8rem; font-weight:800; color:#0984e3;">${g.kr}</span>
+                    <span style="font-size:0.78rem; font-weight:700; color:var(--text-color);">${g.tw}</span>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    list.innerHTML = html;
+}
+
+// ── PORTAL ⑤ 神級混搭 ──────────────────────────────────────────────────────
+function _renderPortalCombos(list) {
+    const canonical = window.TRAVEL_CONTENT_V45 || globalThis.TRAVEL_CONTENT_V45 || {};
+    const combos = canonical.convenienceStore?.combos || canonical.convenienceCombos || [];
+    const comboState = _getComboState();
+
+    let html = _convBackHeader('⑤ 神級混搭');
+    html += `<p style="font-size:0.73rem; color:#7f8c8d; font-weight:700; margin:0 0 12px 0; line-height:1.4;">勾選食材代表你已購入，全部打勾後自動解鎖；也可直接點「我吃過了」一鍵解鎖。</p>`;
+
+    if (combos.length === 0) {
+        html += `<p style="text-align:center; color:#95a5a6; font-size:0.85rem; padding:20px 0;">混搭資料載入中...</p>`;
+    } else {
+        combos.forEach((combo, cIdx) => {
+            const cState = comboState[cIdx] || { ingredients: {}, unlocked: false };
+            const isUnlocked = !!cState.unlocked;
+            const parts = combo.formula.split('＋').map(p => p.trim());
+
+            let ingHtml = '<div style="display:flex; flex-direction:column; gap:5px; margin:8px 0;">';
+            parts.forEach((part, pIdx) => {
+                const checked = !!cState.ingredients[pIdx];
+                ingHtml += `
+                    <label style="display:flex; align-items:center; gap:8px; font-size:0.78rem; font-weight:800; color:var(--text-color); cursor:pointer;">
+                        <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleComboIngredient(${cIdx}, ${pIdx})" style="width:16px; height:16px; accent-color:#2ecc71;">
+                        <span style="${checked ? 'text-decoration:line-through; opacity:0.6;' : ''}">${part}</span>
+                    </label>
+                `;
+            });
+            ingHtml += '</div>';
+
+            html += `
+                <div class="v45-combo-card ${isUnlocked ? 'unlocked' : ''} fade-scale-in">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h4 style="margin:0; font-size:0.92rem; font-weight:900; color:var(--text-color);">${combo.name}</h4>
+                        <span class="v45-combo-badge ${isUnlocked ? 'unlocked' : ''}">${isUnlocked ? '🏆 已解鎖！' : '🔒 未解鎖'}</span>
+                    </div>
+                    <div style="font-size:0.75rem; color:#d35400; font-weight:800; margin-top:4px;">🥣 配方：${combo.formula}</div>
+                    <p style="font-size:0.73rem; color:#666; margin:5px 0 0 0; line-height:1.4;">${combo.desc}</p>
+                    ${ingHtml}
+                    <div style="display:flex; justify-content:flex-end; margin-top:6px;">
+                        <button class="v38-mini-btn" style="${isUnlocked ? 'background:#2ecc71; color:white; border:none;' : 'background:#f39c12; color:white; border:none;'}" onclick="unlockComboDirect(${cIdx})">
+                            ${isUnlocked ? '✅ 重新鎖定' : '✨ 我吃過了 / 一鍵解鎖'}
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    list.innerHTML = html;
+}
+
+// ── PORTAL ⑥ 我的超商戰利品 ───────────────────────────────────────────────
+function _renderPortalLoot(list) {
+    const allItems = _buildRadarItems();
+    const state = _getConvState();
+    const canonical = window.TRAVEL_CONTENT_V45 || globalThis.TRAVEL_CONTENT_V45 || {};
+    const combos = canonical.convenienceStore?.combos || canonical.convenienceCombos || [];
+    const comboState = _getComboState();
+
+    const wantItems = allItems.filter(i => state[i.id]?.want);
+    const boughtItems = allItems.filter(i => state[i.id]?.bought);
+    const unlockedCombos = combos.filter((_, idx) => comboState[idx]?.unlocked).length;
+    const stillNeed = wantItems.filter(i => !state[i.id]?.bought).length;
+
+    const storeColors = { CU: '#00A859', GS25: '#0070BA', '7-Eleven': '#008000', Emart24: '#FFB800' };
+
+    let html = _convBackHeader('⑥ 我的超商戰利品');
+
+    // Summary banner
+    html += `
+        <div class="v45-loot-counter-card fade-scale-in" style="margin-bottom:14px;">
+            <div class="v45-loot-item">
+                <span class="v45-loot-num">${wantItems.length}</span>
+                <span class="v45-loot-label">❤️ 想買</span>
+            </div>
+            <div class="v45-loot-item">
+                <span class="v45-loot-num">${boughtItems.length}</span>
+                <span class="v45-loot-label">✅ 已買</span>
+            </div>
+            <div class="v45-loot-item">
+                <span class="v45-loot-num">${stillNeed}</span>
+                <span class="v45-loot-label">⏳ 還缺</span>
+            </div>
+            <div class="v45-loot-item" onclick="exitConveniencePortal(); setTimeout(()=>enterConveniencePortal('combos'),50);" style="cursor:pointer;">
+                <span class="v45-loot-num">${unlockedCombos}/${combos.length}</span>
+                <span class="v45-loot-label">🍜 混搭</span>
+            </div>
+        </div>
+    `;
+
+    // Bought section
+    html += `<div style="font-size:0.8rem; font-weight:900; color:var(--text-color); margin-bottom:8px;">✅ 已買入袋 (${boughtItems.length})</div>`;
+    if (boughtItems.length === 0) {
+        html += `<p style="text-align:center; color:#95a5a6; font-size:0.78rem; padding:10px 0 16px 0;">尚無已購買的商品</p>`;
+    } else {
+        boughtItems.forEach(item => {
+            html += `
+                <div class="v45-store-card bought fade-scale-in" style="padding:8px 12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <span class="v38-badge" style="background:${storeColors[item.store] || 'var(--dora)'}; margin-right:4px;">${item.store}</span>
+                            <span style="font-size:0.82rem; font-weight:900; color:var(--text-color);">${item.name}</span>
+                        </div>
+                        <button class="v45-btn-state active-bought" onclick="toggleConvenienceItemState('${item.id}', 'bought')">
+                            <i class="fa-solid fa-check-circle" style="color:#00b894;"></i> 已買
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    // Want-but-not-bought section
+    const pendingItems = wantItems.filter(i => !state[i.id]?.bought);
+    html += `<div style="font-size:0.8rem; font-weight:900; color:var(--text-color); margin:14px 0 8px 0;">❤️ 想買未買 (${pendingItems.length})</div>`;
+    if (pendingItems.length === 0) {
+        html += `<p style="text-align:center; color:#95a5a6; font-size:0.78rem; padding:10px 0;">想買清單已全部買齊 🎉</p>`;
+    } else {
+        pendingItems.forEach(item => {
+            html += `
+                <div class="v45-store-card fade-scale-in" style="padding:8px 12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <span class="v38-badge" style="background:${storeColors[item.store] || 'var(--dora)'}; margin-right:4px;">${item.store}</span>
+                            <span style="font-size:0.82rem; font-weight:900; color:var(--text-color);">${item.name}</span>
+                        </div>
+                        <div style="display:flex; gap:5px;">
+                            <button class="v45-btn-state active-want" onclick="toggleConvenienceItemState('${item.id}', 'want')">
+                                <i class="fa-solid fa-heart" style="color:#d63031;"></i> 取消
+                            </button>
+                            <button class="v45-btn-state" onclick="toggleConvenienceItemState('${item.id}', 'bought')">
+                                <i class="fa-solid fa-circle"></i> 買了
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    list.innerHTML = html;
+};
+
+
+
+
+
+
+
+
 
 window.renderRecommendedShopping = function() {
     const list = document.getElementById('sRecList');
@@ -920,29 +1801,8 @@ window.renderPrepList = function() {
     if (listTrip) listTrip.innerHTML = finalHtml;
 };
 
-window.setShopTabMode = function(mode) {
-    currentShopSubTab = mode;
-    const btnMy = document.getElementById('btnShopMy');
-    const btnRec = document.getElementById('btnShopRec');
-    const myCont = document.getElementById('shopMyContainer');
-    const recCont = document.getElementById('shopRecContainer');
-    const cardTitle = document.getElementById('shopCardTitle');
-    
-    if (mode === 'my') {
-        if(btnMy) btnMy.classList.add('active');
-        if(btnRec) btnRec.classList.remove('active');
-        if(myCont) myCont.style.display = 'block';
-        if(recCont) recCont.style.display = 'none';
-        if(cardTitle) cardTitle.innerHTML = '<i class="fa-solid fa-cart-shopping"></i> 個人購物清單';
-    } else {
-        if(btnMy) btnMy.classList.remove('active');
-        if(btnRec) btnRec.classList.add('active');
-        if(myCont) myCont.style.display = 'none';
-        if(recCont) recCont.style.display = 'block';
-        if(cardTitle) cardTitle.innerHTML = '<i class="fa-solid fa-fire"></i> 熱門指南推薦';
-        renderRecommendedShopping();
-    }
-};
+
+
 
 window.filterRecShop = function(cat, btn) {
     currentRecShopFilter = cat;

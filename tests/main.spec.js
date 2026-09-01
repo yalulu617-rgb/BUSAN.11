@@ -274,8 +274,7 @@ test.describe('Shopping Cart & Recommendations', () => {
 
   test.beforeEach(async ({ page }) => {
     await bootApp(page);
-    await page.locator('#tab-more').click();
-    await page.locator('#more [onclick*="shop"]').click();
+    await page.evaluate(() => window.showV37Tab('shop'));
   });
 
   test('Shopping cart tab loads with calculator card', async ({ page }) => {

@@ -94,12 +94,32 @@ async function verifyUi() {
   await page.waitForSelector('#mainApp', { timeout: 15000 });
   // Ensure itinerary data loaded
   await page.evaluate(() => window.showV37Tab('itinerary'));
-  await page.waitForFunction(() => Array.isArray(window.itineraryData) && window.itineraryData.length >= 17, { timeout: 15000 });
-  const itiCount = await page.evaluate(() => window.itineraryData.length);
+  await page.waitForFunction(() => {
+    const tc = window.TRAVEL_CONTENT_V45;
+    if (!tc || !tc.itinerary) return false;
+    const days = Object.keys(tc.itinerary);
+    const total = days.reduce((sum, d) => sum + tc.itinerary[d].length, 0);
+    return total === 23;
+  }, { timeout: 15000 });
+  // ── CANONICAL itinerary count (TRAVEL_CONTENT_V45) ────────────────────────
+  const canonicalItiCount = await page.evaluate(() => {
+    const tc = window.TRAVEL_CONTENT_V45;
+    if (!tc || !tc.itinerary) return 0;
+    return Object.values(tc.itinerary).reduce((sum, arr) => sum + arr.length, 0);
+  });
+  console.log(`[${canonicalItiCount === 23 ? 'PASS' : 'FAIL'}] Canonical itinerary count = ${canonicalItiCount} (expected 23)`);
+
+  // ── FIREBASE personal itinerary count (busan_v36_iti) ────────────────────
+  const firebaseItiCount = await page.evaluate(() =>
+    Array.isArray(window.itineraryData) ? window.itineraryData.length : 0
+  );
+  console.log(`[${firebaseItiCount === 17 ? 'PASS' : 'FAIL'}] Firebase personal itinerary = ${firebaseItiCount} (expected 17)`);
+
   const flightsData = await page.evaluate(() => window.TRAVEL_CONTENT_V45.flights);
   const flightPass = (flightsData?.outbound?.flightNo === 'BX572' && flightsData?.return?.flightNo === 'KE2085');
-  console.log(`[${itiCount >= 17 ? 'PASS' : 'FAIL'}] Itinerary count ${itiCount}`);
   console.log(`[${flightPass ? 'PASS' : 'FAIL'}] Flight codes present`);
+
+
 
   // ── XLSM canonical data assertions ───────────────────────────────────────
   const tc = await page.evaluate(() => window.TRAVEL_CONTENT_V45);
@@ -156,7 +176,9 @@ async function verifyUi() {
   const xlsmPass = ketaPass && eArrivalPass && noHardPassportPass && qcodeQ4Pass
     && vbp24h && vbp48h && vbpBig3 && vbpBig5
     && xSkyIsA && spaLandIsA && songdoCableIsB && arteIsB && big3Recommended;
-  return itiCount >= 17 && flightPass && xlsmPass;
+  return canonicalItiCount === 23 && firebaseItiCount === 17 && flightPass && xlsmPass;
+
+
 }
 
 (async () => {

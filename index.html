@@ -116,9 +116,10 @@
             </div>
             <!-- V37.0 新版 Widget 首頁 Dashboard Container -->
             <div id="v37HomeDashboard"></div>
-            <!-- City detail panel — toggled by toggleCityDetailPanel() -->
+            <!-- City detail panel – toggled by toggleCityDetailPanel() -->
             <div id="v37CityDetailPanel" style="display:none; margin-top:10px;"></div>
         </div>
+
 
         <div id="guideDetail" style="display:none; margin-top:-10px;">
             <div class="day-tabs" id="guideSubTabs" style="margin-bottom:5px;"></div>
@@ -156,6 +157,7 @@
                         <div id="voucherStatus" style="font-size: 0.85rem; color: var(--primary); flex:1; font-weight:bold;"></div>
                         <input type="hidden" id="tempVoucher" value="">
                     </div>
+
                     <button class="btn-action" style="background:var(--dora);" onclick="addTicket()">收進雲端票夾</button>
                     <div id="ticketList" style="margin-top: 20px;"></div>
                 </div>
@@ -267,6 +269,12 @@
             <button class="day-tab" onclick="filterIti('11/16')">16日(海濱漫步)</button>
             <button class="day-tab" onclick="filterIti('11/17')">17日(賦歸)</button>
         </div>
+
+        <!-- ☀️ 晴天行程 / ☔ 雨天備案 切換欄 -->
+        <div id="itiWeatherToggleContainer" style="display:flex; justify-content:center; gap:8px; margin-bottom:12px;">
+            <button id="btnItiSun" class="day-tab active" onclick="setItineraryWeatherMode('sun')" style="font-size:0.8rem; padding:6px 14px;"><i class="fa-solid fa-sun" style="color:#f39c12;"></i> ☀️ 今日行程</button>
+            <button id="btnItiRain" class="day-tab" onclick="setItineraryWeatherMode('rain')" style="font-size:0.8rem; padding:6px 14px;"><i class="fa-solid fa-cloud-showers-heavy" style="color:#3498db;"></i> ☔ 雨天備案</button>
+        </div>
         
         <!-- Vlog 腳本匯出按鈕 -->
         <button class="btn-search" style="margin-bottom: 12px; width: 100%; border-color: var(--dora); color: var(--dora);" onclick="exportForVlog()"><i class="fa-solid fa-wand-magic-sparkles"></i> 匯出本日 Vlog 腳本 (供 CapCut/Canva 剪輯)</button>
@@ -308,14 +316,15 @@
         <div class="card">
             <h3 class="card-title" id="shopCardTitle"><i class="fa-solid fa-cart-shopping"></i> 個人購物清單</h3>
             <div class="day-tabs" style="margin-bottom:10px;">
-                <button id="btnShopMy" class="day-tab active" onclick="setShopTabMode('my')" style="font-size:0.8rem;">我的清單</button>
-                <button id="btnShopRec" class="day-tab" onclick="setShopTabMode('rec')" style="font-size:0.8rem;">熱門推薦</button>
+                <button id="btnShopMy" class="day-tab active" onclick="setShopTabMode('my')" style="font-size:0.8rem;">🛒 我的清單</button>
+                <button id="btnShopConvenience" class="day-tab" onclick="setShopTabMode('convenience')" style="font-size:0.8rem;">🏪 韓國超商 6 大入口</button>
+                <button id="btnShopRec" class="day-tab" onclick="setShopTabMode('rec')" style="font-size:0.8rem;">🛍️ 熱門推薦</button>
             </div>
             <div class="day-tabs" id="shopTabsUI">
                 <!-- 動態注入 User 1 和 User 2 -->
             </div>
             
-            <div style="background: rgba(255,255,255,0.6); padding: 18px; border-radius: 22px; margin-bottom: 20px; border:1px solid #fff;">
+            <div id="addShopBox" style="background: rgba(255,255,255,0.6); padding: 18px; border-radius: 22px; margin-bottom: 20px; border:1px solid #fff;">
                 <div class="flex-row" style="margin-bottom:10px;">
                     <select id="shopCategory" class="input-box" style="width:110px; margin-bottom:0;">
                         <option value="伴手禮">🎁 伴手禮</option><option value="小物">📱 小物</option><option value="彩妝">💄 彩妝</option>
@@ -334,6 +343,8 @@
             </div>
             <!-- My shop list container -->
             <div id="shopMyContainer"><div id="sList"></div></div>
+            <!-- Convenience store 6 portals & combos container -->
+            <div id="shopConvenienceContainer" style="display:none;"><div id="sConvenienceList"></div></div>
             <!-- Recommended shop list container -->
             <div id="shopRecContainer" style="display:none;"><div id="sRecList"></div></div>
         </div>
@@ -342,8 +353,8 @@
     <!-- 5. 拍立得相冊 -->
     <div id="wallet" class="container">
         <div class="card" style="padding:15px; margin-bottom:15px; background: linear-gradient(135deg, #2c3e50, #34495e); color:white; border-radius: 20px;">
-            <h3 style="margin:0; font-size:1.1rem; color:#f1c40f;"><i class="fa-solid fa-wallet"></i> Travel Wallet</h3>
-            <p style="font-size:0.75rem; color:rgba(255,255,255,0.7); margin:4px 0 0 0;">整合您的機票、門票憑證、飯店住宿、電子文件、優惠券與相冊記憶。</p>
+            <h3 id="walletHeaderTitle" style="margin:0; font-size:1.1rem; color:#f1c40f;"><i class="fa-solid fa-ticket"></i> 票券住宿</h3>
+            <p id="walletHeaderSubtitle" style="font-size:0.75rem; color:rgba(255,255,255,0.7); margin:4px 0 0 0;">Travel Wallet</p>
         </div>
         
         <div class="day-tabs" style="margin-bottom: 15px; flex-wrap: wrap; justify-content: center; gap: 6px;">
@@ -393,10 +404,70 @@
             </div>
         </div>
         
-        <!-- Docs Tab -->
+        <!-- Docs / Preparation Hub Tab -->
         <div id="walletDocSection" style="display:none;">
-            <div class="card" style="background: #ffffff; border-radius: 24px; padding: 20px;">
-                <h3 class="card-title" style="font-weight: 900;"><i class="fa-solid fa-passport"></i> 個人電子文件櫃</h3>
+            <!-- SECTION 1: 本次旅行規則 / 待辦狀態 (Canonical Regulatory Rules & Live Prep Status) -->
+            <div class="card fade-scale-in" style="background: #ffffff; border-radius: 24px; padding: 20px; margin-bottom: 16px; border-left: 6px solid #1abc9c;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <h3 class="card-title" style="margin:0; font-weight:900; font-size:1.05rem; color:#2c3e50;"><i class="fa-solid fa-clipboard-check" style="color:#1abc9c;"></i> 韓國入境規定與待辦狀態</h3>
+                    <span class="v38-badge" style="background:rgba(26,188,156,0.15); color:#16a085; font-size:0.65rem;">2026.11 行前規則摘要</span>
+                </div>
+                
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <div style="background:#f4fbf9; padding:12px; border-radius:14px; border:1px solid #d1f2eb;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-weight:900; font-size:0.9rem; color:#16a085;">✅ K-ETA（電子旅行許可）</span>
+                            <span style="font-size:0.68rem; font-weight:800; background:#2ecc71; color:white; padding:2px 8px; border-radius:6px;">本次免申請</span>
+                        </div>
+                        <div style="font-size:0.75rem; color:#555; margin-top:4px; line-height:1.4;">
+                            台灣護照持有人目前受 K-ETA 豁免，豁免期至 <b>2026-12-31</b>。本次 11/13~11/17 旅程無需申請 K-ETA。
+                        </div>
+                    </div>
+
+                    <div style="background:#fef9e7; padding:12px; border-radius:14px; border:1px solid #fdebd0;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-weight:900; font-size:0.9rem; color:#d35400;">📝 e-Arrival Card（電子入境申報）</span>
+                            <span style="font-size:0.68rem; font-weight:800; background:#e67e22; color:white; padding:2px 8px; border-radius:6px;">需填寫</span>
+                        </div>
+                        <div style="font-size:0.75rem; color:#555; margin-top:4px; line-height:1.4;">
+                            K-ETA 豁免不代表免除入境申報。請於出發前至韓國官方網站完成電子入境申報（免排隊填紙本入境卡）。
+                        </div>
+                    </div>
+
+                    <div style="background:#ebf5fb; padding:12px; border-radius:14px; border:1px solid #d6eaf8;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-weight:900; font-size:0.9rem; color:#2980b9;">🔄 Q-CODE（檢疫資訊預入申報）</span>
+                            <span style="font-size:0.68rem; font-weight:800; background:#3498db; color:white; padding:2px 8px; border-radius:6px;">Q4 / RECHECK</span>
+                        </div>
+                        <div style="font-size:0.75rem; color:#555; margin-top:4px; line-height:1.4;">
+                            2026 年 11 月（第 4 季）入境檢疫規定依最新公告為準。出發前 3 天請再次確認是否需填寫 Q-CODE 申報條碼。
+                        </div>
+                    </div>
+
+                    <div style="background:#f8f9fa; padding:12px; border-radius:14px; border:1px solid #eee;">
+                        <div style="font-weight:900; font-size:0.88rem; color:#2c3e50;">🪪 護照有效期限說明</div>
+                        <div style="font-size:0.75rem; color:#555; margin-top:4px; line-height:1.4;">
+                            有效效期涵蓋整趟旅程即可（無硬性 6 個月限制；若接近到期建議提前換新以降低航司地勤風險）。
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 出發前待辦清單 Checklist -->
+                <div style="margin-top:16px; border-top:1px dashed #eee; padding-top:12px;">
+                    <div style="font-weight:900; font-size:0.95rem; color:var(--primary); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                        <span><i class="fa-solid fa-list-check"></i> 出發前預約與待辦清單</span>
+                    </div>
+                    <div id="prepListUI"></div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: 我的已存文件 (Personal Uploaded Files & Vault) -->
+            <div class="card fade-scale-in" style="background: #ffffff; border-radius: 24px; padding: 20px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <h3 class="card-title" style="margin:0; font-weight: 900; font-size:1.05rem;"><i class="fa-solid fa-folder-closed" style="color:var(--dora);"></i> 我的已存文件（加密備份）</h3>
+                    <span class="v38-badge" style="background:#eee; color:#7f8c8d; font-size:0.65rem;">個人備存</span>
+                </div>
+                <p style="font-size:0.75rem; color:#7f8c8d; margin-top:0; font-weight:700;">存放離線備用之護照影本、既有申報條碼與產險保單文件。</p>
                 <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
                     <div style="background:#f8f9fa; padding:12px; border-radius:14px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
                         <div>
@@ -407,15 +478,15 @@
                     </div>
                     <div style="background:#f8f9fa; padding:12px; border-radius:14px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
                         <div>
-                            <span style="font-weight:900; font-size:0.9rem; color:#2c3e50;">📄 K-ETA 核准聲明</span>
-                            <div style="font-size:0.75rem; color:#7f8c8d; margin-top:2px;">韓國電子旅行許可 (核准完畢)</div>
+                            <span style="font-weight:900; font-size:0.9rem; color:#2c3e50;">📄 K-ETA 核准證明</span>
+                            <div style="font-size:0.75rem; color:#7f8c8d; margin-top:2px;">韓國電子旅行許可 (歷史/個人備存文件)</div>
                         </div>
                         <button class="v38-mini-btn" style="background:var(--primary); color:white; border:none;" onclick="showToast('已加載 K-ETA 文件', 'success')">檢視</button>
                     </div>
                     <div style="background:#f8f9fa; padding:12px; border-radius:14px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
                         <div>
                             <span style="font-weight:900; font-size:0.9rem; color:#2c3e50;">🧬 Q-Code 二維碼</span>
-                            <div style="font-size:0.75rem; color:#7f8c8d; margin-top:2px;">檢疫資訊預入申報條碼</div>
+                            <div style="font-size:0.75rem; color:#7f8c8d; margin-top:2px;">檢疫資訊預入申報條碼 (個人備存)</div>
                         </div>
                         <button class="v38-mini-btn" style="background:var(--primary); color:white; border:none;" onclick="showToast('已安全開啟 Q-Code', 'success')">檢視</button>
                     </div>
@@ -506,64 +577,72 @@
         </div>
     </div>
 
-    <!-- 7. 更多功能選單 -->
+    <!-- 7. 翻譯 SOS & 緊急救援金庫 -->
     <div id="more" class="container">
         <div class="card-title-main" style="padding: 10px 4px; margin-bottom: 15px;">
-            <h2 style="margin: 0; font-size: 1.3rem; font-weight: 900; color: var(--primary);"><i class="fa-solid fa-grid-2"></i> 更多功能金庫</h2>
-            <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #7f8c8d; font-weight: 700;">探索與管理您的完整旅遊助手工具箱</p>
+            <h2 style="margin: 0; font-size: 1.3rem; font-weight: 900; color: #E74C3C;"><i class="fa-solid fa-life-ring"></i> 翻譯 SOS & 緊急救援</h2>
+            <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #7f8c8d; font-weight: 700;">韓語語音大字卡、Papago 鏡頭翻譯與緊急聯絡應變專區</p>
         </div>
-        
-        <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px;">
-            <!-- 1. 🗣️ 韓語語音翻譯 -->
-            <div class="card fade-scale-in" style="cursor: pointer; display: flex; align-items: center; gap: 15px; padding: 18px; border-left: 6px solid #E74C3C; border-radius: 20px; background: var(--card-bg);" onclick="showV37Tab('home'); openGuideFolder('工具');">
-                <div style="font-size: 2.2rem;">🗣️</div>
-                <div style="flex: 1;">
-                    <h4 style="margin: 0; font-weight: 900; font-size: 1.05rem; color: var(--text-color);">韓語語音翻譯</h4>
-                    <p style="margin: 4px 0 0 0; font-size: 0.78rem; color: #7f8c8d; font-weight: 700;">常用韓語方塊大字卡，支援語音朗讀播放</p>
-                </div>
-                <i class="fa-solid fa-chevron-right" style="color: #bdc3c7;"></i>
-            </div>
 
-            <!-- 2. 🛒 必買購物清單 -->
-            <div class="card fade-scale-in" style="cursor: pointer; display: flex; align-items: center; gap: 15px; padding: 18px; border-left: 6px solid #E1306C; border-radius: 20px; background: var(--card-bg);" onclick="showV37Tab('shop');">
-                <div style="font-size: 2.2rem;">🛒</div>
-                <div style="flex: 1;">
-                    <h4 style="margin: 0; font-weight: 900; font-size: 1.05rem; color: var(--text-color);">必買購物清單</h4>
-                    <p style="margin: 4px 0 0 0; font-size: 0.78rem; color: #7f8c8d; font-weight: 700;">個人購物車與熱門藥妝、超商伴手禮推薦</p>
-                </div>
-                <i class="fa-solid fa-chevron-right" style="color: #bdc3c7;"></i>
+        <!-- 🚨 緊急聯絡卡 -->
+        <div class="card fade-scale-in" style="background: linear-gradient(135deg, #fff5f5, #ffffff); border-left: 6px solid #E74C3C; border-radius: 20px; padding: 18px; margin-bottom: 15px;">
+            <h4 style="margin: 0 0 10px 0; color: #C0392B; font-weight: 900; font-size: 1rem;"><i class="fa-solid fa-phone-volume"></i> 韓國即時緊急專線</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+                <a href="tel:112" class="v38-mini-btn" style="background: #E74C3C; color: white; border: none; text-decoration: none; text-align: center; padding: 10px 4px; font-weight: 900; border-radius: 12px;"><i class="fa-solid fa-shield-halved"></i> 112 報警</a>
+                <a href="tel:119" class="v38-mini-btn" style="background: #D35400; color: white; border: none; text-decoration: none; text-align: center; padding: 10px 4px; font-weight: 900; border-radius: 12px;"><i class="fa-solid fa-truck-medical"></i> 119 救護</a>
+                <a href="tel:1330" class="v38-mini-btn" style="background: #2980B9; color: white; border: none; text-decoration: none; text-align: center; padding: 10px 4px; font-weight: 900; border-radius: 12px;"><i class="fa-solid fa-headset"></i> 1330 諮詢</a>
             </div>
-
-            <!-- 3. 📸 拍立得紀念冊 -->
-            <div class="card fade-scale-in" style="cursor: pointer; display: flex; align-items: center; gap: 15px; padding: 18px; border-left: 6px solid #3498DB; border-radius: 20px; background: var(--card-bg);" onclick="showV37Tab('photo');">
-                <div style="font-size: 2.2rem;">📸</div>
-                <div style="flex: 1;">
-                    <h4 style="margin: 0; font-weight: 900; font-size: 1.05rem; color: var(--text-color);">拍立得紀念冊</h4>
-                    <p style="margin: 4px 0 0 0; font-size: 0.78rem; color: #7f8c8d; font-weight: 700;">保存珍極旅行瞬間，支援照片批次上傳與搜尋</p>
-                </div>
-                <i class="fa-solid fa-chevron-right" style="color: #bdc3c7;"></i>
+            <div style="font-size: 0.78rem; color: #555; font-weight: 700; line-height: 1.5; border-top: 1px dashed #fadbd8; padding-top: 8px;">
+                🏥 <b>急救醫院：</b>釜山大學醫院 (+82-51-240-5114)<br>
+                🚓 <b>派出聯絡：</b>釜山鎮警察署 (+82-51-890-9224)
             </div>
+        </div>
 
-            <!-- 4. 🧳 出發準備清單 -->
-            <div class="card fade-scale-in" style="cursor: pointer; display: flex; align-items: center; gap: 15px; padding: 18px; border-left: 6px solid #2ECC71; border-radius: 20px; background: var(--card-bg);" onclick="showV37Tab('home'); openGuideFolder('工具');">
-                <div style="font-size: 2.2rem;">🧳</div>
-                <div style="flex: 1;">
-                    <h4 style="margin: 0; font-weight: 900; font-size: 1.05rem; color: var(--text-color);">出發準備清單</h4>
-                    <p style="margin: 4px 0 0 0; font-size: 0.78rem; color: #7f8c8d; font-weight: 700;">行前代辦事項檢核，確保護照、網路與 K-ETA 已就緒</p>
+        <!-- 📷 Papago 鏡頭翻譯 -->
+        <div class="card fade-scale-in" style="background: #ffffff; border-radius: 20px; padding: 16px; margin-bottom: 15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h4 style="margin:0; font-weight:900; font-size:1rem; color:var(--text-color);"><i class="fa-solid fa-camera" style="color:#27AE60;"></i> 即時鏡頭拍照翻譯</h4>
+                <span style="font-size:0.72rem; color:#27AE60; font-weight:800;">Naver Papago</span>
+            </div>
+            <p style="font-size:0.78rem; color:#7f8c8d; font-weight:700; margin:0 0 12px 0;">看不懂韓文菜單、路標或收據？一鍵喚醒 Papago 拍照即時翻譯。</p>
+            <button class="btn-action" style="background: #27AE60; padding: 12px; font-size: 0.95rem; width: 100%; border-radius: 14px;" onclick="openPapago()"><i class="fa-solid fa-arrow-up-right-from-square"></i> 開啟 Papago 拍照翻譯</button>
+        </div>
+
+
+        <!-- 🗣️ 常用韓語大字卡與發音 -->
+        <div class="card fade-scale-in" style="background: #ffffff; border-radius: 20px; padding: 16px; margin-bottom: 15px;">
+            <h4 style="margin:0 0 10px 0; font-weight:900; font-size:1rem; color:var(--text-color);"><i class="fa-solid fa-volume-high" style="color:var(--dora);"></i> 常用韓語溝通大字卡</h4>
+            <p style="font-size:0.78rem; color:#7f8c8d; font-weight:700; margin:0 0 12px 0;">點擊字卡即可全螢幕放大給店員看，並支援即時語音朗讀。</p>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div style="background:#f8f9fa; padding:10px 14px; border-radius:12px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openFlashcard('請給我菜單', '메뉴판 주세요')">
+                    <div><div style="font-weight:900; font-size:0.88rem; color:#2c3e50;">請給我菜單</div><div style="font-size:0.75rem; color:#7f8c8d;">메뉴판 주세요</div></div>
+                    <button class="v38-mini-btn" style="background:var(--dora); color:white; border:none;"><i class="fa-solid fa-volume-high"></i></button>
                 </div>
-                <i class="fa-solid fa-chevron-right" style="color: #bdc3c7;"></i>
+                <div style="background:#f8f9fa; padding:10px 14px; border-radius:12px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openFlashcard('請結帳', '계산해 주세요')">
+                    <div><div style="font-weight:900; font-size:0.88rem; color:#2c3e50;">請結帳</div><div style="font-size:0.75rem; color:#7f8c8d;">계산해 주세요</div></div>
+                    <button class="v38-mini-btn" style="background:var(--dora); color:white; border:none;"><i class="fa-solid fa-volume-high"></i></button>
+                </div>
+                <div style="background:#f8f9fa; padding:10px 14px; border-radius:12px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openFlashcard('請問可以退稅嗎？', '텍스리펀 되나요?')">
+                    <div><div style="font-weight:900; font-size:0.88rem; color:#2c3e50;">請問可以退稅嗎？</div><div style="font-size:0.75rem; color:#7f8c8d;">텍스리펀 되나요?</div></div>
+                    <button class="v38-mini-btn" style="background:var(--dora); color:white; border:none;"><i class="fa-solid fa-volume-high"></i></button>
+                </div>
+                <div style="background:#f8f9fa; padding:10px 14px; border-radius:12px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openFlashcard('請載我們去海雲台', '기사님, 해운대로 가주세요')">
+                    <div><div style="font-weight:900; font-size:0.88rem; color:#2c3e50;">請載我們去海雲台</div><div style="font-size:0.75rem; color:#7f8c8d;">기사님, 해운대로 가주세요</div></div>
+                    <button class="v38-mini-btn" style="background:var(--dora); color:white; border:none;"><i class="fa-solid fa-volume-high"></i></button>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- 底部導航 -->
     <div class="bottom-nav" role="tablist" aria-label="底部主要導航選單">
-        <div id="tab-home" class="nav-item active" role="tab" tabindex="0" aria-selected="true" aria-label="首頁與全境導覽" onclick="showV37Tab('home', this)"><i class="fa-solid fa-house" aria-hidden="true"></i>首頁/導覽</div>
-        <div id="tab-itinerary" class="nav-item" role="tab" tabindex="0" aria-selected="false" aria-label="行程表" onclick="showV37Tab('itinerary', this)"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i>行程表</div>
-        <div id="tab-bill" class="nav-item nav-center" role="tab" tabindex="0" aria-selected="false" aria-label="分攤記帳" onclick="showV37Tab('split', this)"><i class="fa-solid fa-calculator" aria-hidden="true"></i>分攤記帳</div>
-        <div id="tab-wallet" class="nav-item" role="tab" tabindex="0" aria-selected="false" aria-label="票券與錢包" onclick="showV37Tab('wallet', this)"><i class="fa-solid fa-wallet" aria-hidden="true"></i>票券/錢包</div>
-        <div id="tab-more" class="nav-item" role="tab" tabindex="0" aria-selected="false" aria-label="更多功能" onclick="showV37Tab('more', this)"><i class="fa-solid fa-ellipsis" aria-hidden="true"></i>更多功能</div>
+        <div id="tab-home" class="nav-item active" role="tab" tabindex="0" aria-selected="true" aria-label="首頁與全境導覽" onclick="showV37Tab('home', this)"><i class="fa-solid fa-house" aria-hidden="true"></i>首頁</div>
+        <div id="tab-itinerary" class="nav-item" role="tab" tabindex="0" aria-selected="false" aria-label="行程表" onclick="showV37Tab('itinerary', this)"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i>今日</div>
+        <div id="tab-bill" class="nav-item nav-center" role="tab" tabindex="0" aria-selected="false" aria-label="分攤記帳" onclick="showV37Tab('split', this)"><i class="fa-solid fa-calculator" aria-hidden="true"></i>記帳</div>
+        <div id="tab-wallet" class="nav-item" role="tab" tabindex="0" aria-selected="false" aria-label="票券與錢包" onclick="showV37Tab('wallet', this)"><i class="fa-solid fa-wallet" aria-hidden="true"></i>票券</div>
+        <div id="tab-more" class="nav-item" role="tab" tabindex="0" aria-selected="false" aria-label="翻譯與緊急救援" onclick="showV37Tab('more', this)"><i class="fa-solid fa-life-ring" aria-hidden="true"></i>SOS</div>
     </div>
+
 </div>
 
 

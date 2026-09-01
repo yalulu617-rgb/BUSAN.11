@@ -95,6 +95,10 @@ window.openCardLightbox = function(title, korean, roman, audio) {
     }, 50);
 };
 
+window.openFlashcard = function(title, korean) {
+    window.openCardLightbox(title, korean);
+};
+
 window.closeFlashcard = function() {
     const modal = document.getElementById('flashcardModal');
     if (!modal) return;
