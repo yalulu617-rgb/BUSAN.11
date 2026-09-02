@@ -152,16 +152,38 @@ test.describe('Accessibility: One-Hand Usability (Mobile 390px)', () => {
   test('No content is hidden under bottom nav', async ({ page }) => {
     await bootApp(page);
     
-    const navBox = await page.locator('.bottom-nav').boundingBox();
-    const mainBox = await page.locator('#mainApp').boundingBox();
-    
-    if (navBox && mainBox) {
-      // Main app should account for nav height via padding-bottom
-      const mainBottom = mainBox.y + mainBox.height;
-      const navTop = navBox.y;
-      // Content area bottom should not extend into nav area
-      expect(mainBottom).toBeLessThanOrEqual(navTop + 100); // 100px tolerance
-    }
+    // Scroll to the bottom of the active view to test end-of-scroll reachability
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.waitForTimeout(200);
+
+    const clearance = await page.evaluate(() => {
+      const nav = document.querySelector('.bottom-nav');
+      if (!nav) return { ok: true };
+      const navRect = nav.getBoundingClientRect();
+      const navTop = navRect.top;
+
+      const activeContainer = document.querySelector('.container.active') || document.querySelector('.container[style*="display: block"]') || document.getElementById('mainApp');
+      if (!activeContainer) return { ok: true };
+
+      const allElements = activeContainer.querySelectorAll('button, input, select, a, .card, .v45-nine-card, p, h3, h4, div');
+      let maxBottom = -Infinity;
+      allElements.forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.height > 0 && r.bottom > maxBottom) {
+          maxBottom = r.bottom;
+        }
+      });
+
+      if (maxBottom === -Infinity) return { ok: true };
+      return {
+        ok: maxBottom <= navTop + 2,
+        maxBottom,
+        navTop,
+        clearance: navTop - maxBottom
+      };
+    });
+
+    expect(clearance.ok, `Final content bottom (${clearance.maxBottom}px) extends under bottom nav (${clearance.navTop}px)`).toBe(true);
   });
 });
 

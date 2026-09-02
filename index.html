@@ -116,8 +116,6 @@
             </div>
             <!-- V37.0 新版 Widget 首頁 Dashboard Container -->
             <div id="v37HomeDashboard"></div>
-            <!-- City detail panel – toggled by toggleCityDetailPanel() -->
-            <div id="v37CityDetailPanel" style="display:none; margin-top:10px;"></div>
         </div>
 
 
@@ -125,43 +123,7 @@
             <div class="day-tabs" id="guideSubTabs" style="margin-bottom:5px;"></div>
             <p style="font-size:0.8rem; color:#bdc3c7; text-align:center; margin:0 0 10px 0;"><i class="fa-solid fa-arrow-right-arrow-left"></i> 畫面往右滑動可快速返回目錄</p>
             
-            <div id="toolSection" style="display:none;">
-                
-                <div class="card">
-                    <h3 class="card-title"><i class="fa-solid fa-list-check"></i> 行前預約進度表</h3>
-                    <div class="prep-list" id="prepListUI"></div>
-                </div>
-
-                <div class="card">
-                    <h3 class="card-title"><i class="fa-solid fa-bullhorn"></i> 方塊大字卡與生成器</h3>
-                    <p style="font-size:0.85rem; color:#7f8c8d; font-weight:900; margin-top:0;">點擊卡片可放大顯示與發音。</p>
-                    <div style="background: #fdfdfd; padding: 15px; border-radius: 18px; border: 1px solid #eee; margin-bottom: 15px;">
-                        <input type="text" id="newCardTw" class="input-box" placeholder="中文 (例: 我不要加蔥)" style="margin-bottom:8px;">
-                        <input type="text" id="newCardKr" class="input-box" placeholder="韓文 (請查好貼上)" style="margin-bottom:8px;">
-                        <button class="btn-action" style="padding:10px;" onclick="addVoiceCard()">新增專屬字卡</button>
-                    </div>
-                    <div class="voice-grid" id="voiceGridUI"></div>
-                </div>
-
-                <div class="card">
-                    <h3 class="card-title"><i class="fa-solid fa-bed"></i> 住宿機票憑證庫</h3>
-                    <div class="flex-row"><select id="tkType" class="input-box" style="width:110px;"><option value="✈️ 機票">機票</option><option value="🎫 門票">門票</option></select><input type="text" id="tkTitle" class="input-box flex-1" placeholder="標題"></div>
-                    <input type="text" id="tkDesc" class="input-box" placeholder="時間/備註">
-                    <div class="flex-row">
-                        <input type="url" id="tkLink" class="input-box flex-1" placeholder="📍 地圖連結">
-                        <button class="btn-search" onclick="autoFetchMap('tkTitle', 'tkLink')">🔍 找地圖</button>
-                    </div>
-                    <div class="flex-row" style="margin-top:5px; margin-bottom:12px;">
-                        <label for="voucherUpload" style="background:rgba(255,255,255,0.9); padding:12px 18px; border-radius:14px; cursor:pointer; font-weight:900; border:2px solid #eee;"><i class="fa-solid fa-file-image" style="color:var(--dora);"></i> 上傳憑證</label>
-                        <input type="file" id="voucherUpload" style="display:none;" accept="image/*" onchange="uploadSingleToImgBB(this.files[0], 'voucher')">
-                        <div id="voucherStatus" style="font-size: 0.85rem; color: var(--primary); flex:1; font-weight:bold;"></div>
-                        <input type="hidden" id="tempVoucher" value="">
-                    </div>
-
-                    <button class="btn-action" style="background:var(--dora);" onclick="addTicket()">收進雲端票夾</button>
-                    <div id="ticketList" style="margin-top: 20px;"></div>
-                </div>
-            </div>
+            <div id="toolSection" style="display:none;"></div>
 
             <div id="guideSection" style="display:none;">
                 <!-- V38 Food sub-tabs -->
