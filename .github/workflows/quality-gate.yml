@@ -112,7 +112,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: [chromium, firefox, webkit]
+        include:
+          - project: chromium
+            workers: ''
+          - project: firefox
+            workers: '--workers=1'
+          - project: webkit
+            workers: ''
 
     steps:
       - name: Checkout repository
@@ -140,7 +146,7 @@ jobs:
           echo "✅ Server running on port 8080"
 
       - name: Run Playwright E2E tests (${{ matrix.project }})
-        run: npx playwright test --project=${{ matrix.project }} --reporter=html,list
+        run: npx playwright test --project=${{ matrix.project }} ${{ matrix.workers }} --reporter=html,list
         env:
           PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
           CI: true
