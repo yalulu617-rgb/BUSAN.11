@@ -715,6 +715,12 @@ window.renderSmartNearby = function() {
         list.innerHTML = '<p style="text-align:center; color:#95a5a6; font-size:0.8rem; font-weight:900;">尚無城市資訊</p>';
         return;
     }
+
+    // Dynamic copy truthfulness normalization (consistent with curated multi-point dataset)
+    const descP = list.previousElementSibling;
+    if (descP && descP.tagName === 'P' && descP.textContent.includes('800m')) {
+        descP.textContent = '精選飯店周邊與旅程實用據點（美食、超商、地鐵、ATM、藥局、急診醫院）';
+    }
     
     const cityId = ctx.currentCity.id || 'Busan';
     
@@ -725,10 +731,28 @@ window.renderSmartNearby = function() {
             let naverBtn = p.naver ? `<a href="${p.naver}" target="_blank" class="v38-mini-btn" style="background:#03C75A; color:white; border:none; text-decoration:none;"><i class="fa-solid fa-location-arrow"></i> NAVER</a>` : '';
             let kakaoBtn = p.kakao ? `<a href="${p.kakao}" target="_blank" class="v38-mini-btn" style="background:#FEE500; color:#3C1E1E; border:none; text-decoration:none;"><i class="fa-solid fa-route"></i> Kakao</a>` : '';
             
+            // Display-layer normalization: avoid repeating brand in title (e.g. "🛒 CU" + "CU 凡內谷站店" -> "🛒 CU 凡內谷站店")
+            const typeStr = (p.type || '').trim();
+            const nameStr = (p.name || '').trim();
+            const parts = typeStr.split(/\s+/);
+            const icon = parts[0] || '';
+            const label = parts.slice(1).join(' ').trim();
+
+            let displayTitle = '';
+            if (label && nameStr.toLowerCase().startsWith(label.toLowerCase())) {
+                displayTitle = `${icon} ${nameStr}`.trim();
+            } else if (label && (label === 'Daiso' || label === 'Olive Young' || label === 'CU' || label === 'GS25') && nameStr.includes(label)) {
+                displayTitle = `${icon} ${nameStr}`.trim();
+            } else if (typeStr && nameStr) {
+                displayTitle = `${typeStr} ${nameStr}`.trim();
+            } else {
+                displayTitle = typeStr || nameStr;
+            }
+
             list.innerHTML += `
                 <div style="background:rgba(0,0,0,0.02); padding:10px; border-radius:12px; border:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
                     <div>
-                        <span style="font-weight:900; font-size:0.85rem; color:var(--text-color);">${p.type} ${p.name}</span>
+                        <span style="font-weight:900; font-size:0.85rem; color:var(--text-color);">${displayTitle}</span>
                         <div style="font-size:0.7rem; color:#7f8c8d; margin-top:2px;">
                             📍 距離：${p.dist}m | 評分：⭐${p.rate}
                         </div>

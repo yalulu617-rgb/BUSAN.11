@@ -263,4 +263,74 @@ test.describe('BUSAN.11 V45 — Content Regression & Travel-Readiness Suite', ()
     await expect(page.locator('#walletTicketSection #tkType')).toBeAttached();
   });
 
+  // ── H. SOURCE DATA INTEGRITY ─────────────────────────────────────────────
+  test('H. Source Data Integrity: No mojibake in RECOMMENDED_FOOD, RECOMMENDED_SHOPPING, or SMART_NEARBY_DATABASE', async ({ page }) => {
+    const dataIntegrity = await page.evaluate(() => {
+      const mojibakePat = /[\uFFFD]|\xC3[\x80-\xBF]|\xC2[\x80-\xBF]|\xE2\x80|\xEF\xBF\xBD|\xF0\x9F/;
+      const errors = [];
+
+      const checkList = (list, name) => {
+        (list || []).forEach((item, idx) => {
+          const str = JSON.stringify(item);
+          if (mojibakePat.test(str)) {
+            errors.push(`${name}[${idx}]: ${str.slice(0, 80)}`);
+          }
+        });
+      };
+
+      checkList(window.RECOMMENDED_FOOD, 'RECOMMENDED_FOOD');
+      checkList(window.RECOMMENDED_SHOPPING, 'RECOMMENDED_SHOPPING');
+      
+      const nearby = window.SMART_NEARBY_DATABASE || {};
+      checkList(nearby.Busan, 'SMART_NEARBY.Busan');
+      checkList(nearby.Gyeongju, 'SMART_NEARBY.Gyeongju');
+
+      return errors;
+    });
+
+    expect(dataIntegrity, `Found corrupted data in static databases:\n${dataIntegrity.join('\n')}`).toHaveLength(0);
+  });
+
+  // ── I. SMART NEARBY CANONICAL DATABASE ────────────────────────────────────
+  test('I. Smart Nearby: Exactly 22 valid records with non-empty map URLs and valid Korean/Chinese names', async ({ page }) => {
+    const nearbySummary = await page.evaluate(() => {
+      const db = window.SMART_NEARBY_DATABASE || {};
+      const busan = db.Busan || [];
+      const gyeongju = db.Gyeongju || [];
+      return {
+        busanCount: busan.length,
+        gyeongjuCount: gyeongju.length,
+        busanNames: busan.map(p => p.name),
+        allHaveMaps: busan.concat(gyeongju).every(p => Boolean(p.naver && p.kakao && p.google))
+      };
+    });
+
+    expect(nearbySummary.busanCount).toBe(11);
+    expect(nearbySummary.gyeongjuCount).toBe(11);
+    expect(nearbySummary.allHaveMaps).toBe(true);
+    expect(nearbySummary.busanNames).toContain('凡內谷地鐵站 (6號出口)');
+    expect(nearbySummary.busanNames).toContain('味讚王鹽烤肉 西面店');
+  });
+
+  // ── J. SHOPPING CATEGORY LABELS ──────────────────────────────────────────
+  test('J. Shopping Categories: Category labels contain no corrupted Big5 characters and match canonical catalog', async ({ page }) => {
+    const categories = await page.evaluate(() => {
+      const items = window.RECOMMENDED_SHOPPING || [];
+      return Array.from(new Set(items.map(i => i.category.split(' ')[0])));
+    });
+
+    expect(categories.length).toBeGreaterThan(0);
+    // Must contain clean categories
+    const validExpected = ['美妝彩妝', '醫藥保養', '伴手文創'];
+    const hasValid = validExpected.some(v => categories.includes(v));
+    expect(hasValid).toBe(true);
+
+    // Must NOT contain corrupted legacy strings
+    const corruptedPat = /[\uFFFD]|蝢|怨|隡/;
+    categories.forEach(cat => {
+      expect(corruptedPat.test(cat), `Corrupted category found: ${cat}`).toBe(false);
+    });
+  });
+
 });
+
