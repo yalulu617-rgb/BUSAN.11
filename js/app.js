@@ -60,7 +60,10 @@
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             const hadController = !!navigator.serviceWorker.controller;
-            navigator.serviceWorker.register('sw.js').then(reg => {
+            navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(reg => {
+                if (navigator.onLine && typeof reg.update === 'function') {
+                    reg.update().catch(() => {});
+                }
                 if (reg.waiting) _showSwUpdateBanner(reg.waiting);
                 reg.addEventListener('updatefound', () => {
                     const nw = reg.installing;
@@ -220,6 +223,7 @@
             } else if (id === 'itinerary') {
                 filterItineraryDay(getV37SelectedDate(), null);
             } else if (id === 'split') {
+                if (typeof renderProfileSelector === 'function') renderProfileSelector();
                 if (typeof renderBills === 'function') renderBills();
             } else if (id === 'wallet') {
                 if (typeof switchWalletTab === 'function') switchWalletTab('ticket');
@@ -261,6 +265,33 @@
     };
 
     // ── Profile ───────────────────────────────────────────────────────────
+    window.renderProfileSelector = function () {
+        const sel = document.getElementById('deviceOwner');
+        if (!sel) return;
+        const currentSaved = StorageEngine.get('busan_v36_owner', 'user1').data || 'user1';
+        const currentVal = sel.value || window.deviceOwner || currentSaved;
+        
+        sel.innerHTML = '';
+        const profiles = [
+            { key: 'user1', name: (window.u1 && window.u1.name) || '溫', avatar: (window.u1 && window.u1.avatar) || '👩' },
+            { key: 'user2', name: (window.u2 && window.u2.name) || '鴨', avatar: (window.u2 && window.u2.avatar) || '🦆' }
+        ];
+
+        profiles.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.key;
+            opt.textContent = `${p.avatar} ${p.name}`;
+            if (p.key === currentVal) opt.selected = true;
+            sel.appendChild(opt);
+        });
+
+        if (sel.value) {
+            window.deviceOwner = sel.value;
+            StorageEngine.set('busan_v36_owner', sel.value);
+        }
+        togglePayerSelect();
+    };
+
     window.saveProfiles = function () {
         const fields = {
             editU1Avatar: (v) => { window.u1.avatar = v || '👩'; },
@@ -275,14 +306,17 @@
         const modal = document.getElementById('profileModal');
         if (modal) modal.style.display = 'none';
         showToast('✅ 頭像與名稱已儲存', 'success');
+        renderProfileSelector();
         triggerContextUpdate();
     };
 
     window.updateOwner = function () {
         const sel = document.getElementById('deviceOwner');
-        if (!sel) return;
+        if (!sel || !sel.value) return;
         window.deviceOwner = sel.value;
         StorageEngine.set('busan_v36_owner', sel.value);
+        togglePayerSelect();
+        triggerContextUpdate();
     };
 
     // ── Bill CRUD (public+private) — belongs here because it bridges Firebase + localStorage ──
@@ -522,6 +556,40 @@
                     if (typeof renderVoiceList === 'function') renderVoiceList();
                 } catch (e) { console.error('[FirebaseOn DB_VOICE]', e); }
             });
+
+            NetworkEngine.firebaseOn(DB_PROFILE, snap => {
+                try {
+                    if (snap && typeof snap.exists === 'function' && snap.exists()) {
+                        const data = snap.val();
+                        if (data) {
+                            if (data.user1) {
+                                window.u1 = {
+                                    key: 'user1',
+                                    name: data.user1.name || window.u1.name || '溫',
+                                    avatar: data.user1.avatar || window.u1.avatar || '👩'
+                                };
+                            }
+                            if (data.user2) {
+                                window.u2 = {
+                                    key: 'user2',
+                                    name: data.user2.name || window.u2.name || '鴨',
+                                    avatar: data.user2.avatar || window.u2.avatar || '🦆'
+                                };
+                            }
+                            const u1a = document.getElementById('editU1Avatar');
+                            const u1n = document.getElementById('editU1Name');
+                            const u2a = document.getElementById('editU2Avatar');
+                            const u2n = document.getElementById('editU2Name');
+                            if (u1a && window.u1.avatar) u1a.value = window.u1.avatar;
+                            if (u1n && window.u1.name) u1n.value = window.u1.name;
+                            if (u2a && window.u2.avatar) u2a.value = window.u2.avatar;
+                            if (u2n && window.u2.name) u2n.value = window.u2.name;
+                        }
+                    }
+                    if (typeof renderProfileSelector === 'function') renderProfileSelector();
+                    if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
+                } catch (e) { console.error('[FirebaseOn DB_PROFILE]', e); }
+            });
         } catch (err) {
             console.error('[App] initFirebaseListeners failed:', err);
         }
@@ -544,6 +612,9 @@
         // Firebase is initialised by firebase.js which loads before app.js
         try {
             initFirebaseListeners();
+            if (typeof renderProfileSelector === 'function') {
+                renderProfileSelector();
+            }
         } catch (e) {
             console.error('[App] initFirebaseListeners failed:', e);
         }

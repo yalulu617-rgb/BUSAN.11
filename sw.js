@@ -4,11 +4,11 @@
 // Rules:
 // - Cache ONLY local files that physically exist in this repository
 // - Do NOT cache CDN URLs (Firebase, FontAwesome, Google Fonts, wttr.in, etc.)
-// - Network-first for HTML navigation to prevent stale version lock-in
-// - Cache-first with network fallback for local static assets
+// - Network-first for Critical App Shell (HTML, JS, CSS, JSON) to ensure instant updates
+// - Cache-first with network fallback for static media (images, icons)
 // ─────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'busan-trip-v45-production-v3';
+const CACHE_NAME = 'busan-trip-v45-production-v4';
 
 const LOCAL_ASSETS = [
     './',
@@ -42,8 +42,8 @@ const LOCAL_ASSETS = [
     './js/wallet.js',
     './js/memory.js',
     './js/itinerary.js',
-    './js/app.js',
-    './components/renderers.js'
+    './components/renderers.js',
+    './js/app.js'
 ];
 
 // Domains that must ALWAYS go to network (never cache)
@@ -105,33 +105,46 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // 2. HTML Navigation: Network-first with offline cache fallback
-    if (event.request.mode === 'navigate' || event.request.headers.get('accept')?.includes('text/html')) {
+    // 2. Critical Application Shell (HTML navigation, JS, CSS, JSON)
+    // Strategy: Network-First with offline cache fallback
+    const isShell = event.request.mode === 'navigate' ||
+                    /\.(html|js|css|json)($|\?)/i.test(url) ||
+                    event.request.headers.get('accept')?.includes('text/html');
+
+    if (isShell) {
         event.respondWith(
             fetch(event.request)
                 .then(response => {
-                    if (response.status === 200) {
+                    if (event.request.method === 'GET' && response && response.status === 200) {
                         const copy = response.clone();
                         caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
                     }
                     return response;
                 })
-                .catch(() => caches.match('./index.html'))
+                .catch(() => {
+                    return caches.match(event.request, { ignoreSearch: true }).then(cached => {
+                        if (cached) return cached;
+                        if (event.request.mode === 'navigate' || event.request.headers.get('accept')?.includes('text/html')) {
+                            return caches.match('./index.html', { ignoreSearch: true });
+                        }
+                        return new Response('', { status: 503, statusText: 'Offline - Resource Unavailable' });
+                    });
+                })
         );
         return;
     }
 
-    // 3. Local static assets: Cache-first with network fallback
+    // 3. Static Media Assets (Images, Icons, Fonts)
+    // Strategy: Cache-First with Network Fallback
     event.respondWith(
-        caches.match(event.request).then(cached => {
+        caches.match(event.request, { ignoreSearch: true }).then(cached => {
             if (cached) return cached;
             return fetch(event.request).then(response => {
-                if (event.request.method === 'GET' && response.status === 200) {
+                if (event.request.method === 'GET' && response && response.status === 200) {
                     caches.open(CACHE_NAME).then(cache => cache.put(event.request, response.clone()));
                 }
                 return response;
             }).catch(() => {
-                // Fallback if asset is missing
                 return new Response('', { status: 404 });
             });
         })
