@@ -90,12 +90,6 @@
     ]
   };
 
-  // Store photos and location details share the canonical shopping entry.
-  (c.shopping?.beautyMakeup || []).forEach(item => {
-    const places = target.SMART_NEARBY_DATABASE[item.nearby?.city];
-    if (places) places.push({ ...item.nearby, id: item.id, name: item.name, image: item.image });
-  });
-
   // ── RECOMMENDED_ITINERARY derived from canonical itinerary ───────────────
   const cIti = c.itinerary || {};
   const derivedIti = [];

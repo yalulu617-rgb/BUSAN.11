@@ -9,12 +9,9 @@ vm.runInContext(source('data/travel-content.js'), context);
 vm.runInContext(source('data/recommended.js'), context);
 const stores = context.RECOMMENDED_SHOPPING.filter(item => ['sm10', 'sm11'].includes(item.id));
 
-test('Image Batch 1: canonical stores share local WebP assets with nearby entries', () => {
+test('Image Batch 1: shopping catalog stores provide local WebP assets', () => {
   expect(stores.map(item => item.name)).toEqual(['SCENTICA 香水店', 'OLIVE YOUNG 南浦洞店']);
   for (const store of stores) {
-    const nearby = context.SMART_NEARBY_DATABASE.Busan.filter(item => item.name === store.name);
-    expect(nearby).toHaveLength(1);
-    expect(nearby[0].image).toEqual(store.image);
     for (const path of [store.image.thumb, store.image.full]) {
       const bytes = readFileSync(new URL('../' + path, import.meta.url));
       expect(bytes.toString('ascii', 0, 4)).toBe('RIFF');
