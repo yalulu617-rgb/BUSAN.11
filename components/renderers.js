@@ -1719,11 +1719,12 @@ window.renderPrivateBill = function() {
     
     const ctx = typeof getTripContext === 'function' ? getTripContext() : {};
     const totalPrivate = (ctx.budget && ctx.budget.totalPrivateTWD) ? ctx.budget.totalPrivateTWD : 0;
+    const privateBills = (window.privateBills || []).filter(b => b.payer === window.deviceOwner);
     
-    if ((window.privateBills || []).length === 0) {
+    if (privateBills.length === 0) {
         list.innerHTML = '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:15px 0;">尚無個人私帳記帳紀錄</p>';
     } else {
-        (window.privateBills || []).forEach(b => {
+        privateBills.forEach(b => {
             const receiptHtml = b.receipt ? `<img src="${b.receipt}" class="item-img" onclick="openLightbox('${b.receipt}', b.id)">` : '';
             let amtStr = safePrice(b.amt, b.currency);
             if (b.currency === 'KRW') {

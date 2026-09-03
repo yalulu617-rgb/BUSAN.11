@@ -30,7 +30,7 @@ const BudgetEngine = {
   
   calculateBudget(sharedBills, privateBills, liveKrwToTwd, selectedDate, u1, u2, deviceOwner, currentBillTab) {
     const listShared = sharedBills || [];
-    const listPrivate = privateBills || [];
+    const listPrivate = (privateBills || []).filter(b => b.payer === deviceOwner);
     const rate = liveKrwToTwd || 0.0240;
     
     const getTwd = (b) => b.currency === 'KRW' ? b.amt * rate : b.amt;
@@ -82,7 +82,7 @@ const BudgetEngine = {
     const budgetText = `已花費 $${Math.round(currentExpense).toLocaleString()} / 設定預算 $${target.toLocaleString()}`;
     
     // 5. Category Summary
-    const filtered = listShared.concat(listPrivate).filter(b => currentBillTab === '公費' ? b.type === '公費' : b.type === '私帳' && b.owner === deviceOwner);
+    const filtered = listShared.concat(listPrivate).filter(b => currentBillTab === '公費' ? b.type === '公費' : b.type === '私帳' && b.payer === deviceOwner);
     const categoryTotals = {
       "餐飲": { value: 0, color: "#FF6B6B" },
       "交通": { value: 0, color: "#4D96FF" },

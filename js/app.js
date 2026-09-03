@@ -386,7 +386,7 @@
         const amt      = parseFloat(amtEl?.value);
         const currency = currencyEl?.value || 'KRW';
         const type     = typeEl?.value || '公費';
-        const payer    = payerEl?.value || window.deviceOwner;
+        const payer    = type === '私帳' ? window.deviceOwner : (payerEl?.value || window.deviceOwner);
         const method   = methodEl?.value || '現金';
         const receipt  = receiptEl?.value || '';
 
