@@ -24,6 +24,9 @@
     window.currentLightboxUrl = '';
     window.currentLightboxKey = '';
     window.voiceData        = (Array.isArray(window.voiceData) && window.voiceData.length > 0) ? window.voiceData : (StorageEngine.get('busan_v36_voice', []).data || []);
+    if (!window.voiceData || window.voiceData.length === 0) {
+        window.voiceData    = (window.CANONICAL_VOICE_FALLBACK || []).slice();
+    }
     window.prepData         = (Array.isArray(window.prepData) && window.prepData.length > 0) ? window.prepData : (StorageEngine.get('busan_v36_prepData', []).data || []);
     window.privateBills     = StorageEngine.get('busan_v36_p_bills', []).data || [];
     window.sharedBills      = window.sharedBills || [];

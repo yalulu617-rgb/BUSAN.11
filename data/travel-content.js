@@ -1100,12 +1100,25 @@
   TRAVEL_CONTENT_V45.convenienceStores = TRAVEL_CONTENT_V45.convenienceStore;
   TRAVEL_CONTENT_V45.convenienceCombos = TRAVEL_CONTENT_V45.convenienceStore.combos;
 
+  // Canonical 7 Voice SOS phrases fallback (used when offline/cold-start before Firebase listener resolves)
+  const CANONICAL_VOICE_FALLBACK = [
+    { key: 'voice_1', tw: '你好 / 謝謝', kr: '안녕하세요 / 감사합니다', title: '你好 / 謝謝', korean: '안녕하세요 / 감사합니다', icon: 'fa-handshake' },
+    { key: 'voice_2', tw: '多少錢？', kr: '얼마예요?', title: '多少錢？', korean: '얼마예요?', icon: 'fa-won-sign' },
+    { key: 'voice_3', tw: '我要結帳', kr: '계산해 주세요', title: '我要結帳', korean: '계산해 주세요', icon: 'fa-credit-card' },
+    { key: 'voice_4', tw: '請給我菜單', kr: '메뉴판 주세요', title: '請給我菜單', korean: '메뉴판 주세요', icon: 'fa-book-open' },
+    { key: 'voice_5', tw: '太辣了', kr: '너무 매워요', title: '太辣了', korean: '너무 매워요', icon: 'fa-pepper-hot' },
+    { key: 'voice_6', tw: '洗手間在哪？', kr: '화장실이 어디예요?', title: '洗手間在哪？', korean: '화장실이 어디예요?', icon: 'fa-restroom' },
+    { key: 'voice_7', tw: '飲品不加糖、蜂蜜與煉乳', kr: '설탕, 꿀, 연유는 아예 빼주세요.', title: '飲品不加糖、蜂蜜與煉乳', korean: '설탕, 꿀, 연유는 아예 빼주세요.', icon: 'fa-mug-hot', custom: true }
+  ];
+  TRAVEL_CONTENT_V45.voicePhrases = CANONICAL_VOICE_FALLBACK;
 
   if (typeof globalThis !== 'undefined') {
     globalThis.TRAVEL_CONTENT_V45 = TRAVEL_CONTENT_V45;
+    globalThis.CANONICAL_VOICE_FALLBACK = CANONICAL_VOICE_FALLBACK;
   }
   if (typeof window !== 'undefined') {
     window.TRAVEL_CONTENT_V45 = TRAVEL_CONTENT_V45;
+    window.CANONICAL_VOICE_FALLBACK = CANONICAL_VOICE_FALLBACK;
   }
 
 })();
