@@ -88,10 +88,14 @@ test.describe('UX Verification & Sanity Audit', () => {
   test('No 404 or broken images/resources', async ({ page }) => {
     const failedUrls = [];
     page.on('response', response => {
+      const { hostname } = new URL(response.url());
+      // Google Fonts failures are third-party; never exempt a BUSAN.11 asset by path.
+      if (hostname === 'fonts.googleapis.com' || hostname === 'fonts.gstatic.com') return;
+
       if (response.status() >= 400 &&
-          !response.url().includes('firebase') &&
-          !response.url().includes('googleapis') &&
-          !response.url().includes('wttr.in')) {
+          !hostname.includes('firebase') &&
+          !hostname.includes('googleapis') &&
+          !hostname.includes('wttr.in')) {
         failedUrls.push(`${response.status()}: ${response.url()}`);
       }
     });
