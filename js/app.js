@@ -94,10 +94,10 @@
         d.id = 'swUpdateBanner';
         d.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#2c3e50;color:#fff;' +
             'padding:10px 18px;border-radius:20px;box-shadow:0 8px 25px rgba(0,0,0,.35);' +
-            'z-index:9999;display:flex;gap:12px;align-items:center;font-size:.85rem;font-weight:700;white-space:nowrap;';
+            'z-index:9999;display:flex;gap:12px;align-items:center;font-size:.85rem;font-weight:700;white-space:nowrap;pointer-events:none;';
         d.innerHTML = '<span>🚀 發現新版，立即更新</span>' +
             '<button id="swUpdateBtn" style="background:#2ecc71;border:none;color:#fff;' +
-            'padding:6px 14px;border-radius:12px;cursor:pointer;font-weight:900;">更新</button>';
+            'padding:6px 14px;border-radius:12px;cursor:pointer;font-weight:900;pointer-events:auto;">更新</button>';
         document.body.appendChild(d);
         document.getElementById('swUpdateBtn').onclick = () => {
             worker.postMessage({ action: 'skipWaiting' });
