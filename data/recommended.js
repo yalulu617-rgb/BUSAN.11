@@ -43,7 +43,8 @@
       id: s.id || ('rs' + (idx + 1)),
       category: s.category + (s.spot ? ' (' + s.spot + ')' : ''),
       name: s.name + (s.kr ? ' (' + s.kr + ')' : ''),
-      desc: s.desc
+      desc: s.desc,
+      image: s.image || null
     }));
   } else {
     target.RECOMMENDED_SHOPPING = [
@@ -88,6 +89,12 @@
       { type: '🏥 醫院', name: '慶州東國大學醫院 (急診中心)', dist: 2800, rate: 4.4, status: '24小時急診', naver: 'https://map.naver.com/p/entry/place/13491823', kakao: 'https://map.kakao.com/?id=7937367', google: 'https://maps.app.goo.gl/hosp_gj' }
     ]
   };
+
+  // Store photos and location details share the canonical shopping entry.
+  (c.shopping?.beautyMakeup || []).forEach(item => {
+    const places = target.SMART_NEARBY_DATABASE[item.nearby?.city];
+    if (places) places.push({ ...item.nearby, id: item.id, name: item.name, image: item.image });
+  });
 
   // ── RECOMMENDED_ITINERARY derived from canonical itinerary ───────────────
   const cIti = c.itinerary || {};

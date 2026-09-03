@@ -751,10 +751,11 @@ window.renderSmartNearby = function() {
 
             list.innerHTML += `
                 <div style="background:rgba(0,0,0,0.02); padding:10px; border-radius:12px; border:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                    ${ItemImages.render(p.image, p.name)}
                     <div>
                         <span style="font-weight:900; font-size:0.85rem; color:var(--text-color);">${displayTitle}</span>
                         <div style="font-size:0.7rem; color:#7f8c8d; margin-top:2px;">
-                            📍 距離：${p.dist}m | 評分：⭐${p.rate}
+                            ${p.address ? `📍 ${p.address}` : `📍 距離：${p.dist}m | 評分：⭐${p.rate}`}
                         </div>
                     </div>
                     <div style="display:flex; gap:4px; align-items:center;">
@@ -825,7 +826,7 @@ window.renderShop = function() {
     
     filtered.forEach(s => {
         const isChecked = s.checked ? 'checked' : '';
-        const itemImgHtml = s.img ? `<img src="${s.img}" class="item-img" onclick="openLightbox('${s.img}', '${s.key}')">` : '';
+        const itemImgHtml = ItemImages.render(s.image || s.img, s.text);
         list.innerHTML += `
             <div class="shop-item ${isChecked}" onclick="toggleShop('${s.key}', ${s.checked})">
                 <div class="check-box"><i class="fa-solid fa-check"></i></div>
@@ -1582,6 +1583,7 @@ window.renderRecommendedShopping = function() {
         const isFav = favIds.includes(item.id);
         list.innerHTML += `
             <div class="v38-rec-item" style="padding:10px 0; border-bottom:1px solid var(--border-color);">
+                ${ItemImages.render(item.image, item.name)}
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <span class="v38-badge" style="background:var(--dora);">${item.category}</span>
                     <div style="display:flex; gap:6px;">
@@ -1845,7 +1847,8 @@ window.addRecShopToMyList = async function(id) {
             category: item.category.includes('CU') ? '伴手禮' : (item.category.includes('Olive') ? '彩妝' : '其他'),
             text: item.name,
             where: item.category,
-            img: '',
+            img: item.image?.thumb || '',
+            image: item.image || null,
             checked: false,
             owner: deviceOwner
         });

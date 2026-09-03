@@ -8,7 +8,7 @@
 // - Cache-first with network fallback for static media (images, icons)
 // ─────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'busan-trip-v45-production-v4';
+const CACHE_NAME = 'busan-trip-v45-production-v4-image1';
 
 const LOCAL_ASSETS = [
     './',
@@ -17,6 +17,11 @@ const LOCAL_ASSETS = [
     './icon.png',
     './13972.png',
     './style.css',
+    './assets/css/item-images.css',
+    './assets/images/scentica-gwangan-thumb.webp',
+    './assets/images/scentica-gwangan.webp',
+    './assets/images/olive-young-nampo-thumb.webp',
+    './assets/images/olive-young-nampo.webp',
     './data/release.json',
     './data/recommended.js',
     './data/travel-content.js',
@@ -37,6 +42,7 @@ const LOCAL_ASSETS = [
     './ute/ute_main.js',
     './services/nearby.js',
     './services/utils.js',
+    './services/item-images.js',
     './js/firebase.js',
     './js/ui.js',
     './js/wallet.js',

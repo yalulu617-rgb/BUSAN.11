@@ -713,12 +713,28 @@
         "id": "sm10",
         "name": "SCENTICA 香水店",
         "spot": "光安里",
+        "image": {
+          "thumb": "assets/images/scentica-gwangan-thumb.webp",
+          "full": "assets/images/scentica-gwangan.webp",
+          "alt": "SCENTICA 光安旗艦店外觀",
+          "credit": "SCENTICA 官方門市圖片",
+          "source": "https://www.scentica.co.kr/brand/store.html"
+        },
+        "nearby": { "city": "Busan", "type": "🧴 香氛", "address": "부산 수영구 광안로 25", "naver": "https://map.naver.com/p/entry/place/200396586" },
         "desc": "SCENTICA 光安旗艦店（센티카 광안），香水與生活香氛。地址：부산 수영구 광안로 25。"
       },
       {
         "id": "sm11",
         "name": "OLIVE YOUNG 南浦洞店",
         "spot": "南浦洞",
+        "image": {
+          "thumb": "assets/images/olive-young-nampo-thumb.webp",
+          "full": "assets/images/olive-young-nampo.webp",
+          "alt": "OLIVE YOUNG 釜山南浦店外觀",
+          "credit": "韓國觀光公社 VISITKOREA 店家圖片",
+          "source": "https://english.visitkorea.or.kr/svc/contents/contentsView.do?vcontsId=148157"
+        },
+        "nearby": { "city": "Busan", "type": "💄 Olive Young", "address": "부산광역시 중구 광복로 64-1" },
         "desc": "釜山南浦店（올리브영 부산남포점），美妝與保養品。地址：부산광역시 중구 광복로 64-1。"
       }
     ],
