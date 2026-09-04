@@ -169,14 +169,19 @@ test('warm service-worker cache boots core navigation offline with private ledge
     return Boolean(registration.active);
   });
   expect(ready).toBe(true);
+  await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
+  const appUrl = page.url();
 
   await context.setOffline(true);
-  await page.reload({ waitUntil: 'domcontentloaded' });
-  await page.waitForSelector('#mainApp', { state: 'visible' });
-  await expect(page.locator('.bottom-nav')).toBeVisible();
-  expect(await page.locator('.bottom-nav .nav-item').allTextContents()).toEqual([
+  const offlinePage = await context.newPage();
+  await offlinePage.goto(appUrl, { waitUntil: 'domcontentloaded' });
+  expect(await offlinePage.evaluate(() => navigator.onLine)).toBe(false);
+  expect(await offlinePage.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+  await offlinePage.waitForSelector('#mainApp', { state: 'visible' });
+  await expect(offlinePage.locator('.bottom-nav')).toBeVisible();
+  expect(await offlinePage.locator('.bottom-nav .nav-item').allTextContents()).toEqual([
     '首頁', '今日', '記帳', '票券', 'SOS'
   ]);
-  expect(await page.evaluate(() => window.privateBills)).toEqual([]);
-  expect(await page.locator('.v45-nine-card').count()).toBe(9);
+  expect(await offlinePage.evaluate(() => window.privateBills)).toEqual([]);
+  expect(await offlinePage.locator('.v45-nine-card').count()).toBe(9);
 });
