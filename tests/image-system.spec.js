@@ -77,3 +77,95 @@ test('Image Batch 1: photo clicks preserve shopping state and failed thumbnails 
   await expect(button).toHaveCount(0);
   await expect(page.getByRole('img', { name: stores[0].name + '：尚無圖片', exact: true })).toBeVisible();
 });
+
+test('Image Batch 2: device photos resize, replace in place, persist and degrade safely', async ({ page, context: browserContext }) => {
+  await page.route('http://photo.test/**', route => route.fulfill({ contentType: 'text/html', body: '<main id="list"></main>' }));
+  await page.goto('http://photo.test/');
+  await page.addScriptTag({ content: source('ute/ute_shopping_photo.js') });
+  const key = await page.evaluate(async () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1600;
+    canvas.height = 900;
+    canvas.getContext('2d').fillRect(0, 0, canvas.width, canvas.height);
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    return ShoppingPhotoEngine.save(new File([blob], 'camera.png', { type: 'image/png' }));
+  });
+  const first = await page.evaluate(async key => {
+    const record = await ShoppingPhotoEngine.get(key);
+    const thumb = await createImageBitmap(record.thumb);
+    const full = await createImageBitmap(record.full);
+    return { thumb: [thumb.width, thumb.height, record.thumb.type], full: [full.width, full.height, record.full.type] };
+  }, key);
+  expect(Math.max(...first.thumb.slice(0, 2))).toBeLessThanOrEqual(320);
+  expect(Math.max(...first.full.slice(0, 2))).toBeLessThanOrEqual(1200);
+  expect(['image/webp', 'image/jpeg']).toContain(first.thumb[2]);
+  expect(['image/webp', 'image/jpeg']).toContain(first.full[2]);
+
+  const replacementKey = await page.evaluate(async key => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 600;
+    canvas.height = 1200;
+    canvas.getContext('2d').fillStyle = '#f30';
+    canvas.getContext('2d').fillRect(0, 0, canvas.width, canvas.height);
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    return ShoppingPhotoEngine.save(new File([blob], 'replacement.png', { type: 'image/png' }), key);
+  }, key);
+  expect(replacementKey).toBe(key);
+  expect(await page.evaluate(() => new Promise((resolve, reject) => {
+    const open = indexedDB.open('busan-shopping-photos');
+    open.onerror = () => reject(open.error);
+    open.onsuccess = () => {
+      const count = open.result.transaction('photos').objectStore('photos').count();
+      count.onsuccess = () => resolve(count.result);
+      count.onerror = () => reject(count.error);
+    };
+  }))).toBe(1);
+  const reference = await page.evaluate(key => ShoppingPhotoEngine.attach(key, 'Luna 購物照片'), key);
+  expect(reference).toEqual({ storage: 'indexeddb', key, alt: 'Luna 購物照片' });
+
+  const secondPage = await browserContext.newPage();
+  await secondPage.route('http://photo.test/**', route => route.fulfill({ contentType: 'text/html', body: '<main id="list"></main>' }));
+  await secondPage.goto('http://photo.test/');
+  await secondPage.addScriptTag({ content: source('ute/ute_shopping_photo.js') });
+  await secondPage.addScriptTag({ content: source('services/item-images.js') });
+  await secondPage.evaluate(ref => { document.getElementById('list').innerHTML = ItemImages.render(ref, '離線照片'); }, reference);
+  const thumbnail = secondPage.getByRole('button', { name: '放大圖片：離線照片' });
+  await expect(thumbnail.locator('img')).toHaveAttribute('loading', 'lazy');
+  await expect(thumbnail.locator('img')).toHaveAttribute('decoding', 'async');
+  await expect.poll(() => thumbnail.locator('img').evaluate(img => img.src.startsWith('blob:') && img.complete && img.naturalWidth > 0)).toBe(true);
+  await thumbnail.click();
+  await expect(secondPage.getByRole('dialog', { name: '商品與店家圖片預覽' })).toBeVisible();
+  await secondPage.getByRole('button', { name: '關閉圖片預覽' }).click();
+  await secondPage.evaluate(key => ShoppingPhotoEngine.remove(key), key);
+  await secondPage.evaluate(ref => { document.getElementById('list').innerHTML = ItemImages.render(ref, '已刪除照片'); }, reference);
+  await expect(secondPage.getByRole('img', { name: '已刪除照片：尚無圖片' })).toBeVisible();
+  await secondPage.close();
+});
+
+test('Image Batch 2: shopping hooks keep photos optional and delete device blobs', async ({ page }) => {
+  const rendererSource = source('components/renderers.js');
+  const functions = ['addShopItem', 'deleteShop'].map(name =>
+    rendererSource.match(new RegExp(`window\\.${name} = async function \\(.*?\\) {[\\s\\S]*?^};`, 'm'))[0]).join('\n');
+  await page.setContent('<input id="newShop" value="Item"><input id="shopWhere"><select id="shopCategory"><option>其他</option></select><input id="tempShopPhoto"><div id="sList"></div>');
+  await page.addScriptTag({ content: `
+    window.deviceOwner = 'user1'; window.shopList = []; let fakeNow = 0; Date.now = () => ++fakeNow;
+    window.StorageEngine = { set() {} }; window.DB_SHOP = 'shop';
+    window.NetworkEngine = { firebasePush: async () => {}, firebaseRemove: async () => {} };
+    window.renderShop = () => {}; window.showToast = () => {}; window.confirm = () => true;
+    window.photoCalls = { attach: [], remove: [], clear: 0 };
+    window.ShoppingPhotoEngine = {
+      attach: async (key, alt) => { photoCalls.attach.push([key, alt]); return key ? { storage: 'indexeddb', key, alt } : null; },
+      remove: async key => photoCalls.remove.push(key), clearSelection: () => photoCalls.clear++
+    };
+    ${functions}
+  ` });
+  await page.evaluate(() => addShopItem());
+  expect(await page.evaluate(() => shopList[0].image)).toBeUndefined();
+  expect(await page.evaluate(() => JSON.stringify(shopList))).not.toMatch(/data:|base64|Blob/);
+  await page.evaluate(() => { newShop.value = 'Photo item'; tempShopPhoto.value = 'photo-key'; return addShopItem(); });
+  expect(await page.evaluate(() => shopList[1].image)).toEqual({ storage: 'indexeddb', key: 'photo-key', alt: 'Photo item' });
+  await page.evaluate(() => deleteShop(shopList[1].key));
+  expect(await page.evaluate(() => photoCalls)).toEqual({ attach: [['', 'Item'], ['photo-key', 'Photo item']], remove: ['photo-key'], clear: 2 });
+  expect(source('index.html')).toContain('capture="environment"');
+  expect(source('index.html')).not.toContain("uploadSingleToImgBB(this.files[0], 'shop')");
+});

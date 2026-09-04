@@ -308,12 +308,14 @@
                 </div>
                 <input type="text" id="shopWhere" class="input-box" placeholder="📍 哪裡買？">
                 <div class="flex-row">
-                    <label for="shopImgUpload" style="background:#fff; padding:12px 18px; border-radius:14px; cursor:pointer; font-weight:900; box-shadow:0 2px 10px rgba(0,0,0,0.05); flex:1; text-align:center;"><i class="fa-solid fa-camera" style="color:var(--dora);"></i> 上傳商品圖</label>
-                    <input type="file" id="shopImgUpload" style="display:none;" accept="image/*" onchange="uploadSingleToImgBB(this.files[0], 'shop')">
-                    <button class="btn-action" style="width:70px; padding:12px; border-radius:14px;" onclick="addShopItem()"><i class="fa-solid fa-plus"></i></button>
+                    <label for="shopCameraUpload" style="background:#fff; padding:12px 10px; border-radius:14px; cursor:pointer; font-weight:900; box-shadow:0 2px 10px rgba(0,0,0,0.05); flex:1; text-align:center;"><i class="fa-solid fa-camera" style="color:var(--dora);"></i> 拍照</label>
+                    <input type="file" id="shopCameraUpload" data-shop-photo-input style="display:none;" accept="image/*" capture="environment">
+                    <label for="shopGalleryUpload" style="background:#fff; padding:12px 10px; border-radius:14px; cursor:pointer; font-weight:900; box-shadow:0 2px 10px rgba(0,0,0,0.05); flex:1; text-align:center;"><i class="fa-solid fa-image" style="color:var(--dora);"></i> 選照片</label>
+                    <input type="file" id="shopGalleryUpload" data-shop-photo-input style="display:none;" accept="image/*">
+                    <button id="addShopItemBtn" class="btn-action" style="width:70px; padding:12px; border-radius:14px;" onclick="addShopItem()"><i class="fa-solid fa-plus"></i></button>
                 </div>
-                <div id="shopUploadStatus" style="font-size: 0.85rem; color: var(--primary); text-align: center; margin-top:8px; font-weight:bold;"></div>
-                <input type="hidden" id="tempShopImg" value="">
+                <input type="hidden" id="tempShopPhoto" value="">
+                <div id="shopPhotoStatus" role="status" aria-live="polite" style="font-size:0.78rem; color:var(--primary); margin-top:8px; font-weight:800;"></div>
             </div>
             <!-- My shop list container -->
             <div id="shopMyContainer"><div id="sList"></div></div>
@@ -631,6 +633,7 @@
 <script src="ute/ute_ai.js?v=45.4"></script>
 <script src="ute/ute_context.js?v=45.4"></script>
 <script src="ute/ute_main.js?v=45.4"></script>
+<script src="ute/ute_shopping_photo.js?v=45.5-image2"></script>
 <script src="services/nearby.js?v=45.4"></script>
 <script src="services/utils.js?v=45.4"></script>
 <script src="services/item-images.js?v=45.4-image1"></script>

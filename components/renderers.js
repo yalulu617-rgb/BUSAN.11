@@ -44,17 +44,23 @@ window.addShopItem = async function () {
     const textEl     = document.getElementById('newShop');
     const whereEl    = document.getElementById('shopWhere');
     const categoryEl = document.getElementById('shopCategory');
-    const imgEl      = document.getElementById('tempShopImg');
+    const photoEl    = document.getElementById('tempShopPhoto');
 
     const text = textEl?.value?.trim();
     if (!text) { showToast('請填入商品名稱', 'warning'); return; }
 
+    const photoKey = photoEl?.value || '';
+    const image = await ShoppingPhotoEngine.attach(photoKey, text).catch(async () => {
+        await ShoppingPhotoEngine.remove(photoKey).catch(() => {});
+        return null;
+    });
     const newItem = {
         key: 'local_' + Date.now(),
         text,
         where    : whereEl?.value?.trim()  || '',
         category : categoryEl?.value       || '其他',
-        img      : imgEl?.value            || '',
+        img      : '',
+        ...(image ? { image } : {}),
         checked  : false,
         owner    : window.deviceOwner,
         ts       : Date.now()
@@ -65,6 +71,7 @@ window.addShopItem = async function () {
     window.shopList.push(newItem);
     StorageEngine.set('busan_v36_shopList', window.shopList);
     if (typeof renderShop === 'function') renderShop();
+    ShoppingPhotoEngine.clearSelection();
 
     try {
         await NetworkEngine.firebasePush(DB_SHOP, {
@@ -72,6 +79,7 @@ window.addShopItem = async function () {
             where: newItem.where,
             category: newItem.category,
             img: newItem.img,
+            ...(newItem.image ? { image: newItem.image } : {}),
             checked: newItem.checked,
             owner: newItem.owner,
             ts: newItem.ts
@@ -85,6 +93,7 @@ window.addShopItem = async function () {
                 where: newItem.where,
                 category: newItem.category,
                 img: newItem.img,
+                ...(newItem.image ? { image: newItem.image } : {}),
                 checked: newItem.checked,
                 owner: newItem.owner,
                 ts: newItem.ts
@@ -94,7 +103,6 @@ window.addShopItem = async function () {
     }
     if (textEl)  textEl.value  = '';
     if (whereEl) whereEl.value = '';
-    if (imgEl)   imgEl.value   = '';
     showToast('✅ 已加入購物清單', 'success');
 };
 
@@ -120,9 +128,11 @@ window.toggleShop = async function (key, currentChecked) {
 window.deleteShop = async function (key) {
     if (!confirm('確認刪除此購物項目？')) return;
 
+    const removedItem = (window.shopList || []).find(s => s.key === key);
     // Optimistic local update
     window.shopList = (window.shopList || []).filter(s => s.key !== key);
     StorageEngine.set('busan_v36_shopList', window.shopList);
+    await ShoppingPhotoEngine.remove(removedItem?.image?.storage === 'indexeddb' ? removedItem.image.key : '').catch(() => {});
     if (typeof renderShop === 'function') renderShop();
 
     try {

@@ -15,10 +15,48 @@
     }
     function render(image, label) {
         const data = typeof image === 'string' ? { thumb: image } : (image || {});
+        if (data.storage === 'indexeddb' && data.key) {
+            return `<button type="button" class="item-image" aria-label="放大圖片：${escape(label)}" data-item-image-key="${escape(data.key)}" data-item-image-label="${escape(label)}"><img alt="${escape(data.alt || label)}" width="160" height="120" loading="lazy" decoding="async"></button>`;
+        }
         const thumb = safeUrl(data.thumb);
         if (!thumb) return placeholder(label);
         return `<button type="button" class="item-image" aria-label="放大圖片：${escape(label)}" data-item-image-preview="${escape(safeUrl(data.full) || thumb)}" data-item-image-label="${escape(label)}" data-item-image-source="${escape(safeUrl(data.source))}" data-item-image-credit="${escape(data.credit)}"><img src="${escape(thumb)}" alt="${escape(data.alt || label)}" width="160" height="120" loading="lazy" decoding="async"></button>`;
     }
+
+    const objectUrls = new WeakMap();
+    function release(button) {
+        (objectUrls.get(button) || []).forEach(url => URL.revokeObjectURL(url));
+        objectUrls.delete(button);
+    }
+    async function hydrate(button) {
+        if (button.dataset.itemImageHydrating) return;
+        button.dataset.itemImageHydrating = 'true';
+        try {
+            const record = await window.ShoppingPhotoEngine?.get(button.dataset.itemImageKey);
+            if (!record?.thumb || !record?.full) throw new Error('Photo unavailable');
+            const urls = [URL.createObjectURL(record.thumb), URL.createObjectURL(record.full)];
+            objectUrls.set(button, urls);
+            button.querySelector('img').src = urls[0];
+            button.dataset.itemImagePreview = urls[1];
+        } catch {
+            const replacement = document.createElement('template');
+            replacement.innerHTML = placeholder(button.dataset.itemImageLabel);
+            button.replaceWith(replacement.content.firstElementChild);
+        }
+    }
+    function scan(root) {
+        if (root.nodeType !== Node.ELEMENT_NODE) return;
+        if (root.matches?.('[data-item-image-key]')) hydrate(root);
+        root.querySelectorAll?.('[data-item-image-key]').forEach(hydrate);
+    }
+    new MutationObserver(records => records.forEach(record => {
+        record.addedNodes.forEach(scan);
+        record.removedNodes.forEach(node => {
+            if (node.nodeType !== Node.ELEMENT_NODE) return;
+            if (node.matches?.('[data-item-image-key]')) release(node);
+            node.querySelectorAll?.('[data-item-image-key]').forEach(release);
+        });
+    })).observe(document.documentElement, { childList: true, subtree: true });
 
     let dialog;
     let previousFocus;
@@ -53,12 +91,12 @@
 
     // Capture before the shopping row's click handler so previewing never checks an item.
     document.addEventListener('click', event => {
-        const button = event.target.closest?.('[data-item-image-preview]');
+        const button = event.target.closest?.('[data-item-image-preview], [data-item-image-key]');
         const close = event.target.closest?.('[data-item-image-close]');
         if (!button && !close) return;
         event.preventDefault();
         event.stopPropagation();
-        if (button) preview(button);
+        if (button?.dataset.itemImagePreview) preview(button);
         else dialog?.close();
     }, true);
     document.addEventListener('error', event => {
