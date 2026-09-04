@@ -36,12 +36,15 @@
 
 <div id="pinModal" role="dialog" aria-modal="true" aria-labelledby="pinTitle">
     <div class="pin-box">
-        <h3 id="pinTitle" style="color:var(--primary); margin:0 0 10px 0;"><i class="fa-solid fa-lock" aria-hidden="true"></i> 私密空間解鎖</h3>
-        <p style="font-size:0.95rem; color:#666; font-weight:700; margin-bottom:20px;" id="pinMsg">請輸入旅行專屬密碼</p>
-        <input type="password" id="pinInput" class="pin-input" maxlength="4" pattern="\d*" inputmode="numeric" aria-label="輸入4位數旅行密碼">
+        <h3 id="pinTitle" style="color:var(--primary); margin:0 0 10px 0;">🔒 解鎖個人私帳</h3>
+        <p style="font-size:0.95rem; color:#666; font-weight:700; margin-bottom:20px;" id="pinMsg">請輸入此個人私帳的 PIN</p>
+        <input type="password" id="pinInput" class="pin-input" minlength="4" maxlength="12" pattern="\d*" inputmode="numeric" autocomplete="off" aria-label="輸入個人私帳 PIN" onkeydown="if(event.key==='Enter')submitPin()">
+        <div id="pinConfirmWrap" style="display:none;">
+            <input type="password" id="pinConfirmInput" class="pin-input" minlength="4" maxlength="12" pattern="\d*" inputmode="numeric" autocomplete="off" aria-label="再次輸入個人私帳 PIN" onkeydown="if(event.key==='Enter')submitPin()">
+        </div>
         <div style="display:flex; gap:12px;">
             <button onclick="cancelPin()" style="flex:1; padding:15px; border-radius:16px; border:none; background:#ecf0f1; color:#7f8c8d; font-weight:900; font-size:1.05rem;">取消</button>
-            <button onclick="submitPin()" style="flex:1; padding:15px; border-radius:16px; border:none; background:var(--primary); color:white; font-weight:900; font-size:1.05rem;">解鎖</button>
+            <button id="pinSubmitBtn" onclick="submitPin()" style="flex:1; padding:15px; border-radius:16px; border:none; background:var(--primary); color:white; font-weight:900; font-size:1.05rem;">解鎖</button>
         </div>
     </div>
 </div>
@@ -634,6 +637,7 @@
 <script src="ute/ute_context.js?v=45.4"></script>
 <script src="ute/ute_main.js?v=45.4"></script>
 <script src="ute/ute_shopping_photo.js?v=45.5-image2"></script>
+<script src="ute/ute_private_ledger.js?v=45.6-private-ledger"></script>
 <script src="services/nearby.js?v=45.4"></script>
 <script src="services/utils.js?v=45.4"></script>
 <script src="services/item-images.js?v=45.4-image1"></script>

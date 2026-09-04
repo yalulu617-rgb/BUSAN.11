@@ -61,14 +61,19 @@ test('Revision 3: private rows and totals follow payer while shared accounting s
   expect(JSON.stringify({ sharedBills, privateBills })).toBe(original);
 });
 
-test('Revision 3: new private bills use the current owner even with a stale payer selection', async () => {
+test('Revision 3: encrypted private writes use the current owner even with a stale payer selection', async () => {
   const existing = { id: 'old', name: 'Existing record', payer: 'user2', amt: 15 };
   const stored = [existing];
   const writes = [];
   const fields = Object.fromEntries(Object.entries({ billName: 'New bill', billAmt: '50', billCurrency: 'TWD',
     billType: '私帳', payer: 'user2', payMethod: '現金', tempReceipt: '' }).map(([id, value]) => [id, { value }]));
   const ctx = sandbox({ document: { getElementById: id => fields[id] },
-    StorageEngine: { get: () => ({ data: stored }), set: () => {} },
+    crypto: { getRandomValues: values => { values[0] = 7; return values; } },
+    PrivateLedgerEngine: {
+      add: async (owner, bill) => stored.push({ ...bill, payer: owner }),
+      getBills: owner => stored.filter(bill => bill.payer === owner)
+    },
+    ensurePrivateLedgerUnlocked: async () => true,
     NetworkEngine: { firebasePush: async (path, bill) => writes.push({ path, bill }) },
     DB_BILLS: 'bills', getV37SelectedDate: () => '11/13', showToast() {}, triggerContextUpdate() {} });
   loadFunction(ctx, 'js/app.js', 'addBill', '    ');

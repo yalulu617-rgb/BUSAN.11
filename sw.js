@@ -8,7 +8,7 @@
 // - Cache-first with network fallback for static media (images, icons)
 // ─────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'busan-trip-v45-production-v5-image2';
+const CACHE_NAME = 'busan-trip-v45-production-v6-private-ledger';
 
 const LOCAL_ASSETS = [
     './',
@@ -41,6 +41,7 @@ const LOCAL_ASSETS = [
     './ute/ute_context.js',
     './ute/ute_main.js',
     './ute/ute_shopping_photo.js',
+    './ute/ute_private_ledger.js',
     './services/nearby.js',
     './services/utils.js',
     './services/item-images.js',

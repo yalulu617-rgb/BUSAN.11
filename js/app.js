@@ -28,7 +28,8 @@
         window.voiceData    = (window.CANONICAL_VOICE_FALLBACK || []).slice();
     }
     window.prepData         = (Array.isArray(window.prepData) && window.prepData.length > 0) ? window.prepData : (StorageEngine.get('busan_v36_prepData', []).data || []);
-    window.privateBills     = StorageEngine.get('busan_v36_p_bills', []).data || [];
+    // Decrypted private data is memory-only and starts locked on every boot.
+    window.privateBills     = [];
     window.sharedBills      = window.sharedBills || [];
     window.currentBillTab   = '公費';
     window.currentShopSubTab  = 'my';
@@ -173,24 +174,113 @@
         }, 1200);
     };
 
-    // ── PIN ───────────────────────────────────────────────────────────────
-    window.submitPin = function () {
+    // ── Private-ledger PIN presentation ──────────────────────────────────
+    function profileLabel(profile) {
+        const item = profile === 'user1' ? window.u1 : window.u2;
+        return `${item.avatar} ${item.name}`;
+    }
+
+    function setBillTab(type) {
+        window.currentBillTab = type;
+        const shared = document.getElementById('tabShared');
+        const priv = document.getElementById('tabPrivate');
+        if (shared) shared.classList.toggle('active', type === '公費');
+        if (priv) priv.classList.toggle('active', type === '私帳');
+    }
+
+    function refreshAccountingNow() {
+        if (typeof triggerContextUpdateImmediate === 'function') triggerContextUpdateImmediate();
+        else if (typeof renderBills === 'function') renderBills();
+    }
+
+    function finishPinRequest(result) {
+        const resolve = window._pinResolve;
+        window._pinResolve = null;
+        window._pinPromise = null;
+        window._pinProfile = null;
+        window._pinMode = null;
+        if (typeof resolve === 'function') resolve(result);
+    }
+
+    window.ensurePrivateLedgerUnlocked = function () {
+        const profile = window.deviceOwner;
+        if (PrivateLedgerEngine.isUnlocked(profile)) return Promise.resolve(true);
+        if (window._pinPromise) return window._pinPromise;
+
+        let setup;
+        try {
+            setup = !PrivateLedgerEngine.hasVault(profile);
+        } catch (_) {
+            PrivateLedgerEngine.lock();
+            showToast('無法讀取個人私帳，請稍後再試', 'error');
+            return Promise.resolve(false);
+        }
+        const modal = document.getElementById('pinModal');
+        const title = document.getElementById('pinTitle');
+        const msg = document.getElementById('pinMsg');
         const pin = document.getElementById('pinInput');
-        if (!pin) return;
-        if (pin.value === '1313') {
+        const confirmationWrap = document.getElementById('pinConfirmWrap');
+        const confirmation = document.getElementById('pinConfirmInput');
+        const submit = document.getElementById('pinSubmitBtn');
+
+        window._pinProfile = profile;
+        window._pinMode = setup ? 'setup' : 'unlock';
+        if (title) title.textContent = setup ? '🔐 設定個人私帳 PIN' : `🔒 解鎖「${profileLabel(profile)}」個人私帳`;
+        if (msg) msg.textContent = setup ? `為「${profileLabel(profile)}」設定專屬 PIN` : '請輸入此個人私帳的 PIN';
+        if (confirmationWrap) confirmationWrap.style.display = setup ? 'block' : 'none';
+        if (submit) submit.textContent = setup ? '設定並解鎖' : '解鎖';
+        if (pin) pin.value = '';
+        if (confirmation) confirmation.value = '';
+        if (modal) modal.style.display = 'flex';
+        setTimeout(() => pin?.focus(), 0);
+
+        window._pinPromise = new Promise(resolve => { window._pinResolve = resolve; });
+        return window._pinPromise;
+    };
+
+    window.submitPin = async function () {
+        const pin = document.getElementById('pinInput');
+        const confirmation = document.getElementById('pinConfirmInput');
+        const msg = document.getElementById('pinMsg');
+        const profile = window._pinProfile;
+        if (!pin || !profile) return;
+
+        try {
+            if (window._pinMode === 'setup') {
+                if (!/^\d{4,12}$/.test(pin.value) || pin.value !== confirmation?.value) {
+                    if (msg) msg.textContent = '請輸入 4–12 位數字，並確認兩次 PIN 相同';
+                    pin.value = '';
+                    if (confirmation) confirmation.value = '';
+                    return;
+                }
+                await PrivateLedgerEngine.setup(profile, pin.value, confirmation.value);
+            } else {
+                await PrivateLedgerEngine.unlock(profile, pin.value);
+            }
+            if (profile !== window.deviceOwner) {
+                PrivateLedgerEngine.lock();
+                throw new Error('Profile changed during unlock');
+            }
+            window.privateBills = PrivateLedgerEngine.getBills(profile);
             document.getElementById('pinModal').style.display = 'none';
-            if (typeof window._pinResolve === 'function') { window._pinResolve(); window._pinResolve = null; }
-        } else {
-            const msg = document.getElementById('pinMsg');
-            if (msg) msg.innerText = '密碼錯誤，請重試';
             pin.value = '';
+            if (confirmation) confirmation.value = '';
+            finishPinRequest(true);
+        } catch (_) {
+            PrivateLedgerEngine.lock();
+            if (msg) msg.textContent = '無法解鎖，請確認 PIN 後重試';
+            pin.value = '';
+            if (confirmation) confirmation.value = '';
         }
     };
 
     window.cancelPin = function () {
         const modal = document.getElementById('pinModal');
         if (modal) modal.style.display = 'none';
-        window.currentBillTab = '公費';
+        PrivateLedgerEngine.lock();
+        setBillTab('公費');
+        refreshAccountingNow();
+        finishPinRequest(false);
     };
 
     // ── Tab Navigation ────────────────────────────────────────────────────
@@ -289,8 +379,15 @@
         });
 
         if (sel.value) {
+            const ownerChanged = sel.value !== window.deviceOwner;
+            if (ownerChanged) {
+                PrivateLedgerEngine.lock();
+                setBillTab('公費');
+                finishPinRequest(false);
+            }
             window.deviceOwner = sel.value;
             StorageEngine.set('busan_v36_owner', sel.value);
+            if (ownerChanged) refreshAccountingNow();
         }
         togglePayerSelect();
     };
@@ -316,10 +413,17 @@
     window.updateOwner = function () {
         const sel = document.getElementById('deviceOwner');
         if (!sel || !sel.value) return;
+        if (sel.value !== window.deviceOwner) {
+            PrivateLedgerEngine.lock();
+            setBillTab('公費');
+            const modal = document.getElementById('pinModal');
+            if (modal) modal.style.display = 'none';
+            finishPinRequest(false);
+        }
         window.deviceOwner = sel.value;
         StorageEngine.set('busan_v36_owner', sel.value);
         togglePayerSelect();
-        triggerContextUpdate();
+        refreshAccountingNow();
     };
 
     // ── Bill CRUD (public+private) — belongs here because it bridges Firebase + localStorage ──
@@ -337,12 +441,9 @@
         }
     };
 
-    window.filterBillsWithPin = function (type) {
-        window.currentBillTab = type;
-        const shared  = document.getElementById('tabShared');
-        const priv    = document.getElementById('tabPrivate');
-        if (shared)  shared.classList.toggle('active',  type === '公費');
-        if (priv)    priv.classList.toggle('active',    type === '私帳');
+    window.filterBillsWithPin = async function (type) {
+        if (type === '私帳' && !await ensurePrivateLedgerUnlocked()) return;
+        setBillTab(type);
         if (typeof renderBills === 'function') renderBills();
         triggerContextUpdate();
     };
@@ -402,11 +503,16 @@
         if (type === '公費') {
             await NetworkEngine.firebasePush(DB_BILLS, bill);
         } else {
-            const pb = StorageEngine.get('busan_v36_p_bills', []).data;
-            pb.push({ ...bill, id: String(Date.now()) });
-            StorageEngine.set('busan_v36_p_bills', pb);
-            window.privateBills = pb;
-            if (typeof renderBills === 'function') renderBills();
+            if (!await ensurePrivateLedgerUnlocked()) return;
+            const id = `${Date.now()}-${crypto.getRandomValues(new Uint32Array(1))[0]}`;
+            try {
+                await PrivateLedgerEngine.add(window.deviceOwner, { ...bill, id });
+            } catch (_) {
+                showToast('個人私帳未能安全儲存，請稍後再試', 'error');
+                return;
+            }
+            window.privateBills = PrivateLedgerEngine.getBills(window.deviceOwner);
+            refreshAccountingNow();
         }
         if (nameEl)    nameEl.value    = '';
         if (amtEl)     amtEl.value     = '';
@@ -420,12 +526,17 @@
         await NetworkEngine.firebaseRemove(`${DB_BILLS}/${key}`);
     };
 
-    window.deletePrivateBill = function (id) {
+    window.deletePrivateBill = async function (id) {
         if (!confirm('確認刪除此筆私帳？')) return;
-        window.privateBills = window.privateBills.filter(b => b.id !== id);
-        StorageEngine.set('busan_v36_p_bills', window.privateBills);
-        if (typeof renderBills === 'function') renderBills();
-        triggerContextUpdate();
+        if (!await ensurePrivateLedgerUnlocked()) return;
+        try {
+            await PrivateLedgerEngine.remove(window.deviceOwner, id);
+        } catch (_) {
+            showToast('個人私帳未能安全更新，請稍後再試', 'error');
+            return;
+        }
+        window.privateBills = PrivateLedgerEngine.getBills(window.deviceOwner);
+        refreshAccountingNow();
     };
 
     // ── Firebase Listeners (centralised — all data flows into global arrays) ──
