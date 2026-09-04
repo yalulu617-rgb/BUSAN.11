@@ -4,8 +4,12 @@ import { readFileSync } from 'node:fs';
 const source = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8');
 
 async function engineFixture(page, legacy = []) {
-  await page.route('http://ledger.test/**', route => route.fulfill({ contentType: 'text/html', body: '<main>ledger</main>' }));
-  await page.goto('http://ledger.test/');
+  await page.route('https://ledger.test/**', route => route.fulfill({ contentType: 'text/html', body: '<main>ledger</main>' }));
+  await page.goto('https://ledger.test/');
+  expect(await page.evaluate(() => ({
+    isSecureContext: window.isSecureContext,
+    hasCryptoSubtle: typeof window.crypto?.subtle?.importKey === 'function'
+  }))).toEqual({ isSecureContext: true, hasCryptoSubtle: true });
   await page.addScriptTag({ content: source('ute/ute_storage.js') });
   await page.evaluate(rows => StorageEngine.set('busan_v36_p_bills', rows), legacy);
   await page.addScriptTag({ content: source('ute/ute_private_ledger.js') });
@@ -164,6 +168,9 @@ test('Revision 6: profile switching relocks UI and wrong PIN exposes no private 
   });
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.evaluate(() => enterApp());
+  await expect(page.locator('#mainApp')).toBeVisible();
+  await page.locator('#tab-bill').click();
+  await expect(page.locator('#split')).toBeVisible();
 
   await page.locator('#tabPrivate').click();
   await expect(page.locator('#pinTitle')).toContainText('設定個人私帳 PIN');

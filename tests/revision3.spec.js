@@ -74,6 +74,7 @@ test('Revision 3: encrypted private writes use the current owner even with a sta
       getBills: owner => stored.filter(bill => bill.payer === owner)
     },
     ensurePrivateLedgerUnlocked: async () => true,
+    refreshAccountingNow() {},
     NetworkEngine: { firebasePush: async (path, bill) => writes.push({ path, bill }) },
     DB_BILLS: 'bills', getV37SelectedDate: () => '11/13', showToast() {}, triggerContextUpdate() {} });
   loadFunction(ctx, 'js/app.js', 'addBill', '    ');
