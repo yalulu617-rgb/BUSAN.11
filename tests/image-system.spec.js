@@ -90,8 +90,27 @@ test('Image Batch 2: device photos resize, replace in place, persist and degrade
     const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
     return ShoppingPhotoEngine.save(new File([blob], 'camera.png', { type: 'image/png' }));
   });
+  const stored = await page.evaluate(key => new Promise((resolve, reject) => {
+    const open = indexedDB.open('busan-shopping-photos');
+    open.onerror = () => reject(open.error);
+    open.onsuccess = () => {
+      const request = open.result.transaction('photos').objectStore('photos').get(key);
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve({
+        hasBuffers: request.result.thumbBuffer instanceof ArrayBuffer && request.result.fullBuffer instanceof ArrayBuffer,
+        hasBlobs: request.result.thumb instanceof Blob || request.result.full instanceof Blob,
+        thumbType: request.result.thumbType,
+        fullType: request.result.fullType
+      });
+    };
+  }), key);
+  expect(stored.hasBuffers).toBe(true);
+  expect(stored.hasBlobs).toBe(false);
+  expect(['image/webp', 'image/jpeg']).toContain(stored.thumbType);
+  expect(['image/webp', 'image/jpeg']).toContain(stored.fullType);
   const first = await page.evaluate(async key => {
     const record = await ShoppingPhotoEngine.get(key);
+    if (!(record.thumb instanceof Blob) || !(record.full instanceof Blob)) throw new Error('Public photo API did not reconstruct Blob images');
     const thumb = await createImageBitmap(record.thumb);
     const full = await createImageBitmap(record.full);
     return { thumb: [thumb.width, thumb.height, record.thumb.type], full: [full.width, full.height, record.full.type] };
@@ -122,6 +141,18 @@ test('Image Batch 2: device photos resize, replace in place, persist and degrade
   }))).toBe(1);
   const reference = await page.evaluate(key => ShoppingPhotoEngine.attach(key, 'Luna 購物照片'), key);
   expect(reference).toEqual({ storage: 'indexeddb', key, alt: 'Luna 購物照片' });
+  expect(await page.evaluate(key => new Promise((resolve, reject) => {
+    const open = indexedDB.open('busan-shopping-photos');
+    open.onerror = () => reject(open.error);
+    open.onsuccess = () => {
+      const request = open.result.transaction('photos').objectStore('photos').get(key);
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve(
+        request.result.thumbBuffer instanceof ArrayBuffer && request.result.fullBuffer instanceof ArrayBuffer &&
+        !('thumb' in request.result) && !('full' in request.result) && request.result.draft === false
+      );
+    };
+  }), key)).toBe(true);
 
   const secondPage = await browserContext.newPage();
   await secondPage.route('http://photo.test/**', route => route.fulfill({ contentType: 'text/html', body: '<main id="list"></main>' }));

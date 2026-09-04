@@ -68,11 +68,49 @@
     return 'shop-photo-' + (target.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`);
   }
 
+  const getStoredRecord = key => key ? transact('readonly', store => store.get(key)) : Promise.resolve(null);
+
+  async function safeStoredRecord(record) {
+    if (!record) return null;
+    if (record.thumbBuffer instanceof ArrayBuffer && record.fullBuffer instanceof ArrayBuffer) {
+      return {
+        key: record.key,
+        thumbBuffer: record.thumbBuffer,
+        thumbType: record.thumbType,
+        fullBuffer: record.fullBuffer,
+        fullType: record.fullType,
+        draft: record.draft,
+        updatedAt: record.updatedAt
+      };
+    }
+    if (record.thumb instanceof Blob && record.full instanceof Blob) {
+      return {
+        key: record.key,
+        thumbBuffer: await record.thumb.arrayBuffer(),
+        thumbType: record.thumb.type,
+        fullBuffer: await record.full.arrayBuffer(),
+        fullType: record.full.type,
+        draft: record.draft,
+        updatedAt: record.updatedAt
+      };
+    }
+    return null;
+  }
+
   async function save(file, existingKey) {
     const image = await decode(file);
     try {
       const [thumb, full] = await Promise.all([resize(image, MAX_THUMB), resize(image, MAX_FULL)]);
-      const record = { key: existingKey || newKey(), thumb, full, draft: true, updatedAt: Date.now() };
+      const [thumbBuffer, fullBuffer] = await Promise.all([thumb.arrayBuffer(), full.arrayBuffer()]);
+      const record = {
+        key: existingKey || newKey(),
+        thumbBuffer,
+        thumbType: thumb.type,
+        fullBuffer,
+        fullType: full.type,
+        draft: true,
+        updatedAt: Date.now()
+      };
       await transact('readwrite', store => store.put(record));
       return record.key;
     } finally {
@@ -80,12 +118,23 @@
     }
   }
 
-  const get = key => key ? transact('readonly', store => store.get(key)) : Promise.resolve(null);
+  async function get(key) {
+    const stored = await getStoredRecord(key);
+    if (stored?.thumb instanceof Blob && stored?.full instanceof Blob) return stored;
+    if (!(stored?.thumbBuffer instanceof ArrayBuffer) || !(stored?.fullBuffer instanceof ArrayBuffer)) return null;
+    return {
+      key: stored.key,
+      thumb: new Blob([stored.thumbBuffer], { type: stored.thumbType || 'application/octet-stream' }),
+      full: new Blob([stored.fullBuffer], { type: stored.fullType || 'application/octet-stream' }),
+      draft: stored.draft,
+      updatedAt: stored.updatedAt
+    };
+  }
   const remove = key => key ? transact('readwrite', store => store.delete(key)) : Promise.resolve();
 
   async function attach(key, alt) {
-    const record = await get(key);
-    if (!record?.thumb || !record?.full) return null;
+    const record = await safeStoredRecord(await getStoredRecord(key));
+    if (!record) return null;
     record.draft = false;
     record.updatedAt = Date.now();
     await transact('readwrite', store => store.put(record));
