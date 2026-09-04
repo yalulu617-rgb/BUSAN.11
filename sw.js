@@ -8,13 +8,15 @@
 // - Cache-first with network fallback for static media (images, icons)
 // ─────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'busan-trip-v45-production-v6-private-ledger';
+const CACHE_NAME = 'busan-trip-v45-production-v7-final-pwa';
 
 const LOCAL_ASSETS = [
     './',
     './index.html',
     './manifest.json',
     './icon.png',
+    './icon-192.png',
+    './icon-512.png',
     './13972.png',
     './style.css',
     './assets/css/item-images.css',
@@ -42,6 +44,7 @@ const LOCAL_ASSETS = [
     './ute/ute_main.js',
     './ute/ute_shopping_photo.js',
     './ute/ute_private_ledger.js',
+    './ute/ute_pwa_install.js',
     './services/nearby.js',
     './services/utils.js',
     './services/item-images.js',
@@ -71,9 +74,8 @@ function isNetworkOnly(url) {
     return NETWORK_ONLY_DOMAINS.some(d => url.includes(d));
 }
 
-// ── Install: precache local assets and immediately take over ──
+// ── Install: precache local assets; updates wait for explicit user consent ──
 self.addEventListener('install', event => {
-    self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NAME).then(async cache => {
             const results = await Promise.allSettled(

@@ -18,6 +18,7 @@
 
     <link rel="stylesheet" href="style.css?v=45.4">
     <link rel="stylesheet" href="assets/css/item-images.css?v=45.4-image1">
+    <script src="ute/ute_pwa_install.js?v=45.7-pwa"></script>
     
 </head>
 <body>
@@ -88,6 +89,12 @@
 <div class="fab-back" id="fabBack" role="button" tabindex="0" aria-label="返回目錄" onclick="closeGuideFolder()"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></div>
 
 <div id="mainApp">
+
+    <aside id="pwaInstallBar" class="pwa-install-bar" aria-label="安裝 BUSAN.11 應用程式" hidden>
+        <span id="pwaInstallText">把 BUSAN.11 加到主畫面，旅途中可更快開啟。</span>
+        <button id="pwaInstallBtn" class="pwa-install-action" type="button">📲 安裝成 App</button>
+        <button id="pwaInstallDismiss" class="pwa-install-dismiss" type="button" aria-label="本次不再顯示安裝提示">×</button>
+    </aside>
 
     <div id="guide" class="container active">
         <div id="guideDashboard">
@@ -622,6 +629,19 @@
         <div id="tab-more" class="nav-item" role="tab" tabindex="0" aria-selected="false" aria-label="翻譯與緊急救援" onclick="showV37Tab('more', this)"><i class="fa-solid fa-life-ring" aria-hidden="true"></i>SOS</div>
     </div>
 
+</div>
+
+<div id="pwaIosDialog" class="pwa-ios-dialog" role="dialog" aria-modal="true" aria-labelledby="pwaIosTitle" hidden>
+    <div class="pwa-ios-dialog-card">
+        <h2 id="pwaIosTitle">將 BUSAN.11 加入主畫面</h2>
+        <ol>
+            <li>使用 Safari 開啟 BUSAN.11</li>
+            <li>點擊「分享」</li>
+            <li>選擇「加入主畫面」</li>
+            <li>點擊「加入」</li>
+        </ol>
+        <button id="pwaIosClose" class="pwa-ios-close" type="button">知道了</button>
+    </div>
 </div>
 
 

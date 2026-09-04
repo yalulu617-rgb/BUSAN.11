@@ -1,15 +1,24 @@
 {
   "name": "釜山慶州秋之旅 V45",
   "short_name": "釜山V45",
-  "start_url": "./index.html",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#FFF9F2",
   "theme_color": "#FFF9F2",
   "icons": [
     {
-      "src": "icon.png",
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }

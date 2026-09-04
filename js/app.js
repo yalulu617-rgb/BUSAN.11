@@ -180,6 +180,54 @@
         return `${item.avatar} ${item.name}`;
     }
 
+    function setupPwaInstallUx() {
+        const engine = window.PwaInstallEngine;
+        const bar = document.getElementById('pwaInstallBar');
+        const text = document.getElementById('pwaInstallText');
+        const installButton = document.getElementById('pwaInstallBtn');
+        const dismissButton = document.getElementById('pwaInstallDismiss');
+        const dialog = document.getElementById('pwaIosDialog');
+        const closeButton = document.getElementById('pwaIosClose');
+        if (!engine || !bar || !installButton || !dismissButton || !dialog || !closeButton) return;
+
+        function closeIosHelp() {
+            dialog.hidden = true;
+            installButton.focus();
+        }
+
+        function renderInstallState(state) {
+            const visible = state.canPrompt || state.showIosHelp;
+            bar.hidden = !visible;
+            if (!visible) dialog.hidden = true;
+            if (state.showIosHelp) {
+                text.textContent = '在 iPhone / iPad 上把 BUSAN.11 加到主畫面。';
+                installButton.textContent = '📲 加入 iPhone 主畫面';
+            } else {
+                text.textContent = '把 BUSAN.11 加到主畫面，旅途中可更快開啟。';
+                installButton.textContent = '📲 安裝成 App';
+            }
+        }
+
+        engine.subscribe(renderInstallState);
+        installButton.addEventListener('click', async function () {
+            const state = engine.getState();
+            if (state.showIosHelp) {
+                dialog.hidden = false;
+                closeButton.focus();
+                return;
+            }
+            await engine.promptInstall();
+        });
+        dismissButton.addEventListener('click', function () { engine.dismiss(); });
+        closeButton.addEventListener('click', closeIosHelp);
+        dialog.addEventListener('click', function (event) {
+            if (event.target === dialog) closeIosHelp();
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && !dialog.hidden) closeIosHelp();
+        });
+    }
+
     function setBillTab(type) {
         window.currentBillTab = type;
         const shared = document.getElementById('tabShared');
@@ -714,6 +762,8 @@
 
     // ── Bootstrap ─────────────────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
+        setupPwaInstallUx();
+
         // Guarantee UI visibility regardless of network or API failure
         try {
             if (typeof window.forceShowApp === 'function') {
