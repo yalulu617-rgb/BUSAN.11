@@ -3,6 +3,19 @@ import { readFileSync } from 'node:fs';
 
 const source = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8');
 
+function expectEncryptedVaultSchema(vault) {
+  expect(vault).toEqual({
+    version: 1,
+    kdf: { name: 'PBKDF2', hash: 'SHA-256', iterations: expect.any(Number) },
+    cipher: { name: 'AES-GCM', length: 256 },
+    salt: expect.stringMatching(/^[0-9a-f]{32}$/),
+    iv: expect.stringMatching(/^[0-9a-f]{24}$/),
+    ciphertext: expect.stringMatching(/^[0-9a-f]+$/),
+    updatedAt: expect.any(Number)
+  });
+  expect(vault.kdf.iterations).toBeGreaterThan(0);
+}
+
 async function engineFixture(page, legacy = []) {
   await page.route('https://ledger.test/**', route => route.fulfill({ contentType: 'text/html', body: '<main>ledger</main>' }));
   await page.goto('https://ledger.test/');
@@ -36,12 +49,12 @@ test('Revision 6: profiles migrate into separate encrypted PIN vaults and remain
   });
   expect(user1.bills.map(bill => bill.id)).toEqual(['u1-old']);
   expect(user1.privateBills).toEqual(user1.bills);
-  expect(user1.metadata).toMatchObject({
-    version: 1,
-    kdf: { name: 'PBKDF2', hash: 'SHA-256' },
-    cipher: { name: 'AES-GCM', length: 256 }
-  });
-  for (const cleartext of ['482648264826', 'U1 legacy secret', 'u1 note', '"name"', '"amt"', '"notes"']) {
+  expectEncryptedVaultSchema(user1.metadata);
+  for (const cleartext of [
+    '482648264826', 'U1 legacy secret', 'u1 note',
+    '"name":"U1 legacy secret"', '"amt":111', '"currency":"TWD"',
+    '"payer":"user1"', '"type":"私帳"', '"notes":"u1 note"'
+  ]) {
     expect(user1.vault).not.toContain(cleartext);
   }
   expect(user1.legacy.map(bill => bill.id)).toEqual(['u2-old', 'unknown']);
@@ -75,8 +88,13 @@ test('Revision 6: profiles migrate into separate encrypted PIN vaults and remain
   expect(isolation.user1Only).toEqual({ user1: true, user2: false, names: ['U1 legacy secret'] });
   expect(isolation.user2Names).toEqual(['U2 legacy secret']);
   expect(isolation.legacy.map(bill => bill.id)).toEqual(['unknown']);
-  expect(isolation.user2Vault).not.toContain('735173517351');
-  expect(isolation.user2Vault).not.toContain('U2 legacy secret');
+  for (const cleartext of [
+    '735173517351', 'U2 legacy secret', 'u2 receipt',
+    '"name":"U2 legacy secret"', '"amt":222', '"currency":"KRW"',
+    '"payer":"user2"', '"type":"私帳"', '"receipt":"u2 receipt"'
+  ]) {
+    expect(isolation.user2Vault).not.toContain(cleartext);
+  }
 });
 
 test('Revision 6: encrypted CRUD persists safely and a fresh page starts locked', async ({ page }) => {
@@ -93,6 +111,7 @@ test('Revision 6: encrypted CRUD persists safely and a fresh page starts locked'
     return {
       bills: PrivateLedgerEngine.getBills('user1'),
       vault: localStorage.getItem('busan_v45_private_vault_user1'),
+      metadata: StorageEngine.get('busan_v45_private_vault_user1', null).data,
       legacy: StorageEngine.get('busan_v36_p_bills', []).data,
       persistent: JSON.stringify({
         local: Array.from({ length: localStorage.length }, (_, i) => [localStorage.key(i), localStorage.getItem(localStorage.key(i))]),
@@ -104,7 +123,13 @@ test('Revision 6: encrypted CRUD persists safely and a fresh page starts locked'
   expect(saved.bills[0]).toMatchObject({ id: 'private-new', payer: 'user1', type: '私帳' });
   expect(saved.legacy).toEqual([]);
   expect(saved.persistent).not.toContain('864286428642');
-  for (const cleartext of ['Hidden purchase', '信用卡', 'private.invalid', 'do not leak', '"name"', '"amt"', '"receipt"']) {
+  expectEncryptedVaultSchema(saved.metadata);
+  for (const cleartext of [
+    'Hidden purchase', '信用卡', 'private.invalid', 'do not leak',
+    '"id":"private-new"', '"name":"Hidden purchase"', '"amt":9876', '"currency":"KRW"',
+    '"method":"信用卡"', '"receipt":"https://private.invalid/receipt"',
+    '"day":"11/14"', '"notes":"do not leak"', '"payer":"user1"', '"type":"私帳"'
+  ]) {
     expect(saved.vault).not.toContain(cleartext);
   }
 
