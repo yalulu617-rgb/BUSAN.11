@@ -171,13 +171,20 @@ test('warm service-worker cache boots core navigation offline with private ledge
   expect(ready).toBe(true);
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
   const appUrl = page.url();
+  const offlinePage = await context.newPage();
 
   await context.setOffline(true);
   expect(await page.evaluate(() => navigator.onLine)).toBe(false);
-  const offlinePage = await context.newPage();
-  await offlinePage.goto(appUrl, { waitUntil: 'domcontentloaded' });
-  expect(await offlinePage.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+  await offlinePage.evaluate((url) => {
+    setTimeout(() => {
+      window.location.assign(url);
+    }, 0);
+  }, appUrl);
+
   await offlinePage.waitForSelector('#mainApp', { state: 'visible' });
+  expect(offlinePage.url()).toBe(appUrl);
+  await offlinePage.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
+  expect(await offlinePage.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
   await expect(offlinePage.locator('.bottom-nav')).toBeVisible();
   expect(await offlinePage.locator('.bottom-nav .nav-item').allTextContents()).toEqual([
     '首頁', '今日', '記帳', '票券', 'SOS'
