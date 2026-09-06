@@ -173,9 +173,9 @@ test('warm service-worker cache boots core navigation offline with private ledge
   const appUrl = page.url();
 
   await context.setOffline(true);
+  expect(await page.evaluate(() => navigator.onLine)).toBe(false);
   const offlinePage = await context.newPage();
   await offlinePage.goto(appUrl, { waitUntil: 'domcontentloaded' });
-  expect(await offlinePage.evaluate(() => navigator.onLine)).toBe(false);
   expect(await offlinePage.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
   await offlinePage.waitForSelector('#mainApp', { state: 'visible' });
   await expect(offlinePage.locator('.bottom-nav')).toBeVisible();
