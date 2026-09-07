@@ -101,7 +101,7 @@
             <div id="v36HomeContent" style="display:none;">
                 <div class="card" style="background: linear-gradient(135deg, rgba(255,234,234,0.9), rgba(255,255,255,0.9)); border-left: 6px solid #E74C3C;">
                     <h4 style="color: #E74C3C; margin: 0 0 12px 0; font-size: 1.1rem;"><i class="fa-solid fa-triangle-exclamation fa-fade"></i> 行前必備與翻譯捷徑</h4>
-                    <div style="font-size: 0.95rem; line-height: 1.6; color: #444; font-weight: 700; margin-bottom:15px;">🚨 <b>K-ETA：</b>出發前 72 小時申請。<br>🚨 <b>Q-Code：</b>出發前 3 天內填寫。<br>🚨 <b>隨身清單：</b>護照、WOWPASS、行動電源。</div>
+                    <div style="font-size: 0.95rem; line-height: 1.6; color: #444; font-weight: 700; margin-bottom:15px;">✅ <b>K-ETA：</b>台灣旅客豁免至 2026-12-31 KST。<br>📝 <b>e-Arrival Card：</b>抵達前 3 天內免費申報。<br>🔄 <b>Q-CODE：</b>依 KDCA 地區與旅遊史判斷，出發前重查。</div>
                     <button class="btn-action" style="background: #27AE60; padding:12px; font-size:1rem;" onclick="openPapago()"><i class="fa-solid fa-camera"></i> 喚醒 Papago 鏡頭翻譯</button>
                 </div>
 
@@ -399,44 +399,7 @@
                     <span class="v38-badge" style="background:rgba(26,188,156,0.15); color:#16a085; font-size:0.65rem;">2026.11 行前規則摘要</span>
                 </div>
                 
-                <div style="display:flex; flex-direction:column; gap:10px;">
-                    <div style="background:#f4fbf9; padding:12px; border-radius:14px; border:1px solid #d1f2eb;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span style="font-weight:900; font-size:0.9rem; color:#16a085;">✅ K-ETA（電子旅行許可）</span>
-                            <span style="font-size:0.68rem; font-weight:800; background:#2ecc71; color:white; padding:2px 8px; border-radius:6px;">本次免申請</span>
-                        </div>
-                        <div style="font-size:0.75rem; color:#555; margin-top:4px; line-height:1.4;">
-                            台灣護照持有人目前受 K-ETA 豁免，豁免期至 <b>2026-12-31</b>。本次 11/13~11/17 旅程無需申請 K-ETA。
-                        </div>
-                    </div>
-
-                    <div style="background:#fef9e7; padding:12px; border-radius:14px; border:1px solid #fdebd0;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span style="font-weight:900; font-size:0.9rem; color:#d35400;">📝 e-Arrival Card（電子入境申報）</span>
-                            <span style="font-size:0.68rem; font-weight:800; background:#e67e22; color:white; padding:2px 8px; border-radius:6px;">需填寫</span>
-                        </div>
-                        <div style="font-size:0.75rem; color:#555; margin-top:4px; line-height:1.4;">
-                            K-ETA 豁免不代表免除入境申報。請於出發前至韓國官方網站完成電子入境申報（免排隊填紙本入境卡）。
-                        </div>
-                    </div>
-
-                    <div style="background:#ebf5fb; padding:12px; border-radius:14px; border:1px solid #d6eaf8;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span style="font-weight:900; font-size:0.9rem; color:#2980b9;">🔄 Q-CODE（檢疫資訊預入申報）</span>
-                            <span style="font-size:0.68rem; font-weight:800; background:#3498db; color:white; padding:2px 8px; border-radius:6px;">Q4 / RECHECK</span>
-                        </div>
-                        <div style="font-size:0.75rem; color:#555; margin-top:4px; line-height:1.4;">
-                            2026 年 11 月（第 4 季）入境檢疫規定依最新公告為準。出發前 3 天請再次確認是否需填寫 Q-CODE 申報條碼。
-                        </div>
-                    </div>
-
-                    <div style="background:#f8f9fa; padding:12px; border-radius:14px; border:1px solid #eee;">
-                        <div style="font-weight:900; font-size:0.88rem; color:#2c3e50;">🪪 護照有效期限說明</div>
-                        <div style="font-size:0.75rem; color:#555; margin-top:4px; line-height:1.4;">
-                            有效效期涵蓋整趟旅程即可（無硬性 6 個月限制；若接近到期建議提前換新以降低航司地勤風險）。
-                        </div>
-                    </div>
-                </div>
+                <div id="immigrationRulesUI" style="display:flex; flex-direction:column; gap:10px;"></div>
 
                 <!-- 出發前待辦清單 Checklist -->
                 <div style="margin-top:16px; border-top:1px dashed #eee; padding-top:12px;">
@@ -450,39 +413,15 @@
             <!-- SECTION 2: 我的已存文件 (Personal Uploaded Files & Vault) -->
             <div class="card fade-scale-in" style="background: #ffffff; border-radius: 24px; padding: 20px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <h3 class="card-title" style="margin:0; font-weight: 900; font-size:1.05rem;"><i class="fa-solid fa-folder-closed" style="color:var(--dora);"></i> 我的已存文件（加密備份）</h3>
+                    <h3 class="card-title" style="margin:0; font-weight: 900; font-size:1.05rem;"><i class="fa-solid fa-folder-closed" style="color:var(--dora);"></i> 個人文件狀態</h3>
                     <span class="v38-badge" style="background:#eee; color:#7f8c8d; font-size:0.65rem;">個人備存</span>
                 </div>
-                <p style="font-size:0.75rem; color:#7f8c8d; margin-top:0; font-weight:700;">存放離線備用之護照影本、既有申報條碼與產險保單文件。</p>
+                <p style="font-size:0.75rem; color:#7f8c8d; margin-top:0; font-weight:700;">目前沒有上傳任何個人文件。</p>
                 <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
-                    <div style="background:#f8f9fa; padding:12px; border-radius:14px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <span style="font-weight:900; font-size:0.9rem; color:#2c3e50;">🪪 中華民國護照</span>
-                            <div style="font-size:0.75rem; color:#7f8c8d; margin-top:2px;">溫 & 鴨 (電子檔加密備份)</div>
-                        </div>
-                        <button class="v38-mini-btn" style="background:var(--primary); color:white; border:none;" onclick="showToast('已安全載入護照備份檔', 'success')">檢視</button>
-                    </div>
-                    <div style="background:#f8f9fa; padding:12px; border-radius:14px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <span style="font-weight:900; font-size:0.9rem; color:#2c3e50;">📄 K-ETA 核准證明</span>
-                            <div style="font-size:0.75rem; color:#7f8c8d; margin-top:2px;">韓國電子旅行許可 (歷史/個人備存文件)</div>
-                        </div>
-                        <button class="v38-mini-btn" style="background:var(--primary); color:white; border:none;" onclick="showToast('已加載 K-ETA 文件', 'success')">檢視</button>
-                    </div>
-                    <div style="background:#f8f9fa; padding:12px; border-radius:14px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <span style="font-weight:900; font-size:0.9rem; color:#2c3e50;">🧬 Q-Code 二維碼</span>
-                            <div style="font-size:0.75rem; color:#7f8c8d; margin-top:2px;">檢疫資訊預入申報條碼 (個人備存)</div>
-                        </div>
-                        <button class="v38-mini-btn" style="background:var(--primary); color:white; border:none;" onclick="showToast('已安全開啟 Q-Code', 'success')">檢視</button>
-                    </div>
-                    <div style="background:#f8f9fa; padding:12px; border-radius:14px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <span style="font-weight:900; font-size:0.9rem; color:#2c3e50;">🏥 海外旅行平安保險單</span>
-                            <div style="font-size:0.75rem; color:#7f8c8d; margin-top:2px;">富邦產險保單 (電子檔)</div>
-                        </div>
-                        <button class="v38-mini-btn" style="background:var(--primary); color:white; border:none;" onclick="showToast('已載入海外保險憑證 PDF', 'success')">檢視</button>
-                    </div>
+                    <div style="background:#f8f9fa;padding:12px;border-radius:14px;border:1px solid #eee;display:flex;justify-content:space-between;align-items:center;"><div><span style="font-weight:900;font-size:.9rem;color:#2c3e50;">🪪 中華民國護照</span><div style="font-size:.75rem;color:#7f8c8d;margin-top:2px;">尚未上傳</div></div><button class="v38-mini-btn" type="button" disabled aria-disabled="true">無可檢視</button></div>
+                    <div style="background:#f8f9fa;padding:12px;border-radius:14px;border:1px solid #eee;display:flex;justify-content:space-between;align-items:center;"><div><span style="font-weight:900;font-size:.9rem;color:#2c3e50;">📄 K-ETA 核准證明</span><div style="font-size:.75rem;color:#7f8c8d;margin-top:2px;">尚未上傳</div></div><button class="v38-mini-btn" type="button" disabled aria-disabled="true">無可檢視</button></div>
+                    <div style="background:#f8f9fa;padding:12px;border-radius:14px;border:1px solid #eee;display:flex;justify-content:space-between;align-items:center;"><div><span style="font-weight:900;font-size:.9rem;color:#2c3e50;">🧬 Q-Code 二維碼</span><div style="font-size:.75rem;color:#7f8c8d;margin-top:2px;">尚未上傳</div></div><button class="v38-mini-btn" type="button" disabled aria-disabled="true">無可檢視</button></div>
+                    <div style="background:#f8f9fa;padding:12px;border-radius:14px;border:1px solid #eee;display:flex;justify-content:space-between;align-items:center;"><div><span style="font-weight:900;font-size:.9rem;color:#2c3e50;">🏥 海外旅行平安保險單</span><div style="font-size:.75rem;color:#7f8c8d;margin-top:2px;">尚未上傳</div></div><button class="v38-mini-btn" type="button" disabled aria-disabled="true">無可檢視</button></div>
                 </div>
             </div>
         </div>

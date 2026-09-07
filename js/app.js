@@ -36,14 +36,12 @@
     window.currentFoodSubTab  = 'my';
     window.currentRecShopFilter = 'ALL';
     window.ticketData       = (Array.isArray(window.ticketData) && window.ticketData.length > 0) ? window.ticketData : (StorageEngine.get('busan_v36_tickets', []).data || []);
-    window.itineraryData    = (Array.isArray(window.itineraryData) && window.itineraryData.length > 0) ? window.itineraryData : (StorageEngine.get('busan_v36_itinerary', []).data || []);
-    if (!window.itineraryData || window.itineraryData.length === 0) {
-        window.itineraryData = window.RECOMMENDED_ITINERARY || [];
-    }
+    const initialItineraryRows = Array.isArray(window.customItineraryData) ? window.customItineraryData : (StorageEngine.get('busan_v36_itinerary', []).data || []);
+    window.itineraryData = typeof window.mergeCanonicalItinerary === 'function' ? window.mergeCanonicalItinerary(initialItineraryRows) : (window.RECOMMENDED_ITINERARY || []);
     window.currentFilterDay = '11/13';
     window.editingItiKey    = null;
     window.shopList         = (Array.isArray(window.shopList) && window.shopList.length > 0) ? window.shopList : (StorageEngine.get('busan_v36_shopList', []).data || []);
-    window.currentShopOwner = 'user1';
+    window.currentShopOwner = ['user1', 'user2'].includes(window.currentShopOwner) ? window.currentShopOwner : window.deviceOwner;
     window.guideData        = (Array.isArray(window.guideData) && window.guideData.length > 0) ? window.guideData : (StorageEngine.get('busan_v36_guide', []).data || []);
     window.currentGuideTab  = '打卡景點';
     window.editingGuideKey  = null;
@@ -120,6 +118,13 @@
     };
 
     window.getV37SelectedDate = function () { return getTravelDay(); };
+
+    window.getItineraryDisplayDay = function () {
+        const travelDay = getTravelDay();
+        if (/^11\/(13|14|15|16|17)$/.test(travelDay)) return travelDay;
+        if (travelDay === '11/10') return '11/13';
+        return window.hasSelectedItineraryDay && /^11\/(13|14|15|16|17)$/.test(window.currentFilterDay || '') ? window.currentFilterDay : '11/17';
+    };
 
     window.setV37SelectedDate = function (val) {
         window.v37SimulatedDate = val;
@@ -362,11 +367,12 @@
             if (id === 'home' || id === 'guide') {
                 if (typeof renderV37HomeDashboard === 'function') renderV37HomeDashboard();
             } else if (id === 'itinerary') {
-                filterItineraryDay(getV37SelectedDate(), null);
+                filterItineraryDay(getItineraryDisplayDay(), null);
             } else if (id === 'split') {
                 if (typeof renderProfileSelector === 'function') renderProfileSelector();
                 if (typeof renderBills === 'function') renderBills();
             } else if (id === 'wallet') {
+                if (typeof renderImmigrationRules === 'function') renderImmigrationRules();
                 if (typeof switchWalletTab === 'function') switchWalletTab('ticket');
             } else if (id === 'shop') {
                 if (typeof setShopTabMode === 'function') setShopTabMode('my');
@@ -426,8 +432,9 @@
             sel.appendChild(opt);
         });
 
+        let ownerChanged = false;
         if (sel.value) {
-            const ownerChanged = sel.value !== window.deviceOwner;
+            ownerChanged = sel.value !== window.deviceOwner;
             if (ownerChanged) {
                 PrivateLedgerEngine.lock();
                 setBillTab('公費');
@@ -437,7 +444,7 @@
             StorageEngine.set('busan_v36_owner', sel.value);
             if (ownerChanged) refreshAccountingNow();
         }
-        togglePayerSelect();
+        togglePayerSelect(ownerChanged);
     };
 
     window.saveProfiles = function () {
@@ -470,19 +477,21 @@
         }
         window.deviceOwner = sel.value;
         StorageEngine.set('busan_v36_owner', sel.value);
-        togglePayerSelect();
+        togglePayerSelect(true);
         refreshAccountingNow();
     };
 
     // ── Bill CRUD (public+private) — belongs here because it bridges Firebase + localStorage ──
-    window.togglePayerSelect = function () {
+    window.togglePayerSelect = function (resetToOwner = false) {
         const typeEl  = document.getElementById('billType');
         const payerEl = document.getElementById('payer');
         if (!typeEl || !payerEl) return;
+        const previousPayer = payerEl.value;
         if (typeEl.value === '公費') {
             payerEl.innerHTML =
                 `<option value="user1">${u1.avatar} ${u1.name}</option>` +
                 `<option value="user2">${u2.avatar} ${u2.name}</option>`;
+            payerEl.value = resetToOwner || !['user1', 'user2'].includes(previousPayer) ? window.deviceOwner : previousPayer;
         } else {
             const me = deviceOwner === 'user1' ? u1 : u2;
             payerEl.innerHTML = `<option value="${deviceOwner}">${me.avatar} ${me.name}</option>`;
@@ -657,20 +666,11 @@
                     if (snap && typeof snap.forEach === 'function') {
                         snap.forEach(ch => { loaded.push({ ...ch.val(), key: ch.key }); });
                     }
-                    if (loaded.length > 0) {
-                        window.itineraryData = loaded;
-                        StorageEngine.set('busan_v36_itinerary', window.itineraryData);
-                    } else {
-                        // Do NOT wipe out existing itineraryData if snapshot is empty
-                        if (!window.itineraryData || window.itineraryData.length === 0) {
-                            const cached = StorageEngine.get('busan_v36_itinerary');
-                            if (cached && cached.success && Array.isArray(cached.data) && cached.data.length > 0) {
-                                window.itineraryData = cached.data;
-                            } else if (window.RECOMMENDED_ITINERARY && window.RECOMMENDED_ITINERARY.length > 0) {
-                                window.itineraryData = window.RECOMMENDED_ITINERARY;
-                            }
-                        }
-                    }
+                    const customRows = loaded.length > 0 ? loaded : (StorageEngine.get('busan_v36_itinerary', []).data || []);
+                    window.itineraryData = typeof window.mergeCanonicalItinerary === 'function'
+                        ? window.mergeCanonicalItinerary(customRows)
+                        : (window.RECOMMENDED_ITINERARY || []).concat(customRows);
+                    StorageEngine.set('busan_v36_itinerary', window.customItineraryData || customRows);
                     if (typeof renderItinerary === 'function') renderItinerary();
                     if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
                 } catch (e) { console.error('[FirebaseOn DB_ITI]', e); }

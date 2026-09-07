@@ -6,11 +6,25 @@
 window.getSmartAlertMessage = function(ctx) {
     if (!ctx) return '載入中...';
     if (ctx.tripMode === 'before') {
-        return '✅ K-ETA：本次免申請（至 2026/12/31）｜ 📝 e-Arrival Card 申報';
+        const immigration = window.TRAVEL_CONTENT_V45?.immigration;
+        return immigration ? `✅ K-ETA：豁免至 ${immigration.keta.exemptionEndDate}｜ 📝 e-Arrival Card：抵達前 3 天內` : '入境規定載入中';
     }
     if (ctx.tripMode === 'after') return '🎉 旅行圓滿完成！';
     if (ctx.nextDestination) return `⏰ ${ctx.nextDestination.time} → ${ctx.nextDestination.desc.split(' ')[0]}`;
     return '✨ 今日行程已全部完成';
+};
+
+
+window.renderImmigrationRules = function() {
+    const root = document.getElementById('immigrationRulesUI');
+    const info = window.TRAVEL_CONTENT_V45?.immigration;
+    if (!root || !info) return;
+    const card = (title, notes, url, label) => `<div style="background:#f8f9fa;padding:12px;border-radius:14px;border:1px solid #eee;"><div style="font-weight:900;font-size:.9rem;color:#2c3e50;">${title}</div><div style="font-size:.75rem;color:#555;margin-top:4px;line-height:1.5;">${notes}</div>${url ? `<a href="${url}" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;font-size:.75rem;font-weight:900;">${label}</a>` : ''}</div>`;
+    root.innerHTML = `<div style="font-size:.68rem;color:#7f8c8d;margin-bottom:8px;">官方資訊確認日：${info.sourceDate}</div>` +
+        card(info.keta.title, info.keta.notes, info.keta.officialUrl, 'K-ETA 官方公告') +
+        card(info.eArrivalCard.title, info.eArrivalCard.notes, info.eArrivalCard.officialUrl, '官方 e-Arrival Card') +
+        card(info.qcode.title, info.qcode.notes, info.qcode.officialUrl, 'Q-CODE 官方說明') +
+        card(info.passport.title, info.passport.notes, '', '');
 };
 
 // ── Helper: Toggle city detail panel ──────────────────────────────────────
@@ -62,7 +76,7 @@ window.addShopItem = async function () {
         img      : '',
         ...(image ? { image } : {}),
         checked  : false,
-        owner    : window.deviceOwner,
+        owner    : window.currentShopOwner,
         ts       : Date.now()
     };
 
@@ -305,6 +319,7 @@ window.renderBeforeWidgets = function(ctx, city, smartAlert, v37SimulatedDate) {
     let compPreps = totalPreps - ctx.uncompletedPreps.length;
     let percent = Math.min(100, Math.max(0, Math.round((compPreps / totalPreps) * 100)));
     const weather = (ctx && ctx.currentWeather) ? ctx.currentWeather : null;
+    const immigration = window.TRAVEL_CONTENT_V45?.immigration;
 
     const formatWeatherTime = (ts) => {
         if (!ts) return '';
@@ -353,10 +368,10 @@ window.renderBeforeWidgets = function(ctx, city, smartAlert, v37SimulatedDate) {
 
             <!-- ✅ Entry Status & Prep Summary -->
             <div style="margin-top: 8px; font-size: 0.78rem; font-weight: 800; color: #2ecc71;">
-                <i class="fa-solid fa-circle-check"></i> K-ETA：本次免申請（至 2026/12/31）
+                <i class="fa-solid fa-circle-check"></i> K-ETA：本次免申請（豁免至 ${immigration?.keta?.exemptionEndDate || '2026-12-31'} KST）
             </div>
             <div style="font-size: 0.72rem; font-weight: 700; color: #f5cd79; margin-top:2px;">
-                📝 e-Arrival Card 電子申報 ｜ 🔄 Q-CODE：Q4出發前RECHECK
+                📝 e-Arrival Card：抵達前 3 天內 ｜ 🔄 Q-CODE：Q4出發前RECHECK（依 KDCA 條件）
             </div>
             <div class="v38-progress-container" style="margin-top: 8px;">
                 <div class="v38-progress-bar" style="width: ${percent}%;"></div>
@@ -459,7 +474,7 @@ window.renderDuringWidgets = function(ctx, dateStr, city, weather, smartAlert) {
                 <span class="text-truncate" style="max-width:180px;">${nextAttr}</span>
                 <span style="font-size:1.3rem; color:#4cd964;">${(weather && !weather.unavailable && weather.temp !== null) ? weather.temp + '°C' : '--'}</span>
             </div>
-            <div class="v38-hero-sub" style="margin-top:4px;"><i class="fa-solid fa-map-pin"></i> ${nextTimeStr ? nextTimeStr + ' 出發' : ''}</div>
+            <div class="v38-hero-sub" style="margin-top:4px;"><i class="fa-solid fa-map-pin"></i> ${nextTimeStr ? '下一個行程｜預計 ' + nextTimeStr : ''}</div>
 
             <!-- 🌤️ Weather Context & Rain Advisory (Suggestion only, user controlled) -->
             ${weatherDuringHtml}
@@ -809,28 +824,14 @@ window.renderShop = function() {
         `;
     }
     
-    // If the currently selected owner has 0 items, but the other owner has items, auto-select the owner with items
-    if (displayList.length > 0) {
-        const currentFiltered = displayList.filter(s => s.owner === (window.currentShopOwner || 'user1'));
-        if (currentFiltered.length === 0) {
-            const alternateOwner = displayList.find(s => s.owner)?.owner;
-            if (alternateOwner) {
-                window.currentShopOwner = alternateOwner;
-                if (tabsUI) {
-                    const u1Active = window.currentShopOwner === 'user1' ? 'active' : '';
-                    const u2Active = window.currentShopOwner === 'user2' ? 'active' : '';
-                    tabsUI.innerHTML = `
-                        <button class="day-tab ${u1Active}" onclick="filterShopOwner('user1')">${window.u1?.avatar || '👩'} ${window.u1?.name || '溫'}</button>
-                        <button class="day-tab ${u2Active}" onclick="filterShopOwner('user2')">${window.u2?.avatar || '🦆'} ${window.u2?.name || '鴨'}</button>
-                    `;
-                }
-            }
-        }
-    }
-    
-    let filtered = displayList.filter(s => s.owner === (window.currentShopOwner || 'user1'));
+    const selectedOwner = ['user1', 'user2'].includes(window.currentShopOwner) ? window.currentShopOwner : window.deviceOwner;
+    window.currentShopOwner = selectedOwner;
+    const selectedProfile = selectedOwner === 'user1' ? window.u1 : window.u2;
+    if (tabsUI) tabsUI.insertAdjacentHTML('beforeend', `<span id="shopOwnerStatus" style="width:100%;font-size:.75rem;font-weight:800;color:#7f8c8d;">目前清單：${selectedProfile?.avatar || ''} ${selectedProfile?.name || ''}</span>`);
+
+    let filtered = displayList.filter(s => s.owner === selectedOwner);
     if (filtered.length === 0) {
-        list.innerHTML = '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:20px 0;">無購物項目，請於上方欄位新增！</p>';
+        list.innerHTML = `<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:20px 0;">${selectedProfile?.avatar || ''} ${selectedProfile?.name || ''} 的清單尚無購物項目，請於上方欄位新增！</p>`;
         return;
     }
     
@@ -1717,6 +1718,9 @@ window.renderBills = function() {
         });
     }
     
+    const settlementEl = document.getElementById('settlement');
+    if (settlementEl) settlementEl.innerHTML = filtered.length > 0 && ctx.budget?.settleText ? ctx.budget.settleText : '<div style="text-align:center;color:#7f8c8d;">尚無公費紀錄，新增後會顯示兩人 50/50 結算。</div>';
+
     const sharedSumEl = document.getElementById('sharedBillsSum');
     if (sharedSumEl) sharedSumEl.innerText = `$${Math.round(totalShared).toLocaleString()} TWD`;
     
@@ -1852,19 +1856,21 @@ window.addRecShopToMyList = async function(id) {
     const items = window.RECOMMENDED_SHOPPING || [];
     const item = items.find(x => x.id === id);
     if(!item) return;
+    const payload = {
+        category: item.category.includes('CU') ? '伴手禮' : (item.category.includes('Olive') ? '彩妝' : '其他'),
+        text: item.name,
+        where: item.category,
+        img: item.image?.thumb || '',
+        image: item.image || null,
+        checked: false,
+        owner: window.currentShopOwner
+    };
     try {
-        await NetworkEngine.firebasePush(window.DB_SHOP, {
-            category: item.category.includes('CU') ? '伴手禮' : (item.category.includes('Olive') ? '彩妝' : '其他'),
-            text: item.name,
-            where: item.category,
-            img: item.image?.thumb || '',
-            image: item.image || null,
-            checked: false,
-            owner: deviceOwner
-        });
+        await NetworkEngine.firebasePush(window.DB_SHOP, payload);
         showToast(`🛒 已加入清單: ${item.name}`, "success");
     } catch (e) {
-        showToast("同步失敗", "error");
+        if (typeof addToOfflineQueue === 'function') addToOfflineQueue('PUSH', window.DB_SHOP, payload);
+        showToast("已保存至離線同步佇列", "info");
     }
 };
 

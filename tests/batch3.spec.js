@@ -390,12 +390,13 @@ test.describe('BATCH 3 - Owner Visual Corrections', () => {
     await page.waitForSelector('#walletDocSection', { state: 'visible', timeout: 5000 });
     const docText = await page.evaluate(() => document.getElementById('walletDocSection')?.textContent || '');
     expect(docText).toContain('K-ETA（電子旅行許可）');
-    expect(docText).toContain('本次免申請');
+    expect(docText).toContain('有效的 K-ETA');
     expect(docText).toContain('2026-12-31');
     expect(docText).toContain('e-Arrival Card');
     expect(docText).toContain('Q-CODE（檢疫資訊預入申報）');
-    expect(docText).toContain('Q4 / RECHECK');
-    expect(docText).toContain('我的已存文件（加密備份）');
+    expect(docText).toContain('7 天');
+    expect(docText).toContain('個人文件狀態');
+    expect(docText).toContain('尚未上傳');
   });
 
   test('Translation SOS does not contain shopping shortcut', async ({ page }) => {

@@ -104,7 +104,7 @@
     "warning": "【至關重要防呆】WOWPASS 消費錢包餘額 ≠ T-money 交通卡餘額！搭地鐵與公車前，需另外在超商或地鐵站機台以「韓元現金」儲值 T-money 晶片。"
   },
   "immigration": {
-    "sourceDate": "2026-08-31",
+    "sourceDate": "2026-09-07",
     "passport": {
       "title": "護照 / 入境資格",
       "notes": "台灣旅客持有效中華民國護照可免簽證入境韓國，短期觀光最長 90 天。護照效期涵蓋整趟旅程即可；若接近到期，建議提前換新以降低航空公司通關疑慮。"
@@ -112,17 +112,20 @@
     "keta": {
       "title": "K-ETA（電子旅行許可）",
       "exemptionEndDate": "2026-12-31",
-      "notes": "台灣護照持有人目前受 K-ETA 豁免，豁免期至 2026-12-31 KST。豁免期間無需申辦 K-ETA。豁免不代表免除入境申報義務——仍需完成 e-Arrival Card 申報。"
+      "notes": "台灣護照持有人目前受 K-ETA 豁免，豁免期至 2026-12-31 KST。已取得且仍有效的 K-ETA 可繼續使用，並免填入境卡。",
+      "officialUrl": "https://www.k-eta.go.kr/portal/board/viewboarddetail.do?bbsSn=299707&locale=EN"
     },
     "eArrivalCard": {
       "title": "韓國 e-Arrival Card（電子入境卡）",
-      "notes": "2026 年標準入境申報方式。免費官方電子申報，最早可於抵達前 3 天填寫。若填寫後逾 72 小時未入境，須重新申報。資料傳送至系統後，入境審查時通常無需出示 QR Code 或紙本列印。",
+      "notes": "免費官方電子申報，可於抵達韓國前 3 天內填寫。適合 K-ETA 豁免且沒有有效 K-ETA 的旅客；已有有效 K-ETA 者免填。",
+      "officialUrl": "https://www.e-arrivalcard.go.kr/",
       "hotelAddress": "Urban Groove Hotel Seomyeon, Busan",
       "purpose": "Tour（觀光）"
     },
     "qcode": {
       "title": "Q-CODE（電子檢疫申報）",
-      "notes": "Q-CODE 是否必填取決於 KDCA 當前公告的防疫優先管理地區名單及個人健康狀況。2026 年 Q3（截至 2026-08-31）：台灣未列入優先管理地區。本次旅行為 2026 年 11 月（Q4）：Q4 名單尚未公布。【重要】：出發前須重新確認 2026 Q4 KDCA 最新公告，以確認 Q-CODE 是否適用。"
+      "notes": "是否需要 Q-CODE 取決於 KDCA 當期檢疫管理地區與個人旅遊史。適用時可於抵達前 7 天內輸入；請在出發前依官方最新公告再次確認。",
+      "officialUrl": "https://qcode.kdca.go.kr/qco/guide.do"
     },
     "ses": {
       "title": "SES 自動化出境通關",
@@ -240,28 +243,35 @@
     "11/13": [
       {
         "time": "17:00",
-        "title": "金海機場 (PUS) 入境",
-        "desc": "順利通關領行李，開通網卡，搭金海輕軌至沙上站轉 2 號線（或搭 Kakao T 約 1.8 萬韓元）直達西面。",
+        "title": "BX572 抵達金海機場 (PUS)",
+        "desc": "預計 17:00 抵達；下機後依序辦理入境審查、領取行李與開通網路。",
         "tr": "🚇 輕軌+地鐵 / 🚕 計程車",
         "map": "https://map.naver.com/p/entry/place/11585098"
       },
       {
-        "time": "17:30",
-        "title": "西面飯店 Check-in",
-        "desc": "城市律動飯店 (Urban Groove Hotel) 卸下大行李，換上輕便服裝。",
+        "time": "18:10",
+        "title": "預計離開機場前往西面",
+        "desc": "完成入境、行李與網路設定後，搭金海輕軌至沙上站轉 2 號線，或搭 Kakao T 前往西面。",
+        "tr": "🚇 輕軌+地鐵 / 🚕 計程車",
+        "map": "https://map.naver.com/p/entry/place/11585098"
+      },
+      {
+        "time": "19:10",
+        "title": "預計抵達西面飯店 Check-in",
+        "desc": "依實際入境與交通時間抵達城市律動飯店 (Urban Groove Hotel)，卸下大行李。",
         "tr": "🚶 步行",
         "map": "https://map.naver.com/p/entry/place/13479629"
       },
       {
-        "time": "18:30",
-        "title": "晚餐：味讚王鹽烤肉（西面店）",
+        "time": "19:40",
+        "title": "預計晚餐：味讚王鹽烤肉（西面店）",
         "desc": "超人氣 3.5cm 極厚熟成豬五花！店員專人代烤至金黃酥脆，肉汁飽滿，包生菜＋醃芥末葉＋烤泡菜一口悶！",
         "tr": "🚶 步行",
         "map": "https://map.naver.com/p/entry/place/11571731"
       },
       {
-        "time": "20:00",
-        "title": "西面地下街 ✕ 超商巡禮",
+        "time": "21:00",
+        "title": "預計西面地下街 ✕ 超商巡禮",
         "desc": "西面站機台辦理 WOWPASS 存入台幣千元鈔換匯；逛地下街服飾，超商採買香蕉牛奶與洋芋片。",
         "tr": "🚶 步行",
         "map": "https://map.naver.com/p/entry/place/1057416399"
@@ -402,9 +412,23 @@
       },
       {
         "time": "13:00",
-        "title": "機場 Zimcarry 領行李 ➔ 退稅 ➔ 登機",
-        "desc": "於國際線 2 樓出境大廳 Zimcarry 櫃檯領回行李箱，將採買戰利品收好。海關機台刷退稅單領現金；大韓航空 KE2085 (14:50 起飛) 託運登機返台。",
-        "tr": "✈️ 飛機 (KE2085 14:50)",
+        "title": "大韓航空報到、託運與退稅",
+        "desc": "抵達 PUS 後領回 Zimcarry 行李，辦理 KE2085 報到與託運，依序完成退稅、安全檢查及出境審查。",
+        "tr": "🚶 機場步行",
+        "map": ""
+      },
+      {
+        "time": "14:50",
+        "title": "KE2085 自金海機場起飛",
+        "desc": "大韓航空 KE2085 預計 14:50 自 PUS 出發前往桃園。",
+        "tr": "✈️ 飛機",
+        "map": ""
+      },
+      {
+        "time": "16:30",
+        "title": "KE2085 抵達桃園機場 (TPE)",
+        "desc": "預計 16:30 抵達桃園國際機場，依實際航班與入境狀況為準。",
+        "tr": "🛬 抵達",
         "map": ""
       }
     ]

@@ -6,8 +6,20 @@
 (function() {
     let editingItiKey = null;
 
+    const itinerarySignature = item => [item.day, item.time, item.desc, item.tr || '', item.map || ''].join('\u001f');
+    window.mergeCanonicalItinerary = function(customRows) {
+        const canonical = Array.isArray(window.RECOMMENDED_ITINERARY) ? window.RECOMMENDED_ITINERARY : [];
+        const canonicalSignatures = new Set(canonical.map(itinerarySignature));
+        const custom = (Array.isArray(customRows) ? customRows : []).filter(item =>
+            item && !String(item.key || '').startsWith('rec_') && !canonicalSignatures.has(itinerarySignature(item))
+        );
+        window.customItineraryData = custom;
+        return canonical.concat(custom);
+    };
+
     // ── alias: index.html calls filterIti(day), not filterItineraryDay ────────
     window.filterIti = function (day) {
+        window.hasSelectedItineraryDay = true;
         filterItineraryDay(day, null);
     };
 
@@ -261,7 +273,7 @@
                             ${mapBtn}
                         </div>
                     </div>
-                    <div style="position:absolute; top:0; right:0; display:flex; gap:4px;">
+                    <div style="position:absolute; top:0; right:0; display:${String(i.key || '').startsWith('rec_') ? 'none' : 'flex'}; gap:4px;">
                         <button class="btn-edit" onclick="editItinerary('${i.key}')" style="background:#f39c12; color:white; border:none; border-radius:6px; padding:2px 6px; font-size:0.65rem; cursor:pointer;"><i class="fa-solid fa-pen"></i></button>
                         <button class="btn-delete" onclick="deleteItinerary('${i.key}')" style="background:none; border:none; color:#e74c3c; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
                     </div>
@@ -272,17 +284,16 @@
 
     window.filterItineraryDay = function(day, btn) {
         window.currentFilterDay = day;
-        document.querySelectorAll('#itinerary .day-tabs .day-tab').forEach(b => b.classList.remove('active'));
-        if (btn) btn.classList.add('active');
+        document.querySelectorAll('#itinerary .day-tabs .day-tab').forEach(b => {
+            const matchesDay = (b.getAttribute('onclick') || '').includes(`'${day}'`);
+            b.classList.toggle('active', btn ? b === btn : matchesDay);
+        });
         renderItinerary();
     };
 
-    // Seed/Load itineraryData from cache, fallback to RECOMMENDED_ITINERARY if empty
+    // Canonical itinerary is always present; cached rows contribute custom additions only.
     const cachedItinerary = StorageEngine.get('busan_v36_itinerary');
-    if (!cachedItinerary || !cachedItinerary.success || !Array.isArray(cachedItinerary.data) || cachedItinerary.data.length === 0) {
-        window.itineraryData = window.RECOMMENDED_ITINERARY || [];
-        StorageEngine.set('busan_v36_itinerary', window.itineraryData);
-    } else {
-        window.itineraryData = cachedItinerary.data;
-    }
+    const cachedRows = cachedItinerary?.success && Array.isArray(cachedItinerary.data) ? cachedItinerary.data : [];
+    window.itineraryData = window.mergeCanonicalItinerary(cachedRows);
+    StorageEngine.set('busan_v36_itinerary', window.customItineraryData);
 })();
