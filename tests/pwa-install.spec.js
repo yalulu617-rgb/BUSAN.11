@@ -170,25 +170,40 @@ test('warm service-worker cache boots core navigation offline with private ledge
   });
   expect(ready).toBe(true);
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
-  const appUrl = page.url();
-  const offlinePage = await context.newPage();
+  expect(await page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+  const baseUrl = page.url();
+  const targetUrl = new URL(baseUrl);
+  targetUrl.searchParams.set('__offline_launch', 'r7_4');
+  const targetUrlString = targetUrl.toString();
+
+  await page.evaluate(() => {
+    document.documentElement.dataset.offlineLaunchSource = 'r7_4';
+    document.body.innerHTML = '<main id="offlineLaunchSource">OFFLINE LAUNCH SOURCE</main>';
+    window.__offlineLaunchSource = true;
+  });
+  expect(await page.locator('#mainApp').count()).toBe(0);
+  expect(await page.locator('.v45-nine-card').count()).toBe(0);
+  await expect(page.locator('#offlineLaunchSource')).toBeVisible();
 
   await context.setOffline(true);
   expect(await page.evaluate(() => navigator.onLine)).toBe(false);
-  await offlinePage.evaluate((url) => {
+  await page.evaluate((url) => {
     setTimeout(() => {
       window.location.assign(url);
     }, 0);
-  }, appUrl);
+  }, targetUrlString);
 
-  await offlinePage.waitForSelector('#mainApp', { state: 'visible' });
-  expect(offlinePage.url()).toBe(appUrl);
-  await offlinePage.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
-  expect(await offlinePage.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
-  await expect(offlinePage.locator('.bottom-nav')).toBeVisible();
-  expect(await offlinePage.locator('.bottom-nav .nav-item').allTextContents()).toEqual([
+  await expect.poll(() => page.url(), { timeout: 10000 }).toBe(targetUrlString);
+  expect(await page.evaluate(() => document.documentElement.dataset.offlineLaunchSource)).toBeUndefined();
+  expect(await page.locator('#offlineLaunchSource').count()).toBe(0);
+  expect(new URL(page.url()).pathname).toBe(new URL(baseUrl).pathname);
+  await page.waitForSelector('#mainApp', { state: 'visible' });
+  await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
+  expect(await page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+  await expect(page.locator('.bottom-nav')).toBeVisible();
+  expect(await page.locator('.bottom-nav .nav-item').allTextContents()).toEqual([
     '首頁', '今日', '記帳', '票券', 'SOS'
   ]);
-  expect(await offlinePage.evaluate(() => window.privateBills)).toEqual([]);
-  expect(await offlinePage.locator('.v45-nine-card').count()).toBe(9);
+  expect(await page.evaluate(() => window.privateBills)).toEqual([]);
+  expect(await page.locator('.v45-nine-card').count()).toBe(9);
 });
