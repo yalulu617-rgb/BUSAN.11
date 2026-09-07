@@ -8,8 +8,11 @@ test.describe('Owner Fix Batch 1 targeted repair', () => {
   test('canonical itinerary is authoritative while custom data remains separate', async ({ page }) => {
     const result = await page.evaluate(() => {
       const custom = [
-        { key: 'legacy-out', day: '11/13', time: '17:30', desc: 'BX572 抵達金海機場舊時間', tr: '入境' },
+        { key: 'legacy-out-1630', day: '11/13', time: '16:30', desc: '抵達金海機場舊時間', tr: '入境' },
+        { key: 'legacy-out-1730', day: '11/13', time: '17:30', desc: 'BX572 抵達金海機場舊時間', tr: '入境' },
         { key: 'legacy-back', day: '11/17', time: '16:30', desc: 'KE2085 自金海機場起飛舊時間', tr: '登機' },
+        { key: 'note-out', day: '11/13', time: '12:00', desc: 'BX572 座位 12A，記得選靠窗', tr: '個人提醒' },
+        { key: 'note-back', day: '11/17', time: '11:00', desc: 'KE2085 託運 23kg', tr: '個人提醒' },
         { key: 'custom-1', day: '11/14', time: '08:00', desc: 'Luna custom stop', tr: '步行' }
       ];
       const merged = window.mergeCanonicalItinerary(custom);
@@ -28,13 +31,16 @@ test.describe('Owner Fix Batch 1 targeted repair', () => {
       };
     });
     expect(result.canonicalCount).toBe(26);
-    expect(result.customCount).toBe(3);
-    expect(result.mergedCount).toBe(27);
+    expect(result.customCount).toBe(6);
+    expect(result.mergedCount).toBe(29);
     expect(result.dayCounts).toEqual([5, 5, 5, 4, 7]);
-    expect(result.customKeys).toEqual(['legacy-out', 'legacy-back', 'custom-1']);
+    expect(result.customKeys).toEqual(['legacy-out-1630', 'legacy-out-1730', 'legacy-back', 'note-out', 'note-back', 'custom-1']);
     expect(result.hasLegitimateCustom).toBe(true);
     expect(result.day1.join('\n')).toContain('17:00 BX572 抵達金海機場');
+    expect(result.day1.join('\n')).toContain('12:00 BX572 座位 12A，記得選靠窗');
+    expect(result.day1.join('\n')).not.toContain('16:30 抵達金海機場舊時間');
     expect(result.day1.join('\n')).not.toContain('17:30 BX572');
+    expect(result.day5.join('\n')).toContain('11:00 KE2085 託運 23kg');
     expect(result.day5.join('\n')).toContain('14:50 KE2085 自金海機場起飛');
     expect(result.day5.join('\n')).toContain('16:30 KE2085 抵達桃園機場');
     expect(result.day5.join('\n')).not.toContain('16:30 KE2085 自金海機場起飛');

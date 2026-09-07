@@ -9,11 +9,17 @@
     const itinerarySignature = item => [item.day, item.time, item.desc, item.tr || '', item.map || ''].join('\u001f');
     const conflictsWithCanonicalFlight = item => {
         const text = `${item?.desc || ''} ${item?.tr || ''}`;
+        const time = String(item?.time || '').trim();
         if (item?.day === '11/13') {
-            return /BX572/i.test(text) || (item.time === '17:30' && /(金海|PUS|機場|抵達|入境)/i.test(text));
+            const staleArrivalTime = time === '16:30' || time === '17:30';
+            const claimsPusArrival = /(抵達|到達|arrival)/i.test(text) && /(金海|PUS)/i.test(text);
+            return staleArrivalTime && claimsPusArrival;
         }
         if (item?.day === '11/17') {
-            return /KE2085/i.test(text) || (item.time === '16:30' && /(金海|PUS|登機|起飛|出發)/i.test(text));
+            const staleDepartureTime = time === '16:30';
+            const explicitFlightDeparture = /(登機|起飛|boarding)/i.test(text)
+                || (/(出發|departure)/i.test(text) && /(KE2085|金海|PUS)/i.test(text));
+            return staleDepartureTime && explicitFlightDeparture;
         }
         return false;
     };
