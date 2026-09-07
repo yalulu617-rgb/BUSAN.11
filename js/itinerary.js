@@ -7,6 +7,16 @@
     let editingItiKey = null;
 
     const itinerarySignature = item => [item.day, item.time, item.desc, item.tr || '', item.map || ''].join('\u001f');
+    const conflictsWithCanonicalFlight = item => {
+        const text = `${item?.desc || ''} ${item?.tr || ''}`;
+        if (item?.day === '11/13') {
+            return /BX572/i.test(text) || (item.time === '17:30' && /(金海|PUS|機場|抵達|入境)/i.test(text));
+        }
+        if (item?.day === '11/17') {
+            return /KE2085/i.test(text) || (item.time === '16:30' && /(金海|PUS|登機|起飛|出發)/i.test(text));
+        }
+        return false;
+    };
     window.mergeCanonicalItinerary = function(customRows) {
         const canonical = Array.isArray(window.RECOMMENDED_ITINERARY) ? window.RECOMMENDED_ITINERARY : [];
         const canonicalSignatures = new Set(canonical.map(itinerarySignature));
@@ -14,7 +24,7 @@
             item && !String(item.key || '').startsWith('rec_') && !canonicalSignatures.has(itinerarySignature(item))
         );
         window.customItineraryData = custom;
-        return canonical.concat(custom);
+        return canonical.concat(custom.filter(item => !conflictsWithCanonicalFlight(item)));
     };
 
     // ── alias: index.html calls filterIti(day), not filterItineraryDay ────────

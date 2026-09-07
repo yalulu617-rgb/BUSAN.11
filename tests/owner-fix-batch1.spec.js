@@ -2,75 +2,156 @@
 import { test, expect } from '@playwright/test';
 import { bootApp } from './helpers/boot.js';
 
-test.describe('Owner Fix Batch 1', () => {
+test.describe('Owner Fix Batch 1 targeted repair', () => {
   test.beforeEach(async ({ page }) => { await bootApp(page); });
 
-  test('canonical itinerary survives custom data and has correct flight sequence', async ({ page }) => {
+  test('canonical itinerary is authoritative while custom data remains separate', async ({ page }) => {
     const result = await page.evaluate(() => {
-      const custom = { key: 'custom-1', day: '11/14', time: '08:00', desc: 'Luna custom stop', tr: '步行', map: '' };
-      const merged = window.mergeCanonicalItinerary([custom]);
+      const custom = [
+        { key: 'legacy-out', day: '11/13', time: '17:30', desc: 'BX572 抵達金海機場舊時間', tr: '入境' },
+        { key: 'legacy-back', day: '11/17', time: '16:30', desc: 'KE2085 自金海機場起飛舊時間', tr: '登機' },
+        { key: 'custom-1', day: '11/14', time: '08:00', desc: 'Luna custom stop', tr: '步行' }
+      ];
+      const merged = window.mergeCanonicalItinerary(custom);
+      const canonical = Object.values(window.TRAVEL_CONTENT_V45.itinerary).flat();
       return {
+        canonicalCount: canonical.length,
+        customCount: window.customItineraryData.length,
+        mergedCount: merged.length,
+        dayCounts: Object.values(window.TRAVEL_CONTENT_V45.itinerary).map(items => items.length),
         day1: merged.filter(x => x.day === '11/13').map(x => `${x.time} ${x.desc}`),
         day5: merged.filter(x => x.day === '11/17').map(x => `${x.time} ${x.desc}`),
-        customCount: merged.filter(x => x.key === 'custom-1').length,
+        hasLegitimateCustom: merged.some(x => x.key === 'custom-1'),
+        customKeys: window.customItineraryData.map(x => x.key),
         pretrip: (window.v37SimulatedDate = '11/10', window.getItineraryDisplayDay()),
         after: (window.v37SimulatedDate = '11/20', window.hasSelectedItineraryDay = false, window.getItineraryDisplayDay())
       };
     });
+    expect(result.canonicalCount).toBe(26);
+    expect(result.customCount).toBe(3);
+    expect(result.mergedCount).toBe(27);
+    expect(result.dayCounts).toEqual([5, 5, 5, 4, 7]);
+    expect(result.customKeys).toEqual(['legacy-out', 'legacy-back', 'custom-1']);
+    expect(result.hasLegitimateCustom).toBe(true);
     expect(result.day1.join('\n')).toContain('17:00 BX572 抵達金海機場');
-    expect(result.day1.join('\n')).toContain('預計抵達西面飯店');
-    expect(result.day1.join('\n')).not.toContain('17:30 西面飯店');
+    expect(result.day1.join('\n')).not.toContain('17:30 BX572');
     expect(result.day5.join('\n')).toContain('14:50 KE2085 自金海機場起飛');
     expect(result.day5.join('\n')).toContain('16:30 KE2085 抵達桃園機場');
-    expect(result.customCount).toBe(1);
+    expect(result.day5.join('\n')).not.toContain('16:30 KE2085 自金海機場起飛');
     expect(result.pretrip).toBe('11/13');
     expect(result.after).toBe('11/17');
   });
 
-  test('canonical immigration guidance and truthful empty documents render', async ({ page }) => {
-    await page.evaluate(() => window.showV37Tab('wallet'));
-    const info = await page.evaluate(() => window.TRAVEL_CONTENT_V45.immigration);
-    expect(info.sourceDate).toBe('2026-09-07');
-    expect(info.keta.notes).toContain('有效的 K-ETA');
-    expect(info.eArrivalCard.notes).toContain('免費');
-    expect(info.qcode.notes).toContain('7 天');
+  test('Docs tab self-renders canonical immigration links and truthful empty cards', async ({ page }) => {
+    await page.evaluate(() => {
+      document.getElementById('immigrationRulesUI').replaceChildren();
+      window.showV37Tab('wallet');
+      window.switchWalletTab('doc');
+    });
+    await expect(page.locator('#walletDocSection')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'K-ETA 官方公告' })).toBeVisible();
     await expect(page.getByRole('link', { name: '官方 e-Arrival Card' })).toHaveAttribute('href', 'https://www.e-arrivalcard.go.kr/');
+    await expect(page.getByRole('link', { name: 'Q-CODE 官方說明' })).toBeVisible();
     await expect(page.locator('#walletDocSection')).toContainText('尚未上傳');
     await expect(page.locator('#walletDocSection button:disabled')).toHaveCount(4);
   });
 
-  test('shopping owner selection is stable and owns new recommended entries', async ({ page }) => {
-    const result = await page.evaluate(async () => {
-      window.shopList = [{ key: 'u1', text: 'U1 item', owner: 'user1', checked: false }];
-      window.currentShopOwner = 'user2';
-      window.renderShop();
-      let payload;
-      const originalPush = window.NetworkEngine.firebasePush;
-      window.NetworkEngine.firebasePush = async (_path, value) => { payload = value; };
-      await window.addRecShopToMyList(window.RECOMMENDED_SHOPPING[0].id);
-      window.NetworkEngine.firebasePush = originalPush;
-      return { owner: window.currentShopOwner, payloadOwner: payload.owner, text: document.querySelector('#sList').textContent, status: document.querySelector('#shopOwnerStatus').textContent };
-    });
-    expect(result.owner).toBe('user2');
-    expect(result.payloadOwner).toBe('user2');
-    expect(result.text).toContain('清單尚無購物項目');
-    expect(result.status).toContain('鴨');
+  test('AI assistant reads current canonical immigration guidance', async ({ page }) => {
+    const html = await page.evaluate(() => window.AIAssistantEngine.generateSuggestions({
+      currentDate: '11/10',
+      uncompletedPreps: [{ key: 'passport' }]
+    }));
+    expect(html).toContain('2026/12/31 KST');
+    expect(html).toContain('免費官方電子申報');
+    expect(html).toContain('仍有效的 K-ETA');
+    expect(html).toContain('取決於 KDCA 當期檢疫管理地區與個人旅遊史');
+    expect(html).toContain('出發前依官方最新公告再次確認');
+    expect(html).not.toContain('72 小時申請');
+    expect(html).not.toContain('務必申請 K-ETA');
+    expect(html).not.toContain('填寫 Q-Code，避免入境受阻');
   });
 
-  test('profile switch defaults public payer and settlement uses BudgetEngine output', async ({ page }) => {
+  test('manual shopping adds and offline queue use the selected shopping owner', async ({ page }) => {
+    const result = await page.evaluate(async () => {
+      const originalPush = window.NetworkEngine.firebasePush;
+      const originalQueue = window.addToOfflineQueue;
+      const sent = [];
+      const queued = [];
+      window.shopList = [];
+      try {
+        window.deviceOwner = 'user2';
+        window.currentShopOwner = 'user1';
+        window.NetworkEngine.firebasePush = async (path, value) => { sent.push({ path, value }); };
+        document.getElementById('newShop').value = 'OWNER-B1-MANUAL-U1';
+        await window.addShopItem();
+
+        window.deviceOwner = 'user1';
+        window.currentShopOwner = 'user2';
+        document.getElementById('newShop').value = 'OWNER-B1-MANUAL-U2';
+        await window.addShopItem();
+
+        window.NetworkEngine.firebasePush = async () => { throw new Error('controlled offline'); };
+        window.addToOfflineQueue = (method, path, value) => queued.push({ method, path, value });
+        document.getElementById('newShop').value = 'OWNER-B1-OFFLINE-U2';
+        await window.addShopItem();
+      } finally {
+        window.NetworkEngine.firebasePush = originalPush;
+        window.addToOfflineQueue = originalQueue;
+      }
+      return { sent, queued };
+    });
+    expect(result.sent.map(x => x.value.owner)).toEqual(['user1', 'user2']);
+    expect(result.queued).toHaveLength(1);
+    expect(result.queued[0].method).toBe('PUSH');
+    expect(result.queued[0].value.owner).toBe('user2');
+  });
+
+  test('recommended shopping add uses shopping owner independently of device owner', async ({ page }) => {
+    const result = await page.evaluate(async () => {
+      window.deviceOwner = 'user1';
+      window.currentShopOwner = 'user2';
+      let payload;
+      const originalPush = window.NetworkEngine.firebasePush;
+      try {
+        window.NetworkEngine.firebasePush = async (_path, value) => { payload = value; };
+        await window.addRecShopToMyList(window.RECOMMENDED_SHOPPING[0].id);
+      } finally {
+        window.NetworkEngine.firebasePush = originalPush;
+      }
+      return payload;
+    });
+    expect(result.owner).toBe('user2');
+  });
+
+  test('public payer default and real BudgetEngine settlement remain correct', async ({ page }) => {
     await page.evaluate(() => window.showV37Tab('split'));
     await page.selectOption('#deviceOwner', 'user2');
     await page.evaluate(() => window.updateOwner());
     await expect(page.locator('#payer')).toHaveValue('user2');
-    const settlement = await page.evaluate(() => {
-      window.sharedBills = [{ key: 's1', name: 'Shared', amt: 100, currency: 'TWD', payer: 'user1' }];
-      const original = window.getTripContext;
-      window.getTripContext = () => ({ budget: { totalSharedTWD: 100, totalPrivateTWD: 0, settleText: '<b>ENGINE SETTLEMENT</b>' } });
-      window.renderBills();
-      const html = document.querySelector('#settlement').innerHTML;
-      window.getTripContext = original;
-      return html;
+    await page.selectOption('#payer', 'user1');
+    await expect(page.locator('#payer')).toHaveValue('user1');
+
+    const settlements = await page.evaluate(() => {
+      const render = bills => {
+        window.sharedBills = bills;
+        window.currentBillTab = '公費';
+        window.TripContextEngine.tripContext = {
+          budget: window.BudgetEngine.calculateBudget(bills, [], 0.024, '11/13', window.u1, window.u2, window.deviceOwner, '公費')
+        };
+        window.renderBills();
+        return document.getElementById('settlement').textContent;
+      };
+      return {
+        owed: render([{ key: 'a', name: '公費', amt: 1000, currency: 'TWD', payer: 'user1', type: '公費' }]),
+        balanced: render([
+          { key: 'b', name: '公費一', amt: 500, currency: 'TWD', payer: 'user1', type: '公費' },
+          { key: 'c', name: '公費二', amt: 500, currency: 'TWD', payer: 'user2', type: '公費' }
+        ])
+      };
     });
-    expect(settlement).toContain('ENGINE SETTLEMENT');
+    expect(settlements.owed).toContain('鴨');
+    expect(settlements.owed).toContain('溫');
+    expect(settlements.owed).toContain('500');
+    expect(settlements.balanced).toContain('帳目完美平衡');
   });
 });

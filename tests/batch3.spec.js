@@ -188,36 +188,38 @@ test.describe('BATCH 3 - Combo Persistence', () => {
 });
 
 test.describe('BATCH 3 - Canonical / Personal Separation', () => {
-  test('Canonical itinerary count = 23', async ({ page }) => {
+  test('Canonical itinerary count = 26', async ({ page }) => {
     await bootApp(page);
     const count = await page.evaluate(() => {
       const tc = window.TRAVEL_CONTENT_V45;
       if (!tc || !tc.itinerary) return 0;
       return Object.values(tc.itinerary).reduce((s, a) => s + a.length, 0);
     });
-    expect(count).toBe(23);
+    expect(count).toBe(26);
   });
 
-  test('Firebase itinerary and canonical itinerary are distinct data sources', async ({ page }) => {
+  test('Custom Firebase source remains separate from canonical and merged display data', async ({ page }) => {
     await bootApp(page);
     await page.evaluate(() => window.showV37Tab('itinerary'));
-    await page.waitForFunction(
-      () => Array.isArray(window.itineraryData) && window.itineraryData.length > 0,
-      { timeout: 15000 }
-    );
-    const firebaseCount = await page.evaluate(() => (window.itineraryData || []).length);
-    const canonicalCount = await page.evaluate(() => {
-      const tc = window.TRAVEL_CONTENT_V45;
-      if (!tc || !tc.itinerary) return 0;
-      return Object.values(tc.itinerary).reduce((s, a) => s + a.length, 0);
+    await page.waitForFunction(() => Array.isArray(window.customItineraryData) && window.customItineraryData.length === 17, null, { timeout: 15000 });
+    const counts = await page.evaluate(() => {
+      const canonical = Object.values(window.TRAVEL_CONTENT_V45?.itinerary || {}).flat();
+      const custom = window.customItineraryData || [];
+      const merged = window.itineraryData || [];
+      return {
+        canonical: canonical.length,
+        custom: custom.length,
+        merged: merged.length,
+        hasAllCanonical: (window.RECOMMENDED_ITINERARY || []).every(item => merged.some(row => row.key === item.key))
+      };
     });
-    // Canonical is always 23
-    expect(canonicalCount).toBe(23);
-    // Firebase count is exactly 17
-    expect(firebaseCount).toBe(17);
+    expect(counts.canonical).toBe(26);
+    expect(counts.custom).toBe(17);
+    expect(counts.merged).toBeGreaterThanOrEqual(26);
+    expect(counts.hasAllCanonical).toBe(true);
   });
 
-  test('Canonical itinerary day-by-day counts are 4, 5, 5, 4, 5', async ({ page }) => {
+  test('Canonical itinerary day-by-day counts are 5, 5, 5, 4, 7', async ({ page }) => {
     await bootApp(page);
     const dayCounts = await page.evaluate(() => {
       const iti = window.TRAVEL_CONTENT_V45?.itinerary || {};
@@ -229,7 +231,7 @@ test.describe('BATCH 3 - Canonical / Personal Separation', () => {
         (iti['11/17'] || []).length
       ];
     });
-    expect(dayCounts).toEqual([4, 5, 5, 4, 5]);
+    expect(dayCounts).toEqual([5, 5, 5, 4, 7]);
   });
 
 
@@ -360,6 +362,10 @@ test.describe('BATCH 3 - Owner Visual Corrections', () => {
     expect(text).toContain('2026/12/31');
     expect(text).toContain('e-Arrival Card');
     expect(text).toContain('Q-CODE：Q4出發前RECHECK');
+    expect(text).not.toContain('72 小時申請 K-ETA');
+    expect(text).not.toContain('請務必申請 K-ETA');
+    expect(text).not.toContain('Q-Code 必填');
+    expect(text).not.toContain('Q-CODE 必填');
   });
 
   test('Home weather summary is visible directly without opening a separate page', async ({ page }) => {
@@ -393,8 +399,10 @@ test.describe('BATCH 3 - Owner Visual Corrections', () => {
     expect(docText).toContain('有效的 K-ETA');
     expect(docText).toContain('2026-12-31');
     expect(docText).toContain('e-Arrival Card');
-    expect(docText).toContain('Q-CODE（檢疫資訊預入申報）');
+    expect(docText).toContain('Q-CODE');
     expect(docText).toContain('7 天');
+    expect(docText).toMatch(/取決於.*檢疫管理地區.*旅遊史/);
+    expect(docText).toContain('出發前依官方最新公告再次確認');
     expect(docText).toContain('個人文件狀態');
     expect(docText).toContain('尚未上傳');
   });

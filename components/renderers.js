@@ -7,7 +7,8 @@ window.getSmartAlertMessage = function(ctx) {
     if (!ctx) return '載入中...';
     if (ctx.tripMode === 'before') {
         const immigration = window.TRAVEL_CONTENT_V45?.immigration;
-        return immigration ? `✅ K-ETA：豁免至 ${immigration.keta.exemptionEndDate}｜ 📝 e-Arrival Card：抵達前 3 天內` : '入境規定載入中';
+        const displayDate = String(immigration?.keta?.exemptionEndDate || '').replace(/-/g, '/');
+        return immigration ? `✅ K-ETA：本次免申請（豁免至 ${displayDate} KST）｜ 📝 e-Arrival Card：抵達前 3 天內` : '入境規定載入中';
     }
     if (ctx.tripMode === 'after') return '🎉 旅行圓滿完成！';
     if (ctx.nextDestination) return `⏰ ${ctx.nextDestination.time} → ${ctx.nextDestination.desc.split(' ')[0]}`;

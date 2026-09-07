@@ -4,6 +4,21 @@
 // ==========================================
 
 const AIAssistantEngine = {
+  getImmigrationGuidance() {
+    const immigration = (typeof window !== 'undefined' && window.TRAVEL_CONTENT_V45?.immigration)
+      || (typeof globalThis !== 'undefined' && globalThis.TRAVEL_CONTENT_V45?.immigration);
+    if (!immigration?.keta || !immigration?.eArrivalCard || !immigration?.qcode) {
+      return '入境規定資料暫時無法載入，請查看行前準備頁官方連結。';
+    }
+    const displayDate = String(immigration.keta?.exemptionEndDate || '').replace(/-/g, '/');
+    const forDisplay = text => String(text || '').replace(immigration.keta.exemptionEndDate, displayDate);
+    return [
+      `K-ETA：${forDisplay(immigration.keta.notes)}`,
+      `e-Arrival Card：${forDisplay(immigration.eArrivalCard.notes)}`,
+      `Q-CODE：${forDisplay(immigration.qcode.notes)}`
+    ].join('<br>');
+  },
+
   generateSuggestions(ctx) {
     const dateStr = ctx.currentDate;
     const city = ctx.currentCity;
@@ -15,7 +30,7 @@ const AIAssistantEngine = {
       if (uncompletedCount === 0) {
         return `✨ <b>哆啦秋遊助手：</b>行前準備已 100% 完成！護照、換錢、隨身清單都準備妥當，期待出發囉！✈️`;
       } else {
-        return `🤖 <b>行前助手：</b>離出發僅剩幾天，您還有 <b>${uncompletedCount} 項</b> 準備工作尚未勾選完成。請務必在出發前 72 小時申請 <b>K-ETA</b> 與填寫 <b>Q-Code</b>，避免入境受阻喔！`;
+        return `🤖 <b>行前助手：</b>離出發僅剩幾天，您還有 <b>${uncompletedCount} 項</b> 準備工作尚未勾選完成。<br>${this.getImmigrationGuidance()}`;
       }
     } else if (dateStr === '11/20') {
       return `🎉 <b>哆啦回憶助手：</b>本次旅行已圓滿結束！希望旅途中的美景與體驗給您留下了珍貴的回憶！別忘了在下方寫下旅行心得喔！`;

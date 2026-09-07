@@ -35,6 +35,10 @@ async function fixture(page) {
     source('components/renderers.js').match(new RegExp(`window\\.${name} = function\\(\\) {[\\s\\S]*?^};`, 'm'))[0]).join('\n');
   await page.addScriptTag({ content: renderers });
   await page.evaluate(items => {
+    window.deviceOwner = 'user1';
+    window.currentShopOwner = 'user1';
+    window.u1 = { key: 'user1', name: '溫', avatar: '👩' };
+    window.u2 = { key: 'user2', name: '鴨', avatar: '🦆' };
     window.StorageEngine = { get: () => ({ data: [], success: true }) };
     window.currentRecShopFilter = 'ALL';
     window.RECOMMENDED_SHOPPING = [...items, { id: 'missing', name: 'No photo', category: 'Other', desc: '' }];

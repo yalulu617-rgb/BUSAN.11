@@ -184,7 +184,7 @@ test.describe('BUSAN.11 V45 — Content Regression & Travel-Readiness Suite', ()
   });
 
   // ── E. SHOPPING ─────────────────────────────────────────────────────────
-  test('E. Shopping: 2 historical Firebase records visible without being hidden by default filter', async ({ page }) => {
+  test('E. Shopping: historical records remain available to their owner without changing the selected owner', async ({ page }) => {
     await page.evaluate(() => {
       window.showV37Tab('shop');
       window.setShopTabMode('my');
@@ -195,14 +195,19 @@ test.describe('BUSAN.11 V45 — Content Regression & Travel-Readiness Suite', ()
       return Array.isArray(window.shopList) && window.shopList.length >= 2;
     }, null, { timeout: 10000 });
 
-    const shopItems = page.locator('#sList .shop-item');
-    await expect(shopItems.first()).toBeVisible({ timeout: 5000 });
-    const count = await shopItems.count();
-    expect(count).toBeGreaterThanOrEqual(2);
+    const underlying = await page.evaluate(() => (window.shopList || []).map(item => item.text));
+    expect(underlying).toContain('Re4dy');
+    expect(underlying).toContain('Imint無糖咖啡糖');
 
-    const allText = await page.locator('#sList').innerText();
-    expect(allText).toContain('Re4dy');
-    expect(allText).toContain('Imint無糖咖啡糖');
+    await page.evaluate(() => window.filterShopOwner('user2'));
+    const duckText = await page.locator('#sList').innerText();
+    expect(duckText).toContain('Re4dy');
+    expect(duckText).toContain('Imint無糖咖啡糖');
+
+    const user1Count = await page.evaluate(() => (window.shopList || []).filter(item => item.owner === 'user1').length);
+    await page.evaluate(() => window.filterShopOwner('user1'));
+    expect(await page.evaluate(() => window.currentShopOwner)).toBe('user1');
+    if (user1Count === 0) await expect(page.locator('#sList')).toContainText('清單尚無購物項目');
 
     // Verify owner switch tabs are rendered
     const tabs = page.locator('#shopTabsUI button');
