@@ -356,6 +356,13 @@ test.describe('BATCH 3 - Owner Visual Corrections', () => {
     await bootApp(page);
     await page.evaluate(() => window.showV37Tab('home'));
     await page.waitForSelector('#v37HomeDashboard', { timeout: 5000 });
+    await page.waitForFunction(() => {
+      const text = document.getElementById('v37HomeDashboard')?.textContent || '';
+      return text.includes('K-ETA：本次免申請')
+        && text.includes('2026/12/31')
+        && text.includes('e-Arrival Card')
+        && text.includes('Q-CODE：Q4出發前RECHECK');
+    }, null, { timeout: 10000 });
     const text = await page.evaluate(() => document.getElementById('v37HomeDashboard')?.textContent || '');
     expect(text).not.toContain('待辦：K-ETA');
     expect(text).toContain('K-ETA：本次免申請');

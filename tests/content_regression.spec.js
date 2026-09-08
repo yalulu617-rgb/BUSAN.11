@@ -159,33 +159,80 @@ test.describe('BUSAN.11 V45 — Content Regression & Travel-Readiness Suite', ()
       window.switchWalletTab('hotel');
     });
 
-    // Wait for hotel section to render
+    // Wait for the resolved hotel state (confirmed Firebase data first,
+    // canonical fallback second) to be reflected in the rendered card.
     await page.waitForFunction(() => {
       const card = document.getElementById('walletHotelInfoCard');
-      return card && card.innerText.length > 20;
+      const hotel = window.getTripContext?.()?.currentHotel;
+      const address = hotel?.addressKR || hotel?.address;
+      return card && address && card.innerText.includes(address)
+        && card.innerText.includes(hotel.checkInDate)
+        && card.innerText.includes(hotel.checkOutDate);
     }, null, { timeout: 10000 });
 
     const hotelSection = page.locator('#walletHotelInfoCard');
     await expect(hotelSection).toBeVisible({ timeout: 5000 });
 
-    // Verify hotel name exists in text
+    const hotelState = await page.evaluate(() => {
+      const confirmed = window.hotelData || {};
+      const canonical = window.TRAVEL_CONTENT_V45?.hotel || {};
+      const hotel = window.getTripContext().currentHotel;
+      const confirmedValue = value => value && value !== '尚未填寫' ? value : '';
+      const expected = (confirmedField, canonicalValue, fallback = '尚未確認') =>
+        confirmedValue(confirmed[confirmedField]) || canonicalValue || fallback;
+
+      return {
+        hotel,
+        expectedAddress: confirmedValue(confirmed.addressKR)
+          || confirmedValue(confirmed.address)
+          || canonical.address,
+        expectedCheckInDate: expected('checkInDate', canonical.checkInDate),
+        expectedCheckInTime: expected('checkInTime'),
+        expectedCheckOutDate: expected('checkOutDate', canonical.checkOutDate),
+        expectedCheckOutTime: expected('checkOutTime'),
+        expectedPhone: expected('phone', canonical.phone),
+        expectedWifiName: expected('wifiName'),
+        expectedWifiPassword: expected('wifiPassword'),
+        expectedOutlet: expected('outlet'),
+        expectedLaundry: expected('laundry'),
+        expectedLuggageStorage: expected('luggageStorage'),
+      };
+    });
+
+    expect(hotelState.hotel.addressKR || hotelState.hotel.address).toBe(hotelState.expectedAddress);
+    expect(hotelState.hotel.checkInDate).toBe(hotelState.expectedCheckInDate);
+    expect(hotelState.hotel.checkInTime).toBe(hotelState.expectedCheckInTime);
+    expect(hotelState.hotel.checkOutDate).toBe(hotelState.expectedCheckOutDate);
+    expect(hotelState.hotel.checkOutTime).toBe(hotelState.expectedCheckOutTime);
+    expect(hotelState.hotel.phone).toBe(hotelState.expectedPhone);
+    expect(hotelState.hotel.wifiName).toBe(hotelState.expectedWifiName);
+    expect(hotelState.hotel.wifiPassword).toBe(hotelState.expectedWifiPassword);
+    expect(hotelState.hotel.outlet).toBe(hotelState.expectedOutlet);
+    expect(hotelState.hotel.laundry).toBe(hotelState.expectedLaundry);
+    expect(hotelState.hotel.luggageStorage).toBe(hotelState.expectedLuggageStorage);
+
+    // Verify factual content, including confirmed values when available.
     const text = await hotelSection.innerText();
     const hasHotelName = text.includes('城市律動飯店') || text.includes('Urban Groove Hotel') || text.includes('어반그루브호텔');
     expect(hasHotelName).toBe(true);
     expect(text).toContain('韓國');
-    expect(text).toContain('18 Hwangnyeong-daero 17beon-gil, Busanjin-gu, Busan 47353');
-    expect(text).toContain('2026/11/13');
-    expect(text).toContain('2026/11/17');
-    expect(text.match(/尚未確認/g)).toHaveLength(2);
+    expect(text).toContain(hotelState.expectedAddress);
+    expect(hotelState.expectedAddress).not.toBe('尚未確認');
+    expect(hotelState.expectedCheckInDate.replaceAll('-', '/')).toBe('2026/11/13');
+    expect(hotelState.expectedCheckOutDate.replaceAll('-', '/')).toBe('2026/11/17');
+    expect(text).toContain(hotelState.expectedCheckInDate);
+    expect(text).toContain(hotelState.expectedCheckInTime);
+    expect(text).toContain(hotelState.expectedCheckOutDate);
+    expect(text).toContain(hotelState.expectedCheckOutTime);
     expect(text).not.toContain('尚未填寫');
 
     await hotelSection.getByText('詳細客房與 WiFi 資訊').click();
-    await expect(hotelSection).toContainText('WiFi 名稱：尚未確認');
-    await expect(hotelSection).toContainText('WiFi 密碼：尚未確認');
-    await expect(hotelSection).toContainText('插座：尚未確認');
-    await expect(hotelSection).toContainText('洗衣：尚未確認');
-    await expect(hotelSection).toContainText('行李寄放：尚未確認');
-    await expect(hotelSection).toContainText('+82 507-1384-5553');
+    await expect(hotelSection).toContainText(`WiFi 名稱：${hotelState.expectedWifiName}`);
+    await expect(hotelSection).toContainText(`WiFi 密碼：${hotelState.expectedWifiPassword}`);
+    await expect(hotelSection).toContainText(`插座：${hotelState.expectedOutlet}`);
+    await expect(hotelSection).toContainText(`洗衣：${hotelState.expectedLaundry}`);
+    await expect(hotelSection).toContainText(`行李寄放：${hotelState.expectedLuggageStorage}`);
+    await expect(hotelSection).toContainText(hotelState.expectedPhone);
 
     const mapLinks = hotelSection.locator('a.map-tag');
     await expect(mapLinks).toHaveCount(4);
@@ -199,7 +246,7 @@ test.describe('BUSAN.11 V45 — Content Regression & Travel-Readiness Suite', ()
     const encodedDestination = await taxiButton.getAttribute('data-taxi-destination');
     const taxiDestination = decodeURIComponent(encodedDestination || '');
     expect(taxiDestination).toContain('Urban Groove Hotel');
-    expect(taxiDestination).toContain('18 Hwangnyeong-daero 17beon-gil, Busanjin-gu, Busan 47353');
+    expect(taxiDestination).toContain(hotelState.expectedAddress);
     expect(taxiDestination).not.toContain('尚未填寫');
     await expect(hotelSection).toContainText('기사님, 여기로 부탁드립니다.');
   });
