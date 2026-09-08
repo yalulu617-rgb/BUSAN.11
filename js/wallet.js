@@ -234,10 +234,10 @@ window.renderTickets_LogicOnly = function() {
             let vh = t.voucher ? `<a href="${t.voucher}" target="_blank" class="map-tag" style="background:var(--primary); color:white;"><i class="fa-solid fa-image"></i> 看憑證</a>` : '';
             
             let dateBadge = t.expiry ? `<span class="v38-badge" style="background:#8e8e93; font-size:0.65rem;">⏳ 到期日: ${t.expiry}</span>` : '';
-            let isBooked = t.booked === true || t.booked === "true";
-            let statusBadge = isBooked ? 
-                `<span class="v38-tag" style="background:#eafaf1; color:#2ecc71; font-size:0.65rem; font-weight:900;"><i class="fa-solid fa-circle-check"></i> 已預約</span>` :
-                `<span class="v38-tag" style="background:#fff9e6; color:#f39c12; font-size:0.65rem; font-weight:900;"><i class="fa-solid fa-clock"></i> 待預約</span>`;
+            const reservationState = TripContextEngine.resolveReservationState(t);
+            const isBooked = reservationState === "已預訂";
+            let statusBadge = `<span class="v38-tag reservation-status" style="background:${isBooked ? '#eafaf1' : '#fff9e6'}; color:${isBooked ? '#2ecc71' : '#f39c12'}; font-size:0.65rem; font-weight:900;">${reservationState}</span>`;
+            const credentialState = t.voucher ? '憑證已上傳' : '憑證尚未上傳';
             
             let cardOpacity = isBooked ? "opacity: 0.7; filter: grayscale(30%);" : "";
             
@@ -252,6 +252,7 @@ window.renderTickets_LogicOnly = function() {
                             </div>
                             <div style="font-weight:900; font-size:1rem; color:var(--text-color); margin-bottom:4px;">${t.title}</div>
                             <div style="font-size:0.8rem; color:#7f8c8d; font-weight:700;">${t.desc}</div>
+                            <div class="reservation-credential" style="font-size:0.72rem; color:#7f8c8d; font-weight:800; margin-top:5px;">${credentialState}</div>
                             <div style="display:flex; gap:6px; margin-top:8px;">
                                 ${lh} ${vh}
                             </div>
@@ -263,30 +264,32 @@ window.renderTickets_LogicOnly = function() {
         }
     });
     
-    const canonical = (typeof window !== "undefined" && window.TRAVEL_CONTENT_V45) || (typeof globalThis !== "undefined" && globalThis.TRAVEL_CONTENT_V45) || {};
+    const reservationCardsHtml = (ctx.reservations || []).map(item => {
+        const isBooked = item.status === '已預訂';
+        const isPending = item.status === '尚未預訂';
+        const statusBackground = isBooked ? '#eafaf1' : (isPending ? '#fff9e6' : '#eef4ff');
+        const statusColor = isBooked ? '#219653' : (isPending ? '#c27c0e' : '#3867d6');
+        return `
+            <div class="reservation-state-card" data-reservation-id="${item.id}" style="background:rgba(255,255,255,0.08); padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.12);">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;">
+                    <div>
+                        <span style="font-size:0.68rem;color:#bdc3c7;font-weight:800;">${item.category}</span>
+                        <div class="reservation-name" style="color:#ffffff;font-weight:900;">${item.name}</div>
+                    </div>
+                    <span class="reservation-status" style="background:${statusBackground};color:${statusColor};padding:3px 8px;border-radius:999px;font-size:0.68rem;font-weight:900;">${item.status}</span>
+                </div>
+                <div class="reservation-details" style="font-size:0.75rem;color:#dfe4ea;margin-top:4px;">${item.details}</div>
+                <div class="reservation-credential" style="font-size:0.7rem;color:#f5cd79;font-weight:800;margin-top:5px;">${item.credentialStatus}</div>
+            </div>`;
+    }).join('');
     const canonicalSummaryHtml = `
         <div class="card fade-scale-in" style="background: linear-gradient(135deg, #1a252f, #2c3e50) !important; color:#ffffff !important; border-radius: 20px; padding: 16px; margin-bottom: 16px; border-left: 6px solid #f1c40f; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                 <span style="font-weight:900; font-size:1.05rem; color:#f1c40f;"><i class="fa-solid fa-plane-departure"></i> 本次旅程資訊</span>
-                <span class="v38-badge" style="background:#f1c40f; color:#2c3e50; font-weight:900; font-size:0.68rem; padding:3px 8px;">官方行程手帳</span>
+                <span class="v38-badge" style="background:#f1c40f; color:#2c3e50; font-weight:900; font-size:0.68rem; padding:3px 8px;">預約四態</span>
             </div>
             <div style="display:flex; flex-direction:column; gap:8px; font-size:0.82rem; line-height:1.5; color:#f8f9fa;">
-                <div style="background:rgba(255,255,255,0.08); padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.12);">
-                    ✈️ <b style="color:#ffffff;">去程航班：</b><span style="color:#f5cd79; font-weight:900;">${canonical.flights?.outbound?.flightNo || 'BX572'}</span> (${canonical.flights?.outbound?.airline || '釜山航空'})<br>
-                    <span style="font-size:0.75rem; color:#dfe4ea; margin-left:22px;">11/13 TPE 13:25 → PUS 17:00 (含託運 15kg)</span>
-                </div>
-                <div style="background:rgba(255,255,255,0.08); padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.12);">
-                    ✈️ <b style="color:#ffffff;">回程航班：</b><span style="color:#f5cd79; font-weight:900;">${canonical.flights?.return?.flightNo || 'KE2085'}</span> (${canonical.flights?.return?.airline || '大韓航空'})<br>
-                    <span style="font-size:0.75rem; color:#dfe4ea; margin-left:22px;">11/17 PUS 14:50 → TPE 16:30 (含託運 23kg)</span>
-                </div>
-                <div style="background:rgba(255,255,255,0.08); padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.12);">
-                    🏨 <b style="color:#ffffff;">住宿飯店：</b><span style="color:#ffffff; font-weight:800;">${canonical.hotel?.nameTW || '城市律動飯店'}</span><br>
-                    <span style="font-size:0.75rem; color:#dfe4ea; margin-left:22px;">西面商圈 · 凡內谷站 6 號出口步行 3 分鐘 (11/13~11/17 共4晚)</span>
-                </div>
-                <div style="background:rgba(255,255,255,0.08); padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.12);">
-                    🎫 <b style="color:#ffffff;">觀光通票：</b><span style="color:#54a0ff; font-weight:900;">Visit Busan Pass (${canonical.visitBusanPass?.recommendedPlan || 'BIG3 Mobile'})</span><br>
-                    <span style="font-size:0.75rem; color:#dfe4ea; margin-left:22px;">45,000 KRW · 包含 1 個 A 組 (X the SKY / Spa Land) + 2 個 B 組</span>
-                </div>
+                ${reservationCardsHtml}
             </div>
         </div>
         <div style="font-weight:900; font-size:0.95rem; color:var(--primary); margin-bottom:10px; display:flex; align-items:center; gap:6px;">

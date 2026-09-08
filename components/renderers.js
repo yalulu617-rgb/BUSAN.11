@@ -26,6 +26,23 @@ window.renderImmigrationRules = function() {
         card(info.eArrivalCard.title, info.eArrivalCard.notes, info.eArrivalCard.officialUrl, '官方 e-Arrival Card') +
         card(info.qcode.title, info.qcode.notes, info.qcode.officialUrl, 'Q-CODE 官方說明') +
         card(info.passport.title, info.passport.notes, '', '');
+    if (typeof renderPersonalCredentialStates === 'function') renderPersonalCredentialStates();
+};
+
+window.renderPersonalCredentialStates = function() {
+    const root = document.getElementById('personalCredentialStatesUI');
+    const credentials = window.getTripContext?.()?.credentials || [];
+    if (!root) return;
+
+    root.innerHTML = credentials.map(item => `
+        <div class="personal-credential-state" data-credential-id="${item.id}" style="background:#f8f9fa;padding:12px;border-radius:14px;border:1px solid #eee;display:flex;justify-content:space-between;align-items:center;gap:10px;">
+            <div>
+                <span style="font-weight:900;font-size:.9rem;color:#2c3e50;">${item.icon || '📄'} ${item.name}</span>
+                <div class="credential-status" style="font-size:.75rem;color:#7f8c8d;margin-top:2px;">${item.status}</div>
+            </div>
+            <button class="v38-mini-btn credential-view" type="button" disabled aria-disabled="true">${item.viewState || '無可檢視'}</button>
+        </div>
+    `).join('');
 };
 
 // ── Helper: Toggle city detail panel ──────────────────────────────────────

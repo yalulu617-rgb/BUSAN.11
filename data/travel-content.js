@@ -181,6 +181,124 @@
     "kakaoMap": "https://map.kakao.com/?id=21160751",
     "desc": "地鐵 1 號線與 2 號線交會西面核心樞紐，周邊超商與美食林立。"
   },
+  "reservations": [
+    {
+      "id": "bx572",
+      "name": "BX572",
+      "category": "航班",
+      "status": "資訊不足",
+      "credentialStatus": "憑證尚未上傳",
+      "details": "2026/11/13 · TPE 13:25 → PUS 17:00"
+    },
+    {
+      "id": "ke2085",
+      "name": "KE2085",
+      "category": "航班",
+      "status": "資訊不足",
+      "credentialStatus": "憑證尚未上傳",
+      "details": "2026/11/17 · PUS 14:50 → TPE 16:30"
+    },
+    {
+      "id": "hotel",
+      "name": "城市律動飯店",
+      "category": "住宿",
+      "status": "資訊不足",
+      "credentialStatus": "憑證尚未上傳",
+      "details": "2026/11/13 → 2026/11/17 · 住宿資料不等於訂單憑證"
+    },
+    {
+      "id": "ktx-korail",
+      "name": "KTX / KORAIL",
+      "category": "交通",
+      "status": "尚未預訂",
+      "credentialStatus": "憑證尚未上傳",
+      "details": "釜山 → 慶州"
+    },
+    {
+      "id": "sky-capsule",
+      "name": "Sky Capsule 天空膠囊列車",
+      "category": "交通",
+      "status": "尚未預訂",
+      "credentialStatus": "憑證尚未上傳",
+      "details": "尾浦 → 青沙浦"
+    },
+    {
+      "id": "hanbok",
+      "name": "慶州 Hanbok 韓服體驗",
+      "category": "體驗",
+      "status": "已預訂",
+      "credentialStatus": "憑證尚未上傳",
+      "details": "預訂狀態已確認；目前沒有可檢視憑證"
+    },
+    {
+      "id": "klook",
+      "name": "Klook",
+      "category": "平台",
+      "status": "資訊不足",
+      "credentialStatus": "憑證尚未上傳",
+      "details": "尚無可信購買資料"
+    },
+    {
+      "id": "kkday",
+      "name": "KKday",
+      "category": "平台",
+      "status": "資訊不足",
+      "credentialStatus": "憑證尚未上傳",
+      "details": "尚無可信購買資料"
+    },
+    {
+      "id": "visit-busan-pass",
+      "name": "Visit Busan Pass",
+      "category": "觀光通票",
+      "status": "資訊不足",
+      "credentialStatus": "憑證尚未上傳",
+      "details": "BIG3 Mobile · 45,000 KRW 方案資訊；尚無購買證據"
+    }
+  ],
+  "credentials": [
+    {
+      "id": "passport",
+      "name": "中華民國護照",
+      "icon": "🪪",
+      "status": "尚未上傳",
+      "viewState": "無可檢視"
+    },
+    {
+      "id": "keta",
+      "name": "K-ETA",
+      "icon": "📄",
+      "status": "本次免申請（豁免至 2026/12/31）",
+      "viewState": "無可檢視"
+    },
+    {
+      "id": "e-arrival-card",
+      "name": "e-Arrival Card",
+      "icon": "📝",
+      "status": "尚未申報",
+      "viewState": "無可檢視"
+    },
+    {
+      "id": "q-code",
+      "name": "Q-CODE",
+      "icon": "🧬",
+      "status": "尚未上傳",
+      "viewState": "無可檢視"
+    },
+    {
+      "id": "insurance",
+      "name": "海外旅行平安保險單",
+      "icon": "🏥",
+      "status": "尚未上傳",
+      "viewState": "無可檢視"
+    },
+    {
+      "id": "hanbok",
+      "name": "Hanbok 韓服體驗",
+      "icon": "👘",
+      "status": "已預訂・憑證尚未上傳",
+      "viewState": "無可檢視"
+    }
+  ],
   "subway": {
     "hub": "西面站 (119 / 219)：1 號線與 2 號線十字交會樞紐",
     "line1Orange": [

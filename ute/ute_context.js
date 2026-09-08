@@ -5,6 +5,16 @@
 
 const TripContextEngine = {
   tripContext: {},
+
+  reservationStates: ["已預訂", "尚未預訂", "不需要", "資訊不足"],
+
+  resolveReservationState(record = {}) {
+    const explicitState = record.reservationState || record.status;
+    if (this.reservationStates.includes(explicitState)) return explicitState;
+    if (record.booked === true || record.booked === "true") return "已預訂";
+    if (record.booked === false || record.booked === "false") return "尚未預訂";
+    return "資訊不足";
+  },
   
   getTripContext() {
     return this.tripContext;
@@ -102,6 +112,12 @@ const TripContextEngine = {
     const dayToRainKey = { '11/14': 'day2', '11/15': 'day3', '11/16': 'day4' };
     const rainPlanKey = dayToRainKey[dateStr];
     const todayRainPlan = rainPlanKey && canonical.rainPlans ? canonical.rainPlans[rainPlanKey] : null;
+    const reservations = Array.isArray(canonical.reservations)
+      ? canonical.reservations.map(item => ({ ...item, status: this.resolveReservationState(item) }))
+      : [];
+    const credentials = Array.isArray(canonical.credentials)
+      ? canonical.credentials.map(item => ({ ...item }))
+      : [];
 
     this.tripContext = {
       currentDate,
@@ -120,6 +136,8 @@ const TripContextEngine = {
       navigation,
       uncompletedPreps,
       tickets: ticketData,
+      reservations,
+      credentials,
       checklist: prepData,
       exchangeRate: liveKrwToTwd,
       deviceOwner,

@@ -59,7 +59,7 @@ test.describe('Owner Fix Batch 1 targeted repair', () => {
     await expect(page.getByRole('link', { name: '官方 e-Arrival Card' })).toHaveAttribute('href', 'https://www.e-arrivalcard.go.kr/');
     await expect(page.getByRole('link', { name: 'Q-CODE 官方說明' })).toBeVisible();
     await expect(page.locator('#walletDocSection')).toContainText('尚未上傳');
-    await expect(page.locator('#walletDocSection button:disabled')).toHaveCount(4);
+    await expect(page.locator('#walletDocSection button:disabled')).toHaveCount(6);
   });
 
   test('AI assistant reads current canonical immigration guidance', async ({ page }) => {
