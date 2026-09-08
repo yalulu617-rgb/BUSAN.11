@@ -252,7 +252,12 @@ test.describe('Wallet (Ticket / Hotel / Docs / Coupon / Memory)', () => {
 
   test('Coupon tab switches section', async ({ page }) => {
     await page.locator('#btnWalletCoupon').click();
-    await expect(page.locator('#walletCouponSection')).toBeVisible();
+    const couponSection = page.locator('#walletCouponSection');
+    await expect(couponSection).toBeVisible();
+    await expect(couponSection).toContainText('尚未新增優惠券或會員卡');
+    await expect(couponSection).toContainText('無可顯示條碼');
+    await expect(couponSection).not.toContainText(/9081|8872|MEMBERSHIP BARCODE|DISCOUNT COUPON/);
+    await expect(couponSection.locator('img, svg, canvas')).toHaveCount(0);
   });
 
   test('Memory tab switches to memory section', async ({ page }) => {
