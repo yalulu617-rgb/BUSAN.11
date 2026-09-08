@@ -136,6 +136,11 @@ window.renderTickets_LogicOnly = function() {
     
     const h = ctx.currentHotel;
     if (h && (h.name || h.nameEN)) {
+        const truthfulValue = value => safeValue(value, "尚未確認");
+        const hotelAddress = truthfulValue(h.addressKR || h.address);
+        const taxiHotelName = truthfulValue(h.nameEN || h.name);
+        const taxiDestination = [taxiHotelName, hotelAddress].filter(value => value !== "尚未確認").join('\n');
+        const encodedTaxiDestination = encodeURIComponent(taxiDestination);
         let maps = getMapLinks(h.addressKR || h.address);
         let googleBtn = maps.google ? `<a href="${maps.google}" target="_blank" class="map-tag" style="background:#4285F4; color:white;"><i class="fa-solid fa-map"></i> Google Maps</a>` : '';
         let naverBtn = maps.naver ? `<a href="${maps.naver}" target="_blank" class="map-tag" style="background:#03C75A; color:white;"><i class="fa-solid fa-location-arrow"></i> Naver Map</a>` : '';
@@ -179,20 +184,20 @@ window.renderTickets_LogicOnly = function() {
         <span style="background: var(--primary); color: white; padding: 2px 6px; border-radius: 6px; font-size: 0.65rem; font-weight: 900; display: inline-block; margin-bottom: 4px;">🏨 住宿卡</span>
         <h3 style="margin: 0 0 4px 0; font-weight: 900; color: var(--text-color); font-size: 1.1rem;">${safeValue(h.name)}</h3>
         <div style="font-size: 0.75rem; color: #7f8c8d; font-weight: 700; line-height: 1.3;">
-            <div>🇰🇷 ${safeValue(h.addressKR)}</div>
+            <div>🇰🇷 ${truthfulValue(h.country)} · ${hotelAddress}</div>
         </div>
     </div>
     
     <div style="display: flex; gap: 6px; margin-bottom: 10px; background: rgba(243,156,18,0.03); padding: 8px; border-radius: 10px; border: 1px solid rgba(243,156,18,0.1);">
         <div style="flex: 1; text-align: center; border-right: 1px dashed rgba(243,156,18,0.2); padding-right: 4px;">
             <div style="font-size: 0.65rem; color: #a5b1c2; font-weight: 900;">📅 入住</div>
-            <div style="font-size: 0.8rem; font-weight: 900; color: var(--primary); margin: 2px 0;">${safeValue(h.checkInDate)}</div>
-            <div style="font-size: 0.65rem; color: #7f8c8d; font-weight: 700;">🕒 ${safeValue(h.checkInTime)}</div>
+            <div style="font-size: 0.8rem; font-weight: 900; color: var(--primary); margin: 2px 0;">${truthfulValue(h.checkInDate)}</div>
+            <div style="font-size: 0.65rem; color: #7f8c8d; font-weight: 700;">🕒 ${truthfulValue(h.checkInTime)}</div>
         </div>
         <div style="flex: 1; text-align: center; padding-left: 4px;">
             <div style="font-size: 0.65rem; color: #a5b1c2; font-weight: 900;">📅 退房</div>
-            <div style="font-size: 0.8rem; font-weight: 900; color: var(--text-color); margin: 2px 0;">${safeValue(h.checkOutDate)}</div>
-            <div style="font-size: 0.65rem; color: #7f8c8d; font-weight: 700;">🕒 ${safeValue(h.checkOutTime)}</div>
+            <div style="font-size: 0.8rem; font-weight: 900; color: var(--text-color); margin: 2px 0;">${truthfulValue(h.checkOutDate)}</div>
+            <div style="font-size: 0.65rem; color: #7f8c8d; font-weight: 700;">🕒 ${truthfulValue(h.checkOutTime)}</div>
         </div>
     </div>
 
@@ -207,14 +212,17 @@ window.renderTickets_LogicOnly = function() {
 
     <div class="hotel-details-box" style="display: none; margin-top: 10px; border-top: 1px dashed var(--border-color); padding-top: 8px;">
         <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-color); line-height: 1.4;">
-            <div>📶 WiFi 名稱：<b>${safeValue(h.wifiName)}</b></div>
-            <div>🔑 WiFi 密碼：<b>${safeValue(h.wifiPassword)}</b></div>
-            <div style="margin-top: 6px;">📞 櫃台電話：<b>${safeValue(h.phone)}</b></div>
+            <div>📶 WiFi 名稱：<b>${truthfulValue(h.wifiName)}</b></div>
+            <div>🔑 WiFi 密碼：<b>${truthfulValue(h.wifiPassword)}</b></div>
+            <div>🔌 插座：<b>${truthfulValue(h.outlet)}</b></div>
+            <div>🧺 洗衣：<b>${truthfulValue(h.laundry)}</b></div>
+            <div>🧳 行李寄放：<b>${truthfulValue(h.luggageStorage)}</b></div>
+            <div style="margin-top: 6px;">📞 櫃台電話：<b>${truthfulValue(h.phone)}</b></div>
             <div>🌐 官方網站：${websiteBtn}</div>
             <div style="margin-top: 6px; padding: 6px; background: rgba(0,0,0,0.02); border-radius: 8px; font-family: monospace;">
-                기사님, 여기로 부탁드립니다.<br><b>${safeValue(h.addressKR)}</b>
+                기사님, 여기로 부탁드립니다.<br><b>${taxiHotelName}</b><br>${hotelAddress}
             </div>
-            <button class="v38-mini-btn" style="width:100%; margin-top:6px;" onclick="copyTaxiHelper('${h.addressKR || ''}')"><i class="fa-solid fa-copy"></i> 複製計程車字條</button>
+            <button class="v38-mini-btn hotel-taxi-copy" style="width:100%; margin-top:6px;" data-taxi-destination="${encodedTaxiDestination}" onclick="copyTaxiHelper(decodeURIComponent(this.dataset.taxiDestination))"><i class="fa-solid fa-copy"></i> 複製計程車字條</button>
         </div>
     </div>
 </div>`;

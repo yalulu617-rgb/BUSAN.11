@@ -170,9 +170,13 @@
     "nameTW": "城市律動飯店",
     "nameEN": "Urban Groove Hotel Seomyeon",
     "nameKR": "서면 어반그루브 호텔",
+    "country": "韓國",
     "stayPeriod": "11/13 ～ 11/17 (共 4 晚)",
+    "checkInDate": "2026/11/13",
+    "checkOutDate": "2026/11/17",
     "location": "西面商圈 / 凡內谷站 6 號出口步行約 3 分鐘",
     "address": "18 Hwangnyeong-daero 17beon-gil, Busanjin-gu, Busan 47353",
+    "phone": "+82 507-1384-5553",
     "naverMap": "https://map.naver.com/p/entry/place/13479629",
     "kakaoMap": "https://map.kakao.com/?id=21160751",
     "desc": "地鐵 1 號線與 2 號線交會西面核心樞紐，周邊超商與美食林立。"

@@ -172,15 +172,36 @@ test.describe('BUSAN.11 V45 — Content Regression & Travel-Readiness Suite', ()
     const text = await hotelSection.innerText();
     const hasHotelName = text.includes('城市律動飯店') || text.includes('Urban Groove Hotel') || text.includes('어반그루브호텔');
     expect(hasHotelName).toBe(true);
+    expect(text).toContain('韓國');
+    expect(text).toContain('18 Hwangnyeong-daero 17beon-gil, Busanjin-gu, Busan 47353');
+    expect(text).toContain('2026/11/13');
+    expect(text).toContain('2026/11/17');
+    expect(text.match(/尚未確認/g)).toHaveLength(2);
+    expect(text).not.toContain('尚未填寫');
 
-    // Verify map links exist
-    const mapLinks = hotelSection.locator('a[href*="map"], a[href*="google"]');
-    const linkCount = await mapLinks.count();
-    expect(linkCount).toBeGreaterThanOrEqual(1);
+    await hotelSection.getByText('詳細客房與 WiFi 資訊').click();
+    await expect(hotelSection).toContainText('WiFi 名稱：尚未確認');
+    await expect(hotelSection).toContainText('WiFi 密碼：尚未確認');
+    await expect(hotelSection).toContainText('插座：尚未確認');
+    await expect(hotelSection).toContainText('洗衣：尚未確認');
+    await expect(hotelSection).toContainText('行李寄放：尚未確認');
+    await expect(hotelSection).toContainText('+82 507-1384-5553');
 
-    const firstHref = await mapLinks.first().getAttribute('href');
-    expect(firstHref).toBeTruthy();
-    expect(firstHref?.startsWith('http')).toBe(true);
+    const mapLinks = hotelSection.locator('a.map-tag');
+    await expect(mapLinks).toHaveCount(4);
+    const hrefs = await mapLinks.evaluateAll(links => links.map(link => link.href));
+    expect(hrefs.some(href => href.includes('google.com/maps'))).toBe(true);
+    expect(hrefs.some(href => href.includes('map.naver.com'))).toBe(true);
+    expect(hrefs.some(href => href.includes('map.kakao.com'))).toBe(true);
+    expect(hrefs.some(href => href.includes('maps.apple.com'))).toBe(true);
+
+    const taxiButton = hotelSection.locator('.hotel-taxi-copy');
+    const encodedDestination = await taxiButton.getAttribute('data-taxi-destination');
+    const taxiDestination = decodeURIComponent(encodedDestination || '');
+    expect(taxiDestination).toContain('Urban Groove Hotel');
+    expect(taxiDestination).toContain('18 Hwangnyeong-daero 17beon-gil, Busanjin-gu, Busan 47353');
+    expect(taxiDestination).not.toContain('尚未填寫');
+    await expect(hotelSection).toContainText('기사님, 여기로 부탁드립니다.');
   });
 
   // ── E. SHOPPING ─────────────────────────────────────────────────────────

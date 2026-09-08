@@ -50,17 +50,36 @@ const TripContextEngine = {
     
     const currentPlace = PlaceEngine.resolvePlace(activeIti ? activeIti.desc : (dateStr === '11/15' ? '慶州' : '釜山'));
     const currentCity = CityEngine.getCity(currentPlace.city);
+    const canonical = (typeof window !== "undefined" && window.TRAVEL_CONTENT_V45) || (typeof globalThis !== "undefined" && globalThis.TRAVEL_CONTENT_V45) || {};
+    const canonicalHotel = canonical.hotel || {};
+    const firstConfirmedValue = (...values) => values.find(value => value && value !== "尚未填寫") || "";
+    const unconfirmed = "尚未確認";
     
     const currentHotel = {
-      name: hotelData.name || "城市律動飯店",
-      nameEN: hotelData.nameEN || "Urban Groove Hotel",
-      nameKR: hotelData.nameKR || "어반그루브호텔",
-      address: hotelData.address || "18 Hwangnyeong-daero 17beon-gil, Busanjin-gu, Busan 47353, South Korea",
-      nearestStation: hotelData.nearestStation || "凡內谷站",
-      exit: hotelData.exit || "6 號出口",
-      phone: hotelData.phone || "+82 1096755552",
-      roomNo: hotelData.roomNo || "",
-      wifiPassword: hotelData.wifiPassword || ""
+      name: firstConfirmedValue(hotelData.name, canonicalHotel.nameTW, "城市律動飯店"),
+      nameEN: firstConfirmedValue(hotelData.nameEN, canonicalHotel.nameEN, "Urban Groove Hotel"),
+      nameKR: firstConfirmedValue(hotelData.nameKR, canonicalHotel.nameKR),
+      country: firstConfirmedValue(hotelData.country, canonicalHotel.country, "韓國"),
+      addressKR: firstConfirmedValue(hotelData.addressKR),
+      address: firstConfirmedValue(hotelData.address, canonicalHotel.address) || unconfirmed,
+      nearestStation: firstConfirmedValue(hotelData.nearestStation, "凡內谷站"),
+      exit: firstConfirmedValue(hotelData.exit, "6 號出口"),
+      checkInDate: firstConfirmedValue(hotelData.checkInDate, canonicalHotel.checkInDate) || unconfirmed,
+      checkInTime: firstConfirmedValue(hotelData.checkInTime) || unconfirmed,
+      checkOutDate: firstConfirmedValue(hotelData.checkOutDate, canonicalHotel.checkOutDate) || unconfirmed,
+      checkOutTime: firstConfirmedValue(hotelData.checkOutTime) || unconfirmed,
+      phone: firstConfirmedValue(hotelData.phone, canonicalHotel.phone) || unconfirmed,
+      roomNo: firstConfirmedValue(hotelData.roomNo),
+      wifiName: firstConfirmedValue(hotelData.wifiName) || unconfirmed,
+      wifiPassword: firstConfirmedValue(hotelData.wifiPassword) || unconfirmed,
+      outlet: firstConfirmedValue(hotelData.outlet) || unconfirmed,
+      laundry: firstConfirmedValue(hotelData.laundry) || unconfirmed,
+      luggageStorage: firstConfirmedValue(hotelData.luggageStorage) || unconfirmed,
+      website: firstConfirmedValue(hotelData.website),
+      totalPrice: firstConfirmedValue(hotelData.totalPrice),
+      currency: firstConfirmedValue(hotelData.currency),
+      guestCount: firstConfirmedValue(hotelData.guestCount),
+      hotelPhoto: firstConfirmedValue(hotelData.hotelPhoto)
     };
     
     const currentWeather = WeatherEngine.getWeather(currentPlace.city);
@@ -80,7 +99,6 @@ const TripContextEngine = {
     const navigation = NavigationEngine.calculateNavigation(todayItinerary, nextDestination, currentCity);
     const uncompletedPreps = prepData.filter(p => !p.done);
 
-    const canonical = (typeof window !== "undefined" && window.TRAVEL_CONTENT_V45) || (typeof globalThis !== "undefined" && globalThis.TRAVEL_CONTENT_V45) || {};
     const dayToRainKey = { '11/14': 'day2', '11/15': 'day3', '11/16': 'day4' };
     const rainPlanKey = dayToRainKey[dateStr];
     const todayRainPlan = rainPlanKey && canonical.rainPlans ? canonical.rainPlans[rainPlanKey] : null;
