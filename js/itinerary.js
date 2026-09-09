@@ -7,7 +7,7 @@
     let editingItiKey = null;
 
     const itinerarySignature = item => [item.day, item.time, item.desc, item.tr || '', item.map || ''].join('\u001f');
-    const conflictsWithCanonicalFlight = item => {
+    const conflictsWithCanonicalTruth = item => {
         const text = `${item?.desc || ''} ${item?.tr || ''}`;
         const time = String(item?.time || '').trim();
         if (item?.day === '11/13') {
@@ -21,6 +21,12 @@
                 || (/(出發|departure)/i.test(text) && /(KE2085|金海|PUS)/i.test(text));
             return staleDepartureTime && explicitFlightDeparture;
         }
+        if (item?.day === '11/14') {
+            const claimsGwangalli = /(廣安里|Gwangalli|광안리)/i.test(text);
+            const claimsDrone = /(無人機|drone)/i.test(text);
+            const claimsFireworks = /(煙火|fireworks?)/i.test(text);
+            return claimsGwangalli && claimsDrone && claimsFireworks;
+        }
         return false;
     };
     window.mergeCanonicalItinerary = function(customRows) {
@@ -30,7 +36,7 @@
             item && !String(item.key || '').startsWith('rec_') && !canonicalSignatures.has(itinerarySignature(item))
         );
         window.customItineraryData = custom;
-        return canonical.concat(custom.filter(item => !conflictsWithCanonicalFlight(item)));
+        return canonical.concat(custom.filter(item => !conflictsWithCanonicalTruth(item)));
     };
 
     // ── alias: index.html calls filterIti(day), not filterItineraryDay ────────

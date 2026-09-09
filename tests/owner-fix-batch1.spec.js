@@ -13,7 +13,10 @@ test.describe('Owner Fix Batch 1 targeted repair', () => {
         { key: 'legacy-back', day: '11/17', time: '16:30', desc: 'KE2085 自金海機場起飛舊時間', tr: '登機' },
         { key: 'note-out', day: '11/13', time: '12:00', desc: 'BX572 座位 12A，記得選靠窗', tr: '個人提醒' },
         { key: 'note-back', day: '11/17', time: '11:00', desc: 'KE2085 託運 23kg', tr: '個人提醒' },
-        { key: 'custom-1', day: '11/14', time: '08:00', desc: 'Luna custom stop', tr: '步行' }
+        { key: 'custom-1', day: '11/14', time: '08:00', desc: 'Luna custom stop', tr: '步行' },
+        { key: 'stale-day2-fireworks', day: '11/14', time: '19:30', desc: '廣安里 M 無人機煙火秀', tr: '步行' },
+        { key: 'day2-personal', day: '11/14', time: '21:30', desc: '回飯店整理戰利品', tr: '步行' },
+        { key: 'day3-personal', day: '11/15', time: '11:15', desc: '皇理團路買明信片', tr: '步行' }
       ];
       const merged = window.mergeCanonicalItinerary(custom);
       const canonical = Object.values(window.TRAVEL_CONTENT_V45.itinerary).flat();
@@ -23,6 +26,8 @@ test.describe('Owner Fix Batch 1 targeted repair', () => {
         mergedCount: merged.length,
         dayCounts: Object.values(window.TRAVEL_CONTENT_V45.itinerary).map(items => items.length),
         day1: merged.filter(x => x.day === '11/13').map(x => `${x.time} ${x.desc}`),
+        day2: merged.filter(x => x.day === '11/14').map(x => `${x.time} ${x.desc}`),
+        day3: merged.filter(x => x.day === '11/15').map(x => `${x.time} ${x.desc}`),
         day5: merged.filter(x => x.day === '11/17').map(x => `${x.time} ${x.desc}`),
         hasLegitimateCustom: merged.some(x => x.key === 'custom-1'),
         customKeys: window.customItineraryData.map(x => x.key),
@@ -31,16 +36,23 @@ test.describe('Owner Fix Batch 1 targeted repair', () => {
       };
     });
     expect(result.canonicalCount).toBe(31);
-    expect(result.customCount).toBe(6);
-    expect(result.mergedCount).toBe(34);
+    expect(result.customCount).toBe(9);
+    expect(result.mergedCount).toBe(36);
     expect(result.dayCounts).toEqual([5, 9, 5, 4, 8]);
-    expect(result.customKeys).toEqual(['legacy-out-1630', 'legacy-out-1730', 'legacy-back', 'note-out', 'note-back', 'custom-1']);
+    expect(result.customKeys).toEqual([
+      'legacy-out-1630', 'legacy-out-1730', 'legacy-back', 'note-out', 'note-back', 'custom-1',
+      'stale-day2-fireworks', 'day2-personal', 'day3-personal'
+    ]);
     expect(result.hasLegitimateCustom).toBe(true);
     expect(result.day1.join('\n')).toContain('13:25 BX572 桃園 (TPE) ➔ 金海 (PUS)');
     expect(result.day1.join('\n')).toContain('17:00 抵達金海國際機場 (PUS)');
     expect(result.day1.join('\n')).toContain('12:00 BX572 座位 12A，記得選靠窗');
     expect(result.day1.join('\n')).not.toContain('16:30 抵達金海機場舊時間');
     expect(result.day1.join('\n')).not.toContain('17:30 BX572');
+    expect(result.day2.join('\n')).not.toContain('19:30 廣安里 M 無人機煙火秀');
+    expect(result.day2.join('\n')).toContain('21:30 回飯店整理戰利品');
+    expect(result.day3.join('\n')).toContain('11:15 皇理團路買明信片');
+    expect(result.day2.filter(row => row.includes('M Drone Light Show（場次待官方確認）'))).toHaveLength(1);
     expect(result.day5.join('\n')).toContain('11:00 KE2085 託運 23kg');
     expect(result.day5.join('\n')).toContain('14:50 KE2085 自金海機場起飛');
     expect(result.day5.join('\n')).toContain('16:30 KE2085 抵達桃園機場');
