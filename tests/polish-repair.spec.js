@@ -48,9 +48,8 @@ test('icon-only controls expose descriptive accessible names', async ({ page }) 
   await addShopItem.focus();
   await expect(addShopItem).toBeFocused();
 
-  await page.locator('#tab-bill').click();
-  await page.waitForSelector('#split.active');
-  const quickAddBill = page.locator('button[onclick="quickAddBill()"]');
+  const quickAddBill = page.locator('#shop.active button[onclick="quickAddBill()"]:visible');
+  await expect(quickAddBill).toHaveCount(1);
   await expect(quickAddBill).toBeVisible();
   await expect(quickAddBill).toHaveAccessibleName('加入快速記帳');
   await quickAddBill.focus();
