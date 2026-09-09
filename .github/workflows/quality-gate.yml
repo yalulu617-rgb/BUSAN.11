@@ -1,4 +1,4 @@
-name: V42 Quality Gate & Deploy
+name: V45 Quality Gate & Deploy
 
 on:
   push:
@@ -65,6 +65,9 @@ jobs:
 
       - name: Validate manifest.json
         run: node -e "JSON.parse(require('fs').readFileSync('manifest.json','utf8')); console.log('✅ manifest.json valid');"
+
+      - name: Verify release metadata stamping
+        run: node tests/release-metadata.test.mjs
 
       - name: Validate data/places.json
         run: node -e "JSON.parse(require('fs').readFileSync('data/places.json','utf8')); console.log('✅ places.json valid');"
@@ -228,6 +231,9 @@ jobs:
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v4
 
+      - name: Stamp deployed release metadata
+        run: node scripts/stamp-release.mjs "$GITHUB_SHA"
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -256,6 +262,27 @@ jobs:
               throw new Error('Live page returned HTTP ' + (response ? response.status() : 'null'));
             }
             console.log('✅ HTTP Status: 200 OK');
+
+            const releaseUrl = new URL('data/release.json?sha=${{ github.sha }}', url).href;
+            const swUrl = new URL('sw.js?sha=${{ github.sha }}', url).href;
+            const releaseResponse = await page.request.get(releaseUrl);
+            const swResponse = await page.request.get(swUrl);
+            if (!releaseResponse.ok() || !swResponse.ok()) {
+              throw new Error('Unable to load deployed release metadata or Service Worker');
+            }
+            const release = await releaseResponse.json();
+            const swSource = await swResponse.text();
+            const cacheMatch = swSource.match(/\bconst\s+CACHE_NAME\s*=\s*['"]([^'"]+)['"]/);
+            if (release.appVersion !== 'V45') {
+              throw new Error('Expected deployed appVersion V45, found ' + release.appVersion);
+            }
+            if (release.gitCommit !== '${{ github.sha }}') {
+              throw new Error('Deployed gitCommit mismatch: ' + release.gitCommit);
+            }
+            if (!cacheMatch || release.cacheVersion !== cacheMatch[1]) {
+              throw new Error('Deployed cacheVersion does not match Service Worker CACHE_NAME');
+            }
+            console.log('✅ Release metadata:', release.appVersion, release.gitCommit, release.cacheVersion);
 
             await page.waitForSelector('#splash, #mainApp', { state: 'attached', timeout: 15000 });
             console.log('✅ App DOM attached');
