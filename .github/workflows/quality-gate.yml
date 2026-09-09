@@ -243,80 +243,16 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-      - name: Post-deployment Live Site Verification
+      - name: Install production verification dependencies
         run: |
           npm ci
           npx playwright install --with-deps chromium
-          node -e "
-          const { chromium } = require('playwright');
-          (async () => {
-            console.log('--- Verifying Live Deployment: https://yalulu617-rgb.github.io/BUSAN.11/index.html ---');
-            const browser = await chromium.launch({ headless: true });
-            const page = await browser.newPage();
-            let pageErrors = [];
-            page.on('pageerror', err => pageErrors.push(err.message));
-            
-            const url = 'https://yalulu617-rgb.github.io/BUSAN.11/index.html';
-            const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-            if (!response || response.status() !== 200) {
-              throw new Error('Live page returned HTTP ' + (response ? response.status() : 'null'));
-            }
-            console.log('✅ HTTP Status: 200 OK');
 
-            const releaseUrl = new URL('data/release.json?sha=${{ github.sha }}', url).href;
-            const swUrl = new URL('sw.js?sha=${{ github.sha }}', url).href;
-            const releaseResponse = await page.request.get(releaseUrl);
-            const swResponse = await page.request.get(swUrl);
-            if (!releaseResponse.ok() || !swResponse.ok()) {
-              throw new Error('Unable to load deployed release metadata or Service Worker');
-            }
-            const release = await releaseResponse.json();
-            const swSource = await swResponse.text();
-            const cacheMatch = swSource.match(/\bconst\s+CACHE_NAME\s*=\s*['"]([^'"]+)['"]/);
-            if (release.appVersion !== 'V45') {
-              throw new Error('Expected deployed appVersion V45, found ' + release.appVersion);
-            }
-            if (release.gitCommit !== '${{ github.sha }}') {
-              throw new Error('Deployed gitCommit mismatch: ' + release.gitCommit);
-            }
-            if (!cacheMatch || release.cacheVersion !== cacheMatch[1]) {
-              throw new Error('Deployed cacheVersion does not match Service Worker CACHE_NAME');
-            }
-            console.log('✅ Release metadata:', release.appVersion, release.gitCommit, release.cacheVersion);
-
-            await page.waitForSelector('#splash, #mainApp', { state: 'attached', timeout: 15000 });
-            console.log('✅ App DOM attached');
-
-            const btn = page.locator('.btn-enter');
-            if (await btn.isVisible()) {
-              await btn.click({ timeout: 2000 }).catch(() => {});
-            }
-            await page.waitForSelector('#mainApp', { state: 'visible', timeout: 15000 });
-            console.log('✅ Main App visible');
-
-            const cardCount = await page.locator('.v45-nine-card').count();
-            console.log('✅ Home 9-Card count:', cardCount);
-            if (cardCount !== 9) {
-              throw new Error('Expected exactly 9 Home cards, found ' + cardCount);
-            }
-
-            const profileSel = page.locator('#deviceOwner');
-            if (await profileSel.count() === 0) {
-              throw new Error('Profile selector #deviceOwner not found in live DOM');
-            }
-            console.log('✅ Profile selector verified');
-
-            if (pageErrors.length > 0) {
-              throw new Error('Fatal page errors detected: ' + pageErrors.join('; '));
-            }
-            console.log('✅ 0 fatal page errors detected');
-            console.log('🎉 Live Production Verification PASSED!');
-            await browser.close();
-          })().catch(e => {
-            console.error('❌ Live site verification failed:', e.message);
-            process.exit(1);
-          });
-          "
+      - name: Post-deployment Live Site Verification
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+          PRODUCTION_URL: https://yalulu617-rgb.github.io/BUSAN.11/index.html
+        run: node scripts/verify-production.mjs
 
       - name: Deployment summary
         run: |
