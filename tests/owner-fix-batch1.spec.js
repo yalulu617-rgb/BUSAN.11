@@ -16,7 +16,8 @@ test.describe('Owner Fix Batch 1 targeted repair', () => {
         { key: 'custom-1', day: '11/14', time: '08:00', desc: 'Luna custom stop', tr: '步行' },
         { key: 'stale-day2-fireworks', day: '11/14', time: '19:30', desc: '廣安里 M 無人機煙火秀', tr: '步行' },
         { key: 'day2-personal', day: '11/14', time: '21:30', desc: '回飯店整理戰利品', tr: '步行' },
-        { key: 'day3-personal', day: '11/15', time: '11:15', desc: '皇理團路買明信片', tr: '步行' }
+        { key: 'stale-day3-solsot', day: '11/15', time: '12:00', desc: '【午餐】Solsot 釜飯', tr: '步行' },
+        { key: 'day3-personal', day: '11/15', time: '15:30', desc: '皇理團路買伴手禮', tr: '步行' }
       ];
       const merged = window.mergeCanonicalItinerary(custom);
       const canonical = Object.values(window.TRAVEL_CONTENT_V45.itinerary).flat();
@@ -36,12 +37,12 @@ test.describe('Owner Fix Batch 1 targeted repair', () => {
       };
     });
     expect(result.canonicalCount).toBe(31);
-    expect(result.customCount).toBe(9);
+    expect(result.customCount).toBe(10);
     expect(result.mergedCount).toBe(36);
     expect(result.dayCounts).toEqual([5, 9, 5, 4, 8]);
     expect(result.customKeys).toEqual([
       'legacy-out-1630', 'legacy-out-1730', 'legacy-back', 'note-out', 'note-back', 'custom-1',
-      'stale-day2-fireworks', 'day2-personal', 'day3-personal'
+      'stale-day2-fireworks', 'day2-personal', 'stale-day3-solsot', 'day3-personal'
     ]);
     expect(result.hasLegitimateCustom).toBe(true);
     expect(result.day1.join('\n')).toContain('13:25 BX572 桃園 (TPE) ➔ 金海 (PUS)');
@@ -51,7 +52,9 @@ test.describe('Owner Fix Batch 1 targeted repair', () => {
     expect(result.day1.join('\n')).not.toContain('17:30 BX572');
     expect(result.day2.join('\n')).not.toContain('19:30 廣安里 M 無人機煙火秀');
     expect(result.day2.join('\n')).toContain('21:30 回飯店整理戰利品');
-    expect(result.day3.join('\n')).toContain('11:15 皇理團路買明信片');
+    expect(result.day3.join('\n')).not.toContain('12:00 【午餐】Solsot 釜飯');
+    expect(result.day3.join('\n')).toContain('15:30 皇理團路買伴手禮');
+    expect(result.day3.filter(row => row.includes('Byeolchaeban Gyodong Ssambap'))).toHaveLength(1);
     expect(result.day2.filter(row => row.includes('M Drone Light Show（場次待官方確認）'))).toHaveLength(1);
     expect(result.day5.join('\n')).toContain('11:00 KE2085 託運 23kg');
     expect(result.day5.join('\n')).toContain('14:50 KE2085 自金海機場起飛');

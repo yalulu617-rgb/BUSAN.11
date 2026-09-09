@@ -27,6 +27,11 @@
             const claimsFireworks = /(煙火|fireworks?)/i.test(text);
             return claimsGwangalli && claimsDrone && claimsFireworks;
         }
+        if (item?.day === '11/15') {
+            const staleLunchTime = time === '12:00';
+            const claimsSolsot = /(Solsot|솔솥)/i.test(text);
+            return staleLunchTime && claimsSolsot;
+        }
         return false;
     };
     window.mergeCanonicalItinerary = function(customRows) {
