@@ -39,8 +39,22 @@ test('Home navigation uses native, keyboard-operable controls', async ({ page })
 test('icon-only controls expose descriptive accessible names', async ({ page }) => {
   await bootApp(page);
 
-  await expect(page.locator('#addShopItemBtn')).toHaveAccessibleName('新增購物項目');
-  await expect(page.locator('button[onclick="quickAddBill()"]')).toHaveAccessibleName('加入快速記帳');
+  const shoppingCard = page.locator('.v45-nine-card').filter({ hasText: '快樂購' });
+  await shoppingCard.click();
+  await page.waitForSelector('#shop.active');
+  const addShopItem = page.locator('#addShopItemBtn');
+  await expect(addShopItem).toBeVisible();
+  await expect(addShopItem).toHaveAccessibleName('新增購物項目');
+  await addShopItem.focus();
+  await expect(addShopItem).toBeFocused();
+
+  await page.locator('#tab-bill').click();
+  await page.waitForSelector('#split.active');
+  const quickAddBill = page.locator('button[onclick="quickAddBill()"]');
+  await expect(quickAddBill).toBeVisible();
+  await expect(quickAddBill).toHaveAccessibleName('加入快速記帳');
+  await quickAddBill.focus();
+  await expect(quickAddBill).toBeFocused();
 
   await page.locator('#tab-itinerary').click();
   await page.waitForSelector('#itinerary.active');
@@ -52,6 +66,11 @@ test('icon-only controls expose descriptive accessible names', async ({ page }) 
   await page.waitForSelector('#walletDocSection', { state: 'visible' });
   await page.locator('#tab-more').click();
   await page.waitForSelector('#more.active');
+
+  const visibleNamedControls = page.locator('#more .v38-mini-btn:visible');
+  for (let index = 0; index < await visibleNamedControls.count(); index += 1) {
+    await expect(visibleNamedControls.nth(index)).toHaveAccessibleName(/.+/);
+  }
 
   const unnamed = await page.evaluate(() => {
     const targetSelectors = [
@@ -71,6 +90,7 @@ test('icon-only controls expose descriptive accessible names', async ({ page }) 
       .map(element => element.outerHTML);
   });
   expect(unnamed).toEqual([]);
+  await expect(page.locator('#addShopItemBtn')).toHaveAttribute('aria-label', '新增購物項目');
 });
 
 for (const viewport of [
@@ -80,6 +100,10 @@ for (const viewport of [
   test(`mobile touch targets and page width remain safe at ${viewport.width}x${viewport.height}`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await bootApp(page);
+    await page.addStyleTag({ content: `
+      *, *::before, *::after { transition: none !important; }
+      .fade-scale-in { animation: none !important; opacity: 1 !important; transform: none !important; }
+    ` });
 
     const assertNoPageOverflow = async () => {
       const dimensions = await page.evaluate(() => ({
