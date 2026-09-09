@@ -188,14 +188,14 @@ test.describe('BATCH 3 - Combo Persistence', () => {
 });
 
 test.describe('BATCH 3 - Canonical / Personal Separation', () => {
-  test('Canonical itinerary count = 26', async ({ page }) => {
+  test('Canonical itinerary count = 31', async ({ page }) => {
     await bootApp(page);
     const count = await page.evaluate(() => {
       const tc = window.TRAVEL_CONTENT_V45;
       if (!tc || !tc.itinerary) return 0;
       return Object.values(tc.itinerary).reduce((s, a) => s + a.length, 0);
     });
-    expect(count).toBe(26);
+    expect(count).toBe(31);
   });
 
   test('Custom Firebase source remains separate from canonical and merged display data', async ({ page }) => {
@@ -213,13 +213,13 @@ test.describe('BATCH 3 - Canonical / Personal Separation', () => {
         hasAllCanonical: (window.RECOMMENDED_ITINERARY || []).every(item => merged.some(row => row.key === item.key))
       };
     });
-    expect(counts.canonical).toBe(26);
+    expect(counts.canonical).toBe(31);
     expect(counts.custom).toBe(17);
-    expect(counts.merged).toBeGreaterThanOrEqual(26);
+    expect(counts.merged).toBeGreaterThanOrEqual(31);
     expect(counts.hasAllCanonical).toBe(true);
   });
 
-  test('Canonical itinerary day-by-day counts are 5, 5, 5, 4, 7', async ({ page }) => {
+  test('Canonical itinerary day-by-day counts are 5, 9, 5, 4, 8', async ({ page }) => {
     await bootApp(page);
     const dayCounts = await page.evaluate(() => {
       const iti = window.TRAVEL_CONTENT_V45?.itinerary || {};
@@ -231,7 +231,7 @@ test.describe('BATCH 3 - Canonical / Personal Separation', () => {
         (iti['11/17'] || []).length
       ];
     });
-    expect(dayCounts).toEqual([5, 5, 5, 4, 7]);
+    expect(dayCounts).toEqual([5, 9, 5, 4, 8]);
   });
 
 

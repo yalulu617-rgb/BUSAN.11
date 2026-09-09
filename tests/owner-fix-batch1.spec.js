@@ -30,13 +30,14 @@ test.describe('Owner Fix Batch 1 targeted repair', () => {
         after: (window.v37SimulatedDate = '11/20', window.hasSelectedItineraryDay = false, window.getItineraryDisplayDay())
       };
     });
-    expect(result.canonicalCount).toBe(26);
+    expect(result.canonicalCount).toBe(31);
     expect(result.customCount).toBe(6);
-    expect(result.mergedCount).toBe(29);
-    expect(result.dayCounts).toEqual([5, 5, 5, 4, 7]);
+    expect(result.mergedCount).toBe(34);
+    expect(result.dayCounts).toEqual([5, 9, 5, 4, 8]);
     expect(result.customKeys).toEqual(['legacy-out-1630', 'legacy-out-1730', 'legacy-back', 'note-out', 'note-back', 'custom-1']);
     expect(result.hasLegitimateCustom).toBe(true);
-    expect(result.day1.join('\n')).toContain('17:00 BX572 抵達金海機場');
+    expect(result.day1.join('\n')).toContain('13:25 BX572 桃園 (TPE) ➔ 金海 (PUS)');
+    expect(result.day1.join('\n')).toContain('17:00 抵達金海國際機場 (PUS)');
     expect(result.day1.join('\n')).toContain('12:00 BX572 座位 12A，記得選靠窗');
     expect(result.day1.join('\n')).not.toContain('16:30 抵達金海機場舊時間');
     expect(result.day1.join('\n')).not.toContain('17:30 BX572');

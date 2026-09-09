@@ -14,12 +14,12 @@
     "tripDates": "2026-11-13/2026-11-17",
     "destination": "Busan + Gyeongju",
     "title": "2026 釜山 ✕ 慶州 5D4N 秋日海線漫遊手帳",
-    "subtitle": "5D4N 雙城浪漫漫遊・韓服銀杏 ✕ 彩色膠囊列車 ✕ 廣安煙火節",
+    "subtitle": "5D4N 雙城浪漫漫遊・韓服銀杏 ✕ 彩色膠囊列車 ✕ 廣安里夜景",
     "bucketList": [
       "1. 吃味讚王專人代烤 3.5cm 極厚熟成豬五花",
       "2. 搭海雲台彩色天空膠囊列車看海",
       "3. 新世界 Spa Land 汗蒸幕折羊角頭喝甜米釀",
-      "4. 廣安里沙灘看 M 無人機光影秀與夜空煙火",
+      "4. 廣安里沙灘看 M Drone Light Show 與廣安大橋夜景",
       "5. 穿精緻韓服漫步慶州大陵苑金黃銀杏林",
       "6. 捕捉月精橋朱紅迴廊唯美夕陽水影",
       "7. 探訪東宮與月池古新羅宮殿金碧璀璨夜景",
@@ -364,113 +364,141 @@
   "itinerary": {
     "11/13": [
       {
-        "time": "17:00",
-        "title": "BX572 抵達金海機場 (PUS)",
-        "desc": "預計 17:00 抵達；下機後依序辦理入境審查、領取行李與開通網路。",
-        "tr": "🚇 輕軌+地鐵 / 🚕 計程車",
-        "map": "https://map.naver.com/p/entry/place/11585098"
+        "time": "13:25",
+        "title": "BX572 桃園 (TPE) ➔ 金海 (PUS)",
+        "desc": "釜山航空 Air Busan BX572 於 13:25 自桃園國際機場 (TPE) 起飛，預計 17:00 抵達金海國際機場 (PUS)。抵達後依序辦理入境審查、領取行李與網路設定。",
+        "tr": "✈️ 飛機",
+        "map": "https://map.naver.com/p/search/%EA%B9%80%ED%95%B4%EA%B5%AD%EC%A0%9C%EA%B3%B5%ED%95%AD"
       },
       {
         "time": "18:10",
         "title": "預計離開機場前往西面",
         "desc": "完成入境、行李與網路設定後，搭金海輕軌至沙上站轉 2 號線，或搭 Kakao T 前往西面。",
         "tr": "🚇 輕軌+地鐵 / 🚕 計程車",
-        "map": "https://map.naver.com/p/entry/place/11585098"
+        "map": "https://map.naver.com/p/search/%EA%B9%80%ED%95%B4%EA%B5%AD%EC%A0%9C%EA%B3%B5%ED%95%AD"
       },
       {
         "time": "19:10",
         "title": "預計抵達西面飯店 Check-in",
         "desc": "依實際入境與交通時間抵達城市律動飯店 (Urban Groove Hotel)，卸下大行李。",
         "tr": "🚶 步行",
-        "map": "https://map.naver.com/p/entry/place/13479629"
+        "map": "https://map.naver.com/p/search/Urban%20Groove%20Hotel%20%EB%B6%80%EC%82%B0"
       },
       {
-        "time": "19:40",
-        "title": "預計晚餐：味讚王鹽烤肉（西面店）",
-        "desc": "超人氣 3.5cm 極厚熟成豬五花！店員專人代烤至金黃酥脆，肉汁飽滿，包生菜＋醃芥末葉＋烤泡菜一口悶！",
+        "time": "19:40～20:30",
+        "title": "晚餐：Matchandeul Wang Sogeum Gui Seomyeon（맛찬들왕소금구이 서면점）",
+        "desc": "第一晚主餐為 3.5cm 極厚熟成豬五花；由店員專人代烤至金黃酥脆，搭配生菜、醃芥末葉與烤泡菜。",
         "tr": "🚶 步行",
-        "map": "https://map.naver.com/p/entry/place/11571731"
+        "map": "https://map.naver.com/p/search/%EB%A7%9B%EC%B0%AC%EB%93%A4%EC%99%95%EC%86%8C%EA%B8%88%EA%B5%AC%EC%9D%B4%20%EC%84%9C%EB%A9%B4%EC%A0%90"
       },
       {
-        "time": "21:00",
-        "title": "預計西面地下街 ✕ 超商巡禮",
-        "desc": "西面站機台辦理 WOWPASS 存入台幣千元鈔換匯；逛地下街服飾，超商採買香蕉牛奶與洋芋片。",
+        "time": "20:30 後",
+        "title": "依抵達時間與體力選擇｜西面自由活動",
+        "desc": "晚餐後依體力自由逛西面地下街、辦理 WOWPASS 或至超商採買。若航班或入境延誤，則直接回飯店休息。",
         "tr": "🚶 步行",
-        "map": "https://map.naver.com/p/entry/place/1057416399"
+        "map": "https://map.naver.com/p/search/%EC%84%9C%EB%A9%B4%EC%97%AD"
       }
     ],
     "11/14": [
       {
-        "time": "10:00",
-        "title": "西面出發",
-        "desc": "搭地鐵 2 號線至中洞站 7 號出口步行至尾浦站。",
+        "time": "09:15～09:20",
+        "title": "西面出發前往尾浦",
+        "desc": "週六預留轉乘、步行與報到緩衝；搭地鐵 2 號線至中洞站後前往尾浦站，避免 11:00 Sky Capsule 登車過度匆忙。",
         "tr": "🚇 地鐵 2 號線",
-        "map": ""
+        "map": "https://map.naver.com/p/search/%ED%95%B4%EC%9A%B4%EB%8C%80%EB%B8%94%EB%A3%A8%EB%9D%BC%EC%9D%B8%ED%8C%8C%ED%81%AC%20%EB%AF%B8%ED%8F%AC%EC%A0%95%EA%B1%B0%EC%9E%A5"
       },
       {
         "time": "11:00",
         "title": "海雲台天空膠囊列車（尾浦 ➔ 青沙浦）",
-        "desc": "行駛於高架軌道上的彩色復古車廂，享受靠海側第一排童話窗景。",
+        "desc": "行駛於高架軌道上的彩色復古車廂；目前尚未預訂，須於出發前完成購票並確認實際登車時段。",
         "tr": "🚡 膠囊列車",
-        "map": "https://map.naver.com/p/entry/place/1335043818"
+        "map": "https://map.naver.com/p/search/%ED%95%B4%EC%9A%B4%EB%8C%80%EB%B8%94%EB%A3%A8%EB%9D%BC%EC%9D%B8%ED%8C%8C%ED%81%AC%20%EB%AF%B8%ED%8F%AC%EC%A0%95%EA%B1%B0%EC%9E%A5"
       },
       {
         "time": "13:00",
-        "title": "青沙浦海鮮烤貝午餐",
-        "desc": "漫步灌籃高手海景平交道打卡、紅白雙子燈塔美拍，品嚐炭烤扇貝與海鮮拉麵。",
+        "title": "青沙浦 Suminine 烤貝 ✕ 海鮮拉麵（수민이네）",
+        "desc": "Sky Capsule 抵達青沙浦後，散步紅白燈塔與海景平交道，再前往 Suminine（118 Cheongsapo-ro 58beon-gil）品嚐炭火烤貝、扇貝與海鮮拉麵。",
         "tr": "🚶 步行",
-        "map": ""
+        "map": "https://map.naver.com/p/search/%EC%88%98%EB%AF%BC%EC%9D%B4%EB%84%A4"
       },
       {
         "time": "14:30",
         "title": "新世界百貨 Spa Land 五星級汗蒸幕",
-        "desc": "搭 2 號線至 Centum City 站直通。體驗天然溫泉足湯、折羊角毛巾頭、喝冰甜米釀配煙燻烤蛋。",
-        "tr": "🚇 地鐵 2 號線",
-        "map": "https://map.naver.com/p/entry/place/13479633"
+        "desc": "由青沙浦搭 Kakao T／計程車前往 Centum City；約 14:30～17:15／17:30 體驗溫泉、汗蒸幕、羊角毛巾、甜米釀與烤蛋。",
+        "tr": "🚕 Kakao T / 計程車",
+        "map": "https://map.naver.com/p/search/%EC%8A%A4%ED%8C%8C%EB%9E%9C%EB%93%9C%20%EC%8B%A0%EC%84%B8%EA%B3%84%EB%B0%B1%ED%99%94%EC%A0%90%20%EC%84%BC%ED%85%80%EC%8B%9C%ED%8B%B0%EC%A0%90"
       },
       {
-        "time": "19:00",
-        "title": "廣安里海水浴場 ✕ M 無人機煙火秀",
-        "desc": "【秋冬施放時間校正】：10 月至隔年 2 月秋冬場次調整為 19:00 與 20:00！面對廣安大橋璀璨燈光享用晚餐，欣賞夜空數百架無人機光影秀與煙火。",
-        "tr": "🚇 地鐵 2 號線",
-        "map": "https://map.naver.com/p/entry/place/13491414"
+        "time": "17:15～17:30",
+        "title": "離開 Spa Land",
+        "desc": "依現場入場與休息進度離開，保留前往廣安里的晚間交通緩衝。",
+        "tr": "🚶 步行",
+        "map": "https://map.naver.com/p/search/%EC%8A%A4%ED%8C%8C%EB%9E%9C%EB%93%9C%20%EC%8B%A0%EC%84%B8%EA%B3%84%EB%B0%B1%ED%99%94%EC%A0%90%20%EC%84%BC%ED%85%80%EC%8B%9C%ED%8B%B0%EC%A0%90"
+      },
+      {
+        "time": "約 18:00",
+        "title": "前往廣安里",
+        "desc": "前往廣安里海水浴場，先看廣安大橋夜景並等待當日活動資訊。",
+        "tr": "🚇 地鐵 / 🚕 計程車",
+        "map": "https://map.naver.com/p/search/%EA%B4%91%EC%95%88%EB%A6%AC%ED%95%B4%EC%88%98%EC%9A%95%EC%9E%A5"
+      },
+      {
+        "time": "約 19:00（暫定）",
+        "title": "廣安里夜景 ✕ M Drone Light Show（場次待官方確認）",
+        "desc": "前往廣安里欣賞廣安大橋夜景與每週六 M Drone Light Show；2026 年 11 月確切演出場次於出發前依官方公告再次確認。本行程不宣稱為釜山煙火節。",
+        "tr": "🚶 步行",
+        "map": "https://map.naver.com/p/search/%EA%B4%91%EC%95%88%EB%A6%AC%ED%95%B4%EC%88%98%EC%9A%95%EC%9E%A5"
+      },
+      {
+        "time": "約 20:00～20:40",
+        "title": "返回 Urban Groove Hotel",
+        "desc": "Drone Show 行程結束後返回飯店，依散場人流與週六交通彈性調整。",
+        "tr": "🚕 Kakao T / 計程車",
+        "map": "https://map.naver.com/p/search/Urban%20Groove%20Hotel%20%EB%B6%80%EC%82%B0"
+      },
+      {
+        "time": "約 21:00",
+        "title": "計畫體驗｜韓式外送炸雞 ✕ 炸醬麵飯店宵夜",
+        "desc": "回到 Urban Groove Hotel 休息洗澡後再叫韓式外送，計畫享用半半炸雞（후라이드 치킨 原味＋양념 치킨 甜辣）、炸醬麵（짜장면）、醃蘿蔔（치킨무）與飲料；店家與供應狀況當晚確認，並非已預訂。",
+        "tr": "🏨 飯店內用餐",
+        "map": "https://map.naver.com/p/search/Urban%20Groove%20Hotel%20%EB%B6%80%EC%82%B0"
       }
     ],
     "11/15": [
       {
         "time": "09:30",
-        "title": "西面出發 ➔ 釜山站搭 KTX 直奔慶州",
-        "desc": "搭 1 號線至釜山站轉乘高鐵（僅需 30 分鐘直達慶州站），出站轉 Kakao T 直達皇理團路。",
-        "tr": "🚄 KTX 高鐵 (30分) + 🚕 計程車",
-        "map": ""
+        "title": "西面出發 ➔ 釜山站（KTX 往返規劃）",
+        "desc": "10/15 起確認並購買 11/15 釜山 ↔ 慶州來回 KTX；車次與時間尚未預訂。抵達慶州站後轉 Kakao T 前往皇理團路，返程以約 20:20～21:00 區間為規劃目標。",
+        "tr": "🚄 KTX 規劃 + 🚕 計程車",
+        "map": "https://map.naver.com/p/search/%EB%B6%80%EC%82%B0%EC%97%AD"
       },
       {
         "time": "12:00",
-        "title": "午餐：Solsot (솔솥) 人氣韓式釜飯",
-        "desc": "必點牛排釜飯與鮑魚釜飯，挖出主食後將高湯注入熱石鍋悶出香濃鍋巴水。",
+        "title": "午餐：Byeolchaeban Gyodong Ssambap 慶州傳統包飯（별채반 교동쌈밥）",
+        "desc": "安排具慶州地方特色的傳統包飯與韓式定食，地址為慶州校村一帶；Solsot 不再是 Day 3 固定午餐。",
         "tr": "🚶 步行",
-        "map": "https://map.naver.com/p/entry/place/11571731"
+        "map": "https://map.naver.com/p/search/%EB%B3%84%EC%B1%84%EB%B0%98%20%EA%B5%90%EB%8F%99%EC%8C%88%EB%B0%A5"
       },
       {
         "time": "13:30",
-        "title": "花路韓服變身 ✕ 大陵苑外拍",
+        "title": "慶州韓服體驗 ✕ 大陵苑外拍",
         "desc": "挑選精緻高階宮廷韓服與編髮。【門票防呆提醒】：大陵苑園區已全面免門票（天馬塚內部展館若需參觀另購 3,000 韓元），漫步在金黃銀杏林道與巨大古墳群拍仙氣大片！",
         "tr": "🚶 步行",
-        "map": "https://map.naver.com/p/entry/place/13491807"
+        "map": "https://map.naver.com/p/search/%EA%B2%BD%EC%A3%BC%20%ED%95%9C%EB%B3%B5%20%EB%8C%80%EC%97%AC%20%EB%8C%80%EB%A6%89%EC%9B%90"
       },
       {
         "time": "16:00",
         "title": "月精橋夕照漫步",
-        "desc": "朱紅木造迴廊映照金色夕陽與溪流水影。",
+        "desc": "約 16:00 抵達，依序捕捉日光、午後暖光、夕陽／藍調時刻與亮燈過渡。",
         "tr": "🚶 步行",
-        "map": "https://map.naver.com/p/entry/place/13479633"
+        "map": "https://map.naver.com/p/search/%EC%9B%94%EC%A0%95%EA%B5%90"
       },
       {
-        "time": "19:00",
+        "time": "約 18:00～19:00",
         "title": "東宮與月池（雁鴨池）夢幻夜景",
-        "desc": "古新羅宮殿在璀璨夜間照明下倒映於池水中；沿途品嚐牽絲莫札瑞拉起司「慶州十元麵包」與「皇南餅」後搭車返釜山。",
+        "desc": "視月精橋夕景進度前往，欣賞古新羅宮殿夜間照明與池水倒影；之後依尚未預訂的 KTX 實際車次返釜山。",
         "tr": "🚶 步行 + 🚄 KTX",
-        "map": "https://map.naver.com/p/entry/place/13491823"
+        "map": "https://map.naver.com/p/search/%EB%8F%99%EA%B6%81%EA%B3%BC%20%EC%9B%94%EC%A7%80"
       }
     ],
     "11/16": [
@@ -479,72 +507,79 @@
         "title": "松島海上纜車（水晶車廂）➔ 龍宮雲端步道",
         "desc": "南浦站轉 Kakao T 直達灣頂站。搭乘透明車廂跨越海灣俯瞰碧海，漫步延伸至海中的雲端步道。",
         "tr": "🚕 計程車 + 🚡 水晶纜車",
-        "map": "https://map.naver.com/p/entry/place/36735520"
+        "map": "https://map.naver.com/p/search/%EC%86%A1%EB%8F%84%ED%95%B4%EC%83%81%EC%BC%80%EC%9D%B4%EB%B8%94%EC%B9%B4"
       },
       {
         "time": "13:00",
-        "title": "影島白淺灘文化村 ✕ 看海吃拉麵",
-        "desc": "韓國版聖托里尼彩繪階梯聚落，品嚐看海現煮拉麵，穿梭海岸隧道與彩繪壁畫拍照。",
+        "title": "白淺灘 Huinnyeoul Jeomppang 海景鋁鍋拉麵（흰여울점빵）",
+        "desc": "在 121 Huinnyeoul-gil 的 Huinnyeoul Jeomppang 安排輕鬆午餐，享用海景鋁鍋拉麵與韓式吐司，再散步白淺灘文化村。",
         "tr": "🚌 公車 / 🚕 計程車",
-        "map": "https://map.naver.com/p/entry/place/1057416399"
+        "map": "https://map.naver.com/p/search/%ED%9D%B0%EC%97%AC%EC%9A%B8%EC%A0%90%EB%B9%B5"
       },
       {
         "time": "16:00",
         "title": "Footbath Cafe View 2號店（海景精油足湯）",
         "desc": "面朝大片海景落地窗泡溫熱香氛精油足浴，舒緩走了四天的雙腿疲勞，邊喝咖啡邊看外海大船與夕陽！",
         "tr": "🚶 步行",
-        "map": "https://map.naver.com/p/search/%EC%A1%B1%EC%9A%95%EC%B9%B4%ED%8E%98%EB%B7%B02%ED%98%B8%EC%A0%90"
+        "map": "https://map.naver.com/p/search/%EC%A1%B1%EC%9A%95%EC%B9%B4%ED%8E%98%EB%B7%B0%202%ED%98%B8%EC%A0%90"
       },
       {
-        "time": "18:30",
-        "title": "豪華晚餐：海木炭火鰻魚飯（해목 海雲台店）",
-        "desc": "【跨海計程車司機溝通卡】：기사님, 부산항대교랑 광안대교 지나서 해운대로 가주세요.（走釜山港大橋迴旋引道與廣安大橋夜景線直達海雲台）。米其林必比登推薦炭火鰻魚飯三吃。",
-        "tr": "🚕 計程車 (跨雙大橋)",
-        "map": "https://map.naver.com/p/entry/place/11571731"
+        "time": "約 19:00～19:30",
+        "title": "晚餐：Haemok Haeundae（해목 해운대점）炭火鰻魚飯",
+        "desc": "由影島前往海雲台須預留跨城市區車流；跨釜山港大橋與廣安大橋僅為可選景觀路線，不保證車程。餐廳地址為 8 Gunam-ro 24beon-gil。",
+        "tr": "🚕 計程車（景觀跨橋路線可選）",
+        "map": "https://map.naver.com/p/search/%ED%95%B4%EB%AA%A9%20%ED%95%B4%EC%9A%B4%EB%8C%80%EC%A0%90"
       }
     ],
     "11/17": [
       {
-        "time": "09:30",
-        "title": "退房 ✕ Zimcarry 行李直寄機場",
-        "desc": "在西面地鐵站 Zimcarry 據點交付行李，直接運送至金海機場出境大廳，兩手空空逛街免拉行李！",
+        "time": "09:00～09:30",
+        "title": "退房 ✕ 行李暫寄飯店",
+        "desc": "完成 Urban Groove Hotel 退房後，先向飯店櫃台暫寄行李；不使用無法安全配合 14:50 航班的機場配送。",
         "tr": "🚶 步行",
-        "map": ""
+        "map": "https://map.naver.com/p/search/Urban%20Groove%20Hotel%20%EB%B6%80%EC%82%B0"
       },
       {
-        "time": "10:00",
+        "time": "09:30～10:40",
         "title": "西面商圈最後衝刺掃貨",
         "desc": "衝刺樂天超市與免稅店採買海苔、辛拉麵黑版、布朗尼；Olive Young 補齊美妝保養品。",
         "tr": "🚶 步行",
-        "map": "https://map.naver.com/p/entry/place/1057416399"
+        "map": "https://map.naver.com/p/search/%EC%84%9C%EB%A9%B4%EC%97%AD"
       },
       {
-        "time": "12:00",
-        "title": "午餐：東萊蔘雞湯（西面店）",
-        "desc": "整隻鮮嫩童子雞塞滿糯米、人蔘與紅棗，熬煮成奶白色濃郁高湯，元氣滿滿回血！",
+        "time": "10:45～11:20",
+        "title": "離釜前最後一餐：Pohang Dwaeji Gukbap 浦項豬肉湯飯（포항돼지국밥）",
+        "desc": "在西面享用釜山代表性的豬肉湯飯；用餐時間控制在 11:20 前，避免延誤前往機場。參考位置：Seomyeon-ro 68beon-gil。",
         "tr": "🚶 步行",
-        "map": "https://map.naver.com/p/entry/place/13491807"
+        "map": "https://map.naver.com/p/search/%ED%8F%AC%ED%95%AD%EB%8F%BC%EC%A7%80%EA%B5%AD%EB%B0%A5%20%EC%84%9C%EB%A9%B4"
       },
       {
-        "time": "12:30",
+        "time": "11:20～11:30",
+        "title": "回飯店取行李",
+        "desc": "返回 Urban Groove Hotel 櫃台領取暫寄行李，確認護照與隨身物品後立即出發。",
+        "tr": "🚶 步行",
+        "map": "https://map.naver.com/p/search/Urban%20Groove%20Hotel%20%EB%B6%80%EC%82%B0"
+      },
+      {
+        "time": "11:30",
         "title": "啟程前往金海機場 (PUS)",
-        "desc": "搭地鐵 2 號線轉輕軌或叫車前往金海國際機場。",
+        "desc": "自西面搭地鐵 2 號線轉輕軌或叫車前往金海國際機場，預留平日交通與機場作業緩衝。",
         "tr": "🚇 地鐵+輕軌 / 🚕 計程車",
-        "map": "https://map.naver.com/p/entry/place/11585098"
+        "map": "https://map.naver.com/p/search/%EA%B9%80%ED%95%B4%EA%B5%AD%EC%A0%9C%EA%B3%B5%ED%95%AD"
       },
       {
-        "time": "13:00",
-        "title": "大韓航空報到、託運與退稅",
-        "desc": "抵達 PUS 後領回 Zimcarry 行李，辦理 KE2085 報到與託運，依序完成退稅、安全檢查及出境審查。",
+        "time": "約 12:15～13:30",
+        "title": "抵達 PUS ✕ 報到、託運與退稅",
+        "desc": "目標約 12:15 抵達 PUS，辦理 KE2085 報到、行李託運與退稅，再依序完成安全檢查及出境審查。",
         "tr": "🚶 機場步行",
-        "map": ""
+        "map": "https://map.naver.com/p/search/%EA%B9%80%ED%95%B4%EA%B5%AD%EC%A0%9C%EA%B3%B5%ED%95%AD"
       },
       {
         "time": "14:50",
         "title": "KE2085 自金海機場起飛",
         "desc": "大韓航空 KE2085 預計 14:50 自 PUS 出發前往桃園。",
         "tr": "✈️ 飛機",
-        "map": ""
+        "map": "https://map.naver.com/p/search/%EA%B9%80%ED%95%B4%EA%B5%AD%EC%A0%9C%EA%B3%B5%ED%95%AD"
       },
       {
         "time": "16:30",
@@ -557,7 +592,7 @@
   },
   "rainPlans": {
     "day2": {
-      "trigger": "膠囊列車遇強風大雨停駛 / 廣安無人機或煙火活動取消",
+      "trigger": "膠囊列車遇強風大雨停駛 / 廣安里 M Drone Light Show 取消",
       "proposals": [
         {
           "title": "室內備案 1：BUSAN X the SKY 100樓景觀展望台",
@@ -569,7 +604,7 @@
         },
         {
           "title": "室內備案 3：廣安里海景室內景觀餐廳",
-          "desc": "若廣安里無人機或煙火活動因天候取消，晚餐改選沿海高樓室內景觀餐廳，隔著大落地窗邊吃海鮮火鍋邊看廣安大橋雨夜霓虹。"
+          "desc": "若廣安里 M Drone Light Show 因天候或官方場次調整而取消，可改選沿海室內景觀餐廳，隔著落地窗欣賞廣安大橋雨夜景色。"
         }
       ]
     },
@@ -607,7 +642,7 @@
         },
         {
           "title": "室內備案 3：海木炭火鰻魚飯 (照常進行)",
-          "desc": "晚餐日式炭火鰻魚飯為預約室內名店，完全不受天候影響。"
+          "desc": "晚餐日式炭火鰻魚飯為室內用餐規劃，可依天候與交通狀況照常安排。"
         }
       ]
     },
@@ -629,51 +664,83 @@
   "food": [
     {
       "id": "cf1",
-      "name": "味讚王鹽烤肉（西面店）",
-      "category": "極厚熟成豬五花",
-      "sop": "1. 鹽巴原味 ➔ 2. 醃芥末葉＋特調醬 ➔ 3. 烤泡菜＋生菜包肉一口悶",
-      "desc": "超人氣 3.5cm 極厚熟成豬五花，店員專人代烤至外酥內嫩。",
-      "map": "https://map.naver.com/p/entry/place/11571731"
+      "name": "Matchandeul Wang Sogeum Gui Seomyeon（맛찬들왕소금구이 서면점）",
+      "category": "Day 1 主餐｜極厚熟成豬五花",
+      "sop": "1. 鹽巴原味 ➔ 2. 醃芥末葉＋特調醬 ➔ 3. 烤泡菜＋生菜包肉",
+      "desc": "第一晚安排的厚切熟成豬五花，由店員代烤後搭配蔬菜與醬料享用。",
+      "map": "https://map.naver.com/p/search/%EB%A7%9B%EC%B0%AC%EB%93%A4%EC%99%95%EC%86%8C%EA%B8%88%EA%B5%AC%EC%9D%B4%20%EC%84%9C%EB%A9%B4%EC%A0%90"
     },
     {
       "id": "cf2",
-      "name": "海木炭火鰻魚飯（海雲台店）",
-      "category": "炭火鰻魚飯三吃",
-      "sop": "1. 1/4 品嚐原汁原味 ➔ 2. 1/4 拌入芥末、海苔絲與青蔥 ➔ 3. 1/4 淋上特製高湯做成茶泡飯 ➔ 4. 1/4 依個人最愛方式享用",
-      "desc": "米其林必比登推薦奢華炭火鰻魚重。",
-      "map": "https://map.naver.com/p/entry/place/11571731"
+      "name": "Suminine（수민이네）",
+      "category": "Day 2 午餐｜青沙浦烤貝＋海鮮拉麵",
+      "sop": "炭火烤貝與扇貝搭配現煮海鮮拉麵",
+      "desc": "位於 118 Cheongsapo-ro 58beon-gil 的青沙浦海鮮午餐。",
+      "map": "https://map.naver.com/p/search/%EC%88%98%EB%AF%BC%EC%9D%B4%EB%84%A4"
     },
     {
       "id": "cf3",
-      "name": "新世界 Spa Land 汗蒸幕",
-      "category": "汗蒸幕經典點心",
-      "sop": "1. 泡完溫泉折好羊角毛巾頭 ➔ 2. 點冰涼甜米釀 (Sikhye) ＋ 煙燻烤蛋 ➔ 3. 烤蛋在額頭輕敲碎殼享用",
-      "desc": "五星級汗蒸幕必吃經典組合。",
-      "map": "https://map.naver.com/p/entry/place/13479633"
+      "name": "韓式外送炸雞 ✕ 炸醬麵飯店宵夜",
+      "category": "Day 2 計畫體驗｜Urban Groove Hotel",
+      "sop": "半半炸雞（原味＋甜辣）＋炸醬麵＋醃蘿蔔＋飲料",
+      "desc": "返回飯店後依當晚實際供應選擇外送店家；這是規劃體驗，並非已預訂。",
+      "map": "https://map.naver.com/p/search/Urban%20Groove%20Hotel%20%EB%B6%80%EC%82%B0"
     },
     {
       "id": "cf4",
-      "name": "Solsot 韓式釜飯（慶州店）",
-      "category": "牛排 / 鮑魚韓式釜飯",
-      "sop": "1. 將主食在熱石鍋內均勻拌開 ➔ 2. 盛入小碗食用 ➔ 3. 將桌上高湯注入石鍋蓋上木蓋，悶出金黃香濃鍋巴湯",
-      "desc": "皇理團路人氣韓屋釜飯名店。",
-      "map": "https://map.naver.com/p/entry/place/11571731"
+      "name": "Gwangalli Eonyang Bulgogi Busanjip（광안리 언양불고기 부산집）",
+      "category": "Day 2 備選晚餐｜廣安里言陽烤肉",
+      "sop": "僅在 Drone Show 延誤／取消、提前飢餓或外送計畫改變時採用",
+      "desc": "地址 32 Namcheonbada-ro；屬廣安里現場備選，不是固定主行程晚餐。",
+      "map": "https://map.naver.com/p/search/%EA%B4%91%EC%95%88%EB%A6%AC%20%EC%96%B8%EC%96%91%EB%B6%88%EA%B3%A0%EA%B8%B0%20%EB%B6%80%EC%82%B0%EC%A7%91"
     },
     {
       "id": "cf5",
-      "name": "東萊蔘雞湯（西面店）",
-      "category": "元氣傳統蔘雞湯",
-      "sop": "鮮嫩童子雞塞滿糯米、人蔘、紅棗與大蒜熬成奶白色濃郁高湯",
-      "desc": "最後一天收心元氣大補給。",
-      "map": "https://map.naver.com/p/entry/place/13491807"
+      "name": "Byeolchaeban Gyodong Ssambap（별채반 교동쌈밥）",
+      "category": "Day 3 午餐｜慶州傳統包飯",
+      "sop": "以韓式定食、包飯與多樣小菜體驗慶州地方餐桌",
+      "desc": "慶州一日行程的正式午餐安排。",
+      "map": "https://map.naver.com/p/search/%EB%B3%84%EC%B1%84%EB%B0%98%20%EA%B5%90%EB%8F%99%EC%8C%88%EB%B0%A5"
     },
     {
       "id": "cf6",
-      "name": "青沙浦平交道烤貝",
-      "category": "炭烤扇貝與海鮮拉麵",
-      "sop": "邊看紅白燈塔海景邊享用新鮮扇貝與現煮海鮮拉麵",
-      "desc": "膠囊列車青沙浦站下車即達。",
-      "map": ""
+      "name": "Huinnyeoul Jeomppang（흰여울점빵）",
+      "category": "Day 4 午餐｜海景鋁鍋拉麵＋韓式吐司",
+      "sop": "在白淺灘散步途中安排簡單拉麵與吐司",
+      "desc": "地址 121 Huinnyeoul-gil；刻意保留為輕鬆的海景小吃午餐。",
+      "map": "https://map.naver.com/p/search/%ED%9D%B0%EC%97%AC%EC%9A%B8%EC%A0%90%EB%B9%B5"
+    },
+    {
+      "id": "cf7",
+      "name": "Footbath Cafe View 2（족욕카페뷰 2호점）",
+      "category": "Day 4 下午｜海景足浴咖啡",
+      "sop": "足浴休息並搭配飲品，保留夕陽觀景時間",
+      "desc": "Day 4 下午的恢復行程，降低連續步行疲勞。",
+      "map": "https://map.naver.com/p/search/%EC%A1%B1%EC%9A%95%EC%B9%B4%ED%8E%98%EB%B7%B0%202%ED%98%B8%EC%A0%90"
+    },
+    {
+      "id": "cf8",
+      "name": "Haemok Haeundae（해목 해운대점）",
+      "category": "Day 4 晚餐｜炭火鰻魚飯",
+      "sop": "依原味、佐料、茶泡飯等方式分段享用",
+      "desc": "地址 8 Gunam-ro 24beon-gil；約 19:00～19:30 抵達的晚餐規劃。",
+      "map": "https://map.naver.com/p/search/%ED%95%B4%EB%AA%A9%20%ED%95%B4%EC%9A%B4%EB%8C%80%EC%A0%90"
+    },
+    {
+      "id": "cf9",
+      "name": "Pohang Dwaeji Gukbap（포항돼지국밥）",
+      "category": "Day 5 早午餐｜釜山豬肉湯飯",
+      "sop": "控制用餐時間，在 11:20 前結束並回飯店取行李",
+      "desc": "Seomyeon-ro 68beon-gil 一帶的離釜前最後一餐，不延誤機場出發。",
+      "map": "https://map.naver.com/p/search/%ED%8F%AC%ED%95%AD%EB%8F%BC%EC%A7%80%EA%B5%AD%EB%B0%A5%20%EC%84%9C%EB%A9%B4"
+    },
+    {
+      "id": "cf10",
+      "name": "新世界 Spa Land 汗蒸幕點心",
+      "category": "Day 2 體驗｜甜米釀＋烤蛋",
+      "sop": "溫泉與汗蒸幕休息時享用冰甜米釀與烤蛋",
+      "desc": "保留為 Spa Land 行程內的點心體驗。",
+      "map": "https://map.naver.com/p/search/%EC%8A%A4%ED%8C%8C%EB%9E%9C%EB%93%9C%20%EC%8B%A0%EC%84%B8%EA%B3%84%EB%B0%B1%ED%99%94%EC%A0%90%20%EC%84%BC%ED%85%80%EC%8B%9C%ED%8B%B0%EC%A0%90"
     }
   ],
   "convenienceStore": {
