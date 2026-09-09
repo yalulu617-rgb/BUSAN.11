@@ -175,12 +175,12 @@ window.renderTickets_LogicOnly = function() {
         lodgingHtml = `
 <div class="card fade-scale-in" style="padding: 16px; border-left: 6px solid var(--primary); margin-bottom: 12px; position: relative; border-radius: 20px; background: var(--card-bg);">
     <div style="position: absolute; top: 12px; right: 12px; z-index:10; display:flex; gap:6px;">
-        <button class="btn-edit" onclick="editHotel()" style="background:#f39c12; color:white; border:none; border-radius:8px; padding: 4px 8px; font-size:0.7rem; cursor:pointer;"><i class="fa-solid fa-pen"></i></button>
-        <button class="btn-delete" onclick="deleteHotelData()"><i class="fa-solid fa-trash"></i></button>
+        <button class="btn-edit" aria-label="編輯飯店資料" onclick="editHotel()" style="background:#f39c12; color:white; border:none; border-radius:8px; padding: 4px 8px; font-size:0.7rem; cursor:pointer;"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>
+        <button class="btn-delete" aria-label="清除飯店資料" onclick="deleteHotelData()"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
     </div>
     
     ${photoHtml}
-    <div style="margin-bottom: 10px;">
+    <div style="margin-bottom: 10px; padding-right:100px; min-height:44px;">
         <span style="background: var(--primary); color: white; padding: 2px 6px; border-radius: 6px; font-size: 0.65rem; font-weight: 900; display: inline-block; margin-bottom: 4px;">🏨 住宿卡</span>
         <h3 style="margin: 0 0 4px 0; font-weight: 900; color: var(--text-color); font-size: 1.1rem;">${safeValue(h.name)}</h3>
         <div style="font-size: 0.75rem; color: #7f8c8d; font-weight: 700; line-height: 1.3;">
@@ -257,7 +257,7 @@ window.renderTickets_LogicOnly = function() {
                                 ${lh} ${vh}
                             </div>
                         </div>
-                        <button class="btn-delete" onclick="deleteTicket('${t.key}')" style="background:none; border:none; color:#e74c3c; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
+                        <button class="btn-delete" aria-label="刪除票券" onclick="deleteTicket('${t.key}')" style="background:none; border:none; color:#e74c3c; cursor:pointer;"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
                     </div>
                 </div>
             `;

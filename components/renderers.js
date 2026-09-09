@@ -20,7 +20,7 @@ window.renderImmigrationRules = function() {
     const root = document.getElementById('immigrationRulesUI');
     const info = window.TRAVEL_CONTENT_V45?.immigration;
     if (!root || !info) return;
-    const card = (title, notes, url, label) => `<div style="background:#f8f9fa;padding:12px;border-radius:14px;border:1px solid #eee;"><div style="font-weight:900;font-size:.9rem;color:#2c3e50;">${title}</div><div style="font-size:.75rem;color:#555;margin-top:4px;line-height:1.5;">${notes}</div>${url ? `<a href="${url}" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;font-size:.75rem;font-weight:900;">${label}</a>` : ''}</div>`;
+    const card = (title, notes, url, label) => `<div style="background:#f8f9fa;padding:12px;border-radius:14px;border:1px solid #eee;"><div style="font-weight:900;font-size:.9rem;color:#2c3e50;">${title}</div><div style="font-size:.75rem;color:#555;margin-top:4px;line-height:1.5;">${notes}</div>${url ? `<a href="${url}" target="_blank" rel="noopener" class="mobile-touch-link" style="margin-top:6px;font-size:.75rem;font-weight:900;">${label}</a>` : ''}</div>`;
     root.innerHTML = `<div style="font-size:.68rem;color:#7f8c8d;margin-bottom:8px;">官方資訊確認日：${info.sourceDate}</div>` +
         card(info.keta.title, info.keta.notes, info.keta.officialUrl, 'K-ETA 官方公告') +
         card(info.eArrivalCard.title, info.eArrivalCard.notes, info.eArrivalCard.officialUrl, '官方 e-Arrival Card') +
@@ -376,7 +376,7 @@ window.renderBeforeWidgets = function(ctx, city, smartAlert, v37SimulatedDate) {
     }
     
     let heroHtml = `
-        <div class="v38-hero-card hero-card fade-scale-in" onclick="showV37Tab('itinerary')" style="background: linear-gradient(135deg, #1e272e, #2f3640); cursor:pointer;">
+        <button type="button" class="v38-hero-card hero-card home-nav-button fade-scale-in" aria-label="開啟今日行程" onclick="showV37Tab('itinerary')" style="background: linear-gradient(135deg, #1e272e, #2f3640); cursor:pointer;">
             <div class="v38-hero-title">DAY — 尚未出發</div>
             <div class="v38-hero-main">出發：${countdownDays} 天</div>
             <div class="v38-hero-sub">目的地：🇰🇷 ${city.nameTW}</div>
@@ -394,7 +394,7 @@ window.renderBeforeWidgets = function(ctx, city, smartAlert, v37SimulatedDate) {
             <div class="v38-progress-container" style="margin-top: 8px;">
                 <div class="v38-progress-bar" style="width: ${percent}%;"></div>
             </div>
-        </div>
+        </button>
     `;
     
     let prepItemsHtml = "";
@@ -486,7 +486,7 @@ window.renderDuringWidgets = function(ctx, dateStr, city, weather, smartAlert) {
     }
 
     let heroHtml = `
-        <div class="v38-hero-card hero-card fade-scale-in" onclick="showV37Tab('itinerary')" style="background: linear-gradient(135deg, #1e272e, #353b48); cursor:pointer;">
+        <button type="button" class="v38-hero-card hero-card home-nav-button fade-scale-in" aria-label="開啟今日行程" onclick="showV37Tab('itinerary')" style="background: linear-gradient(135deg, #1e272e, #353b48); cursor:pointer;">
             <div class="v38-hero-title">${dayNum} | 🇰🇷 ${city.nameTW}</div>
             <div class="v38-hero-main" style="display:flex; justify-content:space-between; align-items:center;">
                 <span class="text-truncate" style="max-width:180px;">${nextAttr}</span>
@@ -498,7 +498,7 @@ window.renderDuringWidgets = function(ctx, dateStr, city, weather, smartAlert) {
             ${weatherDuringHtml}
 
             <div style="margin-top: 6px; font-size: 0.78rem; font-weight: 800; color: #ffcc00;" class="text-truncate"><i class="fa-solid fa-circle-exclamation"></i> ${smartAlert}</div>
-        </div>
+        </button>
     `;
     
     let itiItemsHtml = "";
@@ -544,12 +544,12 @@ window.renderAfterWidgets = function(ctx, smartAlert) {
     let overallSpent = ctx.budget.overallSpent;
     
     let heroHtml = `
-        <div class="v38-hero-card hero-card fade-scale-in" onclick="showV37Tab('split')" style="background: linear-gradient(135deg, #1e272e, #2d3436);">
+        <button type="button" class="v38-hero-card hero-card home-nav-button fade-scale-in" aria-label="開啟旅行記帳" onclick="showV37Tab('split')" style="background: linear-gradient(135deg, #1e272e, #2d3436);">
             <div class="v38-hero-title">旅行完成 ✈️</div>
             <div class="v38-hero-main" style="font-size:1.6rem !important;">$${overallSpent.toLocaleString()} TWD</div>
             <div class="v38-hero-sub">旅行天數：5天 | 目的地: Busan</div>
             <div style="margin-top: 6px; font-size: 0.75rem; font-weight: 800; color: #ffcc00;" class="text-truncate">${smartAlert}</div>
-        </div>
+        </button>
     `;
     
     let widget2Html = `
@@ -613,14 +613,14 @@ window.renderCollections = function() {
         <div class="v38-widget-card card fade-scale-in" style="grid-column: span 2;">
             <div class="v38-widget-title"><i class="fa-solid fa-heart"></i> 收藏清單</div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-                <div style="background:rgba(255, 59, 85, 0.05); padding:6px; border-radius:10px; border:1px solid rgba(255,59,85,0.1); text-align:center; cursor:pointer;" onclick="showV37Tab('home'); openGuideFolder('美食景點'); setTimeout(()=>setFoodTabMode('my'),100);">
+                <button type="button" class="home-collection-button" aria-label="開啟美食收藏" style="background:rgba(255, 59, 85, 0.05); padding:6px; border-radius:10px; border:1px solid rgba(255,59,85,0.1); text-align:center; cursor:pointer;" onclick="showV37Tab('home'); openGuideFolder('美食景點'); setTimeout(()=>setFoodTabMode('my'),100);">
                     <div style="font-size:0.6rem; color:#ff3b30; font-weight:800;">🍜 美食收藏</div>
                     <div style="font-size:0.95rem; font-weight:900; color:#ff3b30; margin-top:2px;">${favFoodCount} 個</div>
-                </div>
-                <div style="background:rgba(0, 122, 255, 0.05); padding:6px; border-radius:10px; border:1px solid rgba(0,122,255,0.1); text-align:center; cursor:pointer;" onclick="showV37Tab('shop'); setTimeout(()=>setShopTabMode('rec'),100);">
+                </button>
+                <button type="button" class="home-collection-button" aria-label="開啟購物收藏" style="background:rgba(0, 122, 255, 0.05); padding:6px; border-radius:10px; border:1px solid rgba(0,122,255,0.1); text-align:center; cursor:pointer;" onclick="showV37Tab('shop'); setTimeout(()=>setShopTabMode('rec'),100);">
                     <div style="font-size:0.6rem; color:#007aff; font-weight:800;">🛍️ 購物收藏</div>
                     <div style="font-size:0.95rem; font-weight:900; color:#007aff; margin-top:2px;">${favShopCount} 個</div>
-                </div>
+                </button>
             </div>
         </div>
     `;
@@ -634,67 +634,67 @@ window.renderHomeNineGrid = function() {
             </div>
             <div class="v45-nine-grid">
                 <!-- 1. 🗓️ 今日行程 -->
-                <div class="v45-nine-card" onclick="showV37Tab('itinerary')">
+                <button type="button" class="v45-nine-card" onclick="showV37Tab('itinerary')">
                     <div class="v45-nine-icon"><i class="fa-solid fa-calendar-day" style="color:#3498db;"></i></div>
                     <div class="v45-nine-title">今日行程</div>
                     <div class="v45-nine-sub">5日手帳 / 備案</div>
-                </div>
+                </button>
 
                 <!-- 2. 🍽️ 景點美食 -->
-                <div class="v45-nine-card" onclick="openGuideFolder('美食景點')">
+                <button type="button" class="v45-nine-card" onclick="openGuideFolder('美食景點')">
                     <div class="v45-nine-icon"><i class="fa-solid fa-utensils" style="color:#e67e22;"></i></div>
                     <div class="v45-nine-title">景點美食</div>
                     <div class="v45-nine-sub">必吃名店/慶州</div>
-                </div>
+                </button>
 
                 <!-- 3. 🏪 韓國超商 -->
-                <div class="v45-nine-card" onclick="showV37Tab('shop'); setTimeout(()=>setShopTabMode('convenience'),50);">
+                <button type="button" class="v45-nine-card" onclick="showV37Tab('shop'); setTimeout(()=>setShopTabMode('convenience'),50);">
                     <div class="v45-nine-icon"><i class="fa-solid fa-store" style="color:#2ecc71;"></i></div>
                     <div class="v45-nine-title">韓國超商</div>
                     <div class="v45-nine-sub">6大入口/混搭</div>
-                </div>
+                </button>
 
                 <!-- 4. 🛍️ 快樂購 -->
-                <div class="v45-nine-card" onclick="showV37Tab('shop'); setTimeout(()=>setShopTabMode('my'),50);">
+                <button type="button" class="v45-nine-card" onclick="showV37Tab('shop'); setTimeout(()=>setShopTabMode('my'),50);">
                     <div class="v45-nine-icon"><i class="fa-solid fa-bag-shopping" style="color:#e84393;"></i></div>
                     <div class="v45-nine-title">快樂購</div>
                     <div class="v45-nine-sub">Olive Young/伴手禮</div>
-                </div>
+                </button>
 
                 <!-- 5. 🎟️ 票券住宿 -->
-                <div class="v45-nine-card" onclick="showV37Tab('wallet'); setTimeout(()=>switchWalletTab('ticket'),50);">
+                <button type="button" class="v45-nine-card" onclick="showV37Tab('wallet'); setTimeout(()=>switchWalletTab('ticket'),50);">
                     <div class="v45-nine-icon"><i class="fa-solid fa-ticket" style="color:#9b59b6;"></i></div>
                     <div class="v45-nine-title">票券住宿</div>
                     <div class="v45-nine-sub">機票/飯店/憑證</div>
-                </div>
+                </button>
 
                 <!-- 6. 💰 旅行記帳 -->
-                <div class="v45-nine-card" onclick="showV37Tab('split')">
+                <button type="button" class="v45-nine-card" onclick="showV37Tab('split')">
                     <div class="v45-nine-icon"><i class="fa-solid fa-wallet" style="color:#f39c12;"></i></div>
                     <div class="v45-nine-title">旅行記帳</div>
                     <div class="v45-nine-sub">公費分攤/匯率</div>
-                </div>
+                </button>
 
                 <!-- 7. 🗣️ 翻譯 SOS -->
-                <div class="v45-nine-card" onclick="showV37Tab('more')">
+                <button type="button" class="v45-nine-card" onclick="showV37Tab('more')">
                     <div class="v45-nine-icon"><i class="fa-solid fa-language" style="color:#e74c3c;"></i></div>
                     <div class="v45-nine-title">翻譯 SOS</div>
                     <div class="v45-nine-sub">韓語字卡/救援</div>
-                </div>
+                </button>
 
                 <!-- 8. 🧳 行前準備 -->
-                <div class="v45-nine-card" onclick="showV37Tab('wallet'); setTimeout(()=>switchWalletTab('doc'),50);">
+                <button type="button" class="v45-nine-card" onclick="showV37Tab('wallet'); setTimeout(()=>switchWalletTab('doc'),50);">
                     <div class="v45-nine-icon"><i class="fa-solid fa-suitcase-rolling" style="color:#1abc9c;"></i></div>
                     <div class="v45-nine-title">行前準備</div>
                     <div class="v45-nine-sub">代辦清單/文件</div>
-                </div>
+                </button>
 
                 <!-- 9. 📸 旅行回憶 -->
-                <div class="v45-nine-card" onclick="showV37Tab('photo')">
+                <button type="button" class="v45-nine-card" onclick="showV37Tab('photo')">
                     <div class="v45-nine-icon"><i class="fa-solid fa-camera-retro" style="color:#00cec9;"></i></div>
                     <div class="v45-nine-title">旅行回憶</div>
                     <div class="v45-nine-sub">拍立得相簿/Vlog</div>
-                </div>
+                </button>
             </div>
         </div>
     `;
@@ -865,7 +865,7 @@ window.renderShop = function() {
                     <div class="item-content" style="font-weight:900; font-size:1.02rem; color:var(--text-color);">${s.text}</div>
                     <div style="font-size:0.75rem; color:#7f8c8d; margin-top:2px;">📍 哪裡買: ${s.where || '未填寫'}</div>
                 </div>
-                <button class="btn-delete" onclick="event.stopPropagation(); deleteShop('${s.key}')"><i class="fa-solid fa-trash"></i></button>
+                <button class="btn-delete" aria-label="刪除購物項目" onclick="event.stopPropagation(); deleteShop('${s.key}')"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
             </div>
         `;
     });
@@ -1651,7 +1651,7 @@ window.renderGuideContent = function() {
             <div class="guide-card card fade-scale-in">
                 ${imgHtml}
                 <div style="padding:15px; position:relative;">
-                    <button class="btn-delete" onclick="deleteGuide('${g.key}')" style="position:absolute; top:12px; right:12px;"><i class="fa-solid fa-trash"></i></button>
+                    <button class="btn-delete" aria-label="刪除景點或美食項目" onclick="deleteGuide('${g.key}')" style="position:absolute; top:12px; right:12px;"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
                     <h4 style="margin:0 0 6px 0; font-size:1.1rem; color:var(--text-color); font-weight:900;">${g.title}</h4>
                     <p style="margin:0; font-size:0.85rem; color:#555; line-height:1.4;">${g.desc}</p>
                     ${mapBtn}
@@ -1730,7 +1730,7 @@ window.renderBills = function() {
                         <div style="font-weight:900; font-size:1.02rem; color:var(--text-color);">${b.name}</div>
                         <div style="font-size:0.82rem; font-weight:900; color:var(--primary); margin-top:2px;">${amtStr}</div>
                     </div>
-                    <button class="btn-delete" onclick="deleteSharedBill('${b.key}')"><i class="fa-solid fa-trash"></i></button>
+                    <button class="btn-delete" aria-label="刪除此筆公費記帳" onclick="deleteSharedBill('${b.key}')"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
                 </div>
             `;
         });
@@ -1774,7 +1774,7 @@ window.renderPrivateBill = function() {
                         <div style="font-weight:900; font-size:1.02rem; color:var(--text-color);">${b.name}</div>
                         <div style="font-size:0.82rem; font-weight:900; color:var(--dora); margin-top:2px;">${amtStr}</div>
                     </div>
-                    <button class="btn-delete" onclick="deletePrivateBill('${b.id}')"><i class="fa-solid fa-trash"></i></button>
+                    <button class="btn-delete" aria-label="刪除此筆私帳" onclick="deletePrivateBill('${b.id}')"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
                 </div>
             `;
         });
@@ -1842,13 +1842,13 @@ window.renderPrepList = function() {
         let html = '';
         items.forEach(p => {
             const isDone = p.done ? 'done' : '';
-            const linkIcon = p.link ? `<a href="${p.link}" target="_blank" class="prep-link" onclick="event.stopPropagation()"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : '';
+            const linkIcon = p.link ? `<a href="${p.link}" target="_blank" class="prep-link" aria-label="開啟準備事項連結" onclick="event.stopPropagation()"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>` : '';
             html += `
                 <div class="prep-item ${isDone}" onclick="togglePrep('${p.key}', ${p.done})">
                     <div class="prep-check"><i class="fa-solid fa-check"></i></div>
                     <div class="prep-text">${p.text}</div>
                     ${linkIcon}
-                    <button class="btn-delete" onclick="event.stopPropagation(); deletePrep('${p.key}')" style="padding: 4px 8px;"><i class="fa-solid fa-trash"></i></button>
+                    <button class="btn-delete" aria-label="刪除準備事項" onclick="event.stopPropagation(); deletePrep('${p.key}')" style="padding: 4px 8px;"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
                 </div>
             `;
         });

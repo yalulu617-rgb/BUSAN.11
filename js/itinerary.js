@@ -231,7 +231,7 @@
                                 <div style="font-weight:900; font-size:0.85rem; color:#2c3e50;">${ph.tw}</div>
                                 <div style="font-size:0.75rem; color:#7f8c8d;">${ph.kr}</div>
                             </div>
-                            <button class="v38-mini-btn" style="background:var(--dora); color:#fff; border:none;"><i class="fa-solid fa-volume-high"></i></button>
+                            <button class="v38-mini-btn" aria-label="播放韓語交通用語" style="background:var(--dora); color:#fff; border:none;"><i class="fa-solid fa-volume-high" aria-hidden="true"></i></button>
                         </div>
                     `;
                 });
@@ -289,9 +289,9 @@
                             ${mapBtn}
                         </div>
                     </div>
-                    <div style="position:absolute; top:0; right:0; display:${String(i.key || '').startsWith('rec_') ? 'none' : 'flex'}; gap:4px;">
-                        <button class="btn-edit" onclick="editItinerary('${i.key}')" style="background:#f39c12; color:white; border:none; border-radius:6px; padding:2px 6px; font-size:0.65rem; cursor:pointer;"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn-delete" onclick="deleteItinerary('${i.key}')" style="background:none; border:none; color:#e74c3c; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
+                    <div class="iti-row-actions" style="display:${String(i.key || '').startsWith('rec_') ? 'none' : 'flex'}; gap:4px; flex-shrink:0;">
+                        <button class="btn-edit" aria-label="編輯行程" onclick="editItinerary('${i.key}')" style="background:#f39c12; color:white; border:none; border-radius:6px; padding:2px 6px; font-size:0.65rem; cursor:pointer;"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>
+                        <button class="btn-delete" aria-label="刪除行程" onclick="deleteItinerary('${i.key}')" style="background:none; border:none; color:#e74c3c; cursor:pointer;"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
                     </div>
                 </div>
             `;

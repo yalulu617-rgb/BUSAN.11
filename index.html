@@ -289,7 +289,7 @@
             </div>
             <div class="flex-row">
                 <input type="number" id="quickKrw" class="input-box flex-1" placeholder="輸入韓元 (₩)" oninput="calcQuickExchange()" style="font-size: 1.2rem; text-align: center;">
-                <button class="btn-action" style="width: 60px; background: #27AE60;" onclick="quickAddBill()"><i class="fa-solid fa-plus"></i></button>
+                <button class="btn-action" aria-label="加入快速記帳" style="width: 60px; background: #27AE60;" onclick="quickAddBill()"><i class="fa-solid fa-plus" aria-hidden="true"></i></button>
             </div>
             <div id="quickResult" style="margin-top: 15px; font-weight: 900; line-height: 1.6; display: none;">
                 <div style="font-size: 1.2rem;">折合台幣約：<span id="quickTwd" style="color: #F1C40F;">$0</span></div>
@@ -322,7 +322,7 @@
                     <input type="file" id="shopCameraUpload" data-shop-photo-input style="display:none;" accept="image/*" capture="environment">
                     <label for="shopGalleryUpload" style="background:#fff; padding:12px 10px; border-radius:14px; cursor:pointer; font-weight:900; box-shadow:0 2px 10px rgba(0,0,0,0.05); flex:1; text-align:center;"><i class="fa-solid fa-image" style="color:var(--dora);"></i> 選照片</label>
                     <input type="file" id="shopGalleryUpload" data-shop-photo-input style="display:none;" accept="image/*">
-                    <button id="addShopItemBtn" class="btn-action" style="width:70px; padding:12px; border-radius:14px;" onclick="addShopItem()"><i class="fa-solid fa-plus"></i></button>
+                    <button id="addShopItemBtn" class="btn-action" aria-label="新增購物項目" style="width:70px; padding:12px; border-radius:14px;" onclick="addShopItem()"><i class="fa-solid fa-plus" aria-hidden="true"></i></button>
                 </div>
                 <input type="hidden" id="tempShopPhoto" value="">
                 <div id="shopPhotoStatus" role="status" aria-live="polite" style="font-size:0.78rem; color:var(--primary); margin-top:8px; font-weight:800;"></div>
@@ -343,7 +343,7 @@
             <p id="walletHeaderSubtitle" style="font-size:0.75rem; color:rgba(255,255,255,0.7); margin:4px 0 0 0;">Travel Wallet</p>
         </div>
         
-        <div class="day-tabs" style="margin-bottom: 15px; flex-wrap: wrap; justify-content: center; gap: 6px;">
+        <div class="day-tabs wallet-tabs" style="margin-bottom: 15px; flex-wrap: wrap; justify-content: center; gap: 6px;">
             <button id="btnWalletTicket" class="day-tab active" onclick="switchWalletTab('ticket')" style="font-size:0.75rem; padding:6px 10px;">🎟 Ticket</button>
             <button id="btnWalletHotel" class="day-tab" onclick="switchWalletTab('hotel')" style="font-size:0.75rem; padding:6px 10px;">🏨 Hotel</button>
             <button id="btnWalletDoc" class="day-tab" onclick="switchWalletTab('doc')" style="font-size:0.75rem; padding:6px 10px;">📄 Docs</button>
@@ -528,19 +528,19 @@
             <div style="display: flex; flex-direction: column; gap: 8px;">
                 <div style="background:#f8f9fa; padding:10px 14px; border-radius:12px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openFlashcard('請給我菜單', '메뉴판 주세요')">
                     <div><div style="font-weight:900; font-size:0.88rem; color:#2c3e50;">請給我菜單</div><div style="font-size:0.75rem; color:#7f8c8d;">메뉴판 주세요</div></div>
-                    <button class="v38-mini-btn" style="background:var(--dora); color:white; border:none;"><i class="fa-solid fa-volume-high"></i></button>
+                    <button class="v38-mini-btn" aria-label="播放請給我菜單韓語發音" style="background:var(--dora); color:white; border:none;"><i class="fa-solid fa-volume-high" aria-hidden="true"></i></button>
                 </div>
                 <div style="background:#f8f9fa; padding:10px 14px; border-radius:12px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openFlashcard('請結帳', '계산해 주세요')">
                     <div><div style="font-weight:900; font-size:0.88rem; color:#2c3e50;">請結帳</div><div style="font-size:0.75rem; color:#7f8c8d;">계산해 주세요</div></div>
-                    <button class="v38-mini-btn" style="background:var(--dora); color:white; border:none;"><i class="fa-solid fa-volume-high"></i></button>
+                    <button class="v38-mini-btn" aria-label="播放請結帳韓語發音" style="background:var(--dora); color:white; border:none;"><i class="fa-solid fa-volume-high" aria-hidden="true"></i></button>
                 </div>
                 <div style="background:#f8f9fa; padding:10px 14px; border-radius:12px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openFlashcard('請問可以退稅嗎？', '텍스리펀 되나요?')">
                     <div><div style="font-weight:900; font-size:0.88rem; color:#2c3e50;">請問可以退稅嗎？</div><div style="font-size:0.75rem; color:#7f8c8d;">텍스리펀 되나요?</div></div>
-                    <button class="v38-mini-btn" style="background:var(--dora); color:white; border:none;"><i class="fa-solid fa-volume-high"></i></button>
+                    <button class="v38-mini-btn" aria-label="播放退稅詢問韓語發音" style="background:var(--dora); color:white; border:none;"><i class="fa-solid fa-volume-high" aria-hidden="true"></i></button>
                 </div>
                 <div style="background:#f8f9fa; padding:10px 14px; border-radius:12px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openFlashcard('請載我們去海雲台', '기사님, 해운대로 가주세요')">
                     <div><div style="font-weight:900; font-size:0.88rem; color:#2c3e50;">請載我們去海雲台</div><div style="font-size:0.75rem; color:#7f8c8d;">기사님, 해운대로 가주세요</div></div>
-                    <button class="v38-mini-btn" style="background:var(--dora); color:white; border:none;"><i class="fa-solid fa-volume-high"></i></button>
+                    <button class="v38-mini-btn" aria-label="播放前往海雲台韓語發音" style="background:var(--dora); color:white; border:none;"><i class="fa-solid fa-volume-high" aria-hidden="true"></i></button>
                 </div>
             </div>
         </div>
