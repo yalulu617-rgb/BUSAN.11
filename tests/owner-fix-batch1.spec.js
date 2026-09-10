@@ -17,7 +17,9 @@ test.describe('Owner Fix Batch 1 targeted repair', () => {
         { key: 'stale-day2-fireworks', day: '11/14', time: '19:30', desc: '廣安里 M 無人機煙火秀', tr: '步行' },
         { key: 'day2-personal', day: '11/14', time: '21:30', desc: '回飯店整理戰利品', tr: '步行' },
         { key: 'stale-day3-solsot', day: '11/15', time: '12:00', desc: '【午餐】Solsot 釜飯', tr: '步行' },
-        { key: 'day3-personal', day: '11/15', time: '15:30', desc: '皇理團路買伴手禮', tr: '步行' }
+        { key: 'day3-personal', day: '11/15', time: '15:30', desc: '皇理團路買伴手禮', tr: '步行' },
+        { key: 'stale-day5-zimcarry', day: '11/17', time: '10:00', desc: 'Zimcarry 寄行李去機場', tr: '📦 寄件' },
+        { key: 'day5-personal', day: '11/17', time: '10:15', desc: '確認護照放在隨身包', tr: '個人提醒' }
       ];
       const merged = window.mergeCanonicalItinerary(custom);
       const canonical = Object.values(window.TRAVEL_CONTENT_V45.itinerary).flat();
@@ -37,12 +39,13 @@ test.describe('Owner Fix Batch 1 targeted repair', () => {
       };
     });
     expect(result.canonicalCount).toBe(31);
-    expect(result.customCount).toBe(10);
-    expect(result.mergedCount).toBe(36);
+    expect(result.customCount).toBe(12);
+    expect(result.mergedCount).toBe(37);
     expect(result.dayCounts).toEqual([5, 9, 5, 4, 8]);
     expect(result.customKeys).toEqual([
       'legacy-out-1630', 'legacy-out-1730', 'legacy-back', 'note-out', 'note-back', 'custom-1',
-      'stale-day2-fireworks', 'day2-personal', 'stale-day3-solsot', 'day3-personal'
+      'stale-day2-fireworks', 'day2-personal', 'stale-day3-solsot', 'day3-personal',
+      'stale-day5-zimcarry', 'day5-personal'
     ]);
     expect(result.hasLegitimateCustom).toBe(true);
     expect(result.day1.join('\n')).toContain('13:25 BX572 桃園 (TPE) ➔ 金海 (PUS)');
@@ -57,6 +60,10 @@ test.describe('Owner Fix Batch 1 targeted repair', () => {
     expect(result.day3.filter(row => row.includes('Byeolchaeban Gyodong Ssambap'))).toHaveLength(1);
     expect(result.day2.filter(row => row.includes('M Drone Light Show（場次待官方確認）'))).toHaveLength(1);
     expect(result.day5.join('\n')).toContain('11:00 KE2085 託運 23kg');
+    expect(result.day5.join('\n')).toContain('10:15 確認護照放在隨身包');
+    expect(result.day5.join('\n')).not.toContain('10:00 Zimcarry 寄行李去機場');
+    expect(result.day5.join('\n')).toContain('09:00～09:30 退房 ✕ 行李暫寄飯店');
+    expect(result.day5.join('\n')).toContain('11:30 啟程前往金海機場 (PUS)');
     expect(result.day5.join('\n')).toContain('14:50 KE2085 自金海機場起飛');
     expect(result.day5.join('\n')).toContain('16:30 KE2085 抵達桃園機場');
     expect(result.day5.join('\n')).not.toContain('16:30 KE2085 自金海機場起飛');

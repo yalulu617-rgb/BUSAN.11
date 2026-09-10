@@ -19,7 +19,8 @@
             const staleDepartureTime = time === '16:30';
             const explicitFlightDeparture = /(登機|起飛|boarding)/i.test(text)
                 || (/(出發|departure)/i.test(text) && /(KE2085|金海|PUS)/i.test(text));
-            return staleDepartureTime && explicitFlightDeparture;
+            const staleZimcarryDelivery = time === '10:00' && /(Zimcarry|짐캐리)/i.test(text);
+            return (staleDepartureTime && explicitFlightDeparture) || staleZimcarryDelivery;
         }
         if (item?.day === '11/14') {
             const claimsGwangalli = /(廣安里|Gwangalli|광안리)/i.test(text);
