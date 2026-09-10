@@ -15,6 +15,11 @@
             const claimsPusArrival = /(抵達|到達|arrival)/i.test(text) && /(金海|PUS)/i.test(text);
             return staleArrivalTime && claimsPusArrival;
         }
+        if (item?.day === '11/16') {
+            const staleHaemokTime = time === '18:30';
+            const claimsHaemok = /(Haemok|해목|海木)/i.test(text);
+            return staleHaemokTime && claimsHaemok;
+        }
         if (item?.day === '11/17') {
             const staleDepartureTime = time === '16:30';
             const explicitFlightDeparture = /(登機|起飛|boarding)/i.test(text)
