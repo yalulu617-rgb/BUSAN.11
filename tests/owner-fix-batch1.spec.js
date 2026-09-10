@@ -25,6 +25,16 @@ test.describe('Owner Fix Batch 1 targeted repair', () => {
       ];
       const merged = window.mergeCanonicalItinerary(custom);
       const canonical = Object.values(window.TRAVEL_CONTENT_V45.itinerary).flat();
+      const renderedCanonicalTimes = {};
+      window.itineraryData = window.RECOMMENDED_ITINERARY;
+      for (const day of ['11/13', '11/14', '11/15', '11/16', '11/17']) {
+        window.currentFilterDay = day;
+        window.currentWeatherMode = 'sun';
+        window.renderItinerary();
+        renderedCanonicalTimes[day] = [...document.querySelectorAll('#itiContent .iti-time')]
+          .map(element => element.textContent.trim());
+      }
+      window.itineraryData = merged;
       return {
         canonicalCount: canonical.length,
         customCount: window.customItineraryData.length,
@@ -35,6 +45,7 @@ test.describe('Owner Fix Batch 1 targeted repair', () => {
         day3: merged.filter(x => x.day === '11/15').map(x => `${x.time} ${x.desc}`),
         day4: merged.filter(x => x.day === '11/16').map(x => `${x.time} ${x.desc}`),
         day5: merged.filter(x => x.day === '11/17').map(x => `${x.time} ${x.desc}`),
+        renderedCanonicalTimes,
         hasLegitimateCustom: merged.some(x => x.key === 'custom-1'),
         customKeys: window.customItineraryData.map(x => x.key),
         pretrip: (window.v37SimulatedDate = '11/10', window.getItineraryDisplayDay()),
@@ -73,6 +84,23 @@ test.describe('Owner Fix Batch 1 targeted repair', () => {
     expect(result.day5.join('\n')).toContain('14:50 KE2085 自金海機場起飛');
     expect(result.day5.join('\n')).toContain('16:30 KE2085 抵達桃園機場');
     expect(result.day5.join('\n')).not.toContain('16:30 KE2085 自金海機場起飛');
+    expect(result.renderedCanonicalTimes['11/17']).toEqual([
+      '09:00～09:30',
+      '09:30～10:40',
+      '10:45～11:20',
+      '11:20～11:30',
+      '11:30',
+      '約 12:15～13:30',
+      '14:50',
+      '16:30'
+    ]);
+    for (const times of Object.values(result.renderedCanonicalTimes)) {
+      const starts = times.map(time => {
+        const match = time.match(/(\d{1,2}):(\d{2})/);
+        return Number(match[1]) * 60 + Number(match[2]);
+      });
+      expect(starts).toEqual([...starts].sort((a, b) => a - b));
+    }
     expect(result.pretrip).toBe('11/13');
     expect(result.after).toBe('11/17');
   });

@@ -7,6 +7,22 @@
     let editingItiKey = null;
 
     const itinerarySignature = item => [item.day, item.time, item.desc, item.tr || '', item.map || ''].join('\u001f');
+    const itineraryStartMinutes = item => {
+        const match = String(item?.time || '').match(/(\d{1,2}):(\d{2})/);
+        if (!match) return null;
+        const hours = Number(match[1]);
+        const minutes = Number(match[2]);
+        return hours <= 23 && minutes <= 59 ? (hours * 60) + minutes : null;
+    };
+    const sortItineraryChronologically = items => items
+        .map((item, index) => ({ item, index, start: itineraryStartMinutes(item) }))
+        .sort((a, b) => {
+            if (a.start === null && b.start === null) return a.index - b.index;
+            if (a.start === null) return 1;
+            if (b.start === null) return -1;
+            return (a.start - b.start) || (a.index - b.index);
+        })
+        .map(entry => entry.item);
     const conflictsWithCanonicalTruth = item => {
         const text = `${item?.desc || ''} ${item?.tr || ''}`;
         const time = String(item?.time || '').trim();
@@ -138,9 +154,9 @@
     // ── Vlog export ───────────────────────────────────────────────────────────
     window.exportForVlog = function () {
         const day   = window.currentFilterDay;
-        const items = (window.itineraryData || [])
-            .filter(i => i.day === day)
-            .sort((a, b) => a.time.localeCompare(b.time));
+        const items = sortItineraryChronologically(
+            (window.itineraryData || []).filter(i => i.day === day)
+        );
         let script = `【${day} VLOG 腳本】\n\n`;
         items.forEach(i => { script += `${i.time}  ${i.desc}\n  交通：${i.tr || '步行'}\n\n`; });
         navigator.clipboard.writeText(script)
@@ -291,8 +307,8 @@
             return;
         }
         
-        // Sort itinerary by time
-        filtered.sort((a, b) => a.time.localeCompare(b.time));
+        // Sort by the first real HH:MM in display strings such as "約 12:15～13:30".
+        filtered = sortItineraryChronologically(filtered);
         
         filtered.forEach(i => {
             let mapBtn = i.map ? `<a href="${i.map}" target="_blank" class="map-tag" style="background:#03C75A; color:white;"><i class="fa-solid fa-map-location-dot"></i> 一鍵導航</a>` : '';
