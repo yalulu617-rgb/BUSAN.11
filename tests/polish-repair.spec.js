@@ -142,6 +142,46 @@ for (const viewport of [
 
     await page.locator('#tab-itinerary').click();
     await page.waitForSelector('#itinerary.active');
+    const itineraryModeButtons = page.locator('#btnItiSun, #btnItiRain');
+    await expect(itineraryModeButtons).toHaveCount(2);
+    await expect(page.locator('#btnItiSun')).toBeVisible();
+    await expect(page.locator('#btnItiRain')).toBeVisible();
+    await assertTouchTargets('#btnItiSun, #btnItiRain');
+
+    const modeLayout = await page.evaluate(() => {
+      const sun = document.getElementById('btnItiSun');
+      const rain = document.getElementById('btnItiRain');
+      const sunBox = sun.getBoundingClientRect();
+      const rainBox = rain.getBoundingClientRect();
+      return {
+        overlap: !(sunBox.right <= rainBox.left || rainBox.right <= sunBox.left || sunBox.bottom <= rainBox.top || rainBox.bottom <= sunBox.top),
+        clipped: [sun, rain].some(button => button.scrollHeight > button.clientHeight || button.scrollWidth > button.clientWidth)
+      };
+    });
+    expect(modeLayout.overlap).toBe(false);
+    expect(modeLayout.clipped).toBe(false);
+
+    const sunnyDayOne = await page.locator('#itiContent').innerText();
+    await page.locator('#btnItiRain').click();
+    await expect(page.locator('#btnItiRain')).toHaveClass(/active/);
+    await expect(page.locator('#btnItiSun')).not.toHaveClass(/active/);
+    await expect(page.locator('#itiContent')).not.toHaveText(sunnyDayOne);
+    await page.locator('#btnItiSun').click();
+    await expect(page.locator('#btnItiSun')).toHaveClass(/active/);
+    await expect(page.locator('#btnItiRain')).not.toHaveClass(/active/);
+
+    await page.locator('#itinerary .day-tabs').first().locator('.day-tab').nth(2).click();
+    await page.locator('#btnItiRain').click();
+    await expect(page.locator('#itiContent')).toContainText('11/15 雨天應變備案');
+    await page.locator('#btnItiSun').click();
+
+    await page.locator('#itinerary .day-tabs').first().locator('.day-tab').nth(4).click();
+    const dayFiveTimes = await page.locator('#itiContent .iti-time').allTextContents();
+    const expectedDayFiveOrder = ['09:00～09:30', '09:30～10:40', '10:45～11:20', '11:20～11:30', '11:30', '約 12:15～13:30', '14:50', '16:30'];
+    const expectedIndexes = expectedDayFiveOrder.map(time => dayFiveTimes.indexOf(time));
+    expect(expectedIndexes.every(index => index >= 0)).toBe(true);
+    expect(expectedIndexes).toEqual([...expectedIndexes].sort((a, b) => a - b));
+
     await assertTouchTargets('#itinerary .map-tag');
     await assertNoPageOverflow();
 
