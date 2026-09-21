@@ -195,7 +195,7 @@ test.describe('BATCH 3 - Canonical / Personal Separation', () => {
       if (!tc || !tc.itinerary) return 0;
       return Object.values(tc.itinerary).reduce((s, a) => s + a.length, 0);
     });
-    expect(count).toBe(43);
+    expect(count).toBe(45);
   });
 
   test('Custom Firebase source remains separate from canonical and merged display data', async ({ page }) => {
@@ -213,9 +213,9 @@ test.describe('BATCH 3 - Canonical / Personal Separation', () => {
         hasAllCanonical: (window.RECOMMENDED_ITINERARY || []).every(item => merged.some(row => row.key === item.key))
       };
     });
-    expect(counts.canonical).toBe(43);
+    expect(counts.canonical).toBe(45);
     expect(counts.custom).toBe(17);
-    expect(counts.merged).toBeGreaterThanOrEqual(43);
+    expect(counts.merged).toBeGreaterThanOrEqual(45);
     expect(counts.hasAllCanonical).toBe(true);
   });
 
@@ -231,7 +231,7 @@ test.describe('BATCH 3 - Canonical / Personal Separation', () => {
         (iti['11/17'] || []).length
       ];
     });
-    expect(dayCounts).toEqual([5, 11, 11, 9, 7]);
+    expect(dayCounts).toEqual([6, 12, 11, 9, 7]);
   });
 
 

@@ -23,12 +23,12 @@
     }));
   } else {
     target.RECOMMENDED_FOOD = [
-      { id: 'rf1', category: '極厚熟成豬五花', name: '味讚王鹽烤肉（西面店）', desc: '超人氣 3.5cm 極厚熟成豬五花，店員專人代烤至外酥內嫩。', map: 'https://map.naver.com/p/entry/place/11571731' },
-      { id: 'rf2', category: '炭火鰻魚飯三吃', name: '海木炭火鰻魚飯（海雲台店）', desc: '米其林必比登推薦奢華炭火鰻魚重。', map: 'https://map.naver.com/p/entry/place/11571731' },
-      { id: 'rf3', category: '汗蒸幕經典點心', name: '新世界 Spa Land 汗蒸幕', desc: '五星級汗蒸幕必吃經典組合：冰甜米釀配煙燻烤蛋。', map: 'https://map.naver.com/p/entry/place/13479633' },
-      { id: 'rf4', category: '牛排/鮑魚韓式釜飯', name: 'Solsot 韓式釜飯（慶州店）', desc: '皇理團路人氣韓屋釜飯名店，高湯悶出香濃鍋巴湯。', map: 'https://map.naver.com/p/entry/place/11571731' },
-      { id: 'rf5', category: '元氣傳統蔘雞湯', name: '東萊蔘雞湯（西面店）', desc: '鮮嫩童子雞塞滿糯米、人蔘與紅棗熬成濃郁高湯。', map: 'https://map.naver.com/p/entry/place/13491807' },
-      { id: 'rf6', category: '炭烤扇貝與海鮮拉麵', name: '青沙浦平交道烤貝', desc: '膠囊列車青沙浦站下車即達，邊看燈塔海景邊享用新鮮扇貝。', map: '' }
+      { id: 'rf1', category: 'Day 2 午餐', name: 'Suminine（수민이네）', desc: '青沙浦烤貝與海鮮拉麵。', map: 'https://map.naver.com/p/search/%EC%88%98%EB%AF%BC%EC%9D%B4%EB%84%A4' },
+      { id: 'rf2', category: 'Day 3 午餐', name: '水鏡舍（수경사）', desc: '慶州固定午餐。', map: 'https://map.naver.com/p/search/%EC%88%98%EA%B2%BD%EC%82%AC%20%EA%B2%BD%EC%A3%BC' },
+      { id: 'rf3', category: 'Day 3 晚餐', name: 'Park Yongja Gyeongju Myeongdong Jjolmyeon', desc: '東宮與月池前的固定晚餐。', map: 'https://map.naver.com/p/search/%EB%B0%95%EC%9A%A9%EC%9E%90%20%EA%B2%BD%EC%A3%BC%EB%AA%85%EB%8F%99%EC%AB%84%EB%A9%B4' },
+      { id: 'rf4', category: 'Day 4 晚餐 MAIN', name: 'Tonshou Nampo', desc: '南浦固定主方案。', map: 'https://map.naver.com/p/search/%ED%86%A4%EC%87%BC%EC%9A%B0%20%EB%82%A8%ED%8F%AC' },
+      { id: 'rf5', category: 'Day 4 晚餐 PLAN B', name: '南浦蔘雞湯', desc: 'Tonshou 候位或營業狀況不適合時採用。', map: 'https://map.naver.com/p/search/%EB%82%A8%ED%8F%AC%EB%8F%99%20%EC%82%BC%EA%B3%84%ED%83%95' },
+      { id: 'rf6', category: 'Day 5 早餐', name: 'Your Type Jeonpo', desc: '離釜前早餐。', map: 'https://map.naver.com/p/search/Your%20Type%20Jeonpo' }
     ];
   }
 
@@ -68,8 +68,6 @@
       { type: '🏪 GS25', name: 'GS25 凡內谷中央店', dist: 80, rate: 4.1, status: '24小時營業', naver: 'https://map.naver.com/p/entry/place/15560944', kakao: 'https://map.kakao.com/?id=8116261', google: 'https://maps.app.goo.gl/gs_beom' },
       { type: '💄 Olive Young', name: 'Olive Young 西面中央店', dist: 780, rate: 4.6, status: '10:00 - 22:30', naver: 'https://map.naver.com/p/entry/place/1057416399', kakao: 'https://map.kakao.com/?id=24785465', google: 'https://maps.app.goo.gl/oy_seom' },
       { type: '🏬 Daiso', name: '大創 Daiso 西面店', dist: 850, rate: 4.4, status: '10:00 - 22:00', naver: 'https://map.naver.com/p/entry/place/36735520', kakao: 'https://map.kakao.com/?id=26848030', google: 'https://maps.app.goo.gl/daiso_seom' },
-      { type: '🍜 美食', name: '味讚王鹽烤肉 西面店', dist: 950, rate: 4.8, status: '11:30 - 23:00', naver: 'https://map.naver.com/p/entry/place/11571731', kakao: 'https://map.kakao.com/?id=7937320', google: 'https://maps.app.goo.gl/chan_seom' },
-      { type: '🍜 美食', name: '海木炭火鰻魚飯 海雲台店', dist: 4500, rate: 4.8, status: '11:00 - 22:00', naver: 'https://map.naver.com/p/entry/place/11571731', kakao: 'https://map.kakao.com/?id=7937320', google: 'https://maps.app.goo.gl/haemok' },
       { type: '☕ 咖啡', name: 'Compose Coffee 凡內谷店', dist: 150, rate: 4.3, status: '08:00 - 21:00', naver: 'https://map.naver.com/p/entry/place/13479633', kakao: 'https://map.kakao.com/?id=21160752', google: 'https://maps.app.goo.gl/compose_beom' },
       { type: '💊 藥局', name: '凡內谷中央藥局', dist: 140, rate: 4.0, status: '09:00 - 21:00', naver: 'https://map.naver.com/p/entry/place/13491807', kakao: 'https://map.kakao.com/?id=8116260', google: 'https://maps.app.goo.gl/ph_beom' },
       { type: '🏪 ATM', name: '釜山銀行 ATM (地鐵站內)', dist: 110, rate: 4.0, status: '24小時營業', naver: 'https://map.naver.com/p/entry/place/11571617', kakao: 'https://map.kakao.com/?id=7874945', google: 'https://maps.app.goo.gl/atm_beom' },
@@ -81,7 +79,6 @@
       { type: '🏪 GS25', name: 'GS25 慶州大陵店', dist: 200, rate: 4.2, status: '24小時營業', naver: 'https://map.naver.com/p/entry/place/15560944', kakao: 'https://map.kakao.com/?id=8116261', google: 'https://maps.app.goo.gl/gs_gj' },
       { type: '💄 Olive Young', name: 'Olive Young 慶州皇吾店', dist: 850, rate: 4.5, status: '10:00 - 22:00', naver: 'https://map.naver.com/p/entry/place/1057416399', kakao: 'https://map.kakao.com/?id=24785465', google: 'https://maps.app.goo.gl/oy_gj' },
       { type: '🏬 Daiso', name: '大創 Daiso 慶州店', dist: 980, rate: 4.3, status: '10:00 - 22:00', naver: 'https://map.naver.com/p/entry/place/36735520', kakao: 'https://map.kakao.com/?id=26848030', google: 'https://maps.app.goo.gl/daiso_gj' },
-      { type: '🍜 美食', name: 'Solsot 釜飯 慶州店', dist: 180, rate: 4.7, status: '11:30 - 21:00', naver: 'https://map.naver.com/p/entry/place/11571731', kakao: 'https://map.kakao.com/?id=7937320', google: 'https://maps.app.goo.gl/rice_gj' },
       { type: '🍜 美食', name: '慶州十元麵包 (皇理團路)', dist: 200, rate: 4.6, status: '10:00 - 21:00', naver: 'https://map.naver.com/p/entry/place/13491414', kakao: 'https://map.kakao.com/?id=7940176', google: 'https://maps.app.goo.gl/10won_gj' },
       { type: '☕ 咖啡', name: '星巴克 慶州大陵苑店', dist: 350, rate: 4.5, status: '08:00 - 22:00', naver: 'https://map.naver.com/p/entry/place/13479633', kakao: 'https://map.kakao.com/?id=21160752', google: 'https://maps.app.goo.gl/star_gj' },
       { type: '💊 藥局', name: '慶州中央藥局', dist: 650, rate: 4.1, status: '09:00 - 22:00', naver: 'https://map.naver.com/p/entry/place/13491807', kakao: 'https://map.kakao.com/?id=8116260', google: 'https://maps.app.goo.gl/ph_gj' },
@@ -103,7 +100,9 @@
         time: item.time,
         desc: item.title + (item.desc ? ' - ' + item.desc : ''),
         tr: item.tr || '🚶 步行',
-        map: item.map || ''
+        map: item.map || '',
+        route: item.route || '',
+        destinationKr: item.destinationKr || ''
       });
     });
   });

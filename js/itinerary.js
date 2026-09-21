@@ -30,7 +30,8 @@
             const staleArrivalTime = time === '16:30' || time === '17:30';
             const claimsPusArrival = /(抵達|到達|arrival)/i.test(text) && /(金海|PUS)/i.test(text);
             const mislabelsHotel = /(西面站飯店|西面飯店)/i.test(text);
-            return (staleArrivalTime && claimsPusArrival) || mislabelsHotel;
+            const staleDay1Dinner = /(Matchandeul|맛찬들|味讚王)/i.test(text);
+            return (staleArrivalTime && claimsPusArrival) || mislabelsHotel || staleDay1Dinner;
         }
         if (item?.day === '11/16') {
             const claimsHaemok = /(Haemok|해목|海木)/i.test(text);
@@ -47,7 +48,8 @@
             const claimsGwangalli = /(廣安里|Gwangalli|광안리)/i.test(text);
             const claimsDrone = /(無人機|drone)/i.test(text);
             const claimsFireworks = /(煙火|fireworks?)/i.test(text);
-            return claimsGwangalli && claimsDrone && claimsFireworks;
+            const staleScenticaBranch = /SCENTICA Jeonpo/i.test(text);
+            return (claimsGwangalli && claimsDrone && claimsFireworks) || staleScenticaBranch;
         }
         if (item?.day === '11/15') {
             const staleDay3Stop = /(Solsot|솔솥|Byeolchaeban|별채반|Bulguksa|불국사|Beomeosa|범어사)/i.test(text);
@@ -234,9 +236,6 @@
                     } else if (prop.title.includes('Footbath') || prop.title.includes('足浴') || prop.title.includes('View 2')) {
                         mapUrl = 'https://map.naver.com/p/search/%EC%A1%B1%EC%9A%95%EC%B9%B4%ED%8E%98%EB%B7%B02%ED%98%B8%EC%A0%90';
                         taxiPhrase = '기사님, 영도 흰여울마을 족욕카페뷰 2호점으로 가주세요.';
-                    } else if (prop.title.includes('海木') || prop.title.includes('鰻魚')) {
-                        mapUrl = 'https://map.naver.com/p/entry/place/11571731';
-                        taxiPhrase = '기사님, 해운대 해목 장어덮밥집으로 가주세요.';
                     }
 
 
@@ -292,7 +291,7 @@
                     <div class="v45-rain-banner fade-scale-in">
                         <div style="font-size:0.95rem; font-weight:900;"><i class="fa-solid fa-umbrella"></i> ${currentDay} 氣候備案提示</div>
                         <p style="font-size:0.8rem; margin:6px 0 0 0; line-height:1.5;">
-                            本日（${currentDay === '11/13' ? 'Day 1 機場抵達 / 西面商圈' : 'Day 5 樂天超市 / 機場賦歸'}）主要在室內地鐵站、商場或交通樞紐進行，天候影響極低，請依原定手帳行程安心漫遊！
+                            本日（${currentDay === '11/13' ? 'Day 1 抵達／西面街頭小吃／條件式 E-Mart Munhyeon' : 'Day 5 早餐／E-Mart Munhyeon／飯店取行李／機場'}）以室內、短程步行與交通移動為主，請依雨勢與體力彈性調整。
                         </p>
                     </div>
                 `;
@@ -310,16 +309,30 @@
         filtered = sortItineraryChronologically(filtered);
         
         filtered.forEach(i => {
-            let mapBtn = i.map ? `<a href="${i.map}" target="_blank" class="map-tag" style="background:#03C75A; color:white;"><i class="fa-solid fa-map-location-dot"></i> 一鍵導航</a>` : '';
+            const mapLinks = typeof getMapLinks === 'function' ? getMapLinks(i.destinationKr || i.desc) : {};
+            const naverUrl = i.map || mapLinks.naver || '';
+            const transportMaps = `
+                ${naverUrl ? `<a href="${naverUrl}" target="_blank" class="map-tag" style="background:#03C75A; color:white;"><i class="fa-solid fa-location-arrow"></i> NAVER</a>` : ''}
+                ${mapLinks.kakao ? `<a href="${mapLinks.kakao}" target="_blank" class="map-tag" style="background:#FEE500; color:#3C1E1E;"><i class="fa-solid fa-route"></i> Kakao</a>` : ''}
+                ${mapLinks.google ? `<a href="${mapLinks.google}" target="_blank" class="map-tag" style="background:#4285F4; color:white;"><i class="fa-solid fa-map"></i> Google</a>` : ''}
+            `;
+            const transportDetail = i.route ? `
+                <details class="iti-transport-detail" style="margin-top:7px; max-width:100%; overflow:hidden;">
+                    <summary style="cursor:pointer; font-weight:900; font-size:0.76rem; color:var(--primary); padding:7px 9px; border:1px solid var(--border-color); border-radius:10px; background:rgba(0,0,0,0.02);">🚇 怎麼去</summary>
+                    <div style="padding:8px 4px 2px; font-size:0.74rem; line-height:1.55; color:var(--text-color); overflow-wrap:anywhere;">
+                        <div>${i.route}</div>
+                        ${i.destinationKr ? `<div style="margin-top:4px; color:#6b7280;">🇰🇷 ${i.destinationKr}</div>` : ''}
+                        <div class="iti-map-actions" style="display:flex; gap:5px; flex-wrap:wrap; margin-top:7px; max-width:100%;">${transportMaps}</div>
+                    </div>
+                </details>
+            ` : `<div class="iti-map-actions" style="display:flex; gap:5px; flex-wrap:wrap; margin-top:5px; max-width:100%;">${transportMaps}</div>`;
             list.innerHTML += `
-                <div class="iti-row fade-scale-in" style="position:relative;">
+                <div class="iti-row fade-scale-in" style="position:relative; min-width:0; overflow:hidden;">
                     <div class="iti-time">${i.time}</div>
-                    <div class="iti-desc">
+                    <div class="iti-desc" style="min-width:0; overflow-wrap:anywhere;">
                         <span style="font-weight:900; color:var(--text-color);">${i.desc}</span><br>
                         <span class="traffic-tag"><i class="fa-solid fa-car-side"></i> 交通: ${i.tr || '步行'}</span>
-                        <div style="display:flex; gap:6px; margin-top:4px;">
-                            ${mapBtn}
-                        </div>
+                        ${transportDetail}
                     </div>
                     <div class="iti-row-actions" style="display:${String(i.key || '').startsWith('rec_') ? 'none' : 'flex'}; gap:4px; flex-shrink:0;">
                         <button class="btn-edit" aria-label="編輯行程" onclick="editItinerary('${i.key}')" style="background:#f39c12; color:white; border:none; border-radius:6px; padding:2px 6px; font-size:0.65rem; cursor:pointer;"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>

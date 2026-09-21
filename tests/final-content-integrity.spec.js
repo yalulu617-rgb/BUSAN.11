@@ -16,7 +16,7 @@ function loadContent() {
 }
 
 function text(items) {
-  return items.map(item => `${item.time} ${item.title} ${item.desc} ${item.tr}`).join('\n');
+  return items.map(item => `${item.time} ${item.title} ${item.desc} ${item.tr} ${item.route || ''} ${item.destinationKr || ''}`).join('\n');
 }
 
 test.describe('Final content integrity', () => {
@@ -41,11 +41,17 @@ test.describe('Final content integrity', () => {
     expect(day1Text).toContain('凡內谷站 6 號出口');
     expect(day1Text).not.toContain('西面飯店');
     expect(day1Text).not.toContain('西面站飯店');
-    expect(day1Text).toContain('Matchandeul Wang Sogeum Gui Seomyeon');
-    expect(day1Text).toContain('依抵達時間與體力選擇');
+    expect(day1Text).toContain('西面街頭小吃／逛街');
+    expect(day1Text).toContain('E-Mart Munhyeon（이마트 문현점）');
+    expect(day1Text).toContain('若延誤或疲累就直接略過');
+    expect(day1Text).not.toMatch(/Matchandeul|맛찬들/);
 
     expect(day2Text.indexOf('OPS Haeundae')).toBeLessThan(day2Text.indexOf('尾浦（Mipo）'));
     expect(day2Text).toContain('31 Jungdong 1-ro');
+    expect(day2Text).toContain('🍂 秋色加點');
+    expect(day2Text).toContain('楓況良好且 Sky Capsule 報到前有充足緩衝才啟用');
+    expect(day2Text).toContain('計程車上坡');
+    expect(day2Text).toContain('20～30 分鐘下坡');
     expect(day2Text).toContain('尾浦（Mipo）➔ 青沙浦（Cheongsapo）');
     expect(day2Text).toContain('尚未預訂');
     expect(day2Text).toContain('Suminine');
@@ -73,6 +79,7 @@ test.describe('Final content integrity', () => {
     expect(day3Text).toContain('雞林');
     expect(day3Text).toContain('月精橋');
     expect(day3Text).toContain('約 2～2.5 小時');
+    expect(day3Text).toContain('慢郵筒／寄給未來自己的明信片');
     expect(day3Text).toContain('Hwangnamppang Main Store');
     expect(day3Text).toContain('Park Yongja Gyeongju Myeongdong Jjolmyeon');
     expect(day3Text).toContain('東宮與月池（Donggung & Wolji）');
@@ -91,7 +98,7 @@ test.describe('Final content integrity', () => {
     expect(day4Text).not.toMatch(/Haemok|해목|海木/);
 
     expect(day5Text).toContain('Your Type Jeonpo');
-    expect(day5Text).toContain('E-Mart');
+    expect(day5Text).toContain('E-Mart Munhyeon（이마트 문현점）');
     expect(day5Text).toContain('取行李、完成退房');
     expect(day5Text).toContain('最晚退房時間為 12:00');
     expect(day5Text).toContain('約 11:05 Urban Groove Hotel ➔ 金海機場 (PUS)');
@@ -115,7 +122,6 @@ test.describe('Final content integrity', () => {
     const { TRAVEL_CONTENT_V45: content } = loadContent();
     const foodText = content.food.map(item => `${item.name} ${item.category} ${item.desc}`).join('\n');
     const required = [
-      'Matchandeul Wang Sogeum Gui Seomyeon',
       'Suminine',
       '韓式外送炸雞 ✕ 炸醬麵飯店宵夜',
       'Gwangalli Eonyang Bulgogi Busanjip',
@@ -130,6 +136,7 @@ test.describe('Final content integrity', () => {
     for (const name of required) expect(foodText).toContain(name);
     expect(foodText).toContain('備選晚餐');
     expect(foodText).toContain('規劃體驗，並非已預訂');
+    expect(foodText).not.toMatch(/Matchandeul|맛찬들/);
     expect(foodText).not.toContain('Solsot');
     expect(foodText).not.toContain('Byeolchaeban');
     expect(foodText).not.toContain('Haemok');
@@ -144,5 +151,20 @@ test.describe('Final content integrity', () => {
       expect(item.map, item.title || item.name).toMatch(/^https:\/\/map\.naver\.com\/p\/search\//);
       expect(item.map, item.title || item.name).not.toContain('/entry/place/');
     }
+  });
+
+  test('transport, nearby-life and WOWPASS truth states match the final addendum', () => {
+    const { TRAVEL_CONTENT_V45: content, SMART_NEARBY_DATABASE: nearby } = loadContent();
+    const canonical = Object.values(content.itinerary).flat();
+    const routed = canonical.filter(item => item.route);
+    expect(routed.length).toBeGreaterThanOrEqual(20);
+    expect(routed.every(item => item.route.includes('➔'))).toBe(true);
+    expect(canonical.map(item => `${item.title} ${item.desc} ${item.route || ''}`).join('\n')).toContain('Urban Groove Hotel／凡內谷站 6 號出口');
+    expect(content.transport.zimcarry).toBeUndefined();
+    expect(content.wowpass.steps[0].desc).toContain('10 月再次確認');
+    expect(content.wowpass.steps[0].desc).not.toContain('西面站機台');
+
+    const activeNearby = Object.values(nearby).flat().map(item => `${item.type} ${item.name}`).join('\n');
+    expect(activeNearby).not.toMatch(/Matchandeul|맛찬들|Haemok|해목|海木|Solsot|솔솥|Byeolchaeban|별채반/);
   });
 });

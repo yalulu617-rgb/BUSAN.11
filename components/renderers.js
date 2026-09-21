@@ -767,9 +767,7 @@ window.renderSmartNearby = function() {
     
     const cityId = ctx.currentCity.id || 'Busan';
     
-    fetchSmartNearbyPlaces(cityId).then(places => {
-        list.innerHTML = '';
-        places.forEach(p => {
+    const renderPlace = p => {
             let googleBtn = p.google ? `<a href="${p.google}" target="_blank" class="v38-mini-btn" style="background:#4285F4; color:white; border:none; text-decoration:none;"><i class="fa-solid fa-map"></i> Google</a>` : '';
             let naverBtn = p.naver ? `<a href="${p.naver}" target="_blank" class="v38-mini-btn" style="background:#03C75A; color:white; border:none; text-decoration:none;"><i class="fa-solid fa-location-arrow"></i> NAVER</a>` : '';
             let kakaoBtn = p.kakao ? `<a href="${p.kakao}" target="_blank" class="v38-mini-btn" style="background:#FEE500; color:#3C1E1E; border:none; text-decoration:none;"><i class="fa-solid fa-route"></i> Kakao</a>` : '';
@@ -792,21 +790,60 @@ window.renderSmartNearby = function() {
                 displayTitle = typeStr || nameStr;
             }
 
-            list.innerHTML += `
-                <div style="background:rgba(0,0,0,0.02); padding:10px; border-radius:12px; border:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            return `
+                <div class="nearby-life-place" style="background:rgba(0,0,0,0.02); padding:10px; border-radius:12px; border:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; min-width:0;">
                     ${ItemImages.render(p.image, p.name)}
-                    <div>
+                    <div style="min-width:0; flex:1 1 150px; overflow-wrap:anywhere;">
                         <span style="font-weight:900; font-size:0.85rem; color:var(--text-color);">${displayTitle}</span>
                         <div style="font-size:0.7rem; color:#7f8c8d; margin-top:2px;">
-                            ${p.address ? `📍 ${p.address}` : `📍 距離：${p.dist}m | 評分：⭐${p.rate}`}
+                            ${p.address ? `📍 ${p.address}` : `📍 距離：${p.dist}m | 評分：⭐${p.rate}`}${p.status ? `<br>🕒 ${p.status}` : ''}
                         </div>
                     </div>
-                    <div style="display:flex; gap:4px; align-items:center;">
+                    <div style="display:flex; gap:4px; align-items:center; flex-wrap:wrap; max-width:100%;">
                         ${naverBtn} ${kakaoBtn} ${googleBtn}
                     </div>
                 </div>
             `;
-        });
+    };
+
+    fetchSmartNearbyPlaces(cityId).then(places => {
+        const staleActive = /(Matchandeul|맛찬들|Haemok|해목|海木|Solsot|솔솥|Byeolchaeban|별채반|Pohang Dwaeji Gukbap|포항돼지국밥)/i;
+        const safePlaces = places.filter(p => !staleActive.test(`${p.type || ''} ${p.name || ''}`));
+        const conveniencePlaces = safePlaces.filter(p => /(?:CU|GS25)/i.test(`${p.type || ''} ${p.name || ''}`));
+        const otherPlaces = safePlaces.filter(p => !conveniencePlaces.includes(p));
+        const emartMaps = getMapLinks('이마트 문현점');
+        const mapAction = (url, label, bg, color = 'white') => url
+            ? `<a href="${url}" target="_blank" class="v38-mini-btn" style="background:${bg}; color:${color}; border:none; text-decoration:none;">${label}</a>`
+            : '';
+
+        const supermarketHtml = cityId === 'Busan' ? `
+            <section class="nearby-life-section" aria-labelledby="nearby-supermarket-title" style="background:#fff8f1; border:1px solid #f5d6b3; border-radius:14px; padding:12px; overflow:hidden;">
+                <h4 id="nearby-supermarket-title" style="margin:0 0 6px; font-size:0.92rem; color:var(--text-color);">🍇 晚間水果／超市</h4>
+                <div style="font-weight:900; font-size:0.86rem;">E-Mart Munhyeon｜이마트 문현점</div>
+                <div style="font-size:0.72rem; line-height:1.5; color:#6b7280; margin-top:4px; overflow-wrap:anywhere;">
+                    以 Urban Groove Hotel／凡內谷站 6 號出口為生活錨點。Day 1 僅在時間與體力允許時採買水果、飲料、零食與初次補貨；Day 5 於 Your Type 早餐後完成最後補貨。
+                </div>
+                <div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px; max-width:100%;">
+                    ${mapAction(emartMaps.naver, 'NAVER', '#03C75A')}
+                    ${mapAction(emartMaps.kakao, 'Kakao', '#FEE500', '#3C1E1E')}
+                    ${mapAction(emartMaps.google, 'Google', '#4285F4')}
+                </div>
+            </section>
+        ` : '';
+
+        list.innerHTML = supermarketHtml + `
+            <section class="nearby-life-section" aria-labelledby="nearby-convenience-title" style="display:flex; flex-direction:column; gap:8px; min-width:0;">
+                <div>
+                    <h4 id="nearby-convenience-title" style="margin:0; font-size:0.92rem; color:var(--text-color);">🏪 便利商店</h4>
+                    <div style="font-size:0.7rem; color:#7f8c8d; margin-top:2px;">Urban Groove／凡內谷站 6 號出口周邊的小額急需、深夜備援、飲水與零食。</div>
+                </div>
+                ${conveniencePlaces.map(renderPlace).join('') || '<div style="font-size:0.75rem; color:#7f8c8d;">目前沒有已驗證的便利商店資料。</div>'}
+            </section>
+            <section class="nearby-life-section" aria-labelledby="nearby-other-title" style="display:flex; flex-direction:column; gap:8px; min-width:0;">
+                <h4 id="nearby-other-title" style="margin:0; font-size:0.92rem; color:var(--text-color);">🧭 其他周邊生活據點</h4>
+                ${otherPlaces.map(renderPlace).join('')}
+            </section>
+        `;
     }).catch(err => {
         list.innerHTML = '<p style="text-align:center; color:#e74c3c; font-size:0.8rem; font-weight:900;">加載雷達失敗</p>';
     });

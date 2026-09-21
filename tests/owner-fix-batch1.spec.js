@@ -10,11 +10,13 @@ test.describe('Owner Fix Batch 1 targeted repair', () => {
       const custom = [
         { key: 'legacy-out-1630', day: '11/13', time: '16:30', desc: '抵達金海機場舊時間', tr: '入境' },
         { key: 'legacy-out-1730', day: '11/13', time: '17:30', desc: 'BX572 抵達金海機場舊時間', tr: '入境' },
+        { key: 'stale-day1-matchandeul', day: '11/13', time: '19:30', desc: '【晚餐】味讚王鹽烤肉', tr: '步行' },
         { key: 'legacy-back', day: '11/17', time: '16:30', desc: 'KE2085 自金海機場起飛舊時間', tr: '登機' },
         { key: 'note-out', day: '11/13', time: '12:00', desc: 'BX572 座位 12A，記得選靠窗', tr: '個人提醒' },
         { key: 'note-back', day: '11/17', time: '11:00', desc: 'KE2085 託運 23kg', tr: '個人提醒' },
         { key: 'custom-1', day: '11/14', time: '08:00', desc: 'Luna custom stop', tr: '步行' },
         { key: 'stale-day2-fireworks', day: '11/14', time: '19:30', desc: '廣安里 M 無人機煙火秀', tr: '步行' },
+        { key: 'stale-day2-scentica', day: '11/14', time: '17:00', desc: 'SCENTICA Jeonpo', tr: '步行' },
         { key: 'day2-personal', day: '11/14', time: '21:30', desc: '回飯店整理戰利品', tr: '步行' },
         { key: 'stale-day3-solsot', day: '11/15', time: '12:00', desc: '【午餐】Solsot 釜飯', tr: '步行' },
         { key: 'day3-personal', day: '11/15', time: '15:30', desc: '皇理團路買伴手禮', tr: '步行' },
@@ -52,13 +54,13 @@ test.describe('Owner Fix Batch 1 targeted repair', () => {
         after: (window.v37SimulatedDate = '11/20', window.hasSelectedItineraryDay = false, window.getItineraryDisplayDay())
       };
     });
-    expect(result.canonicalCount).toBe(43);
-    expect(result.customCount).toBe(14);
-    expect(result.mergedCount).toBe(50);
-    expect(result.dayCounts).toEqual([5, 11, 11, 9, 7]);
+    expect(result.canonicalCount).toBe(45);
+    expect(result.customCount).toBe(16);
+    expect(result.mergedCount).toBe(52);
+    expect(result.dayCounts).toEqual([6, 12, 11, 9, 7]);
     expect(result.customKeys).toEqual([
-      'legacy-out-1630', 'legacy-out-1730', 'legacy-back', 'note-out', 'note-back', 'custom-1',
-      'stale-day2-fireworks', 'day2-personal', 'stale-day3-solsot', 'day3-personal',
+      'legacy-out-1630', 'legacy-out-1730', 'stale-day1-matchandeul', 'legacy-back', 'note-out', 'note-back', 'custom-1',
+      'stale-day2-fireworks', 'stale-day2-scentica', 'day2-personal', 'stale-day3-solsot', 'day3-personal',
       'stale-day4-haemok', 'day4-personal', 'stale-day5-zimcarry', 'day5-personal'
     ]);
     expect(result.hasLegitimateCustom).toBe(true);
@@ -67,7 +69,9 @@ test.describe('Owner Fix Batch 1 targeted repair', () => {
     expect(result.day1.join('\n')).toContain('12:00 BX572 座位 12A，記得選靠窗');
     expect(result.day1.join('\n')).not.toContain('16:30 抵達金海機場舊時間');
     expect(result.day1.join('\n')).not.toContain('17:30 BX572');
+    expect(result.day1.join('\n')).not.toContain('味讚王');
     expect(result.day2.join('\n')).not.toContain('19:30 廣安里 M 無人機煙火秀');
+    expect(result.day2.join('\n')).not.toContain('SCENTICA Jeonpo');
     expect(result.day2.join('\n')).toContain('21:30 回飯店整理戰利品');
     expect(result.day3.join('\n')).not.toContain('12:00 【午餐】Solsot 釜飯');
     expect(result.day3.join('\n')).toContain('15:30 皇理團路買伴手禮');
@@ -79,15 +83,15 @@ test.describe('Owner Fix Batch 1 targeted repair', () => {
     expect(result.day5.join('\n')).toContain('11:00 KE2085 託運 23kg');
     expect(result.day5.join('\n')).toContain('10:15 確認護照放在隨身包');
     expect(result.day5.join('\n')).not.toContain('10:00 Zimcarry 寄行李去機場');
-    expect(result.day5.join('\n')).toContain('約 08:30 Urban Groove Hotel ➔ Your Type Jeonpo 早餐');
+    expect(result.day5.join('\n')).toContain('08:45 出發／09:00～09:50 Urban Groove Hotel ➔ Your Type Jeonpo（유어타입 전포）早餐');
     expect(result.day5.join('\n')).toContain('約 11:05 Urban Groove Hotel ➔ 金海機場 (PUS)');
     expect(result.day5.join('\n')).toContain('14:50 KE2085 自金海機場起飛');
     expect(result.day5.join('\n')).toContain('16:30 KE2085 抵達桃園機場');
     expect(result.day5.join('\n')).not.toContain('16:30 KE2085 自金海機場起飛');
     expect(result.renderedCanonicalTimes['11/17']).toEqual([
-      '約 08:30',
-      '約 09:30',
-      '約 10:40',
+      '08:45 出發／09:00～09:50',
+      '10:00～10:40',
+      '10:40～11:05',
       '約 11:05',
       '約 11:30～11:45',
       '14:50',

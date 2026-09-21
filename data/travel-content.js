@@ -82,8 +82,8 @@
     "steps": [
       {
         "step": 1,
-        "name": "機台申辦 (Issue)",
-        "desc": "西面站機台點選繁體中文，掃描護照並存入台幣千元鈔完成發卡。"
+        "name": "出發前／出發前後取得規劃",
+        "desc": "目前規劃於出發前或出發前後取得 WOWPASS；最新購買與領取方式將於 10 月再次確認，不把西面站機台申辦當成固定流程。"
       },
       {
         "step": 2,
@@ -344,10 +344,6 @@
     ]
   },
   "transport": {
-    "zimcarry": {
-      "name": "Zimcarry 行李托運（本次行程不使用）",
-      "desc": "本次行程不使用 Zimcarry 或任何行李配送；Day 5 由 Urban Groove Hotel 取行李後直接搭計程車前往金海機場。"
-    },
     "kakaoT": {
       "name": "Kakao T 叫車攻略",
       "desc": "綁定海外信用卡或選擇「General Taxi」現場刷 WOWPASS；長輩同行或跨海大橋首選。"
@@ -374,7 +370,9 @@
         "time": "17:00 後",
         "title": "PUS 抵達 ✕ 入境、行李與連線設定",
         "desc": "抵達後依序完成入境審查、領取行李與網路／連線設定，再前往 Urban Groove Hotel。",
-        "tr": "🚇 輕軌+地鐵 / 🚕 計程車",
+        "tr": "🚕 有行李建議計程車",
+        "route": "PUS ➔ Urban Groove Hotel｜有大行李時以計程車為主。",
+        "destinationKr": "어반그루브호텔 부산",
         "map": "https://map.naver.com/p/search/%EA%B9%80%ED%95%B4%EA%B5%AD%EC%A0%9C%EA%B3%B5%ED%95%AD"
       },
       {
@@ -386,17 +384,30 @@
       },
       {
         "time": "晚間",
-        "title": "晚餐：Matchandeul Wang Sogeum Gui Seomyeon（맛찬들왕소금구이 서면점）",
-        "desc": "第一晚主餐為 3.5cm 極厚熟成豬五花；由店員專人代烤至金黃酥脆，搭配生菜、醃芥末葉與烤泡菜。",
-        "tr": "🚶 步行",
-        "map": "https://map.naver.com/p/search/%EB%A7%9B%EC%B0%AC%EB%93%A4%EC%99%95%EC%86%8C%EA%B8%88%EA%B5%AC%EC%9D%B4%20%EC%84%9C%EB%A9%B4%EC%A0%90"
+        "title": "西面街頭小吃／逛街",
+        "desc": "Check-in 後前往西面，以街頭小吃、輕鬆逛街與隨興晚餐為主，不安排固定餐廳。",
+        "tr": "🚇 凡內谷 1 號線 ➔ 西面（1 站）",
+        "route": "Urban Groove Hotel／凡內谷站 6 號出口 ➔ 西面｜搭地鐵 1 號線往西面，僅 1 站。",
+        "destinationKr": "서면역",
+        "map": "https://map.naver.com/p/search/%EC%84%9C%EB%A9%B4%EC%97%AD"
       },
       {
-        "time": "晚餐後（可選）",
-        "title": "依抵達時間與體力選擇｜西面晚間活動",
-        "desc": "可逛西面商圈、辦理 WOWPASS 或到超商採買；若疲累或航班、入境延誤，則直接返回 Urban Groove Hotel 休息。",
-        "tr": "🚶 步行",
-        "map": "https://map.naver.com/p/search/%EC%84%9C%EB%A9%B4%EC%97%AD"
+        "time": "晚餐後（條件式）",
+        "title": "🍇 E-Mart Munhyeon（이마트 문현점）｜有餘力才去",
+        "desc": "第一晚補充水果、飲料與零食；僅在航班、入境時間與體力都允許時前往。若延誤或疲累就直接略過，不影響行程。",
+        "tr": "📍 依西面當下位置走最實用短路線",
+        "route": "西面 ➔ E-Mart Munhyeon｜依當下位置採用最實用短路線；不硬填未驗證分鐘數。",
+        "destinationKr": "이마트 문현점",
+        "map": "https://map.naver.com/p/search/%EC%9D%B4%EB%A7%88%ED%8A%B8%20%EB%AC%B8%ED%98%84%EC%A0%90"
+      },
+      {
+        "time": "採買後／可直接略過採買",
+        "title": "返回 Urban Groove Hotel",
+        "desc": "E-Mart Munhyeon 後步行或採用短程在地路線返回飯店；若略過採買，則由西面直接回飯店休息。",
+        "tr": "🚶 步行／短程在地路線",
+        "route": "E-Mart Munhyeon ➔ Urban Groove Hotel／凡內谷站 6 號出口｜依現場採步行或短程在地路線。",
+        "destinationKr": "어반그루브호텔 부산",
+        "map": "https://map.naver.com/p/search/Urban%20Groove%20Hotel%20%EB%B6%80%EC%82%B0"
       }
     ],
     "11/14": [
@@ -404,7 +415,9 @@
         "time": "約 09:00",
         "title": "Urban Groove Hotel ➔ 海雲台",
         "desc": "由飯店前往海雲台，預留週六轉乘與步行緩衝。",
-        "tr": "🚇 地鐵 2 號線",
+        "tr": "🚇 凡內谷 L1 ➔ 西面轉 L2 ➔ 海雲台",
+        "route": "Urban Groove Hotel／凡內谷站 6 號出口 ➔ 海雲台｜凡內谷搭 1 號線至西面，轉 2 號線往海雲台方向。",
+        "destinationKr": "해운대역",
         "map": "https://map.naver.com/p/search/%ED%95%B4%EC%9A%B4%EB%8C%80"
       },
       {
@@ -415,10 +428,21 @@
         "map": "https://map.naver.com/p/search/OPS%20Haeundae%2031%20Jungdong%201-ro"
       },
       {
+        "time": "約 10:20（條件式｜楓況好＋時間足夠才去）",
+        "title": "🍂 秋色加點｜Dalmaji／Haewoljeong 上段短程下坡散步",
+        "desc": "只有楓況良好且 Sky Capsule 報到前有充足緩衝才啟用：OPS 後搭計程車上坡至 Dalmaji／Haewoljeong 上段，再安排約 20～30 分鐘下坡秋色散步前往尾浦。不得影響依預訂時段／待確認的 Sky Capsule 報到。",
+        "tr": "🚕 上坡計程車＋🚶 約 20～30 分鐘下坡",
+        "route": "OPS ➔ Dalmaji／Haewoljeong 上段 ➔ Mipo｜只搭計程車上坡，再往尾浦方向短程下坡；不從尾浦步行上坡。",
+        "destinationKr": "해월정",
+        "map": "https://map.naver.com/p/search/%ED%95%B4%EC%9B%94%EC%A0%95"
+      },
+      {
         "time": "約 10:35",
         "title": "OPS Haeundae ➔ 尾浦（Mipo）",
-        "desc": "由海雲台前往尾浦搭乘區，依實際預訂時段完成報到。",
+        "desc": "未啟用秋色加點時由 OPS 直接前往尾浦；依實際預訂時段／待確認的時段完成報到。",
         "tr": "🚶 步行 / 🚕 計程車",
+        "route": "OPS Haeundae ➔ Mipo｜未啟用 Dalmaji 條件行程時，依報到緩衝選擇步行或計程車。",
+        "destinationKr": "미포정거장",
         "map": "https://map.naver.com/p/search/%ED%95%B4%EC%9A%B4%EB%8C%80%EB%B8%94%EB%A3%A8%EB%9D%BC%EC%9D%B8%ED%8C%8C%ED%81%AC%20%EB%AF%B8%ED%8F%AC%EC%A0%95%EA%B1%B0%EC%9E%A5"
       },
       {
@@ -426,6 +450,8 @@
         "title": "Sky Capsule：尾浦（Mipo）➔ 青沙浦（Cheongsapo）",
         "desc": "行駛於高架軌道上的彩色復古車廂；目前尚未預訂，須於出發前完成購票並確認實際登車時段。",
         "tr": "🚡 膠囊列車",
+        "route": "Mipo ➔ Cheongsapo｜Sky Capsule；確切時間依實際訂妥時段，目前待確認。",
+        "destinationKr": "청사포정거장",
         "map": "https://map.naver.com/p/search/%ED%95%B4%EC%9A%B4%EB%8C%80%EB%B8%94%EB%A3%A8%EB%9D%BC%EC%9D%B8%ED%8C%8C%ED%81%AC%20%EB%AF%B8%ED%8F%AC%EC%A0%95%EA%B1%B0%EC%9E%A5"
       },
       {
@@ -440,6 +466,8 @@
         "title": "新世界百貨 Spa Land 五星級汗蒸幕",
         "desc": "由青沙浦搭 Kakao T／計程車前往 Centum City；約 14:30～17:15／17:30 體驗溫泉、汗蒸幕、羊角毛巾、甜米釀與烤蛋。",
         "tr": "🚕 Kakao T / 計程車",
+        "route": "Suminine／Cheongsapo ➔ Spa Land（Centum City）｜建議計程車。",
+        "destinationKr": "스파랜드 신세계백화점 센텀시티점",
         "map": "https://map.naver.com/p/search/%EC%8A%A4%ED%8C%8C%EB%9E%9C%EB%93%9C%20%EC%8B%A0%EC%84%B8%EA%B3%84%EB%B0%B1%ED%99%94%EC%A0%90%20%EC%84%BC%ED%85%80%EC%8B%9C%ED%8B%B0%EC%A0%90"
       },
       {
@@ -447,6 +475,8 @@
         "title": "SCENTICA Gwangan（센티카 광안）",
         "desc": "Spa Land 後直接前往 SCENTICA Gwangan，地址 부산 수영구 광안로 25，再順路前往廣安里；不繞行田浦分店。",
         "tr": "🚇 地鐵 / 🚕 計程車",
+        "route": "Spa Land／Centum City ➔ SCENTICA Gwangan｜Centum City 搭 2 號線至 Gwangan，再步行前往。",
+        "destinationKr": "센티카 광안",
         "map": "https://map.naver.com/p/search/%EC%84%BC%ED%8B%B0%EC%B9%B4%20%EA%B4%91%EC%95%88"
       },
       {
@@ -454,6 +484,8 @@
         "title": "廣安里（Gwangalli）海景散步",
         "desc": "由 SCENTICA Gwangan 前往廣安里海水浴場，欣賞廣安大橋夜景並確認當晚官方活動資訊。",
         "tr": "🚶 步行 / 🚕 計程車",
+        "route": "SCENTICA Gwangan ➔ Gwangalli｜步行前往；累時可搭短程計程車。",
+        "destinationKr": "광안리해수욕장",
         "map": "https://map.naver.com/p/search/%EA%B4%91%EC%95%88%EB%A6%AC%ED%95%B4%EC%88%98%EC%9A%95%EC%9E%A5"
       },
       {
@@ -466,8 +498,10 @@
       {
         "time": "活動後",
         "title": "返回 Urban Groove Hotel",
-        "desc": "Drone Show 行程結束後返回飯店，依散場人流與週六交通彈性調整。",
-        "tr": "🚕 Kakao T / 計程車",
+        "desc": "Drone Show 行程結束後返回飯店，依散場人流與週六交通彈性調整；疲累時直接搭計程車。",
+        "tr": "🚇 Gwangan L2 ➔ 西面轉 L1 ➔ 凡內谷／🚕",
+        "route": "Gwangalli ➔ Urban Groove Hotel／凡內谷站 6 號出口｜Gwangan 搭 2 號線至西面，轉 1 號線至凡內谷；疲累時改搭計程車。",
+        "destinationKr": "어반그루브호텔 부산",
         "map": "https://map.naver.com/p/search/Urban%20Groove%20Hotel%20%EB%B6%80%EC%82%B0"
       },
       {
@@ -481,9 +515,11 @@
     "11/15": [
       {
         "time": "約 09:00（依實際交通）",
-        "title": "釜山 ➔ 慶州",
-        "desc": "依實際訂妥的 KTX／交通前往慶州；目前不硬填尚未預訂的車次或班次。抵達後轉乘前往午餐。",
+        "title": "Urban Groove Hotel ➔ Busan Station ➔ Gyeongju",
+        "desc": "由凡內谷搭地鐵 1 號線直達 Busan Station，再依實際訂妥的 KTX 前往慶州；目前不硬填尚未預訂的車次或班次。抵達後搭計程車前往水鏡舍。",
         "tr": "🚄 KTX 規劃 + 🚕 計程車",
+        "route": "Urban Groove Hotel／凡內谷站 6 號出口 ➔ Busan Station：1 號線直達；Busan ➔ Gyeongju：KTX 待實際訂票；Gyeongju Station ➔ 水鏡舍：建議計程車。",
+        "destinationKr": "경주역",
         "map": "https://map.naver.com/p/search/%EB%B6%80%EC%82%B0%EC%97%AD"
       },
       {
@@ -531,7 +567,7 @@
       {
         "time": "約 16:15～18:40",
         "title": "皇理團路（Hwangnidan-gil）散步與購物",
-        "desc": "保留約 2～2.5 小時逛街、咖啡與拍照；並依租借店位置安排最晚 18:50 前歸還 Klook 一日韓服。",
+        "desc": "保留約 2～2.5 小時慢慢逛：小物、伴手禮、麵包／零食、街拍、慢郵筒／寄給未來自己的明信片與自由購物；不指定未驗證店名。依租借店位置安排最晚 18:50 前歸還 Klook 一日韓服。",
         "tr": "🚶 步行",
         "map": "https://map.naver.com/p/search/%ED%99%A9%EB%A6%AC%EB%8B%A8%EA%B8%B8"
       },
@@ -547,6 +583,8 @@
         "title": "Park Yongja Gyeongju Myeongdong Jjolmyeon",
         "desc": "東宮與月池前的固定晚餐，享用朴容子慶州明洞辣拌麵。",
         "tr": "🚶 步行 / 🚕 計程車",
+        "route": "Hwangnamppang Main Store ➔ Park Yongja Jjolmyeon：以市區步行為主；晚餐後若時間緊，搭計程車前往 Donggung & Wolji。",
+        "destinationKr": "박용자경주명동쫄면",
         "map": "https://map.naver.com/p/search/%EB%B0%95%EC%9A%A9%EC%9E%90%20%EA%B2%BD%EC%A3%BC%EB%AA%85%EB%8F%99%EC%AB%84%EB%A9%B4"
       },
       {
@@ -554,6 +592,8 @@
         "title": "東宮與月池（Donggung & Wolji）夜景",
         "desc": "以東宮與月池夜景收尾，之後依實際訂妥的 KTX／交通返回釜山，不硬填未預訂車次。",
         "tr": "🚶 步行 + 🚕 計程車 + 🚄 KTX",
+        "route": "Donggung & Wolji ➔ Gyeongju Station：計程車；Gyeongju ➔ Busan：依實際訂妥 KTX；Busan Station ➔ 凡內谷：1 號線直達。",
+        "destinationKr": "동궁과 월지",
         "map": "https://map.naver.com/p/search/%EB%8F%99%EA%B6%81%EA%B3%BC%20%EC%9B%94%EC%A7%80"
       }
     ],
@@ -561,8 +601,10 @@
       {
         "time": "約 09:30",
         "title": "Urban Groove Hotel ➔ 松島",
-        "desc": "由飯店前往松島海上纜車搭乘處。",
-        "tr": "🚇 地鐵 + 🚕 計程車",
+        "desc": "由飯店前往松島海上纜車搭乘處；有行程時間壓力時建議直接搭計程車。",
+        "tr": "🚕 建議計程車／🚇 1 號線至南浦再接在地交通",
+        "route": "Urban Groove Hotel／凡內谷站 6 號出口 ➔ Songdo｜建議計程車；大眾運輸備案為凡內谷搭 1 號線至 Nampo，再接在地交通。",
+        "destinationKr": "송도해상케이블카",
         "map": "https://map.naver.com/p/search/%EC%86%A1%EB%8F%84%ED%95%B4%EC%83%81%EC%BC%80%EC%9D%B4%EB%B8%94%EC%B9%B4"
       },
       {
@@ -570,6 +612,8 @@
         "title": "Songdo Marine Cable Car｜Crystal Cruise 來回票",
         "desc": "搭乘透明水晶車廂往返松島灣；票券為 Crystal Cruise round trip（來回），不是單程票。",
         "tr": "🚕 計程車 + 🚡 水晶纜車",
+        "route": "Songdo Bay side ➔ Crystal Cruise ROUND TRIP ➔ 返回 Songdo Bay side，再繼續後續行程。",
+        "destinationKr": "송도해상케이블카",
         "map": "https://map.naver.com/p/search/%EC%86%A1%EB%8F%84%ED%95%B4%EC%83%81%EC%BC%80%EC%9D%B4%EB%B8%94%EC%B9%B4"
       },
       {
@@ -577,13 +621,17 @@
         "title": "Huinnyeoul／白淺灘文化村區域",
         "desc": "Songdo 後前往 Huinnyeoul／White Pebble Culture Village，從村內巷道散步並避開封閉的海岸步道。",
         "tr": "🚌 公車 / 🚕 計程車",
+        "route": "Songdo Bay side ➔ Huinnyeoul｜建議計程車。",
+        "destinationKr": "흰여울문화마을",
         "map": "https://map.naver.com/p/search/%ED%9D%B0%EC%97%AC%EC%9A%B8%EB%AC%B8%ED%99%94%EB%A7%88%EC%9D%84"
       },
       {
         "time": "約 13:00",
         "title": "午餐：Huinnyeoul Jeomppang（흰여울점빵）",
         "desc": "在 121 Huinnyeoul-gil 的既定午餐站享用海景鋁鍋拉麵與韓式吐司。",
-        "tr": "🚌 公車 / 🚕 計程車",
+        "tr": "🚶 白淺灘區域內步行",
+        "route": "Huinnyeoul 村內 ➔ Huinnyeoul Jeomppang｜區域內步行。",
+        "destinationKr": "흰여울점빵",
         "map": "https://map.naver.com/p/search/%ED%9D%B0%EC%97%AC%EC%9A%B8%EC%A0%90%EB%B9%B5"
       },
       {
@@ -591,6 +639,8 @@
         "title": "Footbath Cafe View 2（족욕카페뷰 2호점）",
         "desc": "Huinnyeoul 與午餐後前往 2 號店，安排海景精油足浴與休息。",
         "tr": "🚶 步行",
+        "route": "Huinnyeoul／午餐 ➔ Footbath Cafe View 2｜區域內步行。",
+        "destinationKr": "족욕카페뷰 2호점",
         "map": "https://map.naver.com/p/search/%EC%A1%B1%EC%9A%95%EC%B9%B4%ED%8E%98%EB%B7%B0%202%ED%98%B8%EC%A0%90"
       },
       {
@@ -598,6 +648,8 @@
         "title": "南浦晚餐｜MAIN：Tonshou Nampo",
         "desc": "主方案為 Tonshou Nampo；若候位或營業狀況不適合，PLAN B 改吃南浦蔘雞湯。全程留在南浦，不跨城前往海雲台。",
         "tr": "🚕 計程車 / 🚶 步行",
+        "route": "Footbath Cafe View 2 ➔ Tonshou Nampo｜建議計程車；抵達南浦後以步行串聯晚餐、B&C 與購物。",
+        "destinationKr": "톤쇼우 남포점",
         "map": "https://map.naver.com/p/search/%ED%86%A4%EC%87%BC%EC%9A%B0%20%EB%82%A8%ED%8F%AC"
       },
       {
@@ -619,36 +671,46 @@
         "title": "地鐵 1 號線返回凡內谷／Urban Groove Hotel",
         "desc": "由南浦搭地鐵 1 號線往凡內谷站方向，返回 Urban Groove Hotel。",
         "tr": "🚇 地鐵 1 號線",
+        "route": "Nampo ➔ Urban Groove Hotel／凡內谷站 6 號出口｜搭 1 號線直達凡內谷。",
+        "destinationKr": "범내골역",
         "map": "https://map.naver.com/p/search/%EB%B2%94%EB%82%B4%EA%B3%A8%EC%97%AD"
       }
     ],
     "11/17": [
       {
-        "time": "約 08:30",
-        "title": "Urban Groove Hotel ➔ Your Type Jeonpo 早餐",
+        "time": "08:45 出發／09:00～09:50",
+        "title": "Urban Groove Hotel ➔ Your Type Jeonpo（유어타입 전포）早餐",
         "desc": "行李已於前一晚完成整理；Day 5 正式早餐安排 Your Type Jeonpo，不以豬肉湯飯取代。",
         "tr": "🚶 步行",
+        "route": "Urban Groove Hotel／凡內谷站 6 號出口 ➔ Your Type Jeonpo｜步行。",
+        "destinationKr": "유어타입 전포",
         "map": "https://map.naver.com/p/search/Your%20Type%20Jeonpo"
       },
       {
-        "time": "約 09:30",
-        "title": "Your Type ➔ E-Mart 最後採買",
-        "desc": "早餐後直接前往 E-Mart 完成最後一次超市購物，不再插入額外西面購物迴圈。",
+        "time": "10:00～10:40",
+        "title": "Your Type ➔ E-Mart Munhyeon（이마트 문현점）最後採買",
+        "desc": "早餐後直接前往 E-Mart Munhyeon 完成最後補貨，不再插入額外西面購物迴圈。",
         "tr": "🚶 步行",
-        "map": "https://map.naver.com/p/search/%EC%9D%B4%EB%A7%88%ED%8A%B8%20%EB%B6%80%EC%82%B0"
+        "route": "Your Type Jeonpo ➔ E-Mart Munhyeon｜步行或短程在地路線。",
+        "destinationKr": "이마트 문현점",
+        "map": "https://map.naver.com/p/search/%EC%9D%B4%EB%A7%88%ED%8A%B8%20%EB%AC%B8%ED%98%84%EC%A0%90"
       },
       {
-        "time": "約 10:40",
+        "time": "10:40～11:05",
         "title": "返回 Urban Groove Hotel ✕ 取行李、完成退房",
-        "desc": "E-Mart 後返回飯店領取行李並完成 checkout；官方最晚退房時間為 12:00，本行程會安全提前完成。",
+        "desc": "10:40～10:55 由 E-Mart Munhyeon 返回飯店，10:55～11:05 領取行李、最後房間確認並完成 checkout；官方最晚退房時間為 12:00，本行程刻意提早離開。",
         "tr": "🚶 步行",
+        "route": "E-Mart Munhyeon ➔ Urban Groove Hotel／凡內谷站 6 號出口｜步行。",
+        "destinationKr": "어반그루브호텔 부산",
         "map": "https://map.naver.com/p/search/Urban%20Groove%20Hotel%20%EB%B6%80%EC%82%B0"
       },
       {
         "time": "約 11:05",
         "title": "Urban Groove Hotel ➔ 金海機場 (PUS)",
-        "desc": "由 Urban Groove Hotel 搭計程車直達金海國際機場；本次不使用任何行李配送。",
+        "desc": "約 11:05 由 Urban Groove Hotel 搭計程車直達金海國際機場，不增加帶行李的地鐵轉乘。",
         "tr": "🚕 計程車直達",
+        "route": "Urban Groove Hotel／凡內谷站 6 號出口 ➔ PUS｜攜帶行李直接搭計程車。",
+        "destinationKr": "김해국제공항",
         "map": "https://map.naver.com/p/search/%EA%B9%80%ED%95%B4%EA%B5%AD%EC%A0%9C%EA%B3%B5%ED%95%AD"
       },
       {
@@ -746,14 +808,6 @@
     ]
   },
   "food": [
-    {
-      "id": "cf1",
-      "name": "Matchandeul Wang Sogeum Gui Seomyeon（맛찬들왕소금구이 서면점）",
-      "category": "Day 1 主餐｜極厚熟成豬五花",
-      "sop": "1. 鹽巴原味 ➔ 2. 醃芥末葉＋特調醬 ➔ 3. 烤泡菜＋生菜包肉",
-      "desc": "第一晚安排的厚切熟成豬五花，由店員代烤後搭配蔬菜與醬料享用。",
-      "map": "https://map.naver.com/p/search/%EB%A7%9B%EC%B0%AC%EB%93%A4%EC%99%95%EC%86%8C%EA%B8%88%EA%B5%AC%EC%9D%B4%20%EC%84%9C%EB%A9%B4%EC%A0%90"
-    },
     {
       "id": "cf2",
       "name": "Suminine（수민이네）",
