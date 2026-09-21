@@ -29,19 +29,19 @@
         if (item?.day === '11/13') {
             const staleArrivalTime = time === '16:30' || time === '17:30';
             const claimsPusArrival = /(抵達|到達|arrival)/i.test(text) && /(金海|PUS)/i.test(text);
-            return staleArrivalTime && claimsPusArrival;
+            const mislabelsHotel = /(西面站飯店|西面飯店)/i.test(text);
+            return (staleArrivalTime && claimsPusArrival) || mislabelsHotel;
         }
         if (item?.day === '11/16') {
-            const staleHaemokTime = time === '18:30';
             const claimsHaemok = /(Haemok|해목|海木)/i.test(text);
-            return staleHaemokTime && claimsHaemok;
+            return claimsHaemok;
         }
         if (item?.day === '11/17') {
             const staleDepartureTime = time === '16:30';
             const explicitFlightDeparture = /(登機|起飛|boarding)/i.test(text)
                 || (/(出發|departure)/i.test(text) && /(KE2085|金海|PUS)/i.test(text));
-            const staleZimcarryDelivery = time === '10:00' && /(Zimcarry|짐캐리)/i.test(text);
-            return (staleDepartureTime && explicitFlightDeparture) || staleZimcarryDelivery;
+            const staleLastDayPlan = /(Zimcarry|짐캐리|Pohang Dwaeji Gukbap|포항돼지국밥|浦項豬肉湯飯|行李暫寄飯店|西面商圈最後)/i.test(text);
+            return (staleDepartureTime && explicitFlightDeparture) || staleLastDayPlan;
         }
         if (item?.day === '11/14') {
             const claimsGwangalli = /(廣安里|Gwangalli|광안리)/i.test(text);
@@ -50,9 +50,8 @@
             return claimsGwangalli && claimsDrone && claimsFireworks;
         }
         if (item?.day === '11/15') {
-            const staleLunchTime = time === '12:00';
-            const claimsSolsot = /(Solsot|솔솥)/i.test(text);
-            return staleLunchTime && claimsSolsot;
+            const staleDay3Stop = /(Solsot|솔솥|Byeolchaeban|별채반|Bulguksa|불국사|Beomeosa|범어사)/i.test(text);
+            return staleDay3Stop;
         }
         return false;
     };

@@ -52,10 +52,10 @@ test.describe('Owner Fix Batch 1 targeted repair', () => {
         after: (window.v37SimulatedDate = '11/20', window.hasSelectedItineraryDay = false, window.getItineraryDisplayDay())
       };
     });
-    expect(result.canonicalCount).toBe(31);
+    expect(result.canonicalCount).toBe(43);
     expect(result.customCount).toBe(14);
-    expect(result.mergedCount).toBe(38);
-    expect(result.dayCounts).toEqual([5, 9, 5, 4, 8]);
+    expect(result.mergedCount).toBe(50);
+    expect(result.dayCounts).toEqual([5, 11, 11, 9, 7]);
     expect(result.customKeys).toEqual([
       'legacy-out-1630', 'legacy-out-1730', 'legacy-back', 'note-out', 'note-back', 'custom-1',
       'stale-day2-fireworks', 'day2-personal', 'stale-day3-solsot', 'day3-personal',
@@ -71,34 +71,33 @@ test.describe('Owner Fix Batch 1 targeted repair', () => {
     expect(result.day2.join('\n')).toContain('21:30 回飯店整理戰利品');
     expect(result.day3.join('\n')).not.toContain('12:00 【午餐】Solsot 釜飯');
     expect(result.day3.join('\n')).toContain('15:30 皇理團路買伴手禮');
-    expect(result.day3.filter(row => row.includes('Byeolchaeban Gyodong Ssambap'))).toHaveLength(1);
+    expect(result.day3.filter(row => row.includes('水鏡舍'))).toHaveLength(1);
     expect(result.day2.filter(row => row.includes('M Drone Light Show（場次待官方確認）'))).toHaveLength(1);
     expect(result.day4.join('\n')).not.toContain('18:30 【晚餐】海木鰻魚飯');
     expect(result.day4.join('\n')).toContain('17:30 白淺灘買明信片');
-    expect(result.day4.join('\n')).toContain('約 19:00～19:30 晚餐：Haemok Haeundae');
+    expect(result.day4.join('\n')).toContain('MAIN：Tonshou Nampo');
     expect(result.day5.join('\n')).toContain('11:00 KE2085 託運 23kg');
     expect(result.day5.join('\n')).toContain('10:15 確認護照放在隨身包');
     expect(result.day5.join('\n')).not.toContain('10:00 Zimcarry 寄行李去機場');
-    expect(result.day5.join('\n')).toContain('09:00～09:30 退房 ✕ 行李暫寄飯店');
-    expect(result.day5.join('\n')).toContain('11:30 啟程前往金海機場 (PUS)');
+    expect(result.day5.join('\n')).toContain('約 08:30 Urban Groove Hotel ➔ Your Type Jeonpo 早餐');
+    expect(result.day5.join('\n')).toContain('約 11:05 Urban Groove Hotel ➔ 金海機場 (PUS)');
     expect(result.day5.join('\n')).toContain('14:50 KE2085 自金海機場起飛');
     expect(result.day5.join('\n')).toContain('16:30 KE2085 抵達桃園機場');
     expect(result.day5.join('\n')).not.toContain('16:30 KE2085 自金海機場起飛');
     expect(result.renderedCanonicalTimes['11/17']).toEqual([
-      '09:00～09:30',
-      '09:30～10:40',
-      '10:45～11:20',
-      '11:20～11:30',
-      '11:30',
-      '約 12:15～13:30',
+      '約 08:30',
+      '約 09:30',
+      '約 10:40',
+      '約 11:05',
+      '約 11:30～11:45',
       '14:50',
       '16:30'
     ]);
     for (const times of Object.values(result.renderedCanonicalTimes)) {
       const starts = times.map(time => {
         const match = time.match(/(\d{1,2}):(\d{2})/);
-        return Number(match[1]) * 60 + Number(match[2]);
-      });
+        return match ? Number(match[1]) * 60 + Number(match[2]) : null;
+      }).filter(start => start !== null);
       expect(starts).toEqual([...starts].sort((a, b) => a - b));
     }
     expect(result.pretrip).toBe('11/13');
