@@ -265,7 +265,7 @@ test.describe('BATCH 3 - Canonical / Personal Separation', () => {
     const d4Titles = (rain.day4?.proposals || []).map(p => p.title).join(' ');
     expect(d4Titles).toContain('ARTE MUSEUM BUSAN');
     expect(d4Titles).toContain('Footbath Cafe View 2');
-    expect(d4Titles).toContain('海木');
+    expect(d4Titles).toContain('南浦晚餐與室內購物');
     expect(d4Titles).not.toContain('Running Man');
   });
 });
