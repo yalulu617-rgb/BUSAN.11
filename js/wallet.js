@@ -48,6 +48,153 @@ window.deleteTicket = async function (key) {
     }
 };
 
+// ── Coupon CRUD + offline-capable Code 128 rendering ─────────────────────
+const CODE128_PATTERNS = [
+    '212222','222122','222221','121223','121322','131222','122213','122312','132212','221213','221312','231212',
+    '112232','122132','122231','113222','123122','123221','223211','221132','221231','213212','223112','312131',
+    '311222','321122','321221','312212','322112','322211','212123','212321','232121','111323','131123','131321',
+    '112313','132113','132311','211313','231113','231311','112133','112331','132131','113123','113321','133121',
+    '313121','211331','231131','213113','213311','213131','311123','311321','331121','312113','312311','332111',
+    '314111','221411','431111','111224','111422','121124','121421','141122','141221','112214','112412','122114',
+    '122411','142112','142211','241211','221114','413111','241112','134111','111242','121142','121241','114212',
+    '124112','124211','411212','421112','421211','212141','214121','412121','111143','111341','131141','114113',
+    '114311','411113','411311','113141','114131','311141','411131','211412','211214','211232','2331112'
+];
+
+function walletEscape(value) {
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    })[ch]);
+}
+
+window.renderCode128Svg = function(value) {
+    const text = String(value || '').trim();
+    if (!text || !/^[\x20-\x7E]+$/.test(text)) return '';
+    const codes = [104];
+    for (const ch of text) codes.push(ch.charCodeAt(0) - 32);
+    let checksum = 104;
+    for (let i = 1; i < codes.length; i += 1) checksum += codes[i] * i;
+    codes.push(checksum % 103, 106);
+    const moduleWidth = 2;
+    const quiet = 10;
+    let x = quiet;
+    let bars = '';
+    codes.forEach(code => {
+        const pattern = CODE128_PATTERNS[code];
+        if (!pattern) return;
+        let black = true;
+        for (const digit of pattern) {
+            const width = Number(digit) * moduleWidth;
+            if (black) bars += `<rect x="${x}" y="0" width="${width}" height="64" fill="#000"/>`;
+            x += width;
+            black = !black;
+        }
+    });
+    const totalWidth = x + quiet;
+    return `<svg class="coupon-barcode" role="img" aria-label="Code 128 條碼 ${walletEscape(text)}" viewBox="0 0 ${totalWidth} 64" preserveAspectRatio="none">${bars}</svg>`;
+};
+
+function resetCouponForm() {
+    for (const id of ['couponEditKey','couponTitle','couponDesc','couponCode','couponExpiry','couponLink','tempCouponImg']) {
+        const el = document.getElementById(id); if (el) el.value = '';
+    }
+    const save = document.getElementById('saveCouponBtn');
+    if (save) save.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> 儲存優惠券';
+    const cancel = document.getElementById('cancelCouponEditBtn'); if (cancel) cancel.style.display = 'none';
+    const status = document.getElementById('couponUploadStatus'); if (status) status.textContent = '';
+}
+window.cancelCouponEdit = resetCouponForm;
+
+window.saveCoupon = async function() {
+    const editKey = document.getElementById('couponEditKey')?.value || '';
+    const title = document.getElementById('couponTitle')?.value.trim();
+    if (!title) { showToast('請填入優惠券或會員卡名稱', 'warning'); return; }
+    const code = document.getElementById('couponCode')?.value.trim() || '';
+    if (code && !/^[\x20-\x7E]+$/.test(code)) {
+        showToast('條碼僅支援 ASCII 字元；可改用上傳圖片保存其他格式', 'warning');
+        return;
+    }
+    const payload = {
+        title,
+        desc: document.getElementById('couponDesc')?.value.trim() || '',
+        code,
+        expiry: document.getElementById('couponExpiry')?.value || '',
+        link: document.getElementById('couponLink')?.value.trim() || '',
+        image: document.getElementById('tempCouponImg')?.value || '',
+        updatedAt: Date.now()
+    };
+    try {
+        if (editKey) await NetworkEngine.firebaseUpdate(`${DB_COUPONS}/${editKey}`, payload);
+        else await NetworkEngine.firebasePush(DB_COUPONS, { ...payload, ts: Date.now() });
+    } catch (e) {
+        console.error('[Wallet] saveCoupon failed:', e);
+        showToast('優惠券儲存失敗', 'error');
+        return;
+    }
+    resetCouponForm();
+    showToast(editKey ? '✅ 優惠券已更新' : '✅ 優惠券已新增', 'success');
+};
+
+window.editCoupon = function(key) {
+    const item = (window.couponData || []).find(row => row.key === key);
+    if (!item) return;
+    document.getElementById('couponEditKey').value = key;
+    document.getElementById('couponTitle').value = item.title || '';
+    document.getElementById('couponDesc').value = item.desc || '';
+    document.getElementById('couponCode').value = item.code || '';
+    document.getElementById('couponExpiry').value = item.expiry || '';
+    document.getElementById('couponLink').value = item.link || '';
+    document.getElementById('tempCouponImg').value = item.image || '';
+    const save = document.getElementById('saveCouponBtn');
+    if (save) save.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> 儲存修改';
+    const cancel = document.getElementById('cancelCouponEditBtn'); if (cancel) cancel.style.display = 'inline-flex';
+    const status = document.getElementById('couponUploadStatus');
+    if (status) status.textContent = item.image ? '保留目前圖片；上傳新圖即可替換' : '';
+    document.getElementById('couponForm')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+
+window.deleteCoupon = async function(key) {
+    if (!confirm('確認刪除此優惠券／會員卡？')) return;
+    try { await NetworkEngine.firebaseRemove(`${DB_COUPONS}/${key}`); }
+    catch (e) { console.error('[Wallet] deleteCoupon failed:', e); showToast('刪除優惠券失敗', 'error'); }
+};
+
+window.renderCoupons = function() {
+    const list = document.getElementById('couponList');
+    if (!list) return;
+    const items = window.couponData || [];
+    if (items.length === 0) {
+        list.innerHTML = `
+            <div class="wallet-empty-state" role="status">
+                <div class="wallet-empty-icon"><i class="fa-solid fa-ticket"></i></div>
+                <div>尚未新增優惠券或會員卡</div>
+                <div class="wallet-empty-sub">新增真實條碼號碼或圖片後才會顯示，不建立假資料。</div>
+            </div>`;
+        return;
+    }
+    list.innerHTML = items.map(item => {
+        const barcode = item.code ? window.renderCode128Svg(item.code) : '';
+        const image = item.image ? `<img class="coupon-image" src="${walletEscape(item.image)}" alt="${walletEscape(item.title)} 優惠券圖片" loading="lazy">` : '';
+        const link = item.link ? `<a class="map-tag" target="_blank" rel="noopener noreferrer" href="${walletEscape(item.link)}"><i class="fa-solid fa-arrow-up-right-from-square"></i> 官方連結</a>` : '';
+        return `
+            <article class="coupon-card">
+                <div class="coupon-card-head">
+                    <div><span class="owner-source-badge customized">我的優惠</span><h4>${walletEscape(item.title)}</h4></div>
+                    <div class="owner-row-actions">
+                        <button class="btn-edit" aria-label="編輯優惠券" onclick="editCoupon('${item.key}')"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn-delete" aria-label="刪除優惠券" onclick="deleteCoupon('${item.key}')"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+                ${image}
+                ${item.desc ? `<p>${walletEscape(item.desc)}</p>` : ''}
+                ${item.expiry ? `<div class="coupon-expiry">有效期限：${walletEscape(item.expiry)}</div>` : ''}
+                ${barcode}
+                ${item.code ? `<div class="coupon-code-text">${walletEscape(item.code)}</div>` : ''}
+                ${link}
+            </article>`;
+    }).join('');
+};
+
 // ── Hotel CRUD ─────────────────────────────────────────────────────────────
 // editHotel: populate a form modal and let user save changes back to Firebase
 window.editHotel = function () {
@@ -351,6 +498,8 @@ window.switchWalletTab = function(subtab) {
     } else if (subtab === 'doc') {
         if (typeof renderImmigrationRules === 'function') renderImmigrationRules();
         if (typeof renderPrepList === 'function') renderPrepList();
+    } else if (subtab === 'coupon') {
+        if (typeof renderCoupons === 'function') renderCoupons();
     } else if (subtab === 'memory') {
         if (typeof renderMemoryAlbum === 'function') renderMemoryAlbum();
         triggerContextUpdate();

@@ -250,14 +250,19 @@ test.describe('Wallet (Ticket / Hotel / Docs / Coupon / Memory)', () => {
     await expect(page.locator('#walletDocSection')).toBeVisible();
   });
 
-  test('Coupon tab switches section', async ({ page }) => {
+  test('Coupon tab exposes owner CRUD without inventing coupon data', async ({ page }) => {
     await page.locator('#btnWalletCoupon').click();
     const couponSection = page.locator('#walletCouponSection');
     await expect(couponSection).toBeVisible();
-    await expect(couponSection).toContainText('尚未新增優惠券或會員卡');
-    await expect(couponSection).toContainText('無可顯示條碼');
+    await expect(page.locator('#couponTitle')).toBeVisible();
+    await expect(page.locator('#couponCode')).toBeVisible();
+    await expect(page.locator('#saveCouponBtn')).toBeVisible();
     await expect(couponSection).not.toContainText(/9081|8872|MEMBERSHIP BARCODE|DISCOUNT COUPON/);
-    await expect(couponSection.locator('img, svg, canvas')).toHaveCount(0);
+    const cards = couponSection.locator('.coupon-card');
+    if (await cards.count() === 0) {
+      await expect(couponSection).toContainText('尚未新增優惠券或會員卡');
+      await expect(couponSection.locator('.coupon-barcode')).toHaveCount(0);
+    }
   });
 
   test('Memory tab switches to memory section', async ({ page }) => {

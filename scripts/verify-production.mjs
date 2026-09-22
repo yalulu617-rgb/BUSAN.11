@@ -119,6 +119,47 @@ try {
       `✅ Home IA verified: ${highFrequencyCount} travel-use + ${managementCount} management entries`
     );
 
+    const ownerCapabilities = await page.evaluate(() => ({
+      editGuide: typeof window.editGuide === 'function',
+      editShop: typeof window.editShop === 'function',
+      openOwnerCustomize: typeof window.openOwnerCustomize === 'function',
+      saveCoupon: typeof window.saveCoupon === 'function',
+      editCoupon: typeof window.editCoupon === 'function',
+      renderCode128Svg: typeof window.renderCode128Svg === 'function',
+      editVoice: typeof window.editVoice === 'function',
+      speakKorean: typeof window.speakKorean === 'function',
+      savePrepItem: typeof window.savePrepItem === 'function',
+      editPrep: typeof window.editPrep === 'function',
+      canonicalFoodCount: (window.RECOMMENDED_FOOD || []).length,
+      canonicalShopCount: (window.RECOMMENDED_SHOPPING || []).length
+    }));
+    for (const [name, value] of Object.entries(ownerCapabilities)) {
+      if (name.endsWith('Count')) continue;
+      if (!value) throw new Error(`Missing Batch B owner capability: ${name}`);
+    }
+    if (ownerCapabilities.canonicalFoodCount < 6 || ownerCapabilities.canonicalShopCount < 9) {
+      throw new Error('Canonical recommendation datasets unexpectedly changed');
+    }
+
+    await page.evaluate(() => { window.showV37Tab('wallet'); window.switchWalletTab('coupon'); });
+    await page.locator('#walletCouponSection').waitFor({ state: 'visible', timeout: 5000 });
+    for (const selector of ['#couponTitle', '#couponCode', '#couponImgUpload', '#saveCouponBtn']) {
+      if (await page.locator(selector).count() !== 1) throw new Error(`Missing Coupon CRUD control: ${selector}`);
+    }
+
+    await page.evaluate(() => window.switchWalletTab('doc'));
+    await page.locator('#walletDocSection').waitFor({ state: 'visible', timeout: 5000 });
+    for (const selector of ['#prepProgressUI', '#prepText', '#prepCategory', '#savePrepBtn']) {
+      if (await page.locator(selector).count() !== 1) throw new Error(`Missing Packing List control: ${selector}`);
+    }
+
+    await page.evaluate(() => window.showV37Tab('more'));
+    await page.locator('#translationWorkspace').waitFor({ state: 'visible', timeout: 5000 });
+    for (const selector of ['#newCardTw', '#newCardKr', '#saveVoiceBtn']) {
+      if (await page.locator(selector).count() !== 1) throw new Error(`Missing Translation CRUD control: ${selector}`);
+    }
+    console.log('✅ Batch B owner-editable surfaces verified read-only');
+
   if (await page.locator('#deviceOwner').count() === 0) {
     throw new Error('Profile selector #deviceOwner not found in live DOM');
   }

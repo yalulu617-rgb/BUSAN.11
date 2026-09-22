@@ -81,225 +81,504 @@ window.filterGuideContent = function (tab) {
     if (typeof renderGuideContent === 'function') renderGuideContent();
 };
 
-// ── Shop CRUD (lives here — tightly coupled to renderShop) ────────────────
+// ── Owner customization layer (canonical stays read-only) ─────────────────
+const OWNER_CUSTOM_STORAGE_KEY = 'busan_v45_owner_customizations';
+
+function ownerEscape(value) {
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[ch]);
+}
+
+function getOwnerCustomizationRoot() {
+    const current = window.ownerCustomizations;
+    if (current && typeof current === 'object') return current;
+    const stored = StorageEngine.get(OWNER_CUSTOM_STORAGE_KEY, { food: {}, shop: {} });
+    window.ownerCustomizations = (stored?.success && stored.data && typeof stored.data === 'object')
+        ? stored.data
+        : { food: {}, shop: {} };
+    window.ownerCustomizations.food ||= {};
+    window.ownerCustomizations.shop ||= {};
+    return window.ownerCustomizations;
+}
+
+window.getOwnerCustomizedItem = function(kind, item) {
+    if (!item) return item;
+    const override = getOwnerCustomizationRoot()?.[kind]?.[item.id] || null;
+    if (!override) return { ...item, ownerCustomized: false };
+    const view = {
+        ...item,
+        ...(override.name ? { name: override.name } : {}),
+        ...(Object.prototype.hasOwnProperty.call(override, 'desc') ? { desc: override.desc } : {}),
+        ...(override.image ? { image: override.image } : {}),
+        ownerCustomized: true
+    };
+    return view;
+};
+
+async function persistOwnerCustomization(kind, id, patch) {
+    if (!['food', 'shop'].includes(kind) || !id) throw new Error('Invalid owner customization target');
+    const root = getOwnerCustomizationRoot();
+    root[kind] ||= {};
+    root[kind][id] = { ...(root[kind][id] || {}), ...patch, updatedAt: Date.now() };
+    window.ownerCustomizations = root;
+    StorageEngine.set(OWNER_CUSTOM_STORAGE_KEY, root);
+
+    const path = `${window.DB_OWNER_CUSTOM}/${kind}/${id}`;
+    try {
+        await NetworkEngine.firebaseWrite(path, root[kind][id]);
+    } catch (error) {
+        console.error('[OwnerCustom] save failed:', error);
+        if (typeof addToOfflineQueue === 'function') addToOfflineQueue('SET', path, root[kind][id]);
+        showToast('已先保存至本機，連線恢復後同步', 'info');
+    }
+}
+
+async function removeOwnerCustomization(kind, id) {
+    const root = getOwnerCustomizationRoot();
+    if (root?.[kind]) delete root[kind][id];
+    window.ownerCustomizations = root;
+    StorageEngine.set(OWNER_CUSTOM_STORAGE_KEY, root);
+    const path = `${window.DB_OWNER_CUSTOM}/${kind}/${id}`;
+    try {
+        await NetworkEngine.firebaseRemove(path);
+    } catch (error) {
+        console.error('[OwnerCustom] reset failed:', error);
+        if (typeof addToOfflineQueue === 'function') addToOfflineQueue('REMOVE', path);
+    }
+}
+
+function getCanonicalOwnerItem(kind, id) {
+    const source = kind === 'food' ? (window.RECOMMENDED_FOOD || []) : (window.RECOMMENDED_SHOPPING || []);
+    return source.find(item => item.id === id) || null;
+}
+
+window.openOwnerCustomize = function(kind, id) {
+    const canonical = getCanonicalOwnerItem(kind, id);
+    if (!canonical) return;
+    const view = window.getOwnerCustomizedItem(kind, canonical);
+    const modal = document.getElementById('ownerCustomizeModal');
+    document.getElementById('ownerCustomKind').value = kind;
+    document.getElementById('ownerCustomId').value = id;
+    document.getElementById('ownerCustomName').value = view.name || '';
+    document.getElementById('ownerCustomDesc').value = view.desc || '';
+    const image = view.image;
+    const imageUrl = typeof image === 'string' ? image : (image?.full || image?.thumb || '');
+    document.getElementById('tempOwnerCustomImg').value = imageUrl;
+    const status = document.getElementById('ownerCustomUploadStatus');
+    if (status) status.textContent = imageUrl ? '目前已有圖片，可直接換圖' : '目前沒有圖片';
+    const title = document.getElementById('ownerCustomizeTitle');
+    if (title) title.textContent = kind === 'food' ? '編輯我的美食版本' : '編輯我的購物推薦';
+    if (modal) modal.hidden = false;
+};
+
+window.closeOwnerCustomize = function() {
+    const modal = document.getElementById('ownerCustomizeModal');
+    if (modal) modal.hidden = true;
+};
+
+window.saveOwnerCustomizationFromModal = async function() {
+    const kind = document.getElementById('ownerCustomKind')?.value;
+    const id = document.getElementById('ownerCustomId')?.value;
+    const canonical = getCanonicalOwnerItem(kind, id);
+    if (!canonical) return;
+    const name = document.getElementById('ownerCustomName')?.value.trim();
+    const desc = document.getElementById('ownerCustomDesc')?.value.trim() || '';
+    const imageUrl = document.getElementById('tempOwnerCustomImg')?.value || '';
+    if (!name) { showToast('請填入顯示名稱', 'warning'); return; }
+    if (window.isOwnerHiddenTravelItem({ title: name, desc })) {
+        showToast('此名稱屬於已取消的舊行程資料，不能重新顯示', 'warning');
+        return;
+    }
+    const patch = { name, desc };
+    if (imageUrl) patch.image = { thumb: imageUrl, full: imageUrl, alt: name, owner: true };
+    await persistOwnerCustomization(kind, id, patch);
+    if (kind === 'food') renderRecommendedFood(); else renderRecommendedShopping();
+    closeOwnerCustomize();
+    showToast('✅ 已儲存我的版本，官方資料保持不變', 'success');
+};
+
+window.resetOwnerCustomizationFromModal = async function() {
+    const kind = document.getElementById('ownerCustomKind')?.value;
+    const id = document.getElementById('ownerCustomId')?.value;
+    if (!kind || !id) return;
+    await removeOwnerCustomization(kind, id);
+    if (kind === 'food') renderRecommendedFood(); else renderRecommendedShopping();
+    closeOwnerCustomize();
+    showToast('已還原官方推薦內容', 'info');
+};
+
+// ── Shop CRUD (owner-created list; canonical recommendations are overlays) ─
+window.cancelShopEdit = function() {
+    const keyEl = document.getElementById('shopEditKey');
+    const textEl = document.getElementById('newShop');
+    const whereEl = document.getElementById('shopWhere');
+    const photoEl = document.getElementById('tempShopPhoto');
+    if (keyEl) keyEl.value = '';
+    if (textEl) textEl.value = '';
+    if (whereEl) whereEl.value = '';
+    if (photoEl) photoEl.value = '';
+    const notice = document.getElementById('shopEditNotice');
+    if (notice) notice.hidden = true;
+    const cancel = document.getElementById('cancelShopEditBtn');
+    if (cancel) cancel.style.display = 'none';
+    const addBtn = document.getElementById('addShopItemBtn');
+    if (addBtn) { addBtn.setAttribute('aria-label', '新增購物項目'); addBtn.innerHTML = '<i class="fa-solid fa-plus" aria-hidden="true"></i>'; }
+    ShoppingPhotoEngine?.clearSelection?.();
+};
+
+window.editShop = function(key) {
+    const item = (window.shopList || []).find(row => row.key === key);
+    if (!item) return;
+    document.getElementById('shopEditKey').value = key;
+    document.getElementById('newShop').value = item.text || '';
+    document.getElementById('shopWhere').value = item.where || '';
+    document.getElementById('shopCategory').value = item.category || '其他';
+    document.getElementById('tempShopPhoto').value = '';
+    const status = document.getElementById('shopPhotoStatus');
+    if (status) status.textContent = item.image || item.img ? '保留目前圖片；選新照片即可替換' : '可選擇照片';
+    const notice = document.getElementById('shopEditNotice');
+    if (notice) notice.hidden = false;
+    const cancel = document.getElementById('cancelShopEditBtn');
+    if (cancel) cancel.style.display = 'inline-flex';
+    const addBtn = document.getElementById('addShopItemBtn');
+    if (addBtn) { addBtn.setAttribute('aria-label', '儲存購物項目修改'); addBtn.innerHTML = '<i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>'; }
+    document.getElementById('addShopBox')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+
 window.addShopItem = async function () {
     const textEl     = document.getElementById('newShop');
     const whereEl    = document.getElementById('shopWhere');
     const categoryEl = document.getElementById('shopCategory');
     const photoEl    = document.getElementById('tempShopPhoto');
+    const editKey    = document.getElementById('shopEditKey')?.value || '';
 
     const text = textEl?.value?.trim();
     if (!text) { showToast('請填入商品名稱', 'warning'); return; }
 
     const photoKey = photoEl?.value || '';
-    const image = await ShoppingPhotoEngine.attach(photoKey, text).catch(async () => {
-        await ShoppingPhotoEngine.remove(photoKey).catch(() => {});
-        return null;
-    });
+    let replacementImage = null;
+    if (photoKey) {
+        replacementImage = await ShoppingPhotoEngine.attach(photoKey, text).catch(async () => {
+            await ShoppingPhotoEngine.remove(photoKey).catch(() => {});
+            return null;
+        });
+    }
+
+    if (editKey) {
+        const existing = (window.shopList || []).find(row => row.key === editKey);
+        if (!existing) { cancelShopEdit(); return; }
+        if (replacementImage && existing?.image?.storage === 'indexeddb' && existing.image.key !== replacementImage.key) {
+            await ShoppingPhotoEngine.remove(existing.image.key).catch(() => {});
+        }
+        const patch = {
+            text,
+            where: whereEl?.value?.trim() || '',
+            category: categoryEl?.value || '其他',
+            ...(replacementImage ? { image: replacementImage, img: '' } : {}),
+            updatedAt: Date.now()
+        };
+        window.shopList = (window.shopList || []).map(row => row.key === editKey ? { ...row, ...patch } : row);
+        StorageEngine.set('busan_v36_shopList', window.shopList);
+        renderShop();
+        try {
+            if (!editKey.startsWith('local_')) await NetworkEngine.firebaseUpdate(`${DB_SHOP}/${editKey}`, patch);
+        } catch (error) {
+            console.error('[Renderers] editShop failed:', error);
+            if (typeof addToOfflineQueue === 'function' && !editKey.startsWith('local_')) addToOfflineQueue('UPDATE', `${DB_SHOP}/${editKey}`, patch);
+        }
+        cancelShopEdit();
+        showToast('✅ 購物項目已更新', 'success');
+        return;
+    }
+
     const newItem = {
         key: 'local_' + Date.now(),
         text,
         where    : whereEl?.value?.trim()  || '',
         category : categoryEl?.value       || '其他',
         img      : '',
-        ...(image ? { image } : {}),
+        ...(replacementImage ? { image: replacementImage } : {}),
         checked  : false,
         owner    : window.currentShopOwner,
         ts       : Date.now()
     };
 
-    // Optimistically update local array and render
     window.shopList = window.shopList || [];
     window.shopList.push(newItem);
     StorageEngine.set('busan_v36_shopList', window.shopList);
     if (typeof renderShop === 'function') renderShop();
     ShoppingPhotoEngine.clearSelection();
 
+    const payload = {
+        text: newItem.text, where: newItem.where, category: newItem.category, img: newItem.img,
+        ...(newItem.image ? { image: newItem.image } : {}), checked: newItem.checked,
+        owner: newItem.owner, ts: newItem.ts
+    };
     try {
-        await NetworkEngine.firebasePush(DB_SHOP, {
-            text: newItem.text,
-            where: newItem.where,
-            category: newItem.category,
-            img: newItem.img,
-            ...(newItem.image ? { image: newItem.image } : {}),
-            checked: newItem.checked,
-            owner: newItem.owner,
-            ts: newItem.ts
-        });
+        await NetworkEngine.firebasePush(DB_SHOP, payload);
     } catch (e) {
         console.error('[Renderers] addShopItem failed:', e);
         showToast('已保存至本機，連線恢復時將同步至雲端', 'info');
-        if (typeof addToOfflineQueue === 'function') {
-            addToOfflineQueue('PUSH', DB_SHOP, {
-                text: newItem.text,
-                where: newItem.where,
-                category: newItem.category,
-                img: newItem.img,
-                ...(newItem.image ? { image: newItem.image } : {}),
-                checked: newItem.checked,
-                owner: newItem.owner,
-                ts: newItem.ts
-            });
-        }
+        if (typeof addToOfflineQueue === 'function') addToOfflineQueue('PUSH', DB_SHOP, payload);
         return;
     }
-    if (textEl)  textEl.value  = '';
-    if (whereEl) whereEl.value = '';
+    cancelShopEdit();
     showToast('✅ 已加入購物清單', 'success');
 };
 
 window.toggleShop = async function (key, currentChecked) {
-    // Optimistic local update
     window.shopList = (window.shopList || []).map(s => {
         if (s.key === key) s.checked = !currentChecked;
         return s;
     });
     StorageEngine.set('busan_v36_shopList', window.shopList);
     if (typeof renderShop === 'function') renderShop();
-
+    if (key.startsWith('local_')) return;
     try {
         await NetworkEngine.firebaseUpdate(`${DB_SHOP}/${key}`, { checked: !currentChecked });
     } catch (e) {
         console.error('[Renderers] toggleShop failed:', e);
-        if (typeof addToOfflineQueue === 'function') {
-            addToOfflineQueue('UPDATE', `${DB_SHOP}/${key}`, { checked: !currentChecked });
-        }
+        if (typeof addToOfflineQueue === 'function') addToOfflineQueue('UPDATE', `${DB_SHOP}/${key}`, { checked: !currentChecked });
     }
 };
 
 window.deleteShop = async function (key) {
     if (!confirm('確認刪除此購物項目？')) return;
-
     const removedItem = (window.shopList || []).find(s => s.key === key);
-    // Optimistic local update
     window.shopList = (window.shopList || []).filter(s => s.key !== key);
     StorageEngine.set('busan_v36_shopList', window.shopList);
     await ShoppingPhotoEngine.remove(removedItem?.image?.storage === 'indexeddb' ? removedItem.image.key : '').catch(() => {});
     if (typeof renderShop === 'function') renderShop();
-
+    if (key.startsWith('local_')) return;
     try {
         await NetworkEngine.firebaseRemove(`${DB_SHOP}/${key}`);
     } catch (e) {
         console.error('[Renderers] deleteShop failed:', e);
         showToast('刪除購物項目失敗', 'error');
-        if (typeof addToOfflineQueue === 'function') {
-            addToOfflineQueue('REMOVE', `${DB_SHOP}/${key}`);
-        }
+        if (typeof addToOfflineQueue === 'function') addToOfflineQueue('REMOVE', `${DB_SHOP}/${key}`);
     }
 };
 
-// ── Guide / Food CRUD (lives here — tightly coupled to renderGuideContent) ─
+// ── Guide / Food CRUD (owner data stays separate from canonical) ──────────
+function resetGuideForm() {
+    for (const id of ['gdTitle', 'gdDesc', 'gdLink', 'tempGuideImg', 'gdEditKey']) {
+        const el = document.getElementById(id); if (el) el.value = '';
+    }
+    const title = document.getElementById('guideFormTitle');
+    if (title) title.innerHTML = '<i class="fa-solid fa-plus"></i> 新增我的景點／美食';
+    const save = document.getElementById('saveGuideBtn');
+    if (save) save.textContent = '新增到我的收藏';
+    const cancel = document.getElementById('cancelGuideEditBtn');
+    if (cancel) cancel.style.display = 'none';
+    const status = document.getElementById('guideUploadStatus');
+    if (status) status.textContent = '';
+}
+
+window.cancelGuideEdit = resetGuideForm;
+
+window.editGuide = function(key) {
+    const item = (window.guideData || []).find(row => row.key === key);
+    if (!item) return;
+    document.getElementById('gdEditKey').value = key;
+    document.getElementById('gdType').value = item.type || '打卡景點';
+    document.getElementById('gdTitle').value = item.title || '';
+    document.getElementById('gdDesc').value = item.desc || '';
+    document.getElementById('gdLink').value = item.link || '';
+    document.getElementById('tempGuideImg').value = item.img || '';
+    const title = document.getElementById('guideFormTitle');
+    if (title) title.innerHTML = '<i class="fa-solid fa-pen"></i> 編輯我的景點／美食';
+    const save = document.getElementById('saveGuideBtn');
+    if (save) save.textContent = '儲存修改';
+    const cancel = document.getElementById('cancelGuideEditBtn');
+    if (cancel) cancel.style.display = 'inline-flex';
+    const status = document.getElementById('guideUploadStatus');
+    if (status) status.textContent = item.img ? '保留目前圖片；選新圖片即可替換' : '目前沒有圖片';
+    document.getElementById('addGuideCard')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+
 window.addGuideItem = async function () {
     const typeEl  = document.getElementById('gdType');
     const titleEl = document.getElementById('gdTitle');
     const descEl  = document.getElementById('gdDesc');
     const linkEl  = document.getElementById('gdLink');
     const imgEl   = document.getElementById('tempGuideImg');
-
+    const editKey = document.getElementById('gdEditKey')?.value || '';
     const title = titleEl?.value?.trim();
     if (!title) { showToast('請填入地標名稱', 'warning'); return; }
-
+    const payload = {
+        type: typeEl?.value || '打卡景點', title,
+        desc: descEl?.value?.trim() || '', link: linkEl?.value?.trim() || '',
+        img: imgEl?.value || '', ownerCreated: true, updatedAt: Date.now()
+    };
     try {
-        await NetworkEngine.firebasePush(DB_GUIDE, {
-            type  : typeEl?.value  || '打卡景點',
-            title,
-            desc  : descEl?.value?.trim() || '',
-            link  : linkEl?.value?.trim() || '',
-            img   : imgEl?.value          || '',
-            ts    : Date.now()
-        });
+        if (editKey) await NetworkEngine.firebaseUpdate(`${DB_GUIDE}/${editKey}`, payload);
+        else await NetworkEngine.firebasePush(DB_GUIDE, { ...payload, ts: Date.now() });
     } catch (e) {
-        console.error('[Renderers] addGuideItem failed:', e);
-        showToast('地標新增失敗', 'error');
+        console.error('[Renderers] saveGuideItem failed:', e);
+        showToast('景點／美食儲存失敗', 'error');
         return;
     }
-    if (titleEl) titleEl.value = '';
-    if (descEl)  descEl.value  = '';
-    if (linkEl)  linkEl.value  = '';
-    if (imgEl)   imgEl.value   = '';
-    showToast('✅ 地標已同步至雲端', 'success');
+    resetGuideForm();
+    showToast(editKey ? '✅ 已更新我的景點／美食' : '✅ 已新增到我的收藏', 'success');
 };
 
 window.deleteGuide = async function (key) {
     if (!confirm('確認刪除此地標？')) return;
-    try {
-        await NetworkEngine.firebaseRemove(`${DB_GUIDE}/${key}`);
-    } catch (e) {
-        console.error('[Renderers] deleteGuide failed:', e);
-        showToast('刪除地標失敗', 'error');
-    }
+    try { await NetworkEngine.firebaseRemove(`${DB_GUIDE}/${key}`); }
+    catch (e) { console.error('[Renderers] deleteGuide failed:', e); showToast('刪除地標失敗', 'error'); }
 };
 
-// ── Voice Card CRUD (lives here — tightly coupled to renderVoiceList) ──────
+// ── Voice workspace: canonical fallback + owner overrides/custom rows ──────
+window.mergeVoiceWorkspace = function(customRows = []) {
+    const canonical = (window.CANONICAL_VOICE_FALLBACK || []).map(row => ({ ...row, canonical: true }));
+    const rows = Array.isArray(customRows) ? customRows : [];
+    const consumed = new Set();
+    const merged = canonical.map(base => {
+        const legacyMatches = rows.filter(row => {
+            const tw = row.tw ?? row.title ?? '';
+            const kr = row.kr ?? row.korean ?? '';
+            return tw === (base.tw ?? base.title ?? '') && kr === (base.kr ?? base.korean ?? '');
+        });
+        legacyMatches.forEach(row => consumed.add(row.key));
+        const exactOverride = rows.find(row => row.key === base.key);
+        if (exactOverride) consumed.add(exactOverride.key);
+        const override = exactOverride || legacyMatches[0] || null;
+        if (override?.hidden) return null;
+        return override ? { ...base, ...override, key: base.key, canonical: true } : base;
+    }).filter(Boolean);
+    rows.forEach(row => {
+        if (!consumed.has(row.key) && !row.hidden) merged.push({ ...row, canonical: false });
+    });
+    return merged;
+};
+
+function resetVoiceForm() {
+    for (const id of ['newCardTw', 'newCardKr', 'voiceEditKey']) { const el = document.getElementById(id); if (el) el.value = ''; }
+    const save = document.getElementById('saveVoiceBtn');
+    if (save) save.innerHTML = '<i class="fa-solid fa-plus"></i> 新增專屬字卡';
+    const cancel = document.getElementById('cancelVoiceEditBtn');
+    if (cancel) cancel.style.display = 'none';
+}
+window.cancelVoiceEdit = resetVoiceForm;
+
+window.editVoice = function(key) {
+    const item = (window.voiceData || []).find(row => row.key === key);
+    if (!item) return;
+    document.getElementById('voiceEditKey').value = key;
+    document.getElementById('newCardTw').value = item.tw ?? item.title ?? '';
+    document.getElementById('newCardKr').value = item.kr ?? item.korean ?? '';
+    const save = document.getElementById('saveVoiceBtn');
+    if (save) save.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> 儲存字卡修改';
+    const cancel = document.getElementById('cancelVoiceEditBtn');
+    if (cancel) cancel.style.display = 'inline-flex';
+    document.getElementById('translationWorkspace')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+
 window.addVoiceCard = async function () {
     const twEl = document.getElementById('newCardTw');
     const krEl = document.getElementById('newCardKr');
-    const tw   = twEl?.value?.trim();
-    const kr   = krEl?.value?.trim();
+    const editKey = document.getElementById('voiceEditKey')?.value || '';
+    const tw = twEl?.value?.trim();
+    const kr = krEl?.value?.trim();
     if (!tw || !kr) { showToast('請填入中文與韓文', 'warning'); return; }
+    const payload = { tw, kr, title: tw, korean: kr, icon: 'fa-ear-listen', roman: '', hidden: false, ts: Date.now() };
     try {
-        await NetworkEngine.firebasePush(DB_VOICE, { tw, kr, title: tw, korean: kr, icon: 'fa-ear-listen', roman: '', ts: Date.now() });
+        if (editKey) await NetworkEngine.firebaseUpdate(`${DB_VOICE}/${editKey}`, payload);
+        else await NetworkEngine.firebasePush(DB_VOICE, payload);
     } catch (e) {
-        console.error('[Renderers] addVoiceCard failed:', e);
-        showToast('字卡新增失敗', 'error');
+        console.error('[Renderers] saveVoiceCard failed:', e);
+        showToast('字卡儲存失敗', 'error');
         return;
     }
-    if (twEl) twEl.value = '';
-    if (krEl) krEl.value = '';
-    showToast('✅ 字卡已新增', 'success');
+    resetVoiceForm();
+    showToast(editKey ? '✅ 字卡已更新' : '✅ 字卡已新增', 'success');
 };
 
 window.deleteVoice = async function (key) {
     if (!confirm('確認刪除此字卡？')) return;
+    const isCanonical = (window.CANONICAL_VOICE_FALLBACK || []).some(row => row.key === key);
     try {
-        await NetworkEngine.firebaseRemove(`${DB_VOICE}/${key}`);
+        if (isCanonical) await NetworkEngine.firebaseUpdate(`${DB_VOICE}/${key}`, { hidden: true, ts: Date.now() });
+        else await NetworkEngine.firebaseRemove(`${DB_VOICE}/${key}`);
     } catch (e) {
         console.error('[Renderers] deleteVoice failed:', e);
         showToast('刪除字卡失敗', 'error');
     }
 };
 
-// ── Prep CRUD (lives here — tightly coupled to renderPrepList) ────────────
+// ── Packing / Prep CRUD ──────────────────────────────────────────────────
+function resetPrepForm() {
+    for (const id of ['prepText', 'prepLink', 'prepEditKey']) { const el = document.getElementById(id); if (el) el.value = ''; }
+    const cat = document.getElementById('prepCategory'); if (cat) cat.value = '其他';
+    const save = document.getElementById('savePrepBtn');
+    if (save) save.innerHTML = '<i class="fa-solid fa-plus"></i> 新增 Packing 項目';
+    const cancel = document.getElementById('cancelPrepEditBtn'); if (cancel) cancel.style.display = 'none';
+}
+window.cancelPrepEdit = resetPrepForm;
+
+window.editPrep = function(key) {
+    const item = (window.prepData || []).find(row => row.key === key);
+    if (!item) return;
+    document.getElementById('prepEditKey').value = key;
+    document.getElementById('prepText').value = item.text || '';
+    document.getElementById('prepLink').value = item.link || '';
+    document.getElementById('prepCategory').value = item.category || '其他';
+    const save = document.getElementById('savePrepBtn');
+    if (save) save.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> 儲存修改';
+    const cancel = document.getElementById('cancelPrepEditBtn'); if (cancel) cancel.style.display = 'inline-flex';
+    document.getElementById('prepChecklistCard')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+
+window.savePrepItem = async function() {
+    const editKey = document.getElementById('prepEditKey')?.value || '';
+    const text = document.getElementById('prepText')?.value.trim();
+    if (!text) { showToast('請填入準備事項', 'warning'); return; }
+    const existing = (window.prepData || []).find(row => row.key === editKey);
+    const payload = {
+        text,
+        category: document.getElementById('prepCategory')?.value || '其他',
+        link: document.getElementById('prepLink')?.value.trim() || '',
+        done: existing?.done || false,
+        kind: 'packing',
+        updatedAt: Date.now()
+    };
+    try {
+        if (editKey) await NetworkEngine.firebaseUpdate(`${DB_PREP}/${editKey}`, payload);
+        else await NetworkEngine.firebasePush(DB_PREP, { ...payload, ts: Date.now() });
+    } catch (e) {
+        console.error('[Renderers] savePrepItem failed:', e);
+        showToast('準備事項儲存失敗', 'error');
+        return;
+    }
+    resetPrepForm();
+    showToast(editKey ? '✅ Packing 項目已更新' : '✅ 已加入 Packing List', 'success');
+};
+
 window.togglePrep = async function (key, currentDone) {
-    // Optimistic local update
-    window.prepData = (window.prepData || []).map(p => {
-        if (p.key === key) p.done = !currentDone;
-        return p;
-    });
+    window.prepData = (window.prepData || []).map(p => p.key === key ? { ...p, done: !currentDone } : p);
     StorageEngine.set('busan_v36_prepData', window.prepData);
     if (typeof renderPrepList === 'function') renderPrepList();
-
-    try {
-        await NetworkEngine.firebaseUpdate(`${DB_PREP}/${key}`, { done: !currentDone });
-    } catch (e) {
+    try { await NetworkEngine.firebaseUpdate(`${DB_PREP}/${key}`, { done: !currentDone }); }
+    catch (e) {
         console.error('[Renderers] togglePrep failed:', e);
-        if (typeof addToOfflineQueue === 'function') {
-            addToOfflineQueue('UPDATE', `${DB_PREP}/${key}`, { done: !currentDone });
-        }
+        if (typeof addToOfflineQueue === 'function') addToOfflineQueue('UPDATE', `${DB_PREP}/${key}`, { done: !currentDone });
     }
     triggerContextUpdate();
 };
 
 window.deletePrep = async function (key) {
     if (!confirm('確認刪除此準備事項？')) return;
-
-    // Optimistic local update
     window.prepData = (window.prepData || []).filter(p => p.key !== key);
     StorageEngine.set('busan_v36_prepData', window.prepData);
     if (typeof renderPrepList === 'function') renderPrepList();
-
-    try {
-        await NetworkEngine.firebaseRemove(`${DB_PREP}/${key}`);
-    } catch (e) {
+    try { await NetworkEngine.firebaseRemove(`${DB_PREP}/${key}`); }
+    catch (e) {
         console.error('[Renderers] deletePrep failed:', e);
         showToast('刪除準備事項失敗', 'error');
-        if (typeof addToOfflineQueue === 'function') {
-            addToOfflineQueue('REMOVE', `${DB_PREP}/${key}`);
-        }
+        if (typeof addToOfflineQueue === 'function') addToOfflineQueue('REMOVE', `${DB_PREP}/${key}`);
     }
 };
-
-
 
 
 window.renderDateSimulator = function(v37SimulatedDate, city) {
@@ -904,11 +1183,14 @@ window.renderShop = function() {
                 <div class="check-box"><i class="fa-solid fa-check"></i></div>
                 ${itemImgHtml}
                 <div style="flex:1;">
-                    <span class="cat-tag">${s.category || '其他'}</span>
-                    <div class="item-content" style="font-weight:900; font-size:1.02rem; color:var(--text-color);">${s.text}</div>
-                    <div style="font-size:0.75rem; color:#7f8c8d; margin-top:2px;">📍 哪裡買: ${s.where || '未填寫'}</div>
+                    <span class="cat-tag">${ownerEscape(s.category || '其他')}</span>
+                    <div class="item-content" style="font-weight:900; font-size:1.02rem; color:var(--text-color);">${ownerEscape(s.text)}</div>
+                    <div style="font-size:0.75rem; color:#7f8c8d; margin-top:2px;">📍 哪裡買: ${ownerEscape(s.where || '未填寫')}</div>
                 </div>
-                <button class="btn-delete" aria-label="刪除購物項目" onclick="event.stopPropagation(); deleteShop('${s.key}')"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+                <div class="owner-row-actions">
+                    <button class="btn-edit" aria-label="編輯購物項目" onclick="event.stopPropagation(); editShop('${s.key}')"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>
+                    <button class="btn-delete" aria-label="刪除購物項目" onclick="event.stopPropagation(); deleteShop('${s.key}')"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+                </div>
             </div>
         `;
     });
@@ -1639,42 +1921,35 @@ window.renderRecommendedShopping = function() {
     const list = document.getElementById('sRecList');
     if (!list) return;
     list.innerHTML = '';
-    
     const hiddenIds = StorageEngine.get('hidden_rec_shop', []).data;
     const favIds = StorageEngine.get('fav_rec_shop', []).data;
-    
-    // Fetch from window global recommended list
     const items = window.RECOMMENDED_SHOPPING || [];
-    let filtered = items.filter(item => {
+    const filtered = items.filter(item => {
         if (hiddenIds.includes(item.id)) return false;
         if (currentRecShopFilter !== 'ALL' && item.category !== currentRecShopFilter) return false;
         return true;
     });
-    
     if (filtered.length === 0) {
         list.innerHTML = '<p style="text-align:center; color:#95a5a6; font-size:0.8rem; font-weight:900; padding:15px 0;">無推薦商品</p>';
         return;
     }
-    
-    filtered.forEach(item => {
-        const isFav = favIds.includes(item.id);
+    filtered.forEach(canonical => {
+        const item = window.getOwnerCustomizedItem('shop', canonical);
+        const isFav = favIds.includes(canonical.id);
         list.innerHTML += `
-            <div class="v38-rec-item" style="padding:10px 0; border-bottom:1px solid var(--border-color);">
+            <div class="v38-rec-item owner-editable-rec" style="padding:10px 0; border-bottom:1px solid var(--border-color);">
                 ${ItemImages.render(item.image, item.name)}
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span class="v38-badge" style="background:var(--dora);">${item.category}</span>
-                    <div style="display:flex; gap:6px;">
-                        <span class="v38-tag" style="background:${isFav?'rgba(255,59,85,0.05)':'rgba(0,0,0,0.02)'}; color:${isFav?'#ff3b30':'#8e8e93'}; font-size:0.65rem;">
-                            <i class="fa-${isFav?'solid':'regular'} fa-heart"></i> ${isFav?'已收藏':'未收藏'}
-                        </span>
-                    </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                    <span class="v38-badge" style="background:var(--dora);">${ownerEscape(item.category)}</span>
+                    <span class="owner-source-badge ${item.ownerCustomized ? 'customized' : ''}">${item.ownerCustomized ? '我的版本' : '官方推薦'}</span>
                 </div>
-                <div style="font-weight:900; font-size:0.92rem; color:var(--text-color); margin-top:2px;">${item.name}</div>
-                <div style="font-size:0.75rem; color:#666;">${item.desc}</div>
+                <div style="font-weight:900; font-size:0.92rem; color:var(--text-color); margin-top:2px;">${ownerEscape(item.name)}</div>
+                <div style="font-size:0.75rem; color:#666;">${ownerEscape(item.desc)}</div>
                 <div class="v38-rec-actions">
-                    <button class="v38-mini-btn" style="background:var(--primary); color:white; border:none;" onclick="addRecShopToMyList('${item.id}')">🛒 加入清單</button>
-                    <button class="v38-mini-btn" onclick="toggleFavRecShopItem('${item.id}')"><i class="fa-solid fa-heart" style="color:#ff3b30;"></i> ${isFav?'取消收藏':'收藏'}</button>
-                    <button class="v38-mini-btn" onclick="hideRecShopItem('${item.id}')"><i class="fa-solid fa-eye-slash"></i> 隱藏</button>
+                    <button class="v38-mini-btn" style="background:var(--primary); color:white; border:none;" onclick="addRecShopToMyList('${canonical.id}')">🛒 加入清單</button>
+                    <button class="v38-mini-btn" onclick="toggleFavRecShopItem('${canonical.id}')"><i class="fa-solid fa-heart" style="color:#ff3b30;"></i> ${isFav?'取消收藏':'收藏'}</button>
+                    <button class="v38-mini-btn" onclick="openOwnerCustomize('shop','${canonical.id}')"><i class="fa-solid fa-pen"></i> 編輯／換圖</button>
+                    <button class="v38-mini-btn" onclick="hideRecShopItem('${canonical.id}')"><i class="fa-solid fa-eye-slash"></i> 隱藏</button>
                 </div>
             </div>
         `;
@@ -1685,23 +1960,25 @@ window.renderGuideContent = function() {
     const list = document.getElementById('guideList');
     if (!list) return;
     list.innerHTML = '';
-    
-    let filtered = (window.guideData || []).filter(g => g.type === (window.currentGuideTab || '打卡景點') && !window.isOwnerHiddenTravelItem(g));
+    const filtered = (window.guideData || []).filter(g => g.type === (window.currentGuideTab || '打卡景點') && !window.isOwnerHiddenTravelItem(g));
     if (filtered.length === 0) {
-        list.innerHTML = '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:20px 0;">尚無自訂地標，歡迎新增！</p>';
+        list.innerHTML = '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:20px 0;">尚無我的自訂地標；可在下方新增，官方推薦不會被改寫。</p>';
         return;
     }
-    
     filtered.forEach(g => {
-        let imgHtml = g.img ? `<img src="${g.img}" class="guide-img" onclick="openLightbox('${g.img}', '${g.key}')">` : '';
-        let mapBtn = g.link ? `<a href="${g.link}" target="_blank" class="map-tag" style="margin-top:6px;"><i class="fa-solid fa-map-location-dot"></i> 一鍵導航</a>` : '';
+        const imgHtml = g.img ? `<img src="${ownerEscape(g.img)}" class="guide-img" alt="${ownerEscape(g.title)}" onclick="openLightbox('${String(g.img).replace(/'/g, "\\'")}', '${g.key}')">` : '';
+        const mapBtn = g.link ? `<a href="${ownerEscape(g.link)}" target="_blank" class="map-tag" style="margin-top:6px;"><i class="fa-solid fa-map-location-dot"></i> 一鍵導航</a>` : '';
         list.innerHTML += `
             <div class="guide-card card fade-scale-in">
                 ${imgHtml}
                 <div style="padding:15px; position:relative;">
-                    <button class="btn-delete" aria-label="刪除景點或美食項目" onclick="deleteGuide('${g.key}')" style="position:absolute; top:12px; right:12px;"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
-                    <h4 style="margin:0 0 6px 0; font-size:1.1rem; color:var(--text-color); font-weight:900;">${g.title}</h4>
-                    <p style="margin:0; font-size:0.85rem; color:#555; line-height:1.4;">${g.desc}</p>
+                    <span class="owner-source-badge customized">我的自訂</span>
+                    <div class="owner-guide-actions">
+                        <button class="btn-edit" aria-label="編輯景點或美食項目" onclick="editGuide('${g.key}')"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>
+                        <button class="btn-delete" aria-label="刪除景點或美食項目" onclick="deleteGuide('${g.key}')"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+                    </div>
+                    <h4 style="margin:8px 0 6px 0; font-size:1.1rem; color:var(--text-color); font-weight:900;">${ownerEscape(g.title)}</h4>
+                    <p style="margin:0; font-size:0.85rem; color:#555; line-height:1.4;">${ownerEscape(g.desc)}</p>
                     ${mapBtn}
                 </div>
             </div>
@@ -1713,31 +1990,28 @@ window.renderRecommendedFood = function() {
     const list = document.getElementById('foodRecList');
     if (!list) return;
     list.innerHTML = '';
-    
     const favIds = StorageEngine.get('fav_rec_food', []).data;
     const eatenIds = StorageEngine.get('eaten_rec_food', []).data;
     const items = window.RECOMMENDED_FOOD || [];
-    
-    items.forEach(item => {
-        const isFav = favIds.includes(item.id);
-        const isEaten = eatenIds.includes(item.id);
+    items.forEach(canonical => {
+        const item = window.getOwnerCustomizedItem('food', canonical);
+        if (window.isOwnerHiddenTravelItem(item)) return;
+        const isFav = favIds.includes(canonical.id);
+        const isEaten = eatenIds.includes(canonical.id);
         list.innerHTML += `
-            <div class="v38-rec-item card fade-scale-in" style="background:var(--card-bg); border-radius:16px; padding:12px; margin-bottom:8px; border:1px solid var(--border-color);">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span class="v38-badge" style="background:var(--accent);">${item.category}</span>
-                    <div style="display:flex; gap:6px;">
-                        ${isEaten ? '<span class="v38-tag" style="background:#eafaf1; color:#2ecc71; font-size:0.65rem;"><i class="fa-solid fa-circle-check"></i> 已吃過</span>' : ''}
-                        <span class="v38-tag" style="background:${isFav?'rgba(255,59,85,0.05)':'rgba(0,0,0,0.02)'}; color:${isFav?'#ff3b30':'#8e8e93'}; font-size:0.65rem;">
-                            <i class="fa-${isFav?'solid':'regular'} fa-heart"></i> ${isFav?'已收藏':'未收藏'}
-                        </span>
-                    </div>
+            <div class="v38-rec-item card fade-scale-in owner-editable-rec" style="background:var(--card-bg); border-radius:16px; padding:12px; margin-bottom:8px; border:1px solid var(--border-color);">
+                ${ItemImages.render(item.image, item.name)}
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                    <span class="v38-badge" style="background:var(--accent);">${ownerEscape(item.category)}</span>
+                    <span class="owner-source-badge ${item.ownerCustomized ? 'customized' : ''}">${item.ownerCustomized ? '我的版本' : '官方推薦'}</span>
                 </div>
-                <div style="font-weight:900; font-size:0.92rem; color:var(--text-color); margin-top:2px;">${item.name}</div>
-                <div style="font-size:0.75rem; color:#555;">${item.desc}</div>
+                <div style="font-weight:900; font-size:0.92rem; color:var(--text-color); margin-top:4px;">${ownerEscape(item.name)}</div>
+                <div style="font-size:0.75rem; color:#555;">${ownerEscape(item.desc)}</div>
                 <div class="v38-rec-actions">
-                    <button class="v38-mini-btn" onclick="toggleFavRecFoodItem('${item.id}')"><i class="fa-solid fa-heart" style="color:#ff3b30;"></i> ${isFav?'取消收藏':'收藏'}</button>
-                    <button class="v38-mini-btn" onclick="toggleEatenRecFoodItem('${item.id}')"><i class="fa-solid fa-utensils" style="color:#2ecc71;"></i> ${isEaten?'標記未吃':'標記吃過'}</button>
-                    <button class="v38-mini-btn" style="background:var(--primary); color:white; border:none;" onclick="addRecFoodToItinerary('${item.id}')"><i class="fa-solid fa-plus"></i> 加入行程</button>
+                    <button class="v38-mini-btn" onclick="toggleFavRecFoodItem('${canonical.id}')"><i class="fa-solid fa-heart" style="color:#ff3b30;"></i> ${isFav?'取消收藏':'收藏'}</button>
+                    <button class="v38-mini-btn" onclick="toggleEatenRecFoodItem('${canonical.id}')"><i class="fa-solid fa-utensils" style="color:#2ecc71;"></i> ${isEaten?'標記未吃':'標記吃過'}</button>
+                    <button class="v38-mini-btn" onclick="openOwnerCustomize('food','${canonical.id}')"><i class="fa-solid fa-pen"></i> 編輯／換圖</button>
+                    <button class="v38-mini-btn" style="background:var(--primary); color:white; border:none;" onclick="addRecFoodToItinerary('${canonical.id}')"><i class="fa-solid fa-plus"></i> 加入行程</button>
                 </div>
             </div>
         `;
@@ -1836,22 +2110,13 @@ window.renderVoiceList = function() {
     const list = document.getElementById('voiceGridUI');
     if (!list) return;
     list.innerHTML = '';
-    
     let displayList = window.voiceData || [];
-    if (displayList.length === 0) {
-        const localData = StorageEngine.get('busan_v36_voice');
-        if (localData && localData.success && Array.isArray(localData.data) && localData.data.length > 0) {
-            displayList = localData.data;
-            window.voiceData = displayList;
-        }
-    }
-    
+    if (displayList.length === 0) displayList = window.mergeVoiceWorkspace(window.voiceCustomData || []);
     if (displayList.length === 0) {
         list.innerHTML = '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:15px 0;">尚無常用韓語發音紀錄</p>';
         return;
     }
-    
-    const esc = s => String(s || '').replace(/'/g, "\\'");
+    const jsEsc = value => String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, ' ');
     displayList.forEach(v => {
         const twText = v.tw ?? v.title ?? '';
         const krText = v.kr ?? v.korean ?? '';
@@ -1859,11 +2124,16 @@ window.renderVoiceList = function() {
         const roman = v.roman || '';
         const audio = v.audio || '';
         list.innerHTML += `
-            <div class="voice-card card" onclick="event.stopPropagation(); openCardLightbox('${esc(twText)}', '${esc(krText)}', '${esc(roman)}', '${esc(audio)}')">
-                <button class="del-voice" onclick="event.stopPropagation(); deleteVoice('${v.key}')"><i class="fa-solid fa-xmark"></i></button>
+            <div class="voice-card card" onclick="event.stopPropagation(); openCardLightbox('${jsEsc(twText)}', '${jsEsc(krText)}', '${jsEsc(roman)}', '${jsEsc(audio)}')">
+                <span class="owner-source-badge ${v.canonical ? '' : 'customized'}">${v.canonical ? '常用句' : '我的字卡'}</span>
+                <div class="voice-card-actions">
+                    <button type="button" class="voice-action" aria-label="播放韓語發音" onclick="event.stopPropagation(); speakKorean('${jsEsc(krText)}')"><i class="fa-solid fa-volume-high"></i></button>
+                    <button type="button" class="voice-action" aria-label="編輯字卡" onclick="event.stopPropagation(); editVoice('${v.key}')"><i class="fa-solid fa-pen"></i></button>
+                    <button type="button" class="voice-action danger" aria-label="刪除字卡" onclick="event.stopPropagation(); deleteVoice('${v.key}')"><i class="fa-solid fa-trash"></i></button>
+                </div>
                 <i class="fa-solid ${icon}"></i>
-                <span>${twText}</span>
-                <b>${krText}</b>
+                <span>${ownerEscape(twText)}</span>
+                <b>${ownerEscape(krText)}</b>
             </div>
         `;
     });
@@ -1873,7 +2143,6 @@ window.renderPrepList = function() {
     const list = document.getElementById('prepListUI');
     const listTrip = document.getElementById('prepListUI_trip');
     if (!list && !listTrip) return;
-    
     let displayList = window.prepData || [];
     if (displayList.length === 0) {
         const localData = StorageEngine.get('busan_v36_prepData');
@@ -1882,33 +2151,36 @@ window.renderPrepList = function() {
             window.prepData = displayList;
         }
     }
-    
-    const renderHtml = (items) => {
-        if (items.length === 0) {
-            return '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:15px 0;">尚無準備清單項目</p>';
-        }
-        let html = '';
-        items.forEach(p => {
+    const done = displayList.filter(item => item.done).length;
+    const total = displayList.length;
+    const percent = total ? Math.round((done / total) * 100) : 0;
+    const progress = document.getElementById('prepProgressUI');
+    if (progress) {
+        progress.innerHTML = `
+            <div class="prep-progress-head"><span>完成 ${done} / ${total}</span><strong>${percent}%</strong></div>
+            <div class="prep-progress-track"><div class="prep-progress-fill" style="width:${percent}%"></div></div>
+        `;
+    }
+    const renderHtml = items => {
+        if (items.length === 0) return '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:15px 0;">尚無 Packing List 項目，可在上方新增。</p>';
+        return items.map(p => {
             const isDone = p.done ? 'done' : '';
-            const linkIcon = p.link ? `<a href="${p.link}" target="_blank" class="prep-link" aria-label="開啟準備事項連結" onclick="event.stopPropagation()"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>` : '';
-            html += `
-                <div class="prep-item ${isDone}" onclick="togglePrep('${p.key}', ${p.done})">
+            const linkIcon = p.link ? `<a href="${ownerEscape(p.link)}" target="_blank" class="prep-link" aria-label="開啟準備事項連結" onclick="event.stopPropagation()"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>` : '';
+            return `
+                <div class="prep-item ${isDone}" onclick="togglePrep('${p.key}', ${Boolean(p.done)})">
                     <div class="prep-check"><i class="fa-solid fa-check"></i></div>
-                    <div class="prep-text">${p.text}</div>
+                    <div class="prep-text"><span class="prep-category">${ownerEscape(p.category || '其他')}</span>${ownerEscape(p.text)}</div>
                     ${linkIcon}
-                    <button class="btn-delete" aria-label="刪除準備事項" onclick="event.stopPropagation(); deletePrep('${p.key}')" style="padding: 4px 8px;"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+                    <button class="btn-edit" aria-label="編輯準備事項" onclick="event.stopPropagation(); editPrep('${p.key}')"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>
+                    <button class="btn-delete" aria-label="刪除準備事項" onclick="event.stopPropagation(); deletePrep('${p.key}')"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
                 </div>
             `;
-        });
-        return html;
+        }).join('');
     };
-
     const finalHtml = renderHtml(displayList);
     if (list) list.innerHTML = finalHtml;
     if (listTrip) listTrip.innerHTML = finalHtml;
 };
-
-
 
 
 window.filterRecShop = function(cat, btn) {
@@ -1920,16 +2192,18 @@ window.filterRecShop = function(cat, btn) {
 
 window.addRecShopToMyList = async function(id) {
     const items = window.RECOMMENDED_SHOPPING || [];
-    const item = items.find(x => x.id === id);
-    if(!item) return;
+    const canonical = items.find(x => x.id === id);
+    if(!canonical) return;
+    const item = window.getOwnerCustomizedItem('shop', canonical);
     const payload = {
         category: item.category.includes('CU') ? '伴手禮' : (item.category.includes('Olive') ? '彩妝' : '其他'),
         text: item.name,
         where: item.category,
-        img: item.image?.thumb || '',
+        img: typeof item.image === 'string' ? item.image : (item.image?.thumb || ''),
         image: item.image || null,
         checked: false,
-        owner: window.currentShopOwner
+        owner: window.currentShopOwner,
+        sourceRecommendationId: canonical.id
     };
     try {
         await NetworkEngine.firebasePush(window.DB_SHOP, payload);

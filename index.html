@@ -16,7 +16,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
-    <link rel="stylesheet" href="style.css?v=45.5-owner-a">
+    <link rel="stylesheet" href="style.css?v=45.6-owner-b">
     <link rel="stylesheet" href="assets/css/item-images.css?v=45.4-image1">
     <script src="ute/ute_pwa_install.js?v=45.7-pwa"></script>
     
@@ -86,6 +86,33 @@
     </div>
 </div>
 
+<div id="ownerCustomizeModal" class="owner-custom-modal" role="dialog" aria-modal="true" aria-labelledby="ownerCustomizeTitle" hidden>
+    <div class="owner-custom-card">
+        <div class="owner-custom-head">
+            <div>
+                <div class="owner-custom-eyebrow">OWNER CUSTOMIZATION</div>
+                <h3 id="ownerCustomizeTitle">編輯我的版本</h3>
+                <p id="ownerCustomizeHint">原始推薦資料維持唯讀；你的修改會另存為個人覆寫。</p>
+            </div>
+            <button type="button" class="owner-custom-close" aria-label="關閉編輯" onclick="closeOwnerCustomize()">×</button>
+        </div>
+        <input type="hidden" id="ownerCustomKind">
+        <input type="hidden" id="ownerCustomId">
+        <input type="hidden" id="tempOwnerCustomImg">
+        <input type="text" id="ownerCustomName" class="input-box" placeholder="顯示名稱">
+        <textarea id="ownerCustomDesc" class="input-box owner-custom-textarea" placeholder="我的備註／推薦理由"></textarea>
+        <div class="owner-custom-image-row">
+            <label for="ownerCustomImgUpload" class="owner-custom-upload"><i class="fa-solid fa-camera"></i> 換圖片</label>
+            <input type="file" id="ownerCustomImgUpload" style="display:none;" accept="image/*" onchange="uploadSingleToImgBB(this.files[0], 'ownerCustom')">
+            <span id="ownerCustomUploadStatus" class="owner-custom-status" role="status" aria-live="polite"></span>
+        </div>
+        <div class="owner-custom-actions">
+            <button type="button" class="btn-action owner-custom-reset" onclick="resetOwnerCustomizationFromModal()">還原官方內容</button>
+            <button type="button" class="btn-action" onclick="saveOwnerCustomizationFromModal()">儲存我的版本</button>
+        </div>
+    </div>
+</div>
+
 <div id="mainApp">
 
     <aside id="pwaInstallBar" class="pwa-install-bar" aria-label="安裝 BUSAN.11 應用程式" hidden>
@@ -149,7 +176,9 @@
                 <div id="guideList"></div>
                 <div id="foodRecList" style="display:none; margin-bottom: 20px;"></div>
                 <div class="card" id="addGuideCard" style="margin-top:15px;">
-                    <h4 style="margin:0 0 10px 0; color:var(--primary);"><i class="fa-solid fa-plus"></i> 新增地標推薦</h4>
+                    <h4 id="guideFormTitle" style="margin:0 0 10px 0; color:var(--primary);"><i class="fa-solid fa-plus"></i> 新增我的景點／美食</h4>
+                    <p class="owner-data-note">我的新增與編輯資料會與官方推薦分開保存，不會改寫 canonical 旅程內容。</p>
+                    <input type="hidden" id="gdEditKey" value="">
                     <div class="flex-row"><select id="gdType" class="input-box" style="width:110px;">
                         <option value="打卡景點">打卡景點</option><option value="必吃美食">必吃美食</option><option value="伴手禮">伴手禮</option><option value="衣物鞋履">衣物鞋履</option>
                         <option value="小物配件">小物配件</option><option value="彩妝">彩妝</option><option value="保養">保養</option><option value="Olive Young">Olive Young</option><option value="當地藥局">當地藥局</option>
@@ -162,7 +191,10 @@
                         <div id="guideUploadStatus" style="font-size: 0.85rem; color: var(--primary); flex:1;"></div>
                     </div>
                     <input type="hidden" id="tempGuideImg" value="">
-                    <button class="btn-action" style="margin-top:12px; background:var(--dora);" onclick="addGuideItem()">同步至雲端</button>
+                    <div class="owner-form-actions">
+                        <button id="cancelGuideEditBtn" type="button" class="btn-action owner-secondary-action" style="display:none;" onclick="cancelGuideEdit()">取消編輯</button>
+                        <button id="saveGuideBtn" type="button" class="btn-action" style="background:var(--dora);" onclick="addGuideItem()">新增到我的收藏</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -302,6 +334,8 @@
             </div>
             
             <div id="addShopBox" style="background: rgba(255,255,255,0.6); padding: 18px; border-radius: 22px; margin-bottom: 20px; border:1px solid #fff;">
+                <input type="hidden" id="shopEditKey" value="">
+                <div id="shopEditNotice" class="owner-edit-notice" hidden>正在編輯購物項目</div>
                 <div class="flex-row" style="margin-bottom:10px;">
                     <select id="shopCategory" class="input-box" style="width:110px; margin-bottom:0;">
                         <option value="伴手禮">🎁 伴手禮</option><option value="小物">📱 小物</option><option value="彩妝">💄 彩妝</option>
@@ -319,6 +353,7 @@
                 </div>
                 <input type="hidden" id="tempShopPhoto" value="">
                 <div id="shopPhotoStatus" role="status" aria-live="polite" style="font-size:0.78rem; color:var(--primary); margin-top:8px; font-weight:800;"></div>
+                <button id="cancelShopEditBtn" type="button" class="owner-inline-cancel" style="display:none;" onclick="cancelShopEdit()">取消編輯</button>
             </div>
             <!-- My shop list container -->
             <div id="shopMyContainer"><div id="sList"></div></div>
@@ -399,6 +434,26 @@
                     <div style="font-weight:900; font-size:0.95rem; color:var(--primary); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
                         <span><i class="fa-solid fa-list-check"></i> 行前準備 Checklist</span>
                     </div>
+                    <div id="prepProgressUI" class="prep-progress" aria-live="polite"></div>
+                    <div class="prep-owner-form">
+                        <input type="hidden" id="prepEditKey" value="">
+                        <div class="flex-row">
+                            <select id="prepCategory" class="input-box" style="width:110px; margin-bottom:8px;">
+                                <option value="證件">🪪 證件</option>
+                                <option value="衣物">👕 衣物</option>
+                                <option value="電子">🔌 電子</option>
+                                <option value="藥品">💊 藥品</option>
+                                <option value="預約">📌 預約</option>
+                                <option value="其他">🧳 其他</option>
+                            </select>
+                            <input type="text" id="prepText" class="input-box flex-1" placeholder="要帶什麼／要完成什麼？" style="margin-bottom:8px;">
+                        </div>
+                        <input type="url" id="prepLink" class="input-box" placeholder="相關連結（選填）">
+                        <div class="owner-form-actions">
+                            <button id="cancelPrepEditBtn" type="button" class="btn-action owner-secondary-action" style="display:none;" onclick="cancelPrepEdit()">取消編輯</button>
+                            <button id="savePrepBtn" type="button" class="btn-action" onclick="savePrepItem()"><i class="fa-solid fa-plus"></i> 新增 Packing 項目</button>
+                        </div>
+                    </div>
                     <div id="prepListUI"></div>
                 </div>
             </div>
@@ -418,10 +473,27 @@
         <div id="walletCouponSection" style="display:none;">
             <div class="card" style="background: #ffffff; border-radius: 24px; padding: 20px;">
                 <h3 class="card-title" style="font-weight: 900;"><i class="fa-solid fa-gift"></i> 會員卡與折扣券</h3>
-                <div class="wallet-empty-state" role="status" style="text-align:center; color:#7f8c8d; padding:24px 12px; font-weight:800; line-height:1.7;">
-                    <div style="font-size:2rem;" aria-hidden="true"><i class="fa-solid fa-ticket"></i></div>
-                    <div>尚未新增優惠券或會員卡</div>
-                    <div style="font-size:0.78rem; font-weight:700;">無可顯示條碼</div>
+                <p class="owner-data-note">可保存會員卡、優惠券圖片與 Code 128 條碼；沒有真實號碼時不會生成假條碼。</p>
+                <div id="couponList"></div>
+                <div id="couponForm" class="coupon-owner-form">
+                    <input type="hidden" id="couponEditKey" value="">
+                    <input type="hidden" id="tempCouponImg" value="">
+                    <input type="text" id="couponTitle" class="input-box" placeholder="名稱（例：Olive Young 會員卡）">
+                    <textarea id="couponDesc" class="input-box owner-custom-textarea" placeholder="優惠內容／使用條件"></textarea>
+                    <div class="flex-row">
+                        <input type="text" id="couponCode" class="input-box flex-1" placeholder="條碼號碼（選填，僅支援 ASCII Code 128）">
+                        <input type="date" id="couponExpiry" class="input-box" style="width:145px;">
+                    </div>
+                    <input type="url" id="couponLink" class="input-box" placeholder="官方活動／會員連結（選填）">
+                    <div class="owner-custom-image-row">
+                        <label for="couponImgUpload" class="owner-custom-upload"><i class="fa-solid fa-image"></i> 上傳優惠券圖片</label>
+                        <input type="file" id="couponImgUpload" style="display:none;" accept="image/*" onchange="uploadSingleToImgBB(this.files[0], 'coupon')">
+                        <span id="couponUploadStatus" class="owner-custom-status" role="status" aria-live="polite"></span>
+                    </div>
+                    <div class="owner-form-actions">
+                        <button id="cancelCouponEditBtn" type="button" class="btn-action owner-secondary-action" style="display:none;" onclick="cancelCouponEdit()">取消編輯</button>
+                        <button id="saveCouponBtn" type="button" class="btn-action" onclick="saveCoupon()"><i class="fa-solid fa-floppy-disk"></i> 儲存優惠券</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -519,9 +591,13 @@
             <h4 style="margin:0 0 8px 0; font-weight:900; font-size:1rem; color:var(--text-color);"><i class="fa-solid fa-volume-high" style="color:var(--dora);"></i> 常用韓語・我的字卡</h4>
             <p style="font-size:0.78rem; color:#7f8c8d; font-weight:700; margin:0 0 12px 0; line-height:1.55;">常用句、新增專屬句子與發音集中在這裡。點擊字卡可放大給店員看並播放韓語。</p>
             <div class="translation-add-box">
+                <input type="hidden" id="voiceEditKey" value="">
                 <input type="text" id="newCardTw" class="input-box" placeholder="中文（例：我不要加蔥）" style="margin-bottom:8px;">
                 <input type="text" id="newCardKr" class="input-box" placeholder="韓文（請確認後貼上）" style="margin-bottom:8px;">
-                <button type="button" class="btn-action" style="padding:10px;" onclick="addVoiceCard()"><i class="fa-solid fa-plus"></i> 新增專屬字卡</button>
+                <div class="owner-form-actions">
+                    <button id="cancelVoiceEditBtn" type="button" class="btn-action owner-secondary-action" style="display:none;" onclick="cancelVoiceEdit()">取消編輯</button>
+                    <button id="saveVoiceBtn" type="button" class="btn-action" style="padding:10px;" onclick="addVoiceCard()"><i class="fa-solid fa-plus"></i> 新增專屬字卡</button>
+                </div>
             </div>
             <div class="voice-grid" id="voiceGridUI"></div>
         </div>
@@ -566,17 +642,17 @@
 <script src="ute/ute_shopping_photo.js?v=45.5-image2"></script>
 <script src="ute/ute_private_ledger.js?v=45.6-private-ledger"></script>
 <script src="services/nearby.js?v=45.4"></script>
-<script src="services/utils.js?v=45.4"></script>
+<script src="services/utils.js?v=45.6-owner-b"></script>
 <script src="services/item-images.js?v=45.4-image1"></script>
 <script src="data/travel-content.js?v=45.4"></script>
 <script src="data/recommended.js?v=45.4"></script>
 
-<script src="js/firebase.js?v=45.4"></script>
+<script src="js/firebase.js?v=45.6-owner-b"></script>
 <script src="js/ui.js?v=45.4"></script>
-<script src="js/wallet.js?v=45.5-owner-a"></script>
+<script src="js/wallet.js?v=45.6-owner-b"></script>
 <script src="js/memory.js?v=45.4"></script>
 <script src="js/itinerary.js?v=45.4"></script>
-<script src="components/renderers.js?v=45.5-owner-a"></script>
-<script src="js/app.js?v=45.5-owner-a"></script>
+<script src="components/renderers.js?v=45.6-owner-b"></script>
+<script src="js/app.js?v=45.6-owner-b"></script>
 </body>
 </html>

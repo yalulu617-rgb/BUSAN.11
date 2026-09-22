@@ -149,8 +149,8 @@ window.compressImage = function(file) {
 };
 
 window.uploadSingleToImgBB = async function(file, type) {
-    const statusId = { shop: 'shopUploadStatus', receipt: 'receiptStatus', guide: 'guideUploadStatus', ticket: 'voucherStatus' }[type] || 'voucherStatus';
-    const hiddenId = { shop: 'tempShopImg', receipt: 'tempReceipt', guide: 'tempGuideImg', ticket: 'tempVoucher' }[type] || 'tempVoucher';
+    const statusId = { shop: 'shopUploadStatus', receipt: 'receiptStatus', guide: 'guideUploadStatus', ticket: 'voucherStatus', coupon: 'couponUploadStatus', ownerCustom: 'ownerCustomUploadStatus' }[type] || 'voucherStatus';
+    const hiddenId = { shop: 'tempShopImg', receipt: 'tempReceipt', guide: 'tempGuideImg', ticket: 'tempVoucher', coupon: 'tempCouponImg', ownerCustom: 'tempOwnerCustomImg' }[type] || 'tempVoucher';
     const status = document.getElementById(statusId);
     const hidden = document.getElementById(hiddenId);
     if (!file) return;

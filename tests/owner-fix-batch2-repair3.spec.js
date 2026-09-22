@@ -84,8 +84,9 @@ test.describe('Owner Fix Batch 2 Repair 3 — truthful reservations and credenti
       window.showV37Tab('wallet');
       window.switchWalletTab('coupon');
     });
-    await expect(page.locator('#walletCouponSection')).toContainText('尚未新增優惠券或會員卡');
-    await expect(page.locator('#walletCouponSection')).toContainText('無可顯示條碼');
+    await expect(page.locator('#walletCouponSection #couponTitle')).toBeVisible();
+    await expect(page.locator('#walletCouponSection #couponCode')).toBeVisible();
+    await expect(page.locator('#walletCouponSection')).not.toContainText(/9081|8872|MEMBERSHIP BARCODE|DISCOUNT COUPON/);
 
     await page.evaluate(() => window.switchWalletTab('hotel'));
     await expect(page.locator('#walletHotelInfoCard')).not.toContainText('尚未填寫住宿資料');

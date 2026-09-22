@@ -25,6 +25,9 @@
     window.DB_PROFILE = "busan_v36_profiles";
     window.DB_HOTEL   = "busan_v36_hotel";
     window.DB_REVIEW  = "busan_v37_review";
+    // V45 Batch B owner-editable data. Canonical static content remains read-only.
+    window.DB_COUPONS = "busan_v45_coupons";
+    window.DB_OWNER_CUSTOM = "busan_v45_owner_custom";
 
     // Initialize Firebase
     if (window.firebase) {

@@ -675,3 +675,58 @@ body {
             color: #7f8c8d;
             line-height: 1.2;
         }/* Revision 7: compact, non-blocking PWA installation UI */ .pwa-install-bar{width:min(92%,620px);margin:12px auto 0;min-height:48px;padding:6px 6px 6px 14px;display:flex;align-items:center;gap:8px;color:var(--text-color);background:var(--card-bg);border:1px solid var(--border-color);border-radius:18px;box-shadow:var(--shadow)} .pwa-install-bar[hidden],.pwa-ios-dialog[hidden]{display:none}.pwa-install-bar span{flex:1;font-size:.82rem;font-weight:800;line-height:1.35}.pwa-install-action,.pwa-install-dismiss,.pwa-ios-close{min-height:44px;border:0;border-radius:13px;cursor:pointer;font:inherit;font-weight:900}.pwa-install-action{padding:0 16px;color:#fff;background:var(--dora)}.pwa-install-dismiss{min-width:44px;color:var(--text-color);background:transparent;font-size:1.35rem}.pwa-install-action:focus-visible,.pwa-install-dismiss:focus-visible,.pwa-ios-close:focus-visible{outline:3px solid var(--accent);outline-offset:2px}.pwa-ios-dialog{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.72);backdrop-filter:blur(10px)}.pwa-ios-dialog-card{width:min(100%,420px);padding:26px;color:var(--text-color);background:var(--card-bg);border:1px solid var(--border-color);border-radius:24px;box-shadow:0 20px 55px rgba(0,0,0,.32)}.pwa-ios-dialog-card h2{margin:0 0 16px;color:var(--primary);font-size:1.25rem}.pwa-ios-dialog-card ol{margin:0 0 20px;padding-left:1.5rem;font-weight:800;line-height:1.9}.pwa-ios-close{width:100%;padding:0 18px;color:#fff;background:var(--primary)}@media(max-width:420px){.pwa-install-bar{width:calc(100% - 24px)}.pwa-install-bar span{font-size:.76rem}}
+
+/* ── V45 Batch B Owner Editable Experience ─────────────────────────────── */
+.owner-data-note { margin:0 0 12px; font-size:.75rem; line-height:1.5; color:#7f8c8d; font-weight:800; }
+.owner-form-actions { display:flex; gap:8px; align-items:center; margin-top:8px; }
+.owner-form-actions .btn-action { flex:1; min-height:44px; }
+.owner-secondary-action { background:#eef2f7 !important; color:#596275 !important; box-shadow:none !important; }
+.owner-inline-cancel { margin-top:8px; min-height:40px; border:0; border-radius:12px; padding:8px 14px; background:#eef2f7; color:#596275; font-weight:900; cursor:pointer; }
+.owner-edit-notice { margin-bottom:8px; padding:7px 10px; border-radius:10px; background:#fff3cd; color:#856404; font-size:.75rem; font-weight:900; }
+.owner-row-actions, .owner-guide-actions, .voice-card-actions { display:flex; gap:6px; align-items:center; }
+.owner-guide-actions { position:absolute; top:10px; right:10px; }
+.owner-row-actions button, .owner-guide-actions button { min-width:38px; min-height:38px; border:0; border-radius:10px; cursor:pointer; }
+.owner-source-badge { display:inline-flex; align-items:center; width:max-content; padding:3px 8px; border-radius:999px; background:#edf2f7; color:#718096; font-size:.62rem; font-weight:900; }
+.owner-source-badge.customized { background:#fff0f6; color:#c2255c; }
+.owner-editable-rec .item-image { margin-bottom:8px; }
+.owner-custom-modal[hidden] { display:none; }
+.owner-custom-modal { position:fixed; inset:0; z-index:10020; display:flex; align-items:center; justify-content:center; padding:18px; background:rgba(0,0,0,.72); backdrop-filter:blur(10px); }
+.owner-custom-card { width:min(100%,460px); max-height:88vh; overflow:auto; padding:22px; border-radius:24px; background:var(--card-bg); box-shadow:0 24px 70px rgba(0,0,0,.3); }
+.owner-custom-head { display:flex; justify-content:space-between; gap:14px; margin-bottom:14px; }
+.owner-custom-head h3 { margin:2px 0 4px; color:var(--primary); }
+.owner-custom-head p { margin:0; font-size:.74rem; line-height:1.5; color:#7f8c8d; font-weight:700; }
+.owner-custom-eyebrow { font-size:.62rem; letter-spacing:.08em; font-weight:900; color:#95a5a6; }
+.owner-custom-close { width:44px; height:44px; flex:none; border:0; border-radius:50%; background:#eef2f7; color:#596275; font-size:1.4rem; cursor:pointer; }
+.owner-custom-textarea { min-height:84px; resize:vertical; }
+.owner-custom-image-row { display:flex; align-items:center; gap:10px; margin:8px 0 12px; }
+.owner-custom-upload { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:44px; padding:8px 12px; border-radius:12px; background:#eef7ff; color:var(--dora); font-weight:900; cursor:pointer; }
+.owner-custom-status { flex:1; color:#7f8c8d; font-size:.72rem; font-weight:800; }
+.owner-custom-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.owner-custom-reset { background:#eef2f7 !important; color:#596275 !important; box-shadow:none !important; }
+.prep-owner-form, .coupon-owner-form { margin:10px 0 14px; padding:12px; border:1px solid var(--border-color); border-radius:16px; background:rgba(0,0,0,.02); }
+.prep-progress { margin:8px 0 10px; }
+.prep-progress-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; color:#596275; font-size:.75rem; font-weight:900; }
+.prep-progress-track { width:100%; height:9px; overflow:hidden; border-radius:999px; background:#e9ecef; }
+.prep-progress-fill { height:100%; border-radius:999px; background:linear-gradient(90deg,#1abc9c,#2ecc71); transition:width .2s ease; }
+.prep-category { display:block; margin-bottom:2px; color:var(--dora); font-size:.62rem; font-weight:900; }
+.voice-card { min-height:148px; }
+.voice-card > .owner-source-badge { position:absolute; top:7px; left:7px; }
+.voice-card-actions { position:absolute; top:5px; right:5px; z-index:2; }
+.voice-action { width:32px; height:32px; border:0; border-radius:50%; background:#eef7ff; color:var(--dora); cursor:pointer; }
+.voice-action.danger { background:#fff0f0; color:#e74c3c; }
+.coupon-card { margin:0 0 12px; padding:14px; border:1px solid var(--border-color); border-radius:18px; background:var(--card-bg); box-shadow:0 4px 14px rgba(0,0,0,.04); }
+.coupon-card-head { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+.coupon-card h4 { margin:5px 0 0; color:var(--text-color); }
+.coupon-card p { margin:8px 0; color:#596275; font-size:.8rem; line-height:1.45; font-weight:700; }
+.coupon-image { display:block; width:100%; max-height:220px; object-fit:contain; margin:10px 0; border-radius:12px; background:#f7f7f7; }
+.coupon-barcode { display:block; width:100%; height:82px; margin:12px 0 5px; padding:8px; box-sizing:border-box; background:#fff; border:1px solid #eee; border-radius:10px; }
+.coupon-code-text { text-align:center; font-family:monospace; letter-spacing:.08em; font-size:.8rem; font-weight:900; color:#2c3e50; word-break:break-all; }
+.coupon-expiry { display:inline-block; margin-top:4px; padding:3px 8px; border-radius:999px; background:#fff3cd; color:#856404; font-size:.7rem; font-weight:900; }
+.wallet-empty-state { text-align:center; color:#7f8c8d; padding:24px 12px; font-weight:800; line-height:1.7; }
+.wallet-empty-icon { font-size:2rem; }
+.wallet-empty-sub { font-size:.78rem; font-weight:700; }
+@media (max-width:420px) {
+  .owner-custom-actions { grid-template-columns:1fr; }
+  .owner-row-actions { flex-direction:column; }
+  .coupon-card-head .owner-row-actions { flex-direction:row; }
+}

@@ -23,10 +23,11 @@
     window.v37SimulatedDate = StorageEngine.get('busan_v37_simulated_date', 'real').data;
     window.currentLightboxUrl = '';
     window.currentLightboxKey = '';
-    window.voiceData        = (Array.isArray(window.voiceData) && window.voiceData.length > 0) ? window.voiceData : (StorageEngine.get('busan_v36_voice', []).data || []);
-    if (!window.voiceData || window.voiceData.length === 0) {
-        window.voiceData    = (window.CANONICAL_VOICE_FALLBACK || []).slice();
-    }
+    const storedVoiceCustom = StorageEngine.get('busan_v45_voice_custom', StorageEngine.get('busan_v36_voice', []).data || []).data || [];
+    window.voiceCustomData  = Array.isArray(window.voiceCustomData) ? window.voiceCustomData : (Array.isArray(storedVoiceCustom) ? storedVoiceCustom : []);
+    window.voiceData        = typeof window.mergeVoiceWorkspace === 'function'
+        ? window.mergeVoiceWorkspace(window.voiceCustomData)
+        : ((window.CANONICAL_VOICE_FALLBACK || []).slice());
     window.prepData         = (Array.isArray(window.prepData) && window.prepData.length > 0) ? window.prepData : (StorageEngine.get('busan_v36_prepData', []).data || []);
     // Decrypted private data is memory-only and starts locked on every boot.
     window.privateBills     = [];
@@ -36,6 +37,8 @@
     window.currentFoodSubTab  = 'my';
     window.currentRecShopFilter = 'ALL';
     window.ticketData       = (Array.isArray(window.ticketData) && window.ticketData.length > 0) ? window.ticketData : (StorageEngine.get('busan_v36_tickets', []).data || []);
+    window.couponData       = (Array.isArray(window.couponData) ? window.couponData : (StorageEngine.get('busan_v45_coupons', []).data || []));
+    window.ownerCustomizations = window.ownerCustomizations || (StorageEngine.get('busan_v45_owner_customizations', { food: {}, shop: {} }).data || { food: {}, shop: {} });
     const initialItineraryRows = Array.isArray(window.customItineraryData) ? window.customItineraryData : (StorageEngine.get('busan_v36_itinerary', []).data || []);
     window.itineraryData = typeof window.mergeCanonicalItinerary === 'function' ? window.mergeCanonicalItinerary(initialItineraryRows) : (window.RECOMMENDED_ITINERARY || []);
     window.currentFilterDay = '11/13';
@@ -692,10 +695,8 @@
                     if (snap && typeof snap.forEach === 'function') {
                         snap.forEach(ch => { loaded.push({ ...ch.val(), key: ch.key }); });
                     }
-                    if (loaded.length > 0) {
-                        window.shopList = loaded;
-                        StorageEngine.set('busan_v36_shopList', window.shopList);
-                    }
+                    window.shopList = loaded;
+                    StorageEngine.set('busan_v36_shopList', window.shopList);
                     if (typeof renderShop === 'function') renderShop();
                 } catch (e) { console.error('[FirebaseOn DB_SHOP]', e); }
             });
@@ -706,10 +707,8 @@
                     if (snap && typeof snap.forEach === 'function') {
                         snap.forEach(ch => { loaded.push({ ...ch.val(), key: ch.key }); });
                     }
-                    if (loaded.length > 0) {
-                        window.guideData = loaded;
-                        StorageEngine.set('busan_v36_guide', window.guideData);
-                    }
+                    window.guideData = loaded;
+                    StorageEngine.set('busan_v36_guide', window.guideData);
                     if (typeof renderGuideContent === 'function') renderGuideContent();
                 } catch (e) { console.error('[FirebaseOn DB_GUIDE]', e); }
             });
@@ -746,10 +745,8 @@
                     if (snap && typeof snap.forEach === 'function') {
                         snap.forEach(ch => { loaded.push({ ...ch.val(), key: ch.key }); });
                     }
-                    if (loaded.length > 0) {
-                        window.prepData = loaded;
-                        StorageEngine.set('busan_v36_prepData', window.prepData);
-                    }
+                    window.prepData = loaded;
+                    StorageEngine.set('busan_v36_prepData', window.prepData);
                     if (typeof renderPrepList === 'function') renderPrepList();
                     if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
                 } catch (e) { console.error('[FirebaseOn DB_PREP]', e); }
@@ -775,12 +772,39 @@
                     if (snap && typeof snap.forEach === 'function') {
                         snap.forEach(ch => { loaded.push({ ...ch.val(), key: ch.key }); });
                     }
-                    if (loaded.length > 0) {
-                        window.voiceData = loaded;
-                        StorageEngine.set('busan_v36_voice', window.voiceData);
-                    }
+                    window.voiceCustomData = loaded;
+                    StorageEngine.set('busan_v45_voice_custom', loaded);
+                    window.voiceData = typeof window.mergeVoiceWorkspace === 'function'
+                        ? window.mergeVoiceWorkspace(loaded)
+                        : loaded;
+                    StorageEngine.set('busan_v36_voice', window.voiceData);
                     if (typeof renderVoiceList === 'function') renderVoiceList();
                 } catch (e) { console.error('[FirebaseOn DB_VOICE]', e); }
+            });
+
+            NetworkEngine.firebaseOn(DB_COUPONS, snap => {
+                try {
+                    const loaded = [];
+                    if (snap && typeof snap.forEach === 'function') {
+                        snap.forEach(ch => { loaded.push({ ...ch.val(), key: ch.key }); });
+                    }
+                    window.couponData = loaded;
+                    StorageEngine.set('busan_v45_coupons', loaded);
+                    if (typeof renderCoupons === 'function') renderCoupons();
+                } catch (e) { console.error('[FirebaseOn DB_COUPONS]', e); }
+            });
+
+            NetworkEngine.firebaseOn(DB_OWNER_CUSTOM, snap => {
+                try {
+                    const loaded = snap && typeof snap.val === 'function' ? (snap.val() || {}) : {};
+                    window.ownerCustomizations = {
+                        food: loaded.food || {},
+                        shop: loaded.shop || {}
+                    };
+                    StorageEngine.set('busan_v45_owner_customizations', window.ownerCustomizations);
+                    if (typeof renderRecommendedFood === 'function') renderRecommendedFood();
+                    if (typeof renderRecommendedShopping === 'function') renderRecommendedShopping();
+                } catch (e) { console.error('[FirebaseOn DB_OWNER_CUSTOM]', e); }
             });
 
             NetworkEngine.firebaseOn(DB_PROFILE, snap => {

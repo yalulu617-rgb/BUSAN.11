@@ -110,7 +110,7 @@ test.describe('BUSAN.11 V45 — Content Regression & Travel-Readiness Suite', ()
   });
 
   // ── C. TRANSLATION ──────────────────────────────────────────────────────
-  test('C. Translation: Exactly 7 voice cards rendered with non-empty TW and KR text', async ({ page }) => {
+  test('C. Translation: Canonical 7 voice cards remain available with owner CRUD support', async ({ page }) => {
     // Open guide -> 工具 to access voice cards
     await page.evaluate(() => {
       window.showV37Tab('home');
@@ -125,7 +125,7 @@ test.describe('BUSAN.11 V45 — Content Regression & Travel-Readiness Suite', ()
     const voiceCards = page.locator('#voiceGridUI .voice-card');
     await expect(voiceCards.first()).toBeVisible({ timeout: 5000 });
     const cardCount = await voiceCards.count();
-    expect(cardCount).toBe(7);
+    expect(cardCount).toBeGreaterThanOrEqual(7);
 
     // Verify each card has non-empty Chinese (TW) and Korean (KR) text
     for (let i = 0; i < cardCount; i++) {
