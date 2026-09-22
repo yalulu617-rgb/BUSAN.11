@@ -182,7 +182,7 @@ test('Image Batch 2: device photos resize, replace in place, persist and degrade
 test('Image Batch 2: shopping hooks keep photos optional and delete device blobs', async ({ page }) => {
   const rendererSource = source('components/renderers.js');
   const functions = ['cancelShopEdit', 'addShopItem', 'deleteShop'].map(name =>
-    rendererSource.match(new RegExp(`window\\.${name} = (?:async )?function \\(.*?\\) {[\\s\\S]*?^};`, 'm'))[0]).join('\n');
+    rendererSource.match(new RegExp(`window\\.${name} = (?:async )?function\\s*\\(.*?\\) {[\\s\\S]*?^};`, 'm'))[0]).join('\n');
   await page.setContent('<input id="newShop" value="Item"><input id="shopWhere"><select id="shopCategory"><option>其他</option></select><input id="tempShopPhoto"><div id="sList"></div>');
   await page.addScriptTag({ content: `
     window.deviceOwner = 'user1'; window.shopList = []; let fakeNow = 0; Date.now = () => ++fakeNow;
