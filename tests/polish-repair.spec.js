@@ -6,8 +6,8 @@ test('Home navigation uses native, keyboard-operable controls', async ({ page })
   await bootApp(page);
 
   const cards = page.locator('.v45-nine-card');
-  await expect(cards).toHaveCount(9);
-  for (let index = 0; index < 9; index += 1) {
+  await expect(cards).toHaveCount(11);
+  for (let index = 0; index < 11; index += 1) {
     const card = cards.nth(index);
     await expect(card).toHaveJSProperty('tagName', 'BUTTON');
     await expect(card).toHaveAttribute('type', 'button');

@@ -16,7 +16,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
-    <link rel="stylesheet" href="style.css?v=45.4">
+    <link rel="stylesheet" href="style.css?v=45.5-owner-a">
     <link rel="stylesheet" href="assets/css/item-images.css?v=45.4-image1">
     <script src="ute/ute_pwa_install.js?v=45.7-pwa"></script>
     
@@ -86,8 +86,6 @@
     </div>
 </div>
 
-<div class="fab-back" id="fabBack" role="button" tabindex="0" aria-label="返回目錄" onclick="closeGuideFolder()"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></div>
-
 <div id="mainApp">
 
     <aside id="pwaInstallBar" class="pwa-install-bar" aria-label="安裝 BUSAN.11 應用程式" hidden>
@@ -131,19 +129,14 @@
 
 
         <div id="guideDetail" style="display:none; margin-top:-10px;">
+            <button type="button" class="deep-back-button" aria-label="返回首頁功能導覽" onclick="closeGuideFolder()"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>返回功能導覽</span></button>
             <div class="day-tabs" id="guideSubTabs" style="margin-bottom:5px;"></div>
-            <p style="font-size:0.8rem; color:#bdc3c7; text-align:center; margin:0 0 10px 0;"><i class="fa-solid fa-arrow-right-arrow-left"></i> 畫面往右滑動可快速返回目錄</p>
             
             <div id="toolSection" style="display:none;">
                 <div class="card">
-                    <h3 class="card-title"><i class="fa-solid fa-bullhorn"></i> 方塊大字卡與生成器</h3>
-                    <p style="font-size:0.85rem; color:#7f8c8d; font-weight:900; margin-top:0;">點擊卡片可放大顯示與發音。</p>
-                    <div style="background: #fdfdfd; padding: 15px; border-radius: 18px; border: 1px solid #eee; margin-bottom: 15px;">
-                        <input type="text" id="newCardTw" class="input-box" placeholder="中文 (例: 我不要加蔥)" style="margin-bottom:8px;">
-                        <input type="text" id="newCardKr" class="input-box" placeholder="韓文 (請查好貼上)" style="margin-bottom:8px;">
-                        <button class="btn-action" style="padding:10px;" onclick="addVoiceCard()">新增專屬字卡</button>
-                    </div>
-                    <div class="voice-grid" id="voiceGridUI"></div>
+                    <h3 class="card-title"><i class="fa-solid fa-language"></i> 翻譯・SOS 工作區</h3>
+                    <p style="font-size:0.85rem; color:#7f8c8d; font-weight:800; margin-top:0; line-height:1.6;">韓語字卡、新增句子、發音與 Papago 已整合到同一個入口。</p>
+                    <button type="button" class="btn-action" onclick="showV37Tab('more')"><i class="fa-solid fa-arrow-up-right-from-square"></i> 開啟翻譯・SOS</button>
                 </div>
             </div>
 
@@ -339,14 +332,14 @@
     <!-- 5. 拍立得相冊 -->
     <div id="wallet" class="container">
         <div class="card" style="padding:15px; margin-bottom:15px; background: linear-gradient(135deg, #2c3e50, #34495e); color:white; border-radius: 20px;">
-            <h3 id="walletHeaderTitle" style="margin:0; font-size:1.1rem; color:#f1c40f;"><i class="fa-solid fa-ticket"></i> 票券住宿</h3>
+            <h3 id="walletHeaderTitle" style="margin:0; font-size:1.1rem; color:#f1c40f;"><i class="fa-solid fa-ticket"></i> 票券・優惠</h3>
             <p id="walletHeaderSubtitle" style="font-size:0.75rem; color:rgba(255,255,255,0.7); margin:4px 0 0 0;">Travel Wallet</p>
         </div>
         
         <div class="day-tabs wallet-tabs" style="margin-bottom: 15px; flex-wrap: wrap; justify-content: center; gap: 6px;">
             <button id="btnWalletTicket" class="day-tab active" onclick="switchWalletTab('ticket')" style="font-size:0.75rem; padding:6px 10px;">🎟 Ticket</button>
             <button id="btnWalletHotel" class="day-tab" onclick="switchWalletTab('hotel')" style="font-size:0.75rem; padding:6px 10px;">🏨 Hotel</button>
-            <button id="btnWalletDoc" class="day-tab" onclick="switchWalletTab('doc')" style="font-size:0.75rem; padding:6px 10px;">📄 Docs</button>
+            <button id="btnWalletDoc" class="day-tab" onclick="switchWalletTab('doc')" style="font-size:0.75rem; padding:6px 10px;">🧳 行前</button>
             <button id="btnWalletCoupon" class="day-tab" onclick="switchWalletTab('coupon')" style="font-size:0.75rem; padding:6px 10px;">🎁 Coupon</button>
             <button id="btnWalletMemory" class="day-tab" onclick="switchWalletTab('memory')" style="font-size:0.75rem; padding:6px 10px;">📷 Memory</button>
         </div>
@@ -402,9 +395,9 @@
                 <div id="immigrationRulesUI" style="display:flex; flex-direction:column; gap:10px;"></div>
 
                 <!-- 出發前待辦清單 Checklist -->
-                <div style="margin-top:16px; border-top:1px dashed #eee; padding-top:12px;">
+                <div id="prepChecklistCard" style="margin-top:16px; border-top:1px dashed #eee; padding-top:12px;">
                     <div style="font-weight:900; font-size:0.95rem; color:var(--primary); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-                        <span><i class="fa-solid fa-list-check"></i> 出發前預約與待辦清單</span>
+                        <span><i class="fa-solid fa-list-check"></i> 行前準備 Checklist</span>
                     </div>
                     <div id="prepListUI"></div>
                 </div>
@@ -521,28 +514,16 @@
         </div>
 
 
-        <!-- 🗣️ 常用韓語大字卡與發音 -->
-        <div class="card fade-scale-in" style="background: #ffffff; border-radius: 20px; padding: 16px; margin-bottom: 15px;">
-            <h4 style="margin:0 0 10px 0; font-weight:900; font-size:1rem; color:var(--text-color);"><i class="fa-solid fa-volume-high" style="color:var(--dora);"></i> 常用韓語溝通大字卡</h4>
-            <p style="font-size:0.78rem; color:#7f8c8d; font-weight:700; margin:0 0 12px 0;">點擊字卡即可全螢幕放大給店員看，並支援即時語音朗讀。</p>
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-                <div style="background:#f8f9fa; padding:10px 14px; border-radius:12px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openFlashcard('請給我菜單', '메뉴판 주세요')">
-                    <div><div style="font-weight:900; font-size:0.88rem; color:#2c3e50;">請給我菜單</div><div style="font-size:0.75rem; color:#7f8c8d;">메뉴판 주세요</div></div>
-                    <button class="v38-mini-btn" aria-label="播放請給我菜單韓語發音" style="background:var(--dora); color:white; border:none;"><i class="fa-solid fa-volume-high" aria-hidden="true"></i></button>
-                </div>
-                <div style="background:#f8f9fa; padding:10px 14px; border-radius:12px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openFlashcard('請結帳', '계산해 주세요')">
-                    <div><div style="font-weight:900; font-size:0.88rem; color:#2c3e50;">請結帳</div><div style="font-size:0.75rem; color:#7f8c8d;">계산해 주세요</div></div>
-                    <button class="v38-mini-btn" aria-label="播放請結帳韓語發音" style="background:var(--dora); color:white; border:none;"><i class="fa-solid fa-volume-high" aria-hidden="true"></i></button>
-                </div>
-                <div style="background:#f8f9fa; padding:10px 14px; border-radius:12px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openFlashcard('請問可以退稅嗎？', '텍스리펀 되나요?')">
-                    <div><div style="font-weight:900; font-size:0.88rem; color:#2c3e50;">請問可以退稅嗎？</div><div style="font-size:0.75rem; color:#7f8c8d;">텍스리펀 되나요?</div></div>
-                    <button class="v38-mini-btn" aria-label="播放退稅詢問韓語發音" style="background:var(--dora); color:white; border:none;"><i class="fa-solid fa-volume-high" aria-hidden="true"></i></button>
-                </div>
-                <div style="background:#f8f9fa; padding:10px 14px; border-radius:12px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openFlashcard('請載我們去海雲台', '기사님, 해운대로 가주세요')">
-                    <div><div style="font-weight:900; font-size:0.88rem; color:#2c3e50;">請載我們去海雲台</div><div style="font-size:0.75rem; color:#7f8c8d;">기사님, 해운대로 가주세요</div></div>
-                    <button class="v38-mini-btn" aria-label="播放前往海雲台韓語發音" style="background:var(--dora); color:white; border:none;"><i class="fa-solid fa-volume-high" aria-hidden="true"></i></button>
-                </div>
+        <!-- 🗣️ Integrated Translation Workspace -->
+        <div class="card fade-scale-in" id="translationWorkspace" style="background: #ffffff; border-radius: 20px; padding: 16px; margin-bottom: 15px;">
+            <h4 style="margin:0 0 8px 0; font-weight:900; font-size:1rem; color:var(--text-color);"><i class="fa-solid fa-volume-high" style="color:var(--dora);"></i> 常用韓語・我的字卡</h4>
+            <p style="font-size:0.78rem; color:#7f8c8d; font-weight:700; margin:0 0 12px 0; line-height:1.55;">常用句、新增專屬句子與發音集中在這裡。點擊字卡可放大給店員看並播放韓語。</p>
+            <div class="translation-add-box">
+                <input type="text" id="newCardTw" class="input-box" placeholder="中文（例：我不要加蔥）" style="margin-bottom:8px;">
+                <input type="text" id="newCardKr" class="input-box" placeholder="韓文（請確認後貼上）" style="margin-bottom:8px;">
+                <button type="button" class="btn-action" style="padding:10px;" onclick="addVoiceCard()"><i class="fa-solid fa-plus"></i> 新增專屬字卡</button>
             </div>
+            <div class="voice-grid" id="voiceGridUI"></div>
         </div>
     </div>
 
@@ -592,10 +573,10 @@
 
 <script src="js/firebase.js?v=45.4"></script>
 <script src="js/ui.js?v=45.4"></script>
-<script src="js/wallet.js?v=45.4"></script>
+<script src="js/wallet.js?v=45.5-owner-a"></script>
 <script src="js/memory.js?v=45.4"></script>
 <script src="js/itinerary.js?v=45.4"></script>
-<script src="components/renderers.js?v=45.4"></script>
-<script src="js/app.js?v=45.4"></script>
+<script src="components/renderers.js?v=45.5-owner-a"></script>
+<script src="js/app.js?v=45.5-owner-a"></script>
 </body>
 </html>

@@ -67,7 +67,7 @@ test('native install readiness is captured without prompting and requires the in
   expect(await button.evaluate(element => element.tagName)).toBe('BUTTON');
   expect((await button.boundingBox()).height).toBeGreaterThanOrEqual(44);
   expect(await page.locator('.v45-nine-grid #pwaInstallBar').count()).toBe(0);
-  expect(await page.locator('.v45-nine-card').count()).toBe(9);
+  expect(await page.locator('.v45-nine-card').count()).toBe(11);
 
   const barBox = await bar.boundingBox();
   const navBox = await page.locator('.bottom-nav').boundingBox();
@@ -214,5 +214,5 @@ test('warm service-worker cache boots core navigation offline with private ledge
     '首頁', '今日', '記帳', '票券', 'SOS'
   ]);
   expect(await page.evaluate(() => window.privateBills)).toEqual([]);
-  expect(await page.locator('.v45-nine-card').count()).toBe(9);
+  expect(await page.locator('.v45-nine-card').count()).toBe(11);
 });

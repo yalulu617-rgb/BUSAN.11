@@ -596,20 +596,34 @@ body {
             transform: scale(0.95);
         }
 
-        /* ── V45 9 Primary Features Grid (Tokyo/Fuji Navigation Clarity) ── */
+        /* ── V45 Traveler IA Feature Grid (Tokyo/Fuji Navigation Clarity) ── */
         .v45-home-nine-grid {
             margin-top: 16px;
             margin-bottom: 20px;
         }
+        .home-live-label { display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin:4px 4px 8px; color:var(--primary); font-weight:900; letter-spacing:.04em; }
+        .home-live-label span { font-size:.78rem; }
+        .home-live-label small { font-size:.66rem; color:#8e8e93; letter-spacing:0; }
+        .home-ia-section + .home-ia-section { margin-top:18px; padding-top:14px; border-top:1px dashed var(--border-color); }
+        .home-ia-heading { margin:0 2px 10px; display:flex; align-items:center; gap:7px; color:var(--primary); font-size:.95rem; font-weight:900; }
+        .home-management-section .home-ia-heading { color:#596275; }
+        .v45-foliage-fallback { margin-top:6px; font-size:.68rem; line-height:1.35; color:#f6e58d; font-weight:800; }
+        .owner-ux-focus { outline:3px solid var(--accent); outline-offset:3px; }
+        .deep-back-button { min-height:44px; margin:0 0 10px; padding:8px 12px; display:inline-flex; align-items:center; gap:8px; border:1px solid var(--border-color); border-radius:14px; background:var(--card-bg); color:var(--primary); font:inherit; font-size:.82rem; font-weight:900; cursor:pointer; }
+        .supermarket-discovery-card { width:100%; min-height:72px; margin:0 0 10px; padding:12px 14px; display:flex; align-items:center; gap:10px; text-align:left; border:1px solid #f5d6b3; border-radius:16px; background:#fff8f1; color:var(--text-color); font:inherit; cursor:pointer; }
+        .supermarket-discovery-icon { font-size:1.5rem; }
+        .supermarket-discovery-copy { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+        .supermarket-discovery-copy b { font-size:.88rem; }
+        .supermarket-discovery-copy small { color:#7f8c8d; font-size:.7rem; line-height:1.35; font-weight:700; }
+        .translation-add-box { padding:12px; margin-bottom:12px; border:1px solid var(--border-color); border-radius:16px; background:rgba(0,0,0,.02); }
+        .deep-back-button:focus-visible, .supermarket-discovery-card:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
         .v45-nine-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 10px;
         }
-        @media (max-width: 360px) {
-            .v45-nine-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        @media (min-width: 680px) {
+            .v45-nine-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
         }
         .v45-nine-card {
             background: var(--card-bg, #ffffff);

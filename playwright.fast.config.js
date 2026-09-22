@@ -66,6 +66,7 @@ export default defineConfig({
         '**/travel.spec.js',
         '**/main.spec.js',
         '**/content_regression.spec.js',
+        '**/owner-ux-batch-a.spec.js',
       ],
     },
   ],

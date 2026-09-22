@@ -284,38 +284,26 @@ test.describe('BUSAN.11 V45 — Content Regression & Travel-Readiness Suite', ()
   });
 
   // ── F. NAVIGATION ───────────────────────────────────────────────────────
-  test('F. Navigation: Deep guide folder shows #fabBack and clicking returns to dashboard', async ({ page }) => {
+  test('F. Navigation: Deep guide folder uses one explicit inline back pattern', async ({ page }) => {
     await page.evaluate(() => window.showV37Tab('home'));
+    expect(await page.locator('#fabBack').count()).toBe(0);
 
-    const fabBack = page.locator('#fabBack');
-
-    // 1. Initially on dashboard, fabBack should not be visible
-    await expect(fabBack).toBeHidden();
-
-    // 2. Open deep folder (e.g. 美食景點)
     await page.evaluate(() => window.openGuideFolder('美食景點'));
     await expect(page.locator('#guideDetail')).toBeVisible();
     await expect(page.locator('#guideDashboard')).toBeHidden();
-    await expect(fabBack).toBeVisible();
+    await expect(page.locator('#guideDetail .deep-back-button')).toBeVisible();
+    await expect(page.locator('#guideDetail')).not.toContainText('往右滑動');
 
-    // 3. Click fabBack to return
-    await fabBack.click();
+    await page.locator('#guideDetail .deep-back-button').click();
     await expect(page.locator('#guideDashboard')).toBeVisible();
     await expect(page.locator('#guideDetail')).toBeHidden();
-    await expect(fabBack).toBeHidden();
 
-    // 4. Test tool folder as well
-    await page.evaluate(() => window.openGuideFolder('工具'));
-    await expect(page.locator('#guideDetail')).toBeVisible();
-    await expect(fabBack).toBeVisible();
-
-    // 5. Test keyboard navigation on fabBack (Enter key)
-    await page.evaluate(() => {
-      const el = document.getElementById('fabBack');
-      if (el) el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-    });
+    await page.evaluate(() => window.openGuideFolder('美食景點'));
+    const back = page.locator('#guideDetail .deep-back-button');
+    await back.focus();
+    await page.keyboard.press('Enter');
     await expect(page.locator('#guideDashboard')).toBeVisible();
-    await expect(fabBack).toBeHidden();
+    await expect(page.locator('#guideDetail')).toBeHidden();
   });
 
   // ── G. TICKET ───────────────────────────────────────────────────────────

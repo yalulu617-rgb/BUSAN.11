@@ -52,6 +52,16 @@ window.toggleCityDetailPanel = function () {
     panel.style.display = (panel.style.display === 'none' || panel.style.display === '') ? 'block' : 'none';
 };
 
+// Owner UX display guard: legacy Firebase/custom Guide rows may remain in storage,
+// but cancelled venues must never re-enter an active travel surface.
+const OWNER_HIDDEN_TRAVEL_ITEM_PATTERN = /(Matchandeul|맛찬들|味讚王|Haemok|해목|海木|ZIMCARRY|짐캐리|Solsot|솔솥|Byeolchaeban|별채반|SCENTICA\s*Jeonpo|센티카\s*전포|Pohang Dwaeji Gukbap|포항돼지국밥)/i;
+window.isOwnerHiddenTravelItem = function (item) {
+    const haystack = [item?.title, item?.name, item?.text, item?.desc, item?.type]
+        .filter(Boolean)
+        .join(' ');
+    return OWNER_HIDDEN_TRAVEL_ITEM_PATTERN.test(haystack);
+};
+
 // ── Guide tab filter ───────────────────────────────────────────────────────
 window.filterGuideContent = function (tab) {
     window.currentGuideTab = tab;
@@ -60,7 +70,7 @@ window.filterGuideContent = function (tab) {
         foodTabs.style.display = (tab === '必吃美食') ? 'flex' : 'none';
     }
     if (tab === '必吃美食') {
-        const myFoodItems = (window.guideData || []).filter(g => g.type === '必吃美食');
+        const myFoodItems = (window.guideData || []).filter(g => g.type === '必吃美食' && !window.isOwnerHiddenTravelItem(g));
         if (myFoodItems.length === 0) {
             setFoodTabMode('rec');
             return;
@@ -376,13 +386,15 @@ window.renderBeforeWidgets = function(ctx, city, smartAlert, v37SimulatedDate) {
     }
     
     let heroHtml = `
-        <button type="button" class="v38-hero-card hero-card home-nav-button fade-scale-in" aria-label="開啟今日行程" onclick="showV37Tab('itinerary')" style="background: linear-gradient(135deg, #1e272e, #2f3640); cursor:pointer;">
+        <button type="button" id="liveTravelCard" class="v38-hero-card hero-card home-nav-button fade-scale-in" aria-label="開啟今日行程" onclick="showV37Tab('itinerary')" style="background: linear-gradient(135deg, #1e272e, #2f3640); cursor:pointer;">
             <div class="v38-hero-title">DAY — 尚未出發</div>
             <div class="v38-hero-main">出發：${countdownDays} 天</div>
             <div class="v38-hero-sub">目的地：🇰🇷 ${city.nameTW}</div>
 
             <!-- 🌤️ Home Weather Context -->
             ${weatherBoxHtml}
+
+            <div class="v45-foliage-fallback">🍁 楓況｜出發前依最新來源更新</div>
 
             <!-- ✅ Entry Status & Prep Summary -->
             <div style="margin-top: 8px; font-size: 0.78rem; font-weight: 800; color: #2ecc71;">
@@ -486,7 +498,7 @@ window.renderDuringWidgets = function(ctx, dateStr, city, weather, smartAlert) {
     }
 
     let heroHtml = `
-        <button type="button" class="v38-hero-card hero-card home-nav-button fade-scale-in" aria-label="開啟今日行程" onclick="showV37Tab('itinerary')" style="background: linear-gradient(135deg, #1e272e, #353b48); cursor:pointer;">
+        <button type="button" id="liveTravelCard" class="v38-hero-card hero-card home-nav-button fade-scale-in" aria-label="開啟今日行程" onclick="showV37Tab('itinerary')" style="background: linear-gradient(135deg, #1e272e, #353b48); cursor:pointer;">
             <div class="v38-hero-title">${dayNum} | 🇰🇷 ${city.nameTW}</div>
             <div class="v38-hero-main" style="display:flex; justify-content:space-between; align-items:center;">
                 <span class="text-truncate" style="max-width:180px;">${nextAttr}</span>
@@ -496,6 +508,7 @@ window.renderDuringWidgets = function(ctx, dateStr, city, weather, smartAlert) {
 
             <!-- 🌤️ Weather Context & Rain Advisory (Suggestion only, user controlled) -->
             ${weatherDuringHtml}
+            <div class="v45-foliage-fallback">🍁 楓況｜以最新來源與現場狀況為準</div>
 
             <div style="margin-top: 6px; font-size: 0.78rem; font-weight: 800; color: #ffcc00;" class="text-truncate"><i class="fa-solid fa-circle-exclamation"></i> ${smartAlert}</div>
         </button>
@@ -544,7 +557,7 @@ window.renderAfterWidgets = function(ctx, smartAlert) {
     let overallSpent = ctx.budget.overallSpent;
     
     let heroHtml = `
-        <button type="button" class="v38-hero-card hero-card home-nav-button fade-scale-in" aria-label="開啟旅行記帳" onclick="showV37Tab('split')" style="background: linear-gradient(135deg, #1e272e, #2d3436);">
+        <button type="button" id="liveTravelCard" class="v38-hero-card hero-card home-nav-button fade-scale-in" aria-label="開啟旅行記帳" onclick="showV37Tab('split')" style="background: linear-gradient(135deg, #1e272e, #2d3436);">
             <div class="v38-hero-title">旅行完成 ✈️</div>
             <div class="v38-hero-main" style="font-size:1.6rem !important;">$${overallSpent.toLocaleString()} TWD</div>
             <div class="v38-hero-sub">旅行天數：5天 | 目的地: Busan</div>
@@ -628,74 +641,62 @@ window.renderCollections = function() {
 
 window.renderHomeNineGrid = function() {
     return `
-        <div class="v45-home-nine-grid fade-scale-in">
-            <div style="font-weight: 900; font-size: 0.95rem; color: var(--primary); margin-bottom: 10px; display:flex; align-items:center; gap:6px;">
-                <i class="fa-solid fa-compass"></i> 全境旅遊功能導覽
-            </div>
-            <div class="v45-nine-grid">
-                <!-- 1. 🗓️ 今日行程 -->
-                <button type="button" class="v45-nine-card" onclick="showV37Tab('itinerary')">
-                    <div class="v45-nine-icon"><i class="fa-solid fa-calendar-day" style="color:#3498db;"></i></div>
-                    <div class="v45-nine-title">今日行程</div>
-                    <div class="v45-nine-sub">5日手帳 / 備案</div>
-                </button>
+        <div class="v45-home-nine-grid fade-scale-in" aria-label="旅行功能導覽">
+            <section class="home-ia-section" aria-labelledby="homeHighFrequencyTitle">
+                <div class="home-ia-heading" id="homeHighFrequencyTitle"><i class="fa-solid fa-person-walking-luggage"></i> 旅行中高頻</div>
+                <div class="v45-nine-grid home-high-frequency-grid">
+                    <button type="button" class="v45-nine-card" onclick="showV37Tab('itinerary')">
+                        <div class="v45-nine-icon"><i class="fa-solid fa-calendar-day" style="color:#3498db;"></i></div>
+                        <div class="v45-nine-title">今日行程</div><div class="v45-nine-sub">當天路線 / 雨備</div>
+                    </button>
+                    <button type="button" class="v45-nine-card" onclick="focusLiveTravelCard()">
+                        <div class="v45-nine-icon"><i class="fa-solid fa-cloud-sun" style="color:#00a8ff;"></i></div>
+                        <div class="v45-nine-title">天氣・楓況</div><div class="v45-nine-sub">即時摘要 / 穿搭</div>
+                    </button>
+                    <button type="button" class="v45-nine-card" onclick="showV37Tab('split')">
+                        <div class="v45-nine-icon"><i class="fa-solid fa-wallet" style="color:#f39c12;"></i></div>
+                        <div class="v45-nine-title">旅行記帳</div><div class="v45-nine-sub">公費分攤 / 匯率</div>
+                    </button>
+                    <button type="button" class="v45-nine-card" onclick="openGuideFolder('美食景點')">
+                        <div class="v45-nine-icon"><i class="fa-solid fa-utensils" style="color:#e67e22;"></i></div>
+                        <div class="v45-nine-title">吃喝・景點</div><div class="v45-nine-sub">美食 / 景點收藏</div>
+                    </button>
+                    <button type="button" class="v45-nine-card" onclick="openConvenienceSupermarketHub()">
+                        <div class="v45-nine-icon"><i class="fa-solid fa-store" style="color:#2ecc71;"></i></div>
+                        <div class="v45-nine-title">超商・超市</div><div class="v45-nine-sub">6 大入口 / 晚間水果</div>
+                    </button>
+                    <button type="button" class="v45-nine-card" onclick="showV37Tab('shop'); setTimeout(()=>setShopTabMode('my'),50);">
+                        <div class="v45-nine-icon"><i class="fa-solid fa-bag-shopping" style="color:#e84393;"></i></div>
+                        <div class="v45-nine-title">快樂購</div><div class="v45-nine-sub">購物清單 / 推薦</div>
+                    </button>
+                    <button type="button" class="v45-nine-card" onclick="showV37Tab('more')">
+                        <div class="v45-nine-icon"><i class="fa-solid fa-language" style="color:#e74c3c;"></i></div>
+                        <div class="v45-nine-title">翻譯・SOS</div><div class="v45-nine-sub">韓語字卡 / Papago</div>
+                    </button>
+                    <button type="button" class="v45-nine-card" onclick="showV37Tab('photo')">
+                        <div class="v45-nine-icon"><i class="fa-solid fa-camera-retro" style="color:#00cec9;"></i></div>
+                        <div class="v45-nine-title">旅行回憶</div><div class="v45-nine-sub">照片 / Vlog / Highlights</div>
+                    </button>
+                </div>
+            </section>
 
-                <!-- 2. 🍽️ 景點美食 -->
-                <button type="button" class="v45-nine-card" onclick="openGuideFolder('美食景點')">
-                    <div class="v45-nine-icon"><i class="fa-solid fa-utensils" style="color:#e67e22;"></i></div>
-                    <div class="v45-nine-title">景點美食</div>
-                    <div class="v45-nine-sub">必吃名店/慶州</div>
-                </button>
-
-                <!-- 3. 🏪 韓國超商 -->
-                <button type="button" class="v45-nine-card" onclick="showV37Tab('shop'); setTimeout(()=>setShopTabMode('convenience'),50);">
-                    <div class="v45-nine-icon"><i class="fa-solid fa-store" style="color:#2ecc71;"></i></div>
-                    <div class="v45-nine-title">韓國超商</div>
-                    <div class="v45-nine-sub">6大入口/混搭</div>
-                </button>
-
-                <!-- 4. 🛍️ 快樂購 -->
-                <button type="button" class="v45-nine-card" onclick="showV37Tab('shop'); setTimeout(()=>setShopTabMode('my'),50);">
-                    <div class="v45-nine-icon"><i class="fa-solid fa-bag-shopping" style="color:#e84393;"></i></div>
-                    <div class="v45-nine-title">快樂購</div>
-                    <div class="v45-nine-sub">Olive Young/伴手禮</div>
-                </button>
-
-                <!-- 5. 🎟️ 票券住宿 -->
-                <button type="button" class="v45-nine-card" onclick="showV37Tab('wallet'); setTimeout(()=>switchWalletTab('ticket'),50);">
-                    <div class="v45-nine-icon"><i class="fa-solid fa-ticket" style="color:#9b59b6;"></i></div>
-                    <div class="v45-nine-title">票券住宿</div>
-                    <div class="v45-nine-sub">機票/飯店/憑證</div>
-                </button>
-
-                <!-- 6. 💰 旅行記帳 -->
-                <button type="button" class="v45-nine-card" onclick="showV37Tab('split')">
-                    <div class="v45-nine-icon"><i class="fa-solid fa-wallet" style="color:#f39c12;"></i></div>
-                    <div class="v45-nine-title">旅行記帳</div>
-                    <div class="v45-nine-sub">公費分攤/匯率</div>
-                </button>
-
-                <!-- 7. 🗣️ 翻譯 SOS -->
-                <button type="button" class="v45-nine-card" onclick="showV37Tab('more')">
-                    <div class="v45-nine-icon"><i class="fa-solid fa-language" style="color:#e74c3c;"></i></div>
-                    <div class="v45-nine-title">翻譯 SOS</div>
-                    <div class="v45-nine-sub">韓語字卡/救援</div>
-                </button>
-
-                <!-- 8. 🧳 行前準備 -->
-                <button type="button" class="v45-nine-card" onclick="showV37Tab('wallet'); setTimeout(()=>switchWalletTab('doc'),50);">
-                    <div class="v45-nine-icon"><i class="fa-solid fa-suitcase-rolling" style="color:#1abc9c;"></i></div>
-                    <div class="v45-nine-title">行前準備</div>
-                    <div class="v45-nine-sub">代辦清單/文件</div>
-                </button>
-
-                <!-- 9. 📸 旅行回憶 -->
-                <button type="button" class="v45-nine-card" onclick="showV37Tab('photo')">
-                    <div class="v45-nine-icon"><i class="fa-solid fa-camera-retro" style="color:#00cec9;"></i></div>
-                    <div class="v45-nine-title">旅行回憶</div>
-                    <div class="v45-nine-sub">拍立得相簿/Vlog</div>
-                </button>
-            </div>
+            <section class="home-ia-section home-management-section" aria-labelledby="homeManagementTitle">
+                <div class="home-ia-heading" id="homeManagementTitle"><i class="fa-solid fa-briefcase"></i> 旅行管理</div>
+                <div class="v45-nine-grid home-management-grid">
+                    <button type="button" class="v45-nine-card" onclick="openWalletSection('hotel')">
+                        <div class="v45-nine-icon"><i class="fa-solid fa-hotel" style="color:#16a085;"></i></div>
+                        <div class="v45-nine-title">住宿・交通</div><div class="v45-nine-sub">飯店 / 周邊 / 導航</div>
+                    </button>
+                    <button type="button" class="v45-nine-card" onclick="openWalletSection('ticket')">
+                        <div class="v45-nine-icon"><i class="fa-solid fa-ticket" style="color:#9b59b6;"></i></div>
+                        <div class="v45-nine-title">票券・優惠</div><div class="v45-nine-sub">票券 / Coupon</div>
+                    </button>
+                    <button type="button" class="v45-nine-card" onclick="openPreTripPrep()">
+                        <div class="v45-nine-icon"><i class="fa-solid fa-suitcase-rolling" style="color:#1abc9c;"></i></div>
+                        <div class="v45-nine-title">行前準備</div><div class="v45-nine-sub">Checklist / 文件</div>
+                    </button>
+                </div>
+            </section>
         </div>
     `;
 };
@@ -738,7 +739,7 @@ window.renderV37HomeDashboard = function() {
         widget3Html = widgets.widget3Html;
     }
     
-    container.innerHTML = simulatorHtml + heroHtml + renderHomeNineGrid() + `
+    container.innerHTML = simulatorHtml + `<div class="home-live-label"><span>LIVE TRAVEL CARD</span><small>即時旅程摘要</small></div>` + heroHtml + renderHomeNineGrid() + `
         <div class="v38-widget-row">
             ${widget1Html}
             ${widget2Html}
@@ -813,8 +814,7 @@ window.renderSmartNearby = function() {
     };
 
     fetchSmartNearbyPlaces(cityId).then(places => {
-        const staleActive = /(Matchandeul|맛찬들|Haemok|해목|海木|Solsot|솔솥|Byeolchaeban|별채반|Pohang Dwaeji Gukbap|포항돼지국밥)/i;
-        const safePlaces = places.filter(p => !staleActive.test(`${p.type || ''} ${p.name || ''}`));
+        const safePlaces = places.filter(p => !window.isOwnerHiddenTravelItem(p));
         const conveniencePlaces = safePlaces.filter(p => /(?:CU|GS25)/i.test(`${p.type || ''} ${p.name || ''}`));
         const otherPlaces = safePlaces.filter(p => !conveniencePlaces.includes(p));
         const emartMaps = getMapLinks('이마트 문현점');
@@ -1129,6 +1129,11 @@ window.renderConvenienceHome = function() {
     ];
 
     let html = `
+        <button type="button" class="supermarket-discovery-card" onclick="openSupermarketNearby()">
+            <span class="supermarket-discovery-icon">🍇</span>
+            <span class="supermarket-discovery-copy"><b>晚間水果／超市</b><small>直接查看飯店周邊已驗證的超市與生活採買資訊</small></span>
+            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+        </button>
         <div style="text-align:center; padding:8px 0 14px 0;">
             <div style="font-size:0.75rem; font-weight:800; color:#7f8c8d;">🇰🇷 韓國超商攻略助理 — 選擇入口</div>
         </div>
@@ -1681,7 +1686,7 @@ window.renderGuideContent = function() {
     if (!list) return;
     list.innerHTML = '';
     
-    let filtered = (window.guideData || []).filter(g => g.type === (window.currentGuideTab || '打卡景點'));
+    let filtered = (window.guideData || []).filter(g => g.type === (window.currentGuideTab || '打卡景點') && !window.isOwnerHiddenTravelItem(g));
     if (filtered.length === 0) {
         list.innerHTML = '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:20px 0;">尚無自訂地標，歡迎新增！</p>';
         return;
@@ -2049,39 +2054,33 @@ window.selectGuideSubTab = function(btn, tab) {
 };
 
 window.openGuideFolder = function(folderName) {
+    if (folderName === '工具') {
+        showV37Tab('more');
+        return;
+    }
+
     const dash = document.getElementById('guideDashboard');
     const detail = document.getElementById('guideDetail');
-    const fab = document.getElementById('fabBack');
     if (dash) dash.style.display = 'none';
     if (detail) detail.style.display = 'block';
-    if (fab) fab.style.display = 'flex';
 
-    if (folderName === '工具') {
-        const tool = document.getElementById('toolSection');
-        const guide = document.getElementById('guideSection');
-        const subtabs = document.getElementById('guideSubTabs');
-        if (tool) tool.style.display = 'block';
-        if (guide) guide.style.display = 'none';
-        if (subtabs) subtabs.style.display = 'none';
-    } else {
-        const tool = document.getElementById('toolSection');
-        const guide = document.getElementById('guideSection');
-        const tabsContainer = document.getElementById('guideSubTabs');
-        if (tool) tool.style.display = 'none';
-        if (guide) guide.style.display = 'block';
-        if (tabsContainer) {
-            tabsContainer.style.display = 'flex';
-            tabsContainer.innerHTML = '';
-            if (window.folderMapping && window.folderMapping[folderName]) {
-                window.folderMapping[folderName].forEach((tab, index) => {
-                    let btn = document.createElement('button');
-                    btn.className = `day-tab ${index === 0 ? 'active' : ''}`;
-                    btn.innerText = tab;
-                    btn.setAttribute('onclick', `selectGuideSubTab(this, '${tab}')`);
-                    tabsContainer.appendChild(btn);
-                });
-                filterGuideContent(window.folderMapping[folderName][0]);
-            }
+    const tool = document.getElementById('toolSection');
+    const guide = document.getElementById('guideSection');
+    const tabsContainer = document.getElementById('guideSubTabs');
+    if (tool) tool.style.display = 'none';
+    if (guide) guide.style.display = 'block';
+    if (tabsContainer) {
+        tabsContainer.style.display = 'flex';
+        tabsContainer.innerHTML = '';
+        if (window.folderMapping && window.folderMapping[folderName]) {
+            window.folderMapping[folderName].forEach((tab, index) => {
+                const btn = document.createElement('button');
+                btn.className = `day-tab ${index === 0 ? 'active' : ''}`;
+                btn.innerText = tab;
+                btn.setAttribute('onclick', `selectGuideSubTab(this, '${tab}')`);
+                tabsContainer.appendChild(btn);
+            });
+            filterGuideContent(window.folderMapping[folderName][0]);
         }
     }
 };
@@ -2089,8 +2088,6 @@ window.openGuideFolder = function(folderName) {
 window.closeGuideFolder = function() {
     const dash = document.getElementById('guideDashboard');
     const detail = document.getElementById('guideDetail');
-    const fab = document.getElementById('fabBack');
     if (dash) dash.style.display = 'block';
     if (detail) detail.style.display = 'none';
-    if (fab) fab.style.display = 'none';
 };

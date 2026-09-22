@@ -337,34 +337,45 @@
     };
 
     // ── Tab Navigation ────────────────────────────────────────────────────
+    const bottomNavBySection = {
+        home: 'tab-home',
+        guide: 'tab-home',
+        shop: 'tab-home',
+        itinerary: 'tab-itinerary',
+        split: 'tab-bill',
+        wallet: 'tab-wallet',
+        photo: 'tab-wallet',
+        more: 'tab-more'
+    };
+
+    function syncBottomNavState(id, explicitButton) {
+        document.querySelectorAll('.nav-item').forEach(n => {
+            n.classList.remove('active');
+            n.setAttribute('aria-selected', 'false');
+        });
+        const active = explicitButton || document.getElementById(bottomNavBySection[id] || '');
+        if (active) {
+            active.classList.add('active');
+            active.setAttribute('aria-selected', 'true');
+        }
+    }
+
     window.showV37Tab = function (id, btn, options = {}) {
         try {
-            if (!options || options.haptic !== false) {
-                triggerHapticFeedback();
-            }
+            if (!options || options.haptic !== false) triggerHapticFeedback();
+
             document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => {
-                n.classList.remove('active');
-                n.setAttribute('aria-selected', 'false');
-            });
+            syncBottomNavState(id, btn);
 
             // index.html uses id="guide" for home container, and memory lives inside wallet container
             const targetId = (id === 'home') ? 'guide' : (id === 'photo' ? 'wallet' : id);
             const el = document.getElementById(targetId);
             if (el) el.classList.add('active');
-            if (btn) {
-                btn.classList.add('active');
-                btn.setAttribute('aria-selected', 'true');
-            }
 
-            // Hide fabBack when switching away from guide
-            if (id !== 'home' && id !== 'guide') {
-                const fab = document.getElementById('fabBack');
-                if (fab) fab.style.display = 'none';
-            }
-
-            // Trigger appropriate lazy initialisation per tab
+            // Trigger appropriate lazy initialisation per tab. Home always resolves
+            // to the dashboard so stale deep-page state never survives a tab switch.
             if (id === 'home' || id === 'guide') {
+                if (typeof closeGuideFolder === 'function') closeGuideFolder();
                 if (typeof renderV37HomeDashboard === 'function') renderV37HomeDashboard();
             } else if (id === 'itinerary') {
                 filterItineraryDay(getItineraryDisplayDay(), null);
@@ -379,6 +390,8 @@
             } else if (id === 'photo') {
                 if (typeof switchWalletTab === 'function') switchWalletTab('memory');
                 if (typeof renderMemoryAlbum === 'function') renderMemoryAlbum();
+            } else if (id === 'more') {
+                if (typeof renderVoiceList === 'function') renderVoiceList();
             }
         } catch (err) {
             console.error('[App] showV37Tab failed:', err);
@@ -388,6 +401,57 @@
     // ── Misc UI Shortcuts ─────────────────────────────────────────────────
     window.openPapago = function () {
         window.open('https://papago.naver.com/', '_blank');
+    };
+
+    window.openWalletSection = function (subtab, focusId = '') {
+        showV37Tab('wallet');
+        window.setTimeout(() => {
+            if (typeof switchWalletTab === 'function') switchWalletTab(subtab);
+            if (focusId) {
+                document.getElementById(focusId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 50);
+    };
+
+    window.openPreTripPrep = function () {
+        openWalletSection('doc', 'prepChecklistCard');
+    };
+
+    window.openConvenienceSupermarketHub = function () {
+        showV37Tab('shop');
+        window.setTimeout(() => {
+            if (typeof setShopTabMode === 'function') setShopTabMode('convenience');
+            document.querySelector('.supermarket-discovery-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 50);
+    };
+
+    window.openSupermarketNearby = function () {
+        showV37Tab('wallet');
+        window.setTimeout(() => {
+            if (typeof switchWalletTab === 'function') switchWalletTab('hotel');
+            let attempts = 0;
+            const seek = () => {
+                const target = document.getElementById('nearby-supermarket-title');
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    return;
+                }
+                attempts += 1;
+                if (attempts < 20) window.setTimeout(seek, 100);
+            };
+            seek();
+        }, 50);
+    };
+
+    window.focusLiveTravelCard = function () {
+        showV37Tab('home');
+        window.setTimeout(() => {
+            const card = document.getElementById('liveTravelCard');
+            if (!card) return;
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            card.classList.add('owner-ux-focus');
+            window.setTimeout(() => card.classList.remove('owner-ux-focus'), 1200);
+        }, 50);
     };
 
     window.autoFetchMap = function (titleId, linkId) {
@@ -405,7 +469,7 @@
             shop        : () => showV37Tab('shop'),
             photo       : () => showV37Tab('photo'),
             tickets     : () => showV37Tab('wallet'),
-            korean      : () => showV37Tab('home'),
+            korean      : () => showV37Tab('more'),
             settings    : () => { const m = document.getElementById('profileModal'); if (m) m.style.display = 'flex'; }
         };
         if (actions[type]) actions[type]();
@@ -829,21 +893,6 @@
             });
         } catch (e) {
             console.warn('[App] nav-item keyboard setup error:', e);
-        }
-
-        // Keyboard navigation for fab-back
-        try {
-            const fabBack = document.getElementById('fabBack');
-            if (fabBack) {
-                fabBack.addEventListener('keydown', e => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        if (typeof closeGuideFolder === 'function') closeGuideFolder();
-                    }
-                });
-            }
-        } catch (e) {
-            console.warn('[App] fabBack keyboard setup error:', e);
         }
 
         // Show home tab

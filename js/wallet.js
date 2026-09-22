@@ -329,14 +329,14 @@ window.switchWalletTab = function(subtab) {
     const subTitleEl = document.getElementById('walletHeaderSubtitle');
     if (titleEl && subTitleEl) {
         if (subtab === 'ticket') {
-            titleEl.innerHTML = '<i class="fa-solid fa-ticket"></i> 票券住宿';
+            titleEl.innerHTML = '<i class="fa-solid fa-ticket"></i> 票券・優惠';
             subTitleEl.textContent = 'Travel Wallet';
         } else if (subtab === 'hotel') {
             titleEl.innerHTML = '<i class="fa-solid fa-hotel"></i> 飯店住宿';
             subTitleEl.textContent = 'Travel Wallet · Hotel';
         } else if (subtab === 'doc') {
             titleEl.innerHTML = '<i class="fa-solid fa-suitcase-rolling"></i> 行前準備';
-            subTitleEl.textContent = 'Travel Wallet · Docs';
+            subTitleEl.textContent = 'Travel Wallet · Prep';
         } else if (subtab === 'coupon') {
             titleEl.innerHTML = '<i class="fa-solid fa-gift"></i> 優惠券專區';
             subTitleEl.textContent = 'Travel Wallet · Coupon';

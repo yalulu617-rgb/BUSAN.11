@@ -77,7 +77,7 @@ test('final five-day content freeze renders correctly on mobile', async ({ page 
   await expect(page.locator('#walletNearbyList')).toContainText('Urban Groove／凡內谷站 6 號出口');
 
   await page.evaluate(() => window.showV37Tab('home'));
-  await expect(page.locator('.v45-nine-card')).toHaveCount(9);
+  await expect(page.locator('.v45-nine-card')).toHaveCount(11);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 });

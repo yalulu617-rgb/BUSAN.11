@@ -271,26 +271,26 @@ test.describe('BATCH 3 - Canonical / Personal Separation', () => {
 });
 
 test.describe('BATCH 3 - Consolidated Navigation (Tokyo/Fuji Style)', () => {
-  test('Home dashboard exposes the 9 primary feature cards', async ({ page }) => {
+  test('Home dashboard exposes the 11 traveler-model feature cards', async ({ page }) => {
     await bootApp(page);
     await page.evaluate(() => window.showV37Tab('home'));
     await page.waitForSelector('.v45-nine-grid', { timeout: 10000 });
     const cards = page.locator('.v45-nine-card');
-    expect(await cards.count()).toBe(9);
+    expect(await cards.count()).toBe(11);
     
     const text = await page.evaluate(() => document.querySelector('.v45-nine-grid')?.textContent || '');
     expect(text).toContain('今日行程');
-    expect(text).toContain('景點美食');
-    expect(text).toContain('韓國超商');
+    expect(text).toContain('吃喝・景點');
+    expect(text).toContain('超商・超市');
     expect(text).toContain('快樂購');
-    expect(text).toContain('票券住宿');
+    expect(text).toContain('票券・優惠');
     expect(text).toContain('旅行記帳');
-    expect(text).toContain('翻譯 SOS');
+    expect(text).toContain('翻譯・SOS');
     expect(text).toContain('行前準備');
     expect(text).toContain('旅行回憶');
   });
 
-  test('Home 韓國超商 card directly opens 6 functional portals in shop tab', async ({ page }) => {
+  test('Home 超商・超市 card directly opens 6 functional portals in shop tab', async ({ page }) => {
     await bootApp(page);
     await page.evaluate(() => window.showV37Tab('home'));
     await page.waitForSelector('.v45-nine-grid', { timeout: 10000 });
@@ -338,7 +338,7 @@ test.describe('BATCH 3 - Consolidated Navigation (Tokyo/Fuji Style)', () => {
 });
 
 test.describe('BATCH 3 - Owner Visual Corrections', () => {
-  test('Home Card 9 (旅行回憶) visibly renders existing memory album content in 1 tap', async ({ page }) => {
+  test('Home 旅行回憶 entry visibly renders existing memory album content in 1 tap', async ({ page }) => {
     await bootApp(page);
     await page.evaluate(() => window.showV37Tab('photo'));
     await page.waitForSelector('#walletMemorySection', { state: 'visible', timeout: 5000 });
@@ -509,7 +509,7 @@ test.describe('BATCH 3 - Owner Visual Corrections', () => {
     });
     let title = await page.evaluate(() => document.getElementById('walletHeaderTitle')?.textContent || '');
     let sub = await page.evaluate(() => document.getElementById('walletHeaderSubtitle')?.textContent || '');
-    expect(title).toContain('票券住宿');
+    expect(title).toContain('票券・優惠');
     expect(sub).toBe('Travel Wallet');
 
     // 2. Prep (Doc)
@@ -517,7 +517,7 @@ test.describe('BATCH 3 - Owner Visual Corrections', () => {
     title = await page.evaluate(() => document.getElementById('walletHeaderTitle')?.textContent || '');
     sub = await page.evaluate(() => document.getElementById('walletHeaderSubtitle')?.textContent || '');
     expect(title).toContain('行前準備');
-    expect(sub).toContain('Travel Wallet · Docs');
+    expect(sub).toContain('Travel Wallet · Prep');
 
     // 3. Memory
     await page.evaluate(() => window.switchWalletTab('memory'));
