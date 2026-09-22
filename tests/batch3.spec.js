@@ -278,8 +278,9 @@ test.describe('BATCH 3 - Consolidated Navigation (Tokyo/Fuji Style)', () => {
     const cards = page.locator('.v45-nine-card');
     expect(await cards.count()).toBe(11);
     
-    const text = await page.evaluate(() => document.querySelector('.v45-nine-grid')?.textContent || '');
+    const text = await page.evaluate(() => document.querySelector('.v45-home-nine-grid')?.textContent || '');
     expect(text).toContain('今日行程');
+    expect(text).toContain('天氣・楓況');
     expect(text).toContain('吃喝・景點');
     expect(text).toContain('超商・超市');
     expect(text).toContain('快樂購');
@@ -287,6 +288,7 @@ test.describe('BATCH 3 - Consolidated Navigation (Tokyo/Fuji Style)', () => {
     expect(text).toContain('旅行記帳');
     expect(text).toContain('翻譯・SOS');
     expect(text).toContain('行前準備');
+    expect(text).toContain('住宿・交通');
     expect(text).toContain('旅行回憶');
   });
 

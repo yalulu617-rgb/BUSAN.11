@@ -461,11 +461,13 @@ test.describe('Guide Folders (Tools, Food, Shopping, Convenience)', () => {
     expect(count, 'Expected at least 4 guide folders').toBeGreaterThanOrEqual(4);
   });
 
-  test('Tools folder opens guide detail', async ({ page }) => {
+  test('Tools folder redirects to Translation & SOS hub', async ({ page }) => {
     const toolsFolder = page.locator('.folder-card').filter({ hasText: '實用工具庫' });
     if (await toolsFolder.count() > 0) {
       await toolsFolder.click();
-      await expect(page.locator('#guideDetail')).toBeVisible({ timeout: 3000 });
+      await expect(page.locator('#more')).toHaveClass(/active/);
+      await expect(page.locator('#guideDetail')).toBeHidden();
+      await expect(page.locator('#more')).toContainText('翻譯 SOS');
     }
   });
 });
