@@ -177,7 +177,7 @@ for (const viewport of [
 
     await page.locator('#itinerary .day-tabs').first().locator('.day-tab').nth(4).click();
     const dayFiveTimes = await page.locator('#itiContent .iti-time').allTextContents();
-    const expectedDayFiveOrder = ['約 08:30', '約 09:30', '約 10:40', '約 11:05', '約 11:30～11:45', '14:50', '16:30'];
+    const expectedDayFiveOrder = ['08:45 出發／09:00～09:50', '10:00～10:40', '10:40～11:05', '約 11:05', '約 11:30～11:45', '14:50', '16:30'];
     const expectedIndexes = expectedDayFiveOrder.map(time => dayFiveTimes.indexOf(time));
     expect(expectedIndexes.every(index => index >= 0)).toBe(true);
     expect(expectedIndexes).toEqual([...expectedIndexes].sort((a, b) => a - b));

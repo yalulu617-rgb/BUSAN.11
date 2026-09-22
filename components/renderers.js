@@ -790,13 +790,19 @@ window.renderSmartNearby = function() {
                 displayTitle = typeStr || nameStr;
             }
 
+            const locationMeta = p.address
+                ? `📍 ${p.address}`
+                : (Number.isFinite(p.dist) && Number.isFinite(p.rate)
+                    ? `📍 距離：${p.dist}m | 評分：⭐${p.rate}`
+                    : '📍 行程正式點');
+
             return `
                 <div class="nearby-life-place" style="background:rgba(0,0,0,0.02); padding:10px; border-radius:12px; border:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; min-width:0;">
                     ${ItemImages.render(p.image, p.name)}
                     <div style="min-width:0; flex:1 1 150px; overflow-wrap:anywhere;">
                         <span style="font-weight:900; font-size:0.85rem; color:var(--text-color);">${displayTitle}</span>
                         <div style="font-size:0.7rem; color:#7f8c8d; margin-top:2px;">
-                            ${p.address ? `📍 ${p.address}` : `📍 距離：${p.dist}m | 評分：⭐${p.rate}`}${p.status ? `<br>🕒 ${p.status}` : ''}
+                            ${locationMeta}${p.status ? `<br>🕒 ${p.status}` : ''}
                         </div>
                     </div>
                     <div style="display:flex; gap:4px; align-items:center; flex-wrap:wrap; max-width:100%;">

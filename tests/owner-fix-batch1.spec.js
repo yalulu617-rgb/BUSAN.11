@@ -75,7 +75,7 @@ test.describe('Owner Fix Batch 1 targeted repair', () => {
     expect(result.day2.join('\n')).toContain('21:30 回飯店整理戰利品');
     expect(result.day3.join('\n')).not.toContain('12:00 【午餐】Solsot 釜飯');
     expect(result.day3.join('\n')).toContain('15:30 皇理團路買伴手禮');
-    expect(result.day3.filter(row => row.includes('水鏡舍'))).toHaveLength(1);
+    expect(result.day3.filter(row => row.includes('午餐：水鏡舍（수경사）'))).toHaveLength(1);
     expect(result.day2.filter(row => row.includes('M Drone Light Show（場次待官方確認）'))).toHaveLength(1);
     expect(result.day4.join('\n')).not.toContain('18:30 【晚餐】海木鰻魚飯');
     expect(result.day4.join('\n')).toContain('17:30 白淺灘買明信片');

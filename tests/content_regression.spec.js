@@ -374,6 +374,7 @@ test.describe('BUSAN.11 V45 — Content Regression & Travel-Readiness Suite', ()
         busanCount: busan.length,
         gyeongjuCount: gyeongju.length,
         busanNames: busan.map(p => p.name),
+        activeNames: busan.concat(gyeongju).map(p => p.name).join('\n'),
         allHaveMaps: busan.concat(gyeongju).every(p => Boolean(p.naver && p.kakao && p.google))
       };
     });
@@ -382,7 +383,9 @@ test.describe('BUSAN.11 V45 — Content Regression & Travel-Readiness Suite', ()
     expect(nearbySummary.gyeongjuCount).toBe(11);
     expect(nearbySummary.allHaveMaps).toBe(true);
     expect(nearbySummary.busanNames).toContain('凡內谷地鐵站 (6號出口)');
-    expect(nearbySummary.busanNames).toContain('味讚王鹽烤肉 西面店');
+    expect(nearbySummary.busanNames).toContain('E-Mart Munhyeon / 이마트 문현점');
+    expect(nearbySummary.busanNames).toContain('Your Type Jeonpo / 유어타입 전포');
+    expect(nearbySummary.activeNames).not.toMatch(/Matchandeul|맛찬들|Haemok|해목|海木|Solsot|솔솥|Byeolchaeban|별채반/);
   });
 
   // ── J. SHOPPING CATEGORY LABELS ──────────────────────────────────────────
