@@ -70,11 +70,54 @@ try {
   await page.waitForSelector('#mainApp', { state: 'visible', timeout: 15000 });
   console.log('✅ Main App visible');
 
-  const cardCount = await page.locator('.v45-nine-card').count();
-  if (cardCount !== 9) {
-    throw new Error(`Expected exactly 9 Home cards, found ${cardCount}`);
-  }
-  console.log('✅ Home 9-Card count:', cardCount);
+    const homeIa = page.locator('.v45-home-nine-grid');
+    await homeIa.waitFor({ state: 'visible', timeout: 10000 });
+
+    const highFrequencyCount = await homeIa
+      .locator('.home-high-frequency-grid .v45-nine-card')
+      .count();
+
+    const managementCount = await homeIa
+      .locator('.home-management-grid .v45-nine-card')
+      .count();
+
+    if (highFrequencyCount !== 8) {
+      throw new Error(
+        `Expected 8 travel-use Home entries, found ${highFrequencyCount}`
+      );
+    }
+
+    if (managementCount !== 3) {
+      throw new Error(
+        `Expected 3 travel-management Home entries, found ${managementCount}`
+      );
+    }
+
+    const homeText = (await homeIa.innerText()).replace(/\s+/g, ' ');
+
+    const requiredHomeEntries = [
+      '今日行程',
+      '天氣・楓況',
+      '旅行記帳',
+      '吃喝・景點',
+      '超商・超市',
+      '快樂購',
+      '翻譯・SOS',
+      '旅行回憶',
+      '住宿・交通',
+      '票券・優惠',
+      '行前準備'
+    ];
+
+    for (const label of requiredHomeEntries) {
+      if (!homeText.includes(label)) {
+        throw new Error(`Missing required Home entry: ${label}`);
+      }
+    }
+
+    console.log(
+      `✅ Home IA verified: ${highFrequencyCount} travel-use + ${managementCount} management entries`
+    );
 
   if (await page.locator('#deviceOwner').count() === 0) {
     throw new Error('Profile selector #deviceOwner not found in live DOM');
