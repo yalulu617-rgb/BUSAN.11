@@ -202,7 +202,7 @@ test('Image Batch 2: shopping hooks keep photos optional and delete device blobs
   await page.evaluate(() => { newShop.value = 'Photo item'; tempShopPhoto.value = 'photo-key'; return addShopItem(); });
   expect(await page.evaluate(() => shopList[1].image)).toEqual({ storage: 'indexeddb', key: 'photo-key', alt: 'Photo item' });
   await page.evaluate(() => deleteShop(shopList[1].key));
-  expect(await page.evaluate(() => photoCalls)).toEqual({ attach: [['', 'Item'], ['photo-key', 'Photo item']], remove: ['photo-key'], clear: 4 });
+  expect(await page.evaluate(() => photoCalls)).toEqual({ attach: [['photo-key', 'Photo item']], remove: ['photo-key'], clear: 4 });
   expect(source('index.html')).toContain('capture="environment"');
   expect(source('index.html')).not.toContain("uploadSingleToImgBB(this.files[0], 'shop')");
 });
