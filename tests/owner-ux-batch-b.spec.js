@@ -111,6 +111,7 @@ test.describe('BUSAN.11 V45 — Batch B Owner Editable Experience', () => {
 
   test('translation keeps canonical phrases while allowing owner edit and TTS/Papago access', async ({ page }) => {
     const result = await page.evaluate(async () => {
+      window.showV37Tab('more');
       const updates = [];
       NetworkEngine.firebaseUpdate = async (path, data) => { updates.push({ path, data }); return { success: true }; };
       window.voiceCustomData = [];

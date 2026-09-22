@@ -40,6 +40,8 @@ async function fixture(page) {
     window.u1 = { key: 'user1', name: '溫', avatar: '👩' };
     window.u2 = { key: 'user2', name: '鴨', avatar: '🦆' };
     window.StorageEngine = { get: () => ({ data: [], success: true }) };
+    window.getOwnerCustomizedItem = (_kind, item) => ({ ...item, ownerCustomized: false });
+    window.ownerEscape = value => String(value ?? '');
     window.currentRecShopFilter = 'ALL';
     window.RECOMMENDED_SHOPPING = [...items, { id: 'missing', name: 'No photo', category: 'Other', desc: '' }];
     window.renderRecommendedShopping();
@@ -179,8 +181,8 @@ test('Image Batch 2: device photos resize, replace in place, persist and degrade
 
 test('Image Batch 2: shopping hooks keep photos optional and delete device blobs', async ({ page }) => {
   const rendererSource = source('components/renderers.js');
-  const functions = ['addShopItem', 'deleteShop'].map(name =>
-    rendererSource.match(new RegExp(`window\\.${name} = async function \\(.*?\\) {[\\s\\S]*?^};`, 'm'))[0]).join('\n');
+  const functions = ['cancelShopEdit', 'addShopItem', 'deleteShop'].map(name =>
+    rendererSource.match(new RegExp(`window\\.${name} = (?:async )?function \\(.*?\\) {[\\s\\S]*?^};`, 'm'))[0]).join('\n');
   await page.setContent('<input id="newShop" value="Item"><input id="shopWhere"><select id="shopCategory"><option>其他</option></select><input id="tempShopPhoto"><div id="sList"></div>');
   await page.addScriptTag({ content: `
     window.deviceOwner = 'user1'; window.shopList = []; let fakeNow = 0; Date.now = () => ++fakeNow;
@@ -200,7 +202,7 @@ test('Image Batch 2: shopping hooks keep photos optional and delete device blobs
   await page.evaluate(() => { newShop.value = 'Photo item'; tempShopPhoto.value = 'photo-key'; return addShopItem(); });
   expect(await page.evaluate(() => shopList[1].image)).toEqual({ storage: 'indexeddb', key: 'photo-key', alt: 'Photo item' });
   await page.evaluate(() => deleteShop(shopList[1].key));
-  expect(await page.evaluate(() => photoCalls)).toEqual({ attach: [['', 'Item'], ['photo-key', 'Photo item']], remove: ['photo-key'], clear: 2 });
+  expect(await page.evaluate(() => photoCalls)).toEqual({ attach: [['', 'Item'], ['photo-key', 'Photo item']], remove: ['photo-key'], clear: 4 });
   expect(source('index.html')).toContain('capture="environment"');
   expect(source('index.html')).not.toContain("uploadSingleToImgBB(this.files[0], 'shop')");
 });

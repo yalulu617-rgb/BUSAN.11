@@ -130,7 +130,7 @@ test.describe('BUSAN.11 V45 — Content Regression & Travel-Readiness Suite', ()
     // Verify each card has non-empty Chinese (TW) and Korean (KR) text
     for (let i = 0; i < cardCount; i++) {
       const card = voiceCards.nth(i);
-      const twText = await card.locator('span').innerText();
+      const twText = await card.locator('span:not(.owner-source-badge)').innerText();
       const krText = await card.locator('b').innerText();
 
       expect(twText.trim().length, `Card ${i} TW text`).toBeGreaterThan(0);
