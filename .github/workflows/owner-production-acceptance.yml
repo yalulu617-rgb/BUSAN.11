@@ -1,0 +1,44 @@
+name: V45 Production Owner Acceptance
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  owner-production-acceptance:
+    name: Strict read-only Production Owner UX
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run strict Production Owner acceptance
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+          PRODUCTION_URL: https://yalulu617-rgb.github.io/BUSAN.11/
+        run: node scripts/verify-owner-production.mjs
+
+      - name: Upload acceptance report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owner-production-acceptance-report
+          path: owner-production-acceptance-report.json
+          if-no-files-found: warn
+          retention-days: 14
