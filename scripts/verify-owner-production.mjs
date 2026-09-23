@@ -263,16 +263,34 @@ try {
 
     window.showV37Tab('wallet');
     window.switchWalletTab('doc');
+    StorageEngine.set('busan_v45_default_packing_state', {});
     window.prepData = [
-      { key: 'prep-1', text: '護照', category: '證件', done: true, link: '' },
-      { key: 'prep-2', text: '充電器', category: '電子', done: false, link: '' }
+      { key: 'prep-1', text: '護照', category: '證件文件', done: true, link: '' },
+      { key: 'prep-2', text: '充電器', category: '電子用品', done: false, link: '' }
     ];
+    StorageEngine.set('busan_v36_prepData', window.prepData);
     window.renderPrepList();
+
+    const defaultCount = window.DEFAULT_PACKING_TEMPLATE?.length || 0;
+    const packingCategories = [...new Set((window.DEFAULT_PACKING_TEMPLATE || []).map(row => row.category))];
     const progressText = document.getElementById('prepProgressUI')?.textContent || '';
+
+    const writesBeforeDefaultActions = window.OWNER_ACCEPTANCE_WRITES.length;
+    const defaultKey = window.DEFAULT_PACKING_TEMPLATE?.[0]?.key;
+    if (defaultKey) {
+      await window.togglePrep(defaultKey, false);
+      window.editPrep(defaultKey);
+      setValue('prepText', '護照正本（Acceptance local edit）');
+      await window.savePrepItem();
+    }
+    const defaultLocalOnly = window.OWNER_ACCEPTANCE_WRITES.length === writesBeforeDefaultActions;
+    const defaultState = StorageEngine.get('busan_v45_default_packing_state', {}).data || {};
+    const defaultStatePersisted = Boolean(defaultKey && defaultState[defaultKey]?.done === true && /Acceptance local edit/.test(defaultState[defaultKey]?.text || ''));
+
     await window.togglePrep('prep-2', false);
     setValue('prepEditKey', '');
     setValue('prepText', '雨傘');
-    setValue('prepCategory', '其他');
+    setValue('prepCategory', '旅行用品');
     setValue('prepLink', '');
     await window.savePrepItem();
     window.editPrep('prep-2');
@@ -301,7 +319,7 @@ try {
       shopping: { customizedName: shopView?.name },
       coupon: { validBarcode, couponImage, blankBarcodeAbsent, unsupportedRejected },
       voice: voiceUi,
-      packing: { progressText },
+      packing: { progressText, defaultCount, packingCategories, defaultLocalOnly, defaultStatePersisted },
       canonical: Object.fromEntries(Object.keys(canonicalBefore).map(key => [key, canonicalBefore[key] === canonicalAfter[key]]))
     };
   });
@@ -339,7 +357,12 @@ try {
   assert(result.writes.some(call => call.path === 'busan_v36_voice/voice_1' && call.data?.hidden === true), 'Canonical voice delete did not create a hidden override');
   report.acceptance.translationCrudTtsPapago = 'PASS';
 
-  assert(result.packing.progressText.includes('完成 1 / 2') && result.packing.progressText.includes('50%'), 'Packing progress did not show 完成 1 / 2 and 50%');
+  const requiredPackingCategories = ['證件文件', '付款交通', '電子用品', '衣物', '盥洗保養', '旅行用品', '當日隨身包'];
+  assert(result.packing.defaultCount >= 30, `Expected complete default Packing template, found ${result.packing.defaultCount}`);
+  assert(requiredPackingCategories.every(cat => result.packing.packingCategories.includes(cat)), `Packing categories missing: ${JSON.stringify(result.packing.packingCategories)}`);
+  assert(result.packing.progressText.includes(`完成 1 / ${result.packing.defaultCount + 2}`), `Unexpected Packing progress: ${result.packing.progressText}`);
+  assert(result.packing.defaultLocalOnly, 'Default Packing toggle/edit attempted a Firebase write');
+  assert(result.packing.defaultStatePersisted, 'Default Packing local state/edit did not persist locally');
   assert(hasCall('push', 'busan_v36_prep'), 'Packing add path was not intercepted');
   assert(result.writes.filter(call => call.op === 'update' && call.path === 'busan_v36_prep/prep-2').length >= 2, 'Packing toggle/edit paths were not intercepted');
   assert(hasCall('remove', 'busan_v36_prep/prep-2'), 'Packing delete path was not intercepted');

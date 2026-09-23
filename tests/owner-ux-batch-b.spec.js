@@ -140,35 +140,75 @@ test.describe('BUSAN.11 V45 — Batch B Owner Editable Experience', () => {
     await expect(page.locator('#more button', { hasText: 'Papago' })).toBeVisible();
   });
 
-  test('Packing List exposes progress plus add/edit/delete workflow', async ({ page }) => {
+  test('home removes duplicate quick-entry layer while keeping primary Home IA and bottom navigation', async ({ page }) => {
+    await page.evaluate(() => window.showV37Tab('home'));
+    await expect(page.locator('.v38-quick-actions')).toHaveCount(0);
+    await expect(page.locator('#v37HomeDashboard')).not.toContainText('快速入口');
+    await expect(page.locator('.v45-home-nine-grid')).toBeVisible();
+    await expect(page.locator('.bottom-nav')).toBeVisible();
+  });
+
+  test('convenience hub renders all six topics inline with supermarket details and no portal hop', async ({ page }) => {
     await page.evaluate(() => {
+      window.showV37Tab('shop');
+      window.setShopTabMode('convenience');
+    });
+    await expect(page.locator('[data-convenience-topic]')).toHaveCount(6);
+    for (const id of ['discount', 'compare', 'radar', 'microwave', 'combos', 'loot']) {
+      await expect(page.locator(`[data-convenience-topic="${id}"]`)).toBeVisible();
+    }
+    await expect(page.locator('.supermarket-direct-card')).toContainText('E-Mart Munhyeon');
+    await expect(page.locator('.supermarket-direct-card')).toContainText('10:00–23:00');
+    await expect(page.locator('.supermarket-direct-card')).toContainText('CU 凡內谷站店');
+    await expect(page.locator('.supermarket-direct-card')).toContainText('GS25 凡內谷中央店');
+    const portal = await page.evaluate(() => window.currentConveniencePortal);
+    expect(portal).toBeNull();
+  });
+
+  test('Packing List ships a complete local-only default template while owner-added rows keep CRUD sync', async ({ page }) => {
+    await page.evaluate(() => {
+      StorageEngine.set('busan_v45_default_packing_state', {});
+      StorageEngine.set('busan_v36_prepData', []);
+      window.prepData = [];
       window.showV37Tab('wallet');
       window.switchWalletTab('doc');
-      window.prepData = [
-        { key: 'prep-1', text: '護照', category: '證件', done: true, link: '' },
-        { key: 'prep-2', text: '充電器', category: '電子', done: false, link: '' }
-      ];
-      renderPrepList();
+      window.renderPrepList();
     });
-    await expect(page.locator('#prepProgressUI')).toContainText('完成 1 / 2');
-    await expect(page.locator('#prepProgressUI')).toContainText('50%');
-    await expect(page.locator('#prepListUI .btn-edit')).toHaveCount(2);
+
+    const defaultCount = await page.evaluate(() => window.DEFAULT_PACKING_TEMPLATE.length);
+    expect(defaultCount).toBeGreaterThanOrEqual(30);
+    await expect(page.locator('.prep-category-group')).toHaveCount(7);
+    await expect(page.locator('#prepProgressUI')).toContainText(`完成 0 / ${defaultCount}`);
 
     const result = await page.evaluate(async () => {
       const updates = [];
       const pushes = [];
       NetworkEngine.firebaseUpdate = async (path, data) => { updates.push({ path, data }); return { success: true }; };
       NetworkEngine.firebasePush = async (path, data) => { pushes.push({ path, data }); return { success: true }; };
-      editPrep('prep-2');
-      document.getElementById('prepText').value = 'USB-C 充電器';
-      await savePrepItem();
-      document.getElementById('prepText').value = '雨傘';
-      document.getElementById('prepCategory').value = '其他';
-      await savePrepItem();
-      return { updates, pushes };
+
+      const defaultKey = window.DEFAULT_PACKING_TEMPLATE[0].key;
+      await window.togglePrep(defaultKey, false);
+      window.editPrep(defaultKey);
+      document.getElementById('prepText').value = '護照正本（已確認）';
+      await window.savePrepItem();
+      const writesAfterDefaultActions = updates.length + pushes.length;
+
+      document.getElementById('prepEditKey').value = '';
+      document.getElementById('prepText').value = '自訂雨傘提醒';
+      document.getElementById('prepCategory').value = '旅行用品';
+      document.getElementById('prepLink').value = '';
+      await window.savePrepItem();
+
+      const defaultState = StorageEngine.get('busan_v45_default_packing_state', {}).data || {};
+      return { writesAfterDefaultActions, defaultState, updates, pushes };
     });
-    expect(result.updates[0].path).toBe('busan_v36_prep/prep-2');
+
+    expect(result.writesAfterDefaultActions).toBe(0);
+    expect(result.defaultState['default-doc-passport'].done).toBe(true);
+    expect(result.defaultState['default-doc-passport'].text).toContain('已確認');
+    expect(result.pushes).toHaveLength(1);
     expect(result.pushes[0].path).toBe('busan_v36_prep');
     expect(result.pushes[0].data.kind).toBe('packing');
+    expect(result.pushes[0].data.category).toBe('旅行用品');
   });
 });

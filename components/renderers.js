@@ -508,6 +508,79 @@ window.deleteVoice = async function (key) {
 };
 
 // ── Packing / Prep CRUD ──────────────────────────────────────────────────
+const DEFAULT_PACKING_TEMPLATE = [
+    { key: 'default-doc-passport', category: '證件文件', text: '護照正本', done: false, link: '' },
+    { key: 'default-doc-passport-copy', category: '證件文件', text: '護照影本 2 份', done: false, link: '' },
+    { key: 'default-doc-photo', category: '證件文件', text: '2 吋大頭照 2 張（護照遺失備用）', done: false, link: '' },
+    { key: 'default-doc-arrival', category: '證件文件', text: 'e-Arrival Card 完成後截圖／備存', done: false, link: 'https://www.e-arrivalcard.go.kr/' },
+    { key: 'default-doc-insurance', category: '證件文件', text: '旅平險保單／緊急聯絡資料', done: false, link: '' },
+    { key: 'default-doc-bookings', category: '證件文件', text: '航班／住宿／KTX／Sky Capsule／韓服等預約憑證', done: false, link: '' },
+
+    { key: 'default-pay-cash', category: '付款交通', text: '韓元現金', done: false, link: '' },
+    { key: 'default-pay-wowpass', category: '付款交通', text: 'WOWPASS 卡', done: false, link: '' },
+    { key: 'default-pay-tmoney', category: '付款交通', text: '確認 T-money 交通餘額', done: false, link: '' },
+    { key: 'default-pay-card', category: '付款交通', text: '中信 LINE Pay 卡／備用信用卡', done: false, link: '' },
+    { key: 'default-pay-taxi', category: '付款交通', text: 'Kakao T／Uber 登入與付款方式確認', done: false, link: '' },
+
+    { key: 'default-elec-phone', category: '電子用品', text: '手機', done: false, link: '' },
+    { key: 'default-elec-sim', category: '電子用品', text: 'DJB 韓國 SIM／eSIM', done: false, link: '' },
+    { key: 'default-elec-powerbank', category: '電子用品', text: '行動電源（隨身登機，不託運）', done: false, link: '' },
+    { key: 'default-elec-cables', category: '電子用品', text: '手機／手錶／耳機充電線', done: false, link: '' },
+    { key: 'default-elec-adapter', category: '電子用品', text: '韓國雙圓孔 Type C/F 轉接頭', done: false, link: '' },
+    { key: 'default-elec-charger', category: '電子用品', text: '多孔充電頭', done: false, link: '' },
+
+    { key: 'default-clothes-coat', category: '衣物', text: '防風保暖外套／長版大衣', done: false, link: '' },
+    { key: 'default-clothes-layer', category: '衣物', text: '發熱內搭／針織衫（洋蔥式穿搭）', done: false, link: '' },
+    { key: 'default-clothes-change', category: '衣物', text: '每日換洗衣物／內著', done: false, link: '' },
+    { key: 'default-clothes-socks', category: '衣物', text: '襪子（步行量大，建議多 1 雙）', done: false, link: '' },
+    { key: 'default-clothes-shoes', category: '衣物', text: '舒適好走的運動鞋／健走鞋', done: false, link: '' },
+    { key: 'default-clothes-warm', category: '衣物', text: '圍巾／毛帽／手套', done: false, link: '' },
+
+    { key: 'default-care-dental', category: '盥洗保養', text: '牙刷／牙膏', done: false, link: '' },
+    { key: 'default-care-face', category: '盥洗保養', text: '洗面／卸妝／基礎保養', done: false, link: '' },
+    { key: 'default-care-moisture', category: '盥洗保養', text: '護唇膏／護手霜／保濕用品', done: false, link: '' },
+    { key: 'default-care-hair', category: '盥洗保養', text: '梳子／髮圈／個人髮品', done: false, link: '' },
+    { key: 'default-care-medicine', category: '盥洗保養', text: '個人常備藥／止痛藥／腸胃藥', done: false, link: '' },
+
+    { key: 'default-travel-umbrella', category: '旅行用品', text: '輕量折疊傘', done: false, link: '' },
+    { key: 'default-travel-bags', category: '旅行用品', text: '環保購物袋／備用袋', done: false, link: '' },
+    { key: 'default-travel-zip', category: '旅行用品', text: '夾鏈袋／收納袋', done: false, link: '' },
+    { key: 'default-travel-scale', category: '旅行用品', text: '行李秤／回程行李重量預留', done: false, link: '' },
+
+    { key: 'default-day-passport', category: '當日隨身包', text: '護照／必要證件', done: false, link: '' },
+    { key: 'default-day-phone', category: '當日隨身包', text: '手機', done: false, link: '' },
+    { key: 'default-day-wallet', category: '當日隨身包', text: '錢包／WOWPASS／信用卡／少量現金', done: false, link: '' },
+    { key: 'default-day-power', category: '當日隨身包', text: '行動電源＋短充電線', done: false, link: '' },
+    { key: 'default-day-tissue', category: '當日隨身包', text: '衛生紙／濕紙巾', done: false, link: '' },
+    { key: 'default-day-weather', category: '當日隨身包', text: '護唇膏／常備藥／折疊傘', done: false, link: '' }
+];
+window.DEFAULT_PACKING_TEMPLATE = DEFAULT_PACKING_TEMPLATE;
+const DEFAULT_PACKING_STATE_KEY = 'busan_v45_default_packing_state';
+
+function _getDefaultPackingState() {
+    const raw = StorageEngine.get(DEFAULT_PACKING_STATE_KEY, {});
+    return raw && raw.success && raw.data && typeof raw.data === 'object' ? raw.data : {};
+}
+function _setDefaultPackingState(state) { StorageEngine.set(DEFAULT_PACKING_STATE_KEY, state); }
+function _isDefaultPackingKey(key) { return typeof key === 'string' && key.startsWith('default-'); }
+function _getDefaultPackingRows() {
+    const state = _getDefaultPackingState();
+    return DEFAULT_PACKING_TEMPLATE.map(item => ({ ...item, ...(state[item.key] || {}), isDefault: true })).filter(item => !item.hidden);
+}
+function _loadCustomPackingRows() {
+    let customRows = Array.isArray(window.prepData) ? window.prepData : [];
+    if (customRows.length === 0) {
+        const localData = StorageEngine.get('busan_v36_prepData');
+        if (localData && localData.success && Array.isArray(localData.data) && localData.data.length > 0) {
+            customRows = localData.data.filter(row => !_isDefaultPackingKey(row.key));
+            window.prepData = customRows;
+        }
+    }
+    return customRows.filter(row => !_isDefaultPackingKey(row.key));
+}
+function _getPackingDisplayList() { return [..._getDefaultPackingRows(), ..._loadCustomPackingRows()]; }
+window.getPackingDisplayList = _getPackingDisplayList;
+
 function resetPrepForm() {
     for (const id of ['prepText', 'prepLink', 'prepEditKey']) { const el = document.getElementById(id); if (el) el.value = ''; }
     const cat = document.getElementById('prepCategory'); if (cat) cat.value = '其他';
@@ -518,7 +591,7 @@ function resetPrepForm() {
 window.cancelPrepEdit = resetPrepForm;
 
 window.editPrep = function(key) {
-    const item = (window.prepData || []).find(row => row.key === key);
+    const item = _getPackingDisplayList().find(row => row.key === key);
     if (!item) return;
     document.getElementById('prepEditKey').value = key;
     document.getElementById('prepText').value = item.text || '';
@@ -534,15 +607,22 @@ window.savePrepItem = async function() {
     const editKey = document.getElementById('prepEditKey')?.value || '';
     const text = document.getElementById('prepText')?.value.trim();
     if (!text) { showToast('請填入準備事項', 'warning'); return; }
+    const category = document.getElementById('prepCategory')?.value || '其他';
+    const link = document.getElementById('prepLink')?.value.trim() || '';
+
+    if (_isDefaultPackingKey(editKey)) {
+        const state = _getDefaultPackingState();
+        state[editKey] = { ...(state[editKey] || {}), text, category, link };
+        _setDefaultPackingState(state);
+        resetPrepForm();
+        renderPrepList();
+        showToast('✅ 預設 Packing 項目已在此裝置更新', 'success');
+        triggerContextUpdate();
+        return;
+    }
+
     const existing = (window.prepData || []).find(row => row.key === editKey);
-    const payload = {
-        text,
-        category: document.getElementById('prepCategory')?.value || '其他',
-        link: document.getElementById('prepLink')?.value.trim() || '',
-        done: existing?.done || false,
-        kind: 'packing',
-        updatedAt: Date.now()
-    };
+    const payload = { text, category, link, done: existing?.done || false, kind: 'packing', updatedAt: Date.now() };
     try {
         if (editKey) await NetworkEngine.firebaseUpdate(`${DB_PREP}/${editKey}`, payload);
         else await NetworkEngine.firebasePush(DB_PREP, { ...payload, ts: Date.now() });
@@ -556,6 +636,14 @@ window.savePrepItem = async function() {
 };
 
 window.togglePrep = async function (key, currentDone) {
+    if (_isDefaultPackingKey(key)) {
+        const state = _getDefaultPackingState();
+        state[key] = { ...(state[key] || {}), done: !currentDone };
+        _setDefaultPackingState(state);
+        renderPrepList();
+        triggerContextUpdate();
+        return;
+    }
     window.prepData = (window.prepData || []).map(p => p.key === key ? { ...p, done: !currentDone } : p);
     StorageEngine.set('busan_v36_prepData', window.prepData);
     if (typeof renderPrepList === 'function') renderPrepList();
@@ -569,6 +657,15 @@ window.togglePrep = async function (key, currentDone) {
 
 window.deletePrep = async function (key) {
     if (!confirm('確認刪除此準備事項？')) return;
+    if (_isDefaultPackingKey(key)) {
+        const state = _getDefaultPackingState();
+        state[key] = { ...(state[key] || {}), hidden: true };
+        _setDefaultPackingState(state);
+        renderPrepList();
+        triggerContextUpdate();
+        showToast('已在此裝置隱藏預設項目', 'info');
+        return;
+    }
     window.prepData = (window.prepData || []).filter(p => p.key !== key);
     StorageEngine.set('busan_v36_prepData', window.prepData);
     if (typeof renderPrepList === 'function') renderPrepList();
@@ -579,7 +676,6 @@ window.deletePrep = async function (key) {
         if (typeof addToOfflineQueue === 'function') addToOfflineQueue('REMOVE', `${DB_PREP}/${key}`);
     }
 };
-
 
 window.renderDateSimulator = function(v37SimulatedDate, city) {
     return `
@@ -871,32 +967,6 @@ window.emergencyRescue = function() {
     alert(`🚨 【緊急救援與聯絡資訊】\n\n📍 目前城市：${city.nameTW}\n🏥 急救醫院：${city.emergency.hospital}\n🚓 派出聯絡：${city.emergency.police}\n📞 旅遊諮詢：1330\n🚨 報警：112\n🚑 急救/火災：119`);
 };
 
-window.renderQuickActions = function() {
-    return `
-        <div class="v38-widget-card card fade-scale-in" style="grid-column: span 2;">
-            <div class="v38-widget-title"><i class="fa-solid fa-star"></i> 快速入口</div>
-            <div class="v38-quick-actions">
-                <button class="v38-action-btn" onclick="showV37Tab('itinerary')">
-                    <i class="fa-solid fa-calendar-day" style="color: #007aff;"></i>
-                    <span>今日行程</span>
-                </button>
-                <button class="v38-action-btn" onclick="showV37Tab('split')">
-                    <i class="fa-solid fa-coins" style="color: #ff9500;"></i>
-                    <span>即時匯率</span>
-                </button>
-                <button class="v38-action-btn" onclick="showV37Tab('split'); setTimeout(() => document.getElementById('billName')?.focus(), 200);">
-                    <i class="fa-solid fa-calculator" style="color: #2ecc71;"></i>
-                    <span>快速記帳</span>
-                </button>
-                <button class="v38-action-btn" onclick="showV37Tab('more');">
-                    <i class="fa-solid fa-life-ring" style="color: #ff3b30;"></i>
-                    <span>緊急求助</span>
-                </button>
-            </div>
-        </div>
-    `;
-};
-
 window.renderCollections = function() {
     let favFoodCount = StorageEngine.get('fav_rec_food', []).data.length;
     let favShopCount = StorageEngine.get('fav_rec_shop', []).data.length;
@@ -996,7 +1066,7 @@ window.renderV37HomeDashboard = function() {
     let simulatorHtml = renderDateSimulator(window.v37SimulatedDate, city);
     
     let heroHtml = "";
-    let widget1Html = renderQuickActions();
+    let widget1Html = "";
     let widget2Html = ""; 
     let widget3Html = ""; 
     let widget4Html = renderCollections();
@@ -1387,11 +1457,12 @@ window.renderConvenienceHome = function() {
     const list = document.getElementById('sConvenienceList');
     if (!list) return;
 
+    window.currentConveniencePortal = null;
+
     const state = _getConvState();
     const allItems = _buildRadarItems();
     const canonical = window.TRAVEL_CONTENT_V45 || globalThis.TRAVEL_CONTENT_V45 || {};
     const combos = canonical.convenienceStore?.combos || canonical.convenienceCombos || [];
-
     const comboState = _getComboState();
 
     let wantCount = 0, boughtCount = 0, unlockedCombos = 0;
@@ -1402,7 +1473,7 @@ window.renderConvenienceHome = function() {
     combos.forEach((_, idx) => { if (comboState[idx]?.unlocked) unlockedCombos++; });
 
     const portals = [
-        { id: 'discount', icon: '🏷️', title: '①優惠怎麼看', sub: '1+1 / 2+1 / 行사상품 掃法', color: '#e17055' },
+        { id: 'discount', icon: '🏷️', title: '①優惠怎麼看', sub: '1+1 / 2+1 / 행사상품 掃法', color: '#e17055' },
         { id: 'compare', icon: '⚔️', title: '②GS25 vs CU', sub: '自有品牌 / 熟食 / 甜點 / 聯名', color: '#0984e3' },
         { id: 'radar', icon: '📡', title: '③必買雷達', sub: `${allItems.length} 款推薦｜分類篩選`, color: '#00b894' },
         { id: 'microwave', icon: '🍱', title: '④熟食＆微波教室', sub: '怎麼拆 / 怎麼熱 / 韓語對照', color: '#fdcb6e' },
@@ -1410,39 +1481,86 @@ window.renderConvenienceHome = function() {
         { id: 'loot', icon: '🛍️', title: '⑥我的超商戰利品', sub: `想買 ${wantCount}　已買 ${boughtCount}　混搭 ${unlockedCombos}/${combos.length}`, color: '#fd79a8' }
     ];
 
-    let html = `
-        <button type="button" class="supermarket-discovery-card" onclick="openSupermarketNearby()">
-            <span class="supermarket-discovery-icon">🍇</span>
-            <span class="supermarket-discovery-copy"><b>晚間水果／超市</b><small>直接查看飯店周邊已驗證的超市與生活採買資訊</small></span>
-            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-        </button>
-        <div style="text-align:center; padding:8px 0 14px 0;">
-            <div style="font-size:0.75rem; font-weight:800; color:#7f8c8d;">🇰🇷 韓國超商攻略助理 — 選擇入口</div>
+    const nearby = window.SMART_NEARBY_DATABASE?.Busan || [];
+    const market = nearby.find(p => /E-Mart Munhyeon|이마트 문현점/i.test(p.name || ''));
+    const cu = nearby.find(p => /CU 凡內谷站店/i.test(p.name || ''));
+    const gs = nearby.find(p => /GS25 凡內谷中央店/i.test(p.name || ''));
+
+    const navButtons = place => {
+        if (!place) return '';
+        return [
+            place.naver ? `<a href="${place.naver}" target="_blank" rel="noopener" class="v38-mini-btn" style="background:#03C75A;color:white;text-decoration:none;">NAVER</a>` : '',
+            place.kakao ? `<a href="${place.kakao}" target="_blank" rel="noopener" class="v38-mini-btn" style="background:#FEE500;color:#3C1E1E;text-decoration:none;">Kakao</a>` : '',
+            place.google ? `<a href="${place.google}" target="_blank" rel="noopener" class="v38-mini-btn" style="background:#4285F4;color:white;text-decoration:none;">Google</a>` : ''
+        ].join('');
+    };
+
+    const backupRow = place => place ? `
+        <div style="padding:8px 0;border-top:1px dashed var(--border-color);">
+            <div style="font-size:.78rem;font-weight:900;">${ownerEscape(place.name || '')}</div>
+            <div style="font-size:.68rem;color:#7f8c8d;margin:2px 0 5px;">${ownerEscape(place.status || '營業時間請現場確認')}｜小額急需／深夜備援／飲水零食</div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;">${navButtons(place)}</div>
         </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; padding-bottom:10px;">
+    ` : '';
+
+    let html = `
+        <section class="supermarket-direct-card v45-store-card fade-scale-in" style="border-left:4px solid #8e6e53;background:#fff8f1;">
+            <div style="font-size:.95rem;font-weight:900;margin-bottom:6px;">🍇 晚間水果／超市</div>
+            <div style="font-size:.78rem;font-weight:900;">MAIN｜${ownerEscape(market?.name || 'E-Mart Munhyeon / 이마트 문현점')}</div>
+            <div style="font-size:.7rem;line-height:1.55;color:#6b7280;margin:4px 0 7px;">
+                用途：水果、飲料、零食與旅程補貨。Day 1 僅在時間與體力允許時前往；Day 5 於 Your Type 早餐後完成最後補貨。<br>
+                營業時間：10:00–23:00（2026/09/23 官方店舖資訊；出發前再確認）。
+            </div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px;">${navButtons(market)}</div>
+            <div style="font-size:.72rem;font-weight:900;color:#8e6e53;margin-top:8px;">BACKUP｜飯店／凡內谷站周邊 24 小時便利商店</div>
+            ${backupRow(cu)}
+            ${backupRow(gs)}
+        </section>
+
+        <div style="padding:10px 0 6px;">
+            <div style="font-size:.78rem;font-weight:900;color:var(--text-color);">🇰🇷 韓國超商 6 大入口</div>
+            <div style="font-size:.68rem;color:#7f8c8d;margin-top:2px;">六個主題直接列在同一頁，不再先點入口再跳下一層。</div>
+        </div>
     `;
+
     portals.forEach(p => {
         html += `
-            <div onclick="enterConveniencePortal('${p.id}')" style="
-                background:var(--card-bg); border-radius:16px; padding:14px 10px;
-                border-left:4px solid ${p.color}; cursor:pointer;
-                box-shadow:0 2px 8px rgba(0,0,0,0.1);
-                display:flex; flex-direction:column; gap:4px;
-                transition:transform 0.15s;
-                -webkit-tap-highlight-color:transparent;
-            " class="fade-scale-in">
-                <div style="font-size:1.6rem; line-height:1;">${p.icon}</div>
-                <div style="font-size:0.82rem; font-weight:900; color:var(--text-color); line-height:1.2;">${p.title}</div>
-                <div style="font-size:0.68rem; color:#7f8c8d; font-weight:700; line-height:1.2;">${p.sub}</div>
-            </div>
+            <section class="convenience-inline-topic fade-scale-in" data-convenience-topic="${p.id}" style="background:var(--card-bg); border-radius:16px; padding:12px; border-left:4px solid ${p.color}; box-shadow:0 2px 8px rgba(0,0,0,0.08); margin-bottom:12px; overflow:hidden;">
+                <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;">
+                    <div style="font-size:1.35rem;line-height:1;">${p.icon}</div>
+                    <div>
+                        <div style="font-size:.84rem;font-weight:900;color:var(--text-color);">${p.title}</div>
+                        <div style="font-size:.68rem;color:#7f8c8d;font-weight:700;margin-top:2px;">${p.sub}</div>
+                    </div>
+                </div>
+                <div id="conv-inline-${p.id}"></div>
+            </section>
         `;
     });
-    html += `</div>`;
+
     list.innerHTML = html;
+
+    const renderers = { discount: _renderPortalDiscount, compare: _renderPortalCompare, radar: _renderPortalRadar, microwave: _renderPortalMicrowave, combos: _renderPortalCombos, loot: _renderPortalLoot };
+    window._convenienceInlineRendering = true;
+    try {
+        portals.forEach(p => {
+            const target = document.getElementById(`conv-inline-${p.id}`);
+            if (target && renderers[p.id]) renderers[p.id](target);
+        });
+    } finally {
+        window._convenienceInlineRendering = false;
+    }
 };
 
 // ── SHARED BACK BUTTON HEADER ────────────────────────────────────────────────
 function _convBackHeader(title) {
+    if (window._convenienceInlineRendering) {
+        return `
+            <div style="margin:0 0 10px;padding-bottom:8px;border-bottom:1px solid var(--border-color);">
+                <span style="font-size:.78rem;font-weight:900;color:var(--text-color);">${title}</span>
+            </div>
+        `;
+    }
     return `
         <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--border-color);">
             <button onclick="exitConveniencePortal()" style="background:transparent; border:none; cursor:pointer; padding:4px 8px; border-radius:8px; font-size:0.8rem; font-weight:900; color:var(--primary);">← 返回</button>
@@ -2143,14 +2261,8 @@ window.renderPrepList = function() {
     const list = document.getElementById('prepListUI');
     const listTrip = document.getElementById('prepListUI_trip');
     if (!list && !listTrip) return;
-    let displayList = window.prepData || [];
-    if (displayList.length === 0) {
-        const localData = StorageEngine.get('busan_v36_prepData');
-        if (localData && localData.success && Array.isArray(localData.data) && localData.data.length > 0) {
-            displayList = localData.data;
-            window.prepData = displayList;
-        }
-    }
+
+    const displayList = _getPackingDisplayList();
     const done = displayList.filter(item => item.done).length;
     const total = displayList.length;
     const percent = total ? Math.round((done / total) * 100) : 0;
@@ -2161,23 +2273,43 @@ window.renderPrepList = function() {
             <div class="prep-progress-track"><div class="prep-progress-fill" style="width:${percent}%"></div></div>
         `;
     }
-    const renderHtml = items => {
-        if (items.length === 0) return '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:15px 0;">尚無 Packing List 項目，可在上方新增。</p>';
-        return items.map(p => {
-            const isDone = p.done ? 'done' : '';
-            const linkIcon = p.link ? `<a href="${ownerEscape(p.link)}" target="_blank" class="prep-link" aria-label="開啟準備事項連結" onclick="event.stopPropagation()"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>` : '';
-            return `
-                <div class="prep-item ${isDone}" onclick="togglePrep('${p.key}', ${Boolean(p.done)})">
-                    <div class="prep-check"><i class="fa-solid fa-check"></i></div>
-                    <div class="prep-text"><span class="prep-category">${ownerEscape(p.category || '其他')}</span>${ownerEscape(p.text)}</div>
-                    ${linkIcon}
-                    <button class="btn-edit" aria-label="編輯準備事項" onclick="event.stopPropagation(); editPrep('${p.key}')"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>
-                    <button class="btn-delete" aria-label="刪除準備事項" onclick="event.stopPropagation(); deletePrep('${p.key}')"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
-                </div>
-            `;
-        }).join('');
+
+    const preferredOrder = ['證件文件', '付款交通', '電子用品', '衣物', '盥洗保養', '旅行用品', '當日隨身包', '其他'];
+    const presentCategories = [...new Set(displayList.map(item => item.category || '其他'))];
+    const categories = [...preferredOrder.filter(cat => presentCategories.includes(cat)), ...presentCategories.filter(cat => !preferredOrder.includes(cat))];
+
+    const rowHtml = p => {
+        const isDone = p.done ? 'done' : '';
+        const linkIcon = p.link ? `<a href="${ownerEscape(p.link)}" target="_blank" rel="noopener" class="prep-link" aria-label="開啟準備事項連結" onclick="event.stopPropagation()"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>` : '';
+        const defaultBadge = p.isDefault ? '<span class="v38-badge" style="font-size:.58rem;background:#eef7f4;color:#168c70;margin-left:6px;">預設</span>' : '';
+        return `
+            <div class="prep-item ${isDone}" onclick="togglePrep('${p.key}', ${Boolean(p.done)})">
+                <div class="prep-check"><i class="fa-solid fa-check"></i></div>
+                <div class="prep-text"><span class="prep-category">${ownerEscape(p.category || '其他')}</span>${ownerEscape(p.text)}${defaultBadge}</div>
+                ${linkIcon}
+                <button class="btn-edit" aria-label="編輯準備事項" onclick="event.stopPropagation(); editPrep('${p.key}')"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>
+                <button class="btn-delete" aria-label="刪除準備事項" onclick="event.stopPropagation(); deletePrep('${p.key}')"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+            </div>
+        `;
     };
-    const finalHtml = renderHtml(displayList);
+
+    let finalHtml = `<p class="owner-data-note" style="margin:8px 0 12px;">內建個人 Packing 範本只儲存在這台裝置；勾選、修改或隱藏預設項目不會寫入 Firebase。你另外新增的自訂項目才使用個人同步資料。</p>`;
+
+    if (displayList.length === 0) {
+        finalHtml += '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:15px 0;">尚無 Packing List 項目，可在上方新增。</p>';
+    } else {
+        categories.forEach(category => {
+            const items = displayList.filter(item => (item.category || '其他') === category);
+            if (!items.length) return;
+            finalHtml += `
+                <section class="prep-category-group" data-prep-category="${ownerEscape(category)}" style="margin:12px 0 16px;">
+                    <h4 style="margin:0 0 7px;font-size:.82rem;font-weight:900;color:var(--primary);">${ownerEscape(category)} <span style="color:#95a5a6;font-size:.68rem;">${items.filter(x => x.done).length}/${items.length}</span></h4>
+                    ${items.map(rowHtml).join('')}
+                </section>
+            `;
+        });
+    }
+
     if (list) list.innerHTML = finalHtml;
     if (listTrip) listTrip.innerHTML = finalHtml;
 };

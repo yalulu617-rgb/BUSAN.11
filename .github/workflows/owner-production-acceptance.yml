@@ -2,6 +2,11 @@ name: V45 Production Owner Acceptance
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows:
+      - V45 Quality Gate & Deploy
+    types:
+      - completed
 
 permissions:
   contents: read
@@ -9,12 +14,23 @@ permissions:
 jobs:
   owner-production-acceptance:
     name: Strict read-only Production Owner UX
+    if: >-
+      ${{
+        github.event_name == 'workflow_dispatch' ||
+        (
+          github.event_name == 'workflow_run' &&
+          github.event.workflow_run.conclusion == 'success' &&
+          github.event.workflow_run.head_branch == 'main'
+        )
+      }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -30,7 +46,7 @@ jobs:
 
       - name: Run strict Production Owner acceptance
         env:
-          EXPECTED_SHA: ${{ github.sha }}
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
           PRODUCTION_URL: https://yalulu617-rgb.github.io/BUSAN.11/
         run: node scripts/verify-owner-production.mjs
 
