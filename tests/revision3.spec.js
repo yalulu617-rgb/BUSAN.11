@@ -102,6 +102,7 @@ test('Revision 3: encrypted private writes use the current owner even with a sta
 
 test('Revision 3: built-in stores appear once with clean display names', () => {
   const ctx = sandbox();
+  vm.runInContext(source('data/map-registry.js'), ctx);
   vm.runInContext(source('data/travel-content.js'), ctx);
   vm.runInContext(source('data/recommended.js'), ctx);
   const items = ctx.RECOMMENDED_SHOPPING;
@@ -111,5 +112,20 @@ test('Revision 3: built-in stores appear once with clean display names', () => {
     expect(matches[0].desc).not.toContain('\uFFFD');
   }
   expect(new Set(items.map(item => item.id)).size).toBe(items.length);
-  expect(ctx.SMART_NEARBY_DATABASE.Busan.filter(item => item.name === 'Olive Young 西面中央店')).toHaveLength(1);
+  const nearby = ctx.SMART_NEARBY_DATABASE.Busan;
+  const expectedNearby = [
+    { mapKey: 'emart_munhyeon', label: 'E-Mart Munhyeon / 이마트 문현점' },
+    { mapKey: 'gs25_seomyeon_yuseong', label: 'GS25 서면유성점' },
+    { mapKey: 'seveneleven_seomyeon_dain', label: '세븐일레븐 부산서면다인점' }
+  ];
+  for (const expected of expectedNearby) {
+    const matches = nearby.filter(item => item.mapKey === expected.mapKey);
+    expect(matches, expected.label).toHaveLength(1);
+  }
+  expect(nearby.filter(item => item.name === 'Olive Young 西面中央店')).toHaveLength(0);
+  expect(nearby.every(item => item.mapKey && ctx.AUTHORITATIVE_MAPS_V45[item.mapKey])).toBe(true);
+  expect(nearby.every(item => {
+    const map = ctx.AUTHORITATIVE_MAPS_V45[item.mapKey];
+    return Boolean(map.google || map.naver || map.kakao);
+  })).toBe(true);
 });

@@ -480,23 +480,42 @@ test.describe('Guide Folders (Tools, Food, Shopping, Convenience)', () => {
 // ── TEST GROUP 10: Maps Verification ────────────────────────────────────────
 test.describe('Maps Links Verification', () => {
 
-  test('Google Maps links are present in itinerary data', async ({ page }) => {
+  test('Authoritative Google Maps links resolve from itinerary mapKey', async ({ page }) => {
     await bootApp(page);
-    const content = await page.evaluate(() => {
-      // Check window.RECOMMENDED_ITINERARY for map links
+    const result = await page.evaluate(() => {
       const iti = window.RECOMMENDED_ITINERARY || [];
-      return iti.filter(i => i.map && i.map.includes('map')).length;
+      const registry = window.AUTHORITATIVE_MAPS_V45 || {};
+      const mapped = iti.filter(item => item.mapKey);
+      return {
+        mappedCount: mapped.length,
+        unresolvedCount: mapped.filter(item => !registry[item.mapKey]).length,
+        googleCount: mapped.filter(item => registry[item.mapKey]?.google).length
+      };
     });
-    expect(content, 'No map links found in itinerary').toBeGreaterThan(0);
+    expect(result.mappedCount).toBeGreaterThan(0);
+    expect(result.unresolvedCount).toBe(0);
+    expect(result.googleCount).toBeGreaterThan(0);
   });
 
-  test('Naver map links use correct domain', async ({ page }) => {
+  test('Authoritative Naver links resolve from itinerary mapKey', async ({ page }) => {
     await bootApp(page);
-    const naverLinks = await page.evaluate(() => {
+    const result = await page.evaluate(() => {
       const iti = window.RECOMMENDED_ITINERARY || [];
-      return iti.filter(i => i.map && i.map.includes('naver')).length;
+      const registry = window.AUTHORITATIVE_MAPS_V45 || {};
+      const mapped = iti.filter(item => item.mapKey);
+      const naverUrls = mapped.map(item => registry[item.mapKey]?.naver).filter(Boolean);
+      return {
+        mappedCount: mapped.length,
+        unresolvedCount: mapped.filter(item => !registry[item.mapKey]).length,
+        naverCount: naverUrls.length,
+        naverUrls
+      };
     });
-    expect(naverLinks).toBeGreaterThan(0);
+    expect(result.mappedCount).toBeGreaterThan(0);
+    expect(result.unresolvedCount).toBe(0);
+    expect(result.naverCount).toBeGreaterThan(0);
+    expect(result.naverUrls.every(url => url.includes('naver.me') || url.includes('map.naver.com'))).toBe(true);
+    expect(result.naverUrls.every(url => !url.includes('/p/search/') && !url.includes('/v5/search/'))).toBe(true);
   });
 });
 

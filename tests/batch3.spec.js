@@ -254,8 +254,9 @@ test.describe('BATCH 3 - Canonical / Personal Separation', () => {
     expect(d2Titles).toContain('廣安里');
     // Day 3 - Gyeongju Day
     const d3Titles = (rain.day3?.proposals || []).map(p => p.title).join(' ');
-    expect(d3Titles).toContain('室內韓服體驗');
-    expect(d3Titles).toContain('皇理團路韓屋咖啡廳');
+    expect(d3Titles).toContain('花路韓服');
+    expect(d3Titles).toContain('短版戶外拍攝');
+    expect(d3Titles).toContain('皇理團路韓屋咖啡區域');
     expect(d3Titles).toContain('國立慶州博物館');
     expect(d3Titles).toContain('慶州東宮園');
     expect(d3Titles).not.toContain('SEA LIFE');
@@ -478,19 +479,26 @@ test.describe('BATCH 3 - Owner Visual Corrections', () => {
   test('Home weather renders successful provider live result with Traditional Chinese condition', async ({ page }) => {
     await bootApp(page);
     await page.evaluate(() => {
-      window.WeatherEngine.cache['pusan'] = {
+      window.WeatherEngine.cache['Busan'] = {
+        cityKey: 'Busan',
         temp: 28,
-        condition: 'Light rain shower',
-        conditionZH: '局部陣雨',
+        apparentTemp: 32,
         feelsLike: 32,
+        weatherCode: 80,
+        condition: 80,
+        conditionZH: '陣雨',
         windSpeed: 12,
         humidity: 70,
-        uvIndex: 4,
+        precipitation: 1,
         rainChance: 60,
+        daily: [],
         timestamp: Date.now(),
+        updatedAt: new Date().toISOString(),
         isLive: true,
         isCached: false,
-        unavailable: false
+        isFallback: false,
+        unavailable: false,
+        source: 'Open-Meteo'
       };
       triggerContextUpdateImmediate();
     });
@@ -498,7 +506,7 @@ test.describe('BATCH 3 - Owner Visual Corrections', () => {
       const box = document.querySelector('.v45-home-weather-box');
       return box ? box.textContent : '';
     });
-    expect(weatherBoxText).toMatch(/釜山目前｜\d+°C｜/);
+    expect(weatherBoxText).toContain('釜山目前｜28°C｜');
     expect(weatherBoxText).toContain('更新：');
   });
 
