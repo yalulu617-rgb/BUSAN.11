@@ -164,6 +164,21 @@ test.describe('Final content integrity', () => {
       const urls = Object.values(registry).map(entry => entry[platform]).filter(Boolean);
       expect(new Set(urls).size).toBe(urls.length);
     }
+    const registryNaverUrls = Object.values(registry).map(entry => entry.naver).filter(Boolean);
+    expect(registryNaverUrls.every(url => /^(?:https?:\/\/naver\.me\/|https?:\/\/map\.naver\.com\/)/.test(url))).toBe(true);
+    expect(registryNaverUrls.every(url => !url.includes('/p/search/') && !url.includes('/v5/search/'))).toBe(true);
+    const addedVerifiedNaver = {
+      busan_station: 'https://naver.me/5ewqfrxp',
+      spaland_centum: 'https://naver.me/5Q372Aqt',
+      gwangalli_beach: 'https://naver.me/GdbmVbn7',
+      gyeongju_museum: 'https://naver.me/5qRAK9AB',
+      donggungwon: 'https://naver.me/xrxQgB1X',
+      arte_museum_busan: 'https://naver.me/FIfsvnna',
+      gwangalli_bulgogi_busanjip: 'https://naver.me/FRDW7FyX'
+    };
+    for (const [mapKey, naver] of Object.entries(addedVerifiedNaver)) {
+      expect(registry[mapKey].naver).toBe(naver);
+    }
     expect(registry.age_yeongdo.naver).toBeUndefined();
     expect(JSON.stringify(registry.age_yeongdo)).not.toMatch(/THRILL|Thrill|xqylsCAu/);
   });

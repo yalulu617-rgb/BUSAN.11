@@ -517,6 +517,25 @@ test.describe('Maps Links Verification', () => {
     expect(result.naverUrls.every(url => url.includes('naver.me') || url.includes('map.naver.com'))).toBe(true);
     expect(result.naverUrls.every(url => !url.includes('/p/search/') && !url.includes('/v5/search/'))).toBe(true);
   });
+
+  test('Canonical itinerary visible map actions are NAVER-only', async ({ page }) => {
+    await bootApp(page);
+    await page.evaluate(() => {
+      window.itineraryData = window.RECOMMENDED_ITINERARY;
+      window.currentWeatherMode = 'sun';
+      window.showV37Tab('itinerary');
+      window.filterIti('11/14');
+    });
+    const actions = page.locator('#itiContent .iti-map-actions a');
+    expect(await actions.count()).toBeGreaterThan(0);
+    const visibleActions = await actions.evaluateAll(links => links.map(link => ({
+      text: link.textContent || '',
+      href: link.href
+    })));
+    expect(visibleActions.every(action => action.text.includes('NAVER'))).toBe(true);
+    expect(visibleActions.every(action => !/Google|Kakao/.test(action.text))).toBe(true);
+    expect(visibleActions.every(action => action.href.includes('naver.me') || action.href.includes('map.naver.com'))).toBe(true);
+  });
 });
 
 // ── TEST GROUP 11: Travel Data Safety ───────────────────────────────────────

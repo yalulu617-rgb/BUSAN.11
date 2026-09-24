@@ -18,6 +18,9 @@
         ${links.kakao ? `<a href="${links.kakao}" target="_blank" rel="noopener" class="map-tag" style="background:#FEE500; color:#3C1E1E;"><i class="fa-solid fa-route"></i> Kakao</a>` : ''}
         ${links.google ? `<a href="${links.google}" target="_blank" rel="noopener" class="map-tag" style="background:#4285F4; color:white;"><i class="fa-solid fa-map"></i> Google</a>` : ''}
     `;
+    const renderCanonicalMapAction = links => links.naver
+        ? `<a href="${links.naver}" target="_blank" rel="noopener" class="map-tag" style="background:#03C75A; color:white;"><i class="fa-solid fa-location-arrow"></i> NAVER</a>`
+        : '';
     const itineraryStartMinutes = item => {
         const match = String(item?.time || '').match(/(\d{1,2}):(\d{2})/);
         if (!match) return null;
@@ -248,7 +251,7 @@
                             <div style="font-weight:900; font-size:0.95rem; color:#2980b9; margin-bottom:4px;">${prop.title}</div>
                             <p style="font-size:0.8rem; color:#555; line-height:1.5; margin:0 0 8px 0;">${prop.desc}</p>
                             <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                                ${renderMapActions(mapLinks)}
+                                ${renderCanonicalMapAction(mapLinks)}
                                 ${taxiBtn}
                             </div>
                         </div>
@@ -315,7 +318,9 @@
             const mapLinks = i.mapKey
                 ? authoritativeMapLinks(i.mapKey)
                 : { ...customMapLinks, naver: i.map || customMapLinks.naver || '' };
-            const transportMaps = renderMapActions(mapLinks);
+            const transportMaps = i.mapKey
+                ? renderCanonicalMapAction(mapLinks)
+                : renderMapActions(mapLinks);
             const transportDetail = i.route ? `
                 <details class="iti-transport-detail" style="margin-top:7px; max-width:100%; overflow:hidden;">
                     <summary style="cursor:pointer; font-weight:900; font-size:0.76rem; color:var(--primary); padding:7px 9px; border:1px solid var(--border-color); border-radius:10px; background:rgba(0,0,0,0.02);">🚇 怎麼去</summary>

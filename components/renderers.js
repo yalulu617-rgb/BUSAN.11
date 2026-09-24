@@ -1176,9 +1176,8 @@ window.renderSmartNearby = function() {
     const cityId = ctx.currentCity.id || 'Busan';
     
     const renderPlace = p => {
-            let googleBtn = p.google ? `<a href="${p.google}" target="_blank" class="v38-mini-btn" style="background:#4285F4; color:white; border:none; text-decoration:none;"><i class="fa-solid fa-map"></i> Google</a>` : '';
             let naverBtn = p.naver ? `<a href="${p.naver}" target="_blank" class="v38-mini-btn" style="background:#03C75A; color:white; border:none; text-decoration:none;"><i class="fa-solid fa-location-arrow"></i> NAVER</a>` : '';
-            let kakaoBtn = p.kakao ? `<a href="${p.kakao}" target="_blank" class="v38-mini-btn" style="background:#FEE500; color:#3C1E1E; border:none; text-decoration:none;"><i class="fa-solid fa-route"></i> Kakao</a>` : '';
+            let navigationStatus = p.naver ? '' : '<span class="naver-verification-pending" style="font-size:0.7rem; color:#7f8c8d; font-weight:700;">NAVER 定位待核實</span>';
             
             // Display-layer normalization: avoid repeating brand in title (e.g. "🛒 CU" + "CU 凡內谷站店" -> "🛒 CU 凡內谷站店")
             const typeStr = (p.type || '').trim();
@@ -1214,7 +1213,7 @@ window.renderSmartNearby = function() {
                         </div>
                     </div>
                     <div style="display:flex; gap:4px; align-items:center; flex-wrap:wrap; max-width:100%;">
-                        ${naverBtn} ${kakaoBtn} ${googleBtn}
+                        ${naverBtn}${navigationStatus}
                     </div>
                 </div>
             `;
@@ -1225,8 +1224,8 @@ window.renderSmartNearby = function() {
         const conveniencePlaces = safePlaces.filter(p => /(?:CU|GS25|세븐일레븐|7-Eleven)/i.test(`${p.type || ''} ${p.name || ''}`));
         const otherPlaces = safePlaces.filter(p => !conveniencePlaces.includes(p));
         const emartMaps = (window.AUTHORITATIVE_MAPS_V45 || {}).emart_munhyeon || {};
-        const mapAction = (url, label, bg, color = 'white') => url
-            ? `<a href="${url}" target="_blank" class="v38-mini-btn" style="background:${bg}; color:${color}; border:none; text-decoration:none;">${label}</a>`
+        const mapAction = url => url
+            ? `<a href="${url}" target="_blank" class="v38-mini-btn" style="background:#03C75A; color:white; border:none; text-decoration:none;">NAVER</a>`
             : '';
 
         const supermarketHtml = cityId === 'Busan' ? `
@@ -1237,9 +1236,7 @@ window.renderSmartNearby = function() {
                     以 Urban Groove Hotel／凡內谷站 6 號出口為生活錨點。Day 1 僅在時間與體力允許時採買水果、飲料、零食與初次補貨；Day 5 於 Your Type 早餐後完成最後補貨。
                 </div>
                 <div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px; max-width:100%;">
-                    ${mapAction(emartMaps.naver, 'NAVER', '#03C75A')}
-                    ${mapAction(emartMaps.kakao, 'Kakao', '#FEE500', '#3C1E1E')}
-                    ${mapAction(emartMaps.google, 'Google', '#4285F4')}
+                    ${mapAction(emartMaps.naver)}
                 </div>
             </section>
         ` : '';
@@ -1561,11 +1558,9 @@ window.renderConvenienceHome = function() {
 
     const navButtons = place => {
         if (!place) return '';
-        return [
-            place.naver ? `<a href="${place.naver}" target="_blank" rel="noopener" class="v38-mini-btn" style="background:#03C75A;color:white;text-decoration:none;">NAVER</a>` : '',
-            place.kakao ? `<a href="${place.kakao}" target="_blank" rel="noopener" class="v38-mini-btn" style="background:#FEE500;color:#3C1E1E;text-decoration:none;">Kakao</a>` : '',
-            place.google ? `<a href="${place.google}" target="_blank" rel="noopener" class="v38-mini-btn" style="background:#4285F4;color:white;text-decoration:none;">Google</a>` : ''
-        ].join('');
+        return place.naver
+            ? `<a href="${place.naver}" target="_blank" rel="noopener" class="v38-mini-btn" style="background:#03C75A;color:white;text-decoration:none;">NAVER</a>`
+            : '<span class="naver-verification-pending" style="font-size:.68rem;color:#7f8c8d;font-weight:700;">NAVER 定位待核實</span>';
     };
 
     const backupRow = place => place ? `

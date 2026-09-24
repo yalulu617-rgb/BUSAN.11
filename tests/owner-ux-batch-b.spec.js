@@ -169,6 +169,12 @@ test.describe('BUSAN.11 V45 — Batch B Owner Editable Experience', () => {
     await expect(page.locator('.supermarket-direct-card')).toContainText('10:00–23:00');
     await expect(page.locator('.supermarket-direct-card')).toContainText('GS25 서면유성점');
     await expect(page.locator('.supermarket-direct-card')).toContainText('세븐일레븐 부산서면다인점');
+    const supermarketMapActions = page.locator('.supermarket-direct-card a');
+    await expect(supermarketMapActions).toHaveCount(1);
+    await expect(supermarketMapActions).toContainText('NAVER');
+    await expect(supermarketMapActions).toHaveAttribute('href', 'https://naver.me/FLybIrq7');
+    await expect(page.locator('.supermarket-direct-card')).not.toContainText(/Google|Kakao/);
+    await expect(page.locator('.supermarket-direct-card .naver-verification-pending')).toHaveCount(2);
     const portal = await page.evaluate(() => window.currentConveniencePortal);
     expect(portal).toBeNull();
   });

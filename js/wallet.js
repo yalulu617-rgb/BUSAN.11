@@ -288,11 +288,15 @@ window.renderTickets_LogicOnly = function() {
         const taxiHotelName = truthfulValue(h.nameEN || h.name);
         const taxiDestination = [taxiHotelName, hotelAddress].filter(value => value !== "尚未確認").join('\n');
         const encodedTaxiDestination = encodeURIComponent(taxiDestination);
-        let maps = getMapLinks(h.addressKR || h.address);
-        let googleBtn = maps.google ? `<a href="${maps.google}" target="_blank" class="map-tag" style="background:#4285F4; color:white;"><i class="fa-solid fa-map"></i> Google Maps</a>` : '';
-        let naverBtn = maps.naver ? `<a href="${maps.naver}" target="_blank" class="map-tag" style="background:#03C75A; color:white;"><i class="fa-solid fa-location-arrow"></i> Naver Map</a>` : '';
-        let kakaoBtn = maps.kakao ? `<a href="${maps.kakao}" target="_blank" class="map-tag" style="background:#FEE500; color:#3C1E1E;"><i class="fa-solid fa-route"></i> Kakao Map</a>` : '';
-        let appleBtn = maps.apple ? `<a href="${maps.apple}" target="_blank" class="map-tag" style="background:#000000; color:white;"><i class="fa-brands fa-apple"></i> Apple Maps</a>` : '';
+        const hotelIdentity = [h.id, h.name, h.nameEN, h.nameKR].filter(Boolean).join(' ');
+        const isCanonicalUrbanGroove = /urban_groove|Urban Groove|城市律動|어반그루브/i.test(hotelIdentity);
+        const maps = isCanonicalUrbanGroove
+            ? ((window.AUTHORITATIVE_MAPS_V45 || {}).urban_groove || {})
+            : getMapLinks(h.addressKR || h.address);
+        let googleBtn = !isCanonicalUrbanGroove && maps.google ? `<a href="${maps.google}" target="_blank" class="map-tag" style="background:#4285F4; color:white;"><i class="fa-solid fa-map"></i> Google Maps</a>` : '';
+        let naverBtn = maps.naver ? `<a href="${maps.naver}" target="_blank" class="map-tag" style="background:#03C75A; color:white;"><i class="fa-solid fa-location-arrow"></i> NAVER Map</a>` : '';
+        let kakaoBtn = !isCanonicalUrbanGroove && maps.kakao ? `<a href="${maps.kakao}" target="_blank" class="map-tag" style="background:#FEE500; color:#3C1E1E;"><i class="fa-solid fa-route"></i> Kakao Map</a>` : '';
+        let appleBtn = !isCanonicalUrbanGroove && maps.apple ? `<a href="${maps.apple}" target="_blank" class="map-tag" style="background:#000000; color:white;"><i class="fa-brands fa-apple"></i> Apple Maps</a>` : '';
         
         let websiteBtn = h.website ? safeUrl(h.website, "官方網站", "fa-solid fa-globe", "var(--dora)", "white") : '尚未填寫';
         let photoHtml = (h.hotelPhoto && h.hotelPhoto !== "尚未填寫") ? `<img src="${h.hotelPhoto}" style="width: 100%; height: 140px; object-fit: cover; border-radius: 12px; margin-bottom: 10px; cursor: zoom-in;" onclick="openLightbox('${h.hotelPhoto}', null)">` : '';

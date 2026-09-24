@@ -233,12 +233,12 @@ test.describe('BUSAN.11 V45 — Content Regression & Travel-Readiness Suite', ()
     await expect(hotelSection).toContainText(hotelState.expectedPhone);
 
     const mapLinks = hotelSection.locator('a.map-tag');
-    await expect(mapLinks).toHaveCount(4);
-    const hrefs = await mapLinks.evaluateAll(links => links.map(link => link.href));
-    expect(hrefs.some(href => href.includes('google.com/maps'))).toBe(true);
-    expect(hrefs.some(href => href.includes('map.naver.com'))).toBe(true);
-    expect(hrefs.some(href => href.includes('map.kakao.com'))).toBe(true);
-    expect(hrefs.some(href => href.includes('maps.apple.com'))).toBe(true);
+    await expect(mapLinks).toHaveCount(1);
+    await expect(mapLinks).toContainText('NAVER Map');
+    await expect(mapLinks).toHaveAttribute('href', 'https://naver.me/5SKCdrOx');
+    expect(await hotelSection.locator('a[href*="google"]').count()).toBe(0);
+    expect(await hotelSection.locator('a[href*="kakao"]').count()).toBe(0);
+    expect(await hotelSection.locator('a[href*="apple"]').count()).toBe(0);
 
     const taxiButton = hotelSection.locator('.hotel-taxi-copy');
     const encodedDestination = await taxiButton.getAttribute('data-taxi-destination');
@@ -374,6 +374,24 @@ test.describe('BUSAN.11 V45 — Content Regression & Travel-Readiness Suite', ()
     expect(nearbySummary.busanNames).toContain('GS25 서면유성점');
     expect(nearbySummary.busanNames).toContain('세븐일레븐 부산서면다인점');
     expect(nearbySummary.activeNames).not.toMatch(/Matchandeul|맛찬들|Haemok|해목|海木|Solsot|솔솥|Byeolchaeban|별채반/);
+
+    await page.evaluate(() => {
+      window.showV37Tab('wallet');
+      window.switchWalletTab('hotel');
+    });
+    const nearbyList = page.locator('#walletNearbyList');
+    await expect(nearbyList.locator('.nearby-life-place').first()).toBeVisible();
+    const visibleMapLinks = nearbyList.locator('a[href*="naver"], a[href*="google"], a[href*="kakao"]');
+    const visibleHrefs = await visibleMapLinks.evaluateAll(links => links.map(link => link.href));
+    expect(visibleHrefs.length).toBeGreaterThan(0);
+    expect(visibleHrefs.every(href => href.startsWith('https://naver.me/') || href.startsWith('http://naver.me/') || href.includes('map.naver.com/'))).toBe(true);
+    expect(visibleHrefs.join('\n')).not.toMatch(/google|kakao|\/p\/search\/|\/v5\/search\//);
+
+    for (const storeName of ['GS25 서면유성점', '세븐일레븐 부산서면다인점']) {
+      const store = nearbyList.locator('.nearby-life-place').filter({ hasText: storeName });
+      await expect(store).toContainText('NAVER 定位待核實');
+      await expect(store.locator('a')).toHaveCount(0);
+    }
   });
 
   // ── J. SHOPPING CATEGORY LABELS ──────────────────────────────────────────

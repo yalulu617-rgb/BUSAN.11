@@ -61,13 +61,20 @@ test('final five-day content freeze renders correctly on mobile', async ({ page 
   }
   expect(day5).not.toMatch(/Zimcarry|짐캐리|Pohang Dwaeji Gukbap|포항돼지국밥/);
 
+  await page.evaluate(() => window.filterIti('11/14'));
+  const verifiedNaverRow = page.locator('#itiContent .iti-row').filter({ hasText: 'OPS Haeundae' });
+  await verifiedNaverRow.locator('.iti-transport-detail summary').click();
+  const verifiedNaverActions = verifiedNaverRow.locator('.iti-map-actions a');
+  await expect(verifiedNaverActions).toHaveCount(1);
+  await expect(verifiedNaverActions).toContainText('NAVER');
+  await expect(verifiedNaverActions).toHaveAttribute('href', 'https://naver.me/5EQ3khJY');
+  await expect(verifiedNaverRow.locator('.iti-map-actions')).not.toContainText(/Google|Kakao/);
+
   await page.evaluate(() => window.filterIti('11/13'));
-  const transport = page.locator('#itiContent .iti-transport-detail').first();
-  await expect(transport.locator('summary')).toContainText('🚇 怎麼去');
-  await transport.locator('summary').click();
-  await expect(transport.locator('.iti-map-actions a').first()).toBeVisible();
-  const hrefs = await transport.locator('.iti-map-actions a').evaluateAll(links => links.map(link => link.href));
-  expect(hrefs.join('\n')).not.toMatch(/\/p\/search\/|\/v5\/search\/|maps\.app\.goo\.gl|map\.kakao\.com\/\?q=/);
+  const unverifiedNaverRow = page.locator('#itiContent .iti-row').filter({ hasText: '抵達金海國際機場' });
+  await unverifiedNaverRow.locator('.iti-transport-detail summary').click();
+  await expect(unverifiedNaverRow.locator('.iti-map-actions a')).toHaveCount(0);
+  await expect(unverifiedNaverRow.locator('.iti-map-actions')).not.toContainText(/Google|Kakao/);
 
   await page.evaluate(() => {
     window.showV37Tab('wallet');
