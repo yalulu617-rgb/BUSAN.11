@@ -177,7 +177,8 @@ test.describe('BUSAN.11 V45 — Batch B Owner Editable Experience', () => {
 
     const defaultCount = await page.evaluate(() => window.DEFAULT_PACKING_TEMPLATE.length);
     expect(defaultCount).toBeGreaterThanOrEqual(30);
-    await expect(page.locator('.prep-category-group')).toHaveCount(7);
+    await expect(page.locator('#prepListUI .prep-category-group')).toHaveCount(7);
+    await expect(page.locator('#prepListUI_trip .prep-category-group')).toHaveCount(7);
     await expect(page.locator('#prepProgressUI')).toContainText(`完成 0 / ${defaultCount}`);
 
     const result = await page.evaluate(async () => {

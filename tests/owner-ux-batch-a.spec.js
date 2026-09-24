@@ -70,16 +70,20 @@ test.describe('BUSAN.11 V45 — Owner UX Batch A', () => {
     await page.locator('.v45-nine-card').filter({ hasText: '超商・超市' }).click();
     await expect(page.locator('#shop')).toHaveClass(/active/);
     await expect(page.locator('#shopConvenienceContainer')).toBeVisible();
-    await expect(page.locator('.supermarket-discovery-card')).toBeVisible();
+    await expect(page.locator('.supermarket-direct-card')).toBeVisible();
+    await expect(page.locator('[data-convenience-topic]')).toHaveCount(6);
+    for (const id of ['discount', 'compare', 'radar', 'microwave', 'combos', 'loot']) {
+      await expect(page.locator(`[data-convenience-topic="${id}"]`)).toBeVisible();
+    }
 
-    const portalText = await page.locator('#sConvenienceList').innerText();
+    const portalText = await page.locator('#shopConvenienceContainer').innerText();
     for (const label of ['優惠怎麼看','GS25 vs CU','必買雷達','熟食＆微波教室','神級混搭','我的超商戰利品']) {
       expect(portalText).toContain(label);
     }
-
-    await page.locator('.supermarket-discovery-card').click();
-    await expect(page.locator('#walletHotelSection')).toBeVisible();
-    await expect(page.locator('#walletNearbyList')).toContainText('晚間水果／超市');
+    await expect(page.locator('.supermarket-direct-card')).toContainText('E-Mart Munhyeon');
+    await expect(page.locator('.supermarket-direct-card')).toContainText('10:00–23:00');
+    await expect(page.locator('.supermarket-direct-card')).toContainText('CU 凡內谷站店');
+    await expect(page.locator('.supermarket-direct-card')).toContainText('GS25 凡內谷中央店');
   });
 
   test('translation workspace is one integrated SOS destination', async ({ page }) => {
