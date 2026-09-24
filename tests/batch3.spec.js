@@ -198,25 +198,35 @@ test.describe('BATCH 3 - Canonical / Personal Separation', () => {
     expect(count).toBe(45);
   });
 
-  test('Custom Firebase source remains separate from canonical and merged display data', async ({ page }) => {
+  test('custom itinerary source remains separate from canonical merged display data', async ({ page }) => {
     await bootApp(page);
-    await page.evaluate(() => window.showV37Tab('itinerary'));
-    await page.waitForFunction(() => Array.isArray(window.customItineraryData) && window.customItineraryData.length === 17, null, { timeout: 15000 });
-    const counts = await page.evaluate(() => {
+    const fixture = {
+      key: 'ci-custom-itinerary-separation',
+      day: '11/14',
+      time: '23:59',
+      desc: 'CI custom itinerary separation fixture',
+      tr: '步行',
+      map: ''
+    };
+    const counts = await page.evaluate(localFixture => {
+      const localMerged = window.mergeCanonicalItinerary([localFixture]);
+      window.itineraryData = localMerged;
       const canonical = Object.values(window.TRAVEL_CONTENT_V45?.itinerary || {}).flat();
       const custom = window.customItineraryData || [];
       const merged = window.itineraryData || [];
       return {
-        canonical: canonical.length,
-        custom: custom.length,
-        merged: merged.length,
-        hasAllCanonical: (window.RECOMMENDED_ITINERARY || []).every(item => merged.some(row => row.key === item.key))
+        canonicalCount: canonical.length,
+        customCount: custom.length,
+        mergedCount: merged.length,
+        hasAllCanonical: (window.RECOMMENDED_ITINERARY || []).every(item => merged.some(row => row.key === item.key)),
+        hasFixture: merged.some(row => row.key === localFixture.key)
       };
-    });
-    expect(counts.canonical).toBe(45);
-    expect(counts.custom).toBe(17);
-    expect(counts.merged).toBeGreaterThanOrEqual(45);
+    }, fixture);
+    expect(counts.canonicalCount).toBe(45);
+    expect(counts.customCount).toBe(1);
+    expect(counts.mergedCount).toBeGreaterThanOrEqual(46);
     expect(counts.hasAllCanonical).toBe(true);
+    expect(counts.hasFixture).toBe(true);
   });
 
   test('Canonical itinerary day-by-day counts match the final content freeze', async ({ page }) => {

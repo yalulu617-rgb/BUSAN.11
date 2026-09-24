@@ -199,7 +199,18 @@ for (const viewport of [
     expect(expectedIndexes.every(index => index >= 0)).toBe(true);
     expect(expectedIndexes).toEqual([...expectedIndexes].sort((a, b) => a - b));
 
-    await assertTouchTargets('#itinerary .map-tag');
+    await page.evaluate(() => window.filterIti('11/14'));
+    const verifiedNaverRow = page.locator('#itiContent .iti-row').filter({ hasText: 'OPS Haeundae' });
+    await verifiedNaverRow.locator('.iti-transport-detail summary').click();
+    const verifiedNaverAction = verifiedNaverRow.locator('.iti-map-actions a');
+    await expect(verifiedNaverAction).toHaveCount(1);
+    await expect(verifiedNaverAction).toBeVisible();
+    await expect(verifiedNaverAction).toContainText('NAVER');
+    await expect(verifiedNaverAction).toHaveAttribute('href', 'https://naver.me/5EQ3khJY');
+    await expect(verifiedNaverRow.locator('.iti-map-actions')).not.toContainText(/Google|Kakao/);
+    const verifiedNaverBox = await verifiedNaverAction.boundingBox();
+    expect(verifiedNaverBox, 'verified OPS NAVER action has no box').toBeTruthy();
+    expect(verifiedNaverBox.height, 'verified OPS NAVER action height').toBeGreaterThanOrEqual(43.5);
     await assertNoPageOverflow();
 
     await page.locator('#tab-more').click();
