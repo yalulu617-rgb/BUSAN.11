@@ -200,7 +200,7 @@ for (const viewport of [
     expect(expectedIndexes).toEqual([...expectedIndexes].sort((a, b) => a - b));
 
     await page.evaluate(() => window.filterIti('11/14'));
-    const verifiedNaverRow = page.locator('#itiContent .iti-row').filter({ hasText: 'OPS Haeundae' });
+    const verifiedNaverRow = page.locator('#itiContent .iti-row').filter({ hasText: 'OPS Haeundae 麵包店' });
     await verifiedNaverRow.locator('.iti-transport-detail summary').click();
     const verifiedNaverAction = verifiedNaverRow.locator('.iti-map-actions a');
     await expect(verifiedNaverAction).toHaveCount(1);
