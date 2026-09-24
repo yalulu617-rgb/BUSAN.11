@@ -54,7 +54,7 @@ test.describe('BUSAN.11 V45 — Content Regression & Travel-Readiness Suite', ()
   });
 
   // ── B. RECOMMENDATIONS ──────────────────────────────────────────────────
-  test('B. Recommendations: Food >= 6, Shopping >= 9, Nearby >= 22 with visible text', async ({ page }) => {
+  test('B. Recommendations: Food >= 6, Shopping >= 9, and curated nearby data remain visible', async ({ page }) => {
     // 1. Food Recommendations (>= 6)
     const recFood = await page.evaluate(() => window.RECOMMENDED_FOOD);
     expect(Array.isArray(recFood)).toBe(true);
@@ -99,14 +99,12 @@ test.describe('BUSAN.11 V45 — Content Regression & Travel-Readiness Suite', ()
       expect(text.trim().length).toBeGreaterThan(10);
     }
 
-    // 3. Nearby Database (>= 22 places: 11 Busan + 11 Gyeongju)
+    // 3. Nearby Database is curated; there is no synthetic record-count quota.
     const nearbyDb = await page.evaluate(() => window.SMART_NEARBY_DATABASE);
     expect(nearbyDb).toBeTruthy();
-    const busanCount = (nearbyDb.Busan || []).length;
-    const gyeongjuCount = (nearbyDb.Gyeongju || []).length;
-    expect(busanCount).toBeGreaterThanOrEqual(11);
-    expect(gyeongjuCount).toBeGreaterThanOrEqual(11);
-    expect(busanCount + gyeongjuCount).toBeGreaterThanOrEqual(22);
+    expect(Array.isArray(nearbyDb.Busan)).toBe(true);
+    expect(Array.isArray(nearbyDb.Gyeongju)).toBe(true);
+    expect(nearbyDb.Busan.length).toBeGreaterThan(0);
   });
 
   // ── C. TRANSLATION ──────────────────────────────────────────────────────
@@ -353,26 +351,28 @@ test.describe('BUSAN.11 V45 — Content Regression & Travel-Readiness Suite', ()
   });
 
   // ── I. SMART NEARBY CANONICAL DATABASE ────────────────────────────────────
-  test('I. Smart Nearby: Exactly 22 valid records with non-empty map URLs and valid Korean/Chinese names', async ({ page }) => {
+  test('I. Smart Nearby: rendered records use unique authoritative non-placeholder maps', async ({ page }) => {
     const nearbySummary = await page.evaluate(() => {
       const db = window.SMART_NEARBY_DATABASE || {};
       const busan = db.Busan || [];
       const gyeongju = db.Gyeongju || [];
       return {
-        busanCount: busan.length,
-        gyeongjuCount: gyeongju.length,
         busanNames: busan.map(p => p.name),
         activeNames: busan.concat(gyeongju).map(p => p.name).join('\n'),
-        allHaveMaps: busan.concat(gyeongju).every(p => Boolean(p.naver && p.kakao && p.google))
+        urls: busan.concat(gyeongju).flatMap(p => [p.naver, p.kakao, p.google].filter(Boolean)),
+        naver: busan.concat(gyeongju).map(p => p.naver).filter(Boolean),
+        kakao: busan.concat(gyeongju).map(p => p.kakao).filter(Boolean),
+        allHaveExactMap: busan.concat(gyeongju).every(p => Boolean(p.naver || p.kakao || p.google))
       };
     });
 
-    expect(nearbySummary.busanCount).toBe(11);
-    expect(nearbySummary.gyeongjuCount).toBe(11);
-    expect(nearbySummary.allHaveMaps).toBe(true);
-    expect(nearbySummary.busanNames).toContain('凡內谷地鐵站 (6號出口)');
-    expect(nearbySummary.busanNames).toContain('E-Mart Munhyeon / 이마트 문현점');
-    expect(nearbySummary.busanNames).toContain('Your Type Jeonpo / 유어타입 전포');
+    expect(nearbySummary.allHaveExactMap).toBe(true);
+    expect(nearbySummary.urls.join('\n')).not.toMatch(/\/p\/search\/|\/v5\/search\/|maps\.app\.goo\.gl|map\.kakao\.com\/\?q=/);
+    expect(new Set(nearbySummary.naver).size).toBe(nearbySummary.naver.length);
+    expect(new Set(nearbySummary.kakao).size).toBe(nearbySummary.kakao.length);
+    expect(nearbySummary.busanNames).toContain('E-Mart Munhyeon');
+    expect(nearbySummary.busanNames).toContain('GS25 서면유성점');
+    expect(nearbySummary.busanNames).toContain('세븐일레븐 부산서면다인점');
     expect(nearbySummary.activeNames).not.toMatch(/Matchandeul|맛찬들|Haemok|해목|海木|Solsot|솔솥|Byeolchaeban|별채반/);
   });
 

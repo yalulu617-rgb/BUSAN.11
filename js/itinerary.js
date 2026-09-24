@@ -6,7 +6,18 @@
 (function() {
     let editingItiKey = null;
 
-    const itinerarySignature = item => [item.day, item.time, item.desc, item.tr || '', item.map || ''].join('\u001f');
+    const itinerarySignature = item => [item.day, item.time, item.desc, item.tr || '', item.mapKey || item.map || ''].join('\u001f');
+
+    const authoritativeMapLinks = mapKey => {
+        if (!mapKey) return {};
+        return (window.AUTHORITATIVE_MAPS_V45 || {})[mapKey] || {};
+    };
+
+    const renderMapActions = links => `
+        ${links.naver ? `<a href="${links.naver}" target="_blank" rel="noopener" class="map-tag" style="background:#03C75A; color:white;"><i class="fa-solid fa-location-arrow"></i> NAVER</a>` : ''}
+        ${links.kakao ? `<a href="${links.kakao}" target="_blank" rel="noopener" class="map-tag" style="background:#FEE500; color:#3C1E1E;"><i class="fa-solid fa-route"></i> Kakao</a>` : ''}
+        ${links.google ? `<a href="${links.google}" target="_blank" rel="noopener" class="map-tag" style="background:#4285F4; color:white;"><i class="fa-solid fa-map"></i> Google</a>` : ''}
+    `;
     const itineraryStartMinutes = item => {
         const match = String(item?.time || '').match(/(\d{1,2}):(\d{2})/);
         if (!match) return null;
@@ -209,32 +220,23 @@
                 const plan = rainPlans[rainKey];
                 let proposalsHtml = '';
                 (plan.proposals || []).forEach((prop, pIdx) => {
-                    // Match Naver Map links for rain destinations if available
-                    let mapUrl = 'https://map.naver.com';
+                    const mapLinks = authoritativeMapLinks(prop.mapKey);
                     let taxiPhrase = '';
                     if (prop.title.includes('BUSAN X the SKY')) {
-                        mapUrl = 'https://map.naver.com/p/entry/place/13479633';
                         taxiPhrase = '기사님, 해운대 엘시티 엑스더스카이(BUSAN X the SKY)로 가주세요.';
                     } else if (prop.title.includes('Spa Land')) {
-                        mapUrl = 'https://map.naver.com/p/entry/place/13479633';
                         taxiPhrase = '기사님, 신세계 센텀시티 스파랜드로 가주세요.';
                     } else if (prop.title.includes('ARTE MUSEUM')) {
-                        mapUrl = 'https://map.naver.com/p/entry/place/13491823';
                         taxiPhrase = '기사님, 영도 아르떼뮤지엄 부산으로 가주세요.';
                     } else if (prop.title.includes('國立慶州博物館') || prop.title.includes('국립경주박물관') || prop.title.includes('博物館')) {
-                        mapUrl = 'https://map.naver.com/p/entry/place/11627885';
                         taxiPhrase = '기사님, 국립경주박物관으로 가주세요.';
                     } else if (prop.title.includes('東宮園') || prop.title.includes('Donggungwon')) {
-                        mapUrl = 'https://map.naver.com/p/entry/place/13491807';
                         taxiPhrase = '기사님, 경주 동궁원으로 가주세요.';
                     } else if (prop.title.includes('韓屋') || prop.title.includes('皇理團路')) {
-                        mapUrl = 'https://map.naver.com/p/search/%ED%99%A9%EB%A6%AC%EB%8B%A8%EA%B8%B8';
                         taxiPhrase = '기사님, 경주 황리단길로 가주세요.';
                     } else if (prop.title.includes('廣安里') || prop.title.includes('海景')) {
-                        mapUrl = 'https://map.naver.com/p/search/%EA%B4%91%EC%95%88%EB%A6%AC%20%EC%8B%9D%EB%8B%B9';
                         taxiPhrase = '기사님, 광안리 해변 식당으로 가주세요.';
                     } else if (prop.title.includes('Footbath') || prop.title.includes('足浴') || prop.title.includes('View 2')) {
-                        mapUrl = 'https://map.naver.com/p/search/%EC%A1%B1%EC%9A%95%EC%B9%B4%ED%8E%98%EB%B7%B02%ED%98%B8%EC%A0%90';
                         taxiPhrase = '기사님, 영도 흰여울마을 족욕카페뷰 2호점으로 가주세요.';
                     }
 
@@ -246,7 +248,7 @@
                             <div style="font-weight:900; font-size:0.95rem; color:#2980b9; margin-bottom:4px;">${prop.title}</div>
                             <p style="font-size:0.8rem; color:#555; line-height:1.5; margin:0 0 8px 0;">${prop.desc}</p>
                             <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                                <a href="${mapUrl}" target="_blank" class="map-tag" style="background:#03C75A; color:white; font-size:0.72rem; padding:4px 8px;"><i class="fa-solid fa-map-location-dot"></i> 一鍵導航</a>
+                                ${renderMapActions(mapLinks)}
                                 ${taxiBtn}
                             </div>
                         </div>
@@ -309,13 +311,11 @@
         filtered = sortItineraryChronologically(filtered);
         
         filtered.forEach(i => {
-            const mapLinks = typeof getMapLinks === 'function' ? getMapLinks(i.destinationKr || i.desc) : {};
-            const naverUrl = i.map || mapLinks.naver || '';
-            const transportMaps = `
-                ${naverUrl ? `<a href="${naverUrl}" target="_blank" class="map-tag" style="background:#03C75A; color:white;"><i class="fa-solid fa-location-arrow"></i> NAVER</a>` : ''}
-                ${mapLinks.kakao ? `<a href="${mapLinks.kakao}" target="_blank" class="map-tag" style="background:#FEE500; color:#3C1E1E;"><i class="fa-solid fa-route"></i> Kakao</a>` : ''}
-                ${mapLinks.google ? `<a href="${mapLinks.google}" target="_blank" class="map-tag" style="background:#4285F4; color:white;"><i class="fa-solid fa-map"></i> Google</a>` : ''}
-            `;
+            const customMapLinks = typeof getMapLinks === 'function' ? getMapLinks(i.destinationKr || i.desc) : {};
+            const mapLinks = i.mapKey
+                ? authoritativeMapLinks(i.mapKey)
+                : { ...customMapLinks, naver: i.map || customMapLinks.naver || '' };
+            const transportMaps = renderMapActions(mapLinks);
             const transportDetail = i.route ? `
                 <details class="iti-transport-detail" style="margin-top:7px; max-width:100%; overflow:hidden;">
                     <summary style="cursor:pointer; font-weight:900; font-size:0.76rem; color:var(--primary); padding:7px 9px; border:1px solid var(--border-color); border-radius:10px; background:rgba(0,0,0,0.02);">🚇 怎麼去</summary>

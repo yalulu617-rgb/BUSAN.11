@@ -10,6 +10,10 @@
     return target.TRAVEL_CONTENT_V45 || {};
   }
 
+  function mapFor(key) {
+    return (target.AUTHORITATIVE_MAPS_V45 || {})[key] || {};
+  }
+
   const c = getCanonical();
 
   // ── RECOMMENDED_FOOD derived from canonical food ─────────────────────────
@@ -19,16 +23,17 @@
       category: f.category,
       name: f.name,
       desc: f.desc + (f.sop ? ' (SOP: ' + f.sop + ')' : ''),
-      map: f.map || ''
+      mapKey: f.mapKey || '',
+      map: mapFor(f.mapKey).naver || mapFor(f.mapKey).google || mapFor(f.mapKey).kakao || ''
     }));
   } else {
     target.RECOMMENDED_FOOD = [
-      { id: 'rf1', category: 'Day 2 午餐', name: 'Suminine（수민이네）', desc: '青沙浦烤貝與海鮮拉麵。', map: 'https://map.naver.com/p/search/%EC%88%98%EB%AF%BC%EC%9D%B4%EB%84%A4' },
-      { id: 'rf2', category: 'Day 3 午餐', name: '水鏡舍（수경사）', desc: '慶州固定午餐。', map: 'https://map.naver.com/p/search/%EC%88%98%EA%B2%BD%EC%82%AC%20%EA%B2%BD%EC%A3%BC' },
-      { id: 'rf3', category: 'Day 3 晚餐', name: 'Park Yongja Gyeongju Myeongdong Jjolmyeon', desc: '東宮與月池前的固定晚餐。', map: 'https://map.naver.com/p/search/%EB%B0%95%EC%9A%A9%EC%9E%90%20%EA%B2%BD%EC%A3%BC%EB%AA%85%EB%8F%99%EC%AB%84%EB%A9%B4' },
-      { id: 'rf4', category: 'Day 4 晚餐 MAIN', name: 'Tonshou Nampo', desc: '南浦固定主方案。', map: 'https://map.naver.com/p/search/%ED%86%A4%EC%87%BC%EC%9A%B0%20%EB%82%A8%ED%8F%AC' },
-      { id: 'rf5', category: 'Day 4 晚餐 PLAN B', name: '南浦蔘雞湯', desc: 'Tonshou 候位或營業狀況不適合時採用。', map: 'https://map.naver.com/p/search/%EB%82%A8%ED%8F%AC%EB%8F%99%20%EC%82%BC%EA%B3%84%ED%83%95' },
-      { id: 'rf6', category: 'Day 5 早餐', name: 'Your Type Jeonpo', desc: '離釜前早餐。', map: 'https://map.naver.com/p/search/Your%20Type%20Jeonpo' }
+      { id: 'rf1', category: 'Day 2 午餐', name: 'Suminine（수민이네）', desc: '青沙浦烤貝與海鮮拉麵。', mapKey: 'suminine', map: mapFor('suminine').naver },
+      { id: 'rf2', category: 'Day 3 午餐', name: '水鏡舍（수경사）', desc: '慶州固定午餐。', mapKey: 'sugeongsa', map: mapFor('sugeongsa').naver },
+      { id: 'rf3', category: 'Day 3 晚餐', name: 'Park Yongja Gyeongju Myeongdong Jjolmyeon', desc: '東宮與月池前的固定晚餐。', mapKey: 'park_yongja', map: mapFor('park_yongja').naver || mapFor('park_yongja').google },
+      { id: 'rf4', category: 'Day 4 晚餐 MAIN', name: 'Tonshou Nampo', desc: '南浦固定主方案。', mapKey: 'tonshou_nampo', map: mapFor('tonshou_nampo').google },
+      { id: 'rf5', category: 'Day 4 晚餐 PLAN B', name: '南浦蔘雞湯', desc: 'Tonshou 候位或營業狀況不適合時採用。', mapKey: 'nampo_samgyetang', map: mapFor('nampo_samgyetang').naver },
+      { id: 'rf6', category: 'Day 5 早餐', name: 'Your Type Jeonpo', desc: '離釜前早餐。', mapKey: 'your_type_jeonpo', map: mapFor('your_type_jeonpo').naver || mapFor('your_type_jeonpo').google }
     ];
   }
 
@@ -60,34 +65,14 @@
     ];
   }
 
-  // ── SMART_NEARBY_DATABASE (supplemental operational map metadata) ────────
+  // Only verified, non-placeholder nearby records remain active.
   target.SMART_NEARBY_DATABASE = {
     Busan: [
-      { type: '🚇 地鐵', name: '凡內谷地鐵站 (6號出口)', dist: 100, rate: 4.5, status: '營業中', naver: 'https://map.naver.com/p/entry/place/13479629', kakao: 'https://map.kakao.com/?id=21160751', google: 'https://maps.app.goo.gl/beameom' },
-      { type: '🛒 CU', name: 'CU 凡內谷站店', dist: 50, rate: 4.2, status: '24小時營業', naver: 'https://map.naver.com/p/entry/place/15560933', kakao: 'https://map.kakao.com/?id=8116260', google: 'https://maps.app.goo.gl/cu_beom' },
-      { type: '🏪 GS25', name: 'GS25 凡內谷中央店', dist: 80, rate: 4.1, status: '24小時營業', naver: 'https://map.naver.com/p/entry/place/15560944', kakao: 'https://map.kakao.com/?id=8116261', google: 'https://maps.app.goo.gl/gs_beom' },
-      { type: '💄 Olive Young', name: 'Olive Young 西面中央店', dist: 780, rate: 4.6, status: '10:00 - 22:30', naver: 'https://map.naver.com/p/entry/place/1057416399', kakao: 'https://map.kakao.com/?id=24785465', google: 'https://maps.app.goo.gl/oy_seom' },
-      { type: '🏬 Daiso', name: '大創 Daiso 西面店', dist: 850, rate: 4.4, status: '10:00 - 22:00', naver: 'https://map.naver.com/p/entry/place/36735520', kakao: 'https://map.kakao.com/?id=26848030', google: 'https://maps.app.goo.gl/daiso_seom' },
-      { type: '☕ 咖啡', name: 'Compose Coffee 凡內谷店', dist: 150, rate: 4.3, status: '08:00 - 21:00', naver: 'https://map.naver.com/p/entry/place/13479633', kakao: 'https://map.kakao.com/?id=21160752', google: 'https://maps.app.goo.gl/compose_beom' },
-      { type: '💊 藥局', name: '凡內谷中央藥局', dist: 140, rate: 4.0, status: '09:00 - 21:00', naver: 'https://map.naver.com/p/entry/place/13491807', kakao: 'https://map.kakao.com/?id=8116260', google: 'https://maps.app.goo.gl/ph_beom' },
-      { type: '🏪 ATM', name: '釜山銀行 ATM (地鐵站內)', dist: 110, rate: 4.0, status: '24小時營業', naver: 'https://map.naver.com/p/entry/place/11571617', kakao: 'https://map.kakao.com/?id=7874945', google: 'https://maps.app.goo.gl/atm_beom' },
-      { type: '🏥 醫院', name: '釜山大學醫院 (急診中心)', dist: 3500, rate: 4.3, status: '24小時急診', naver: 'https://map.naver.com/p/entry/place/13491823', kakao: 'https://map.kakao.com/?id=7937367', google: 'https://maps.app.goo.gl/hosp_univ' },
-      { type: '🛒 超市', name: 'E-Mart Munhyeon / 이마트 문현점', naver: 'https://map.naver.com/v5/search/%EC%9D%B4%EB%A7%88%ED%8A%B8%20%EB%AC%B8%ED%98%84%EC%A0%90', kakao: 'https://map.kakao.com/?q=%EC%9D%B4%EB%A7%88%ED%8A%B8%20%EB%AC%B8%ED%98%84%EC%A0%90', google: 'https://www.google.com/maps/search/?api=1&query=%EC%9D%B4%EB%A7%88%ED%8A%B8%20%EB%AC%B8%ED%98%84%EC%A0%90' },
-      { type: '☕ 早餐', name: 'Your Type Jeonpo / 유어타입 전포', naver: 'https://map.naver.com/v5/search/%EC%9C%A0%EC%96%B4%ED%83%80%EC%9E%85%20%EC%A0%84%ED%8F%AC', kakao: 'https://map.kakao.com/?q=%EC%9C%A0%EC%96%B4%ED%83%80%EC%9E%85%20%EC%A0%84%ED%8F%AC', google: 'https://www.google.com/maps/search/?api=1&query=%EC%9C%A0%EC%96%B4%ED%83%80%EC%9E%85%20%EC%A0%84%ED%8F%AC' }
+      { type: '🛒 超市', name: 'E-Mart Munhyeon / 이마트 문현점', address: '부산 남구 전포대로91번길 47', status: '10:00–23:00', mapKey: 'emart_munhyeon', ...mapFor('emart_munhyeon') },
+      { type: '🏪 便利商店', name: 'GS25 서면유성점', address: '부산 부산진구 황령대로 9', status: '24h', mapKey: 'gs25_seomyeon_yuseong', ...mapFor('gs25_seomyeon_yuseong') },
+      { type: '🏪 便利商店', name: '세븐일레븐 부산서면다인점', address: '부산 부산진구 신천대로65번길 91', status: '凡內谷站步行約 3 分鐘', mapKey: 'seveneleven_seomyeon_dain', ...mapFor('seveneleven_seomyeon_dain') }
     ],
-    Gyeongju: [
-      { type: '🚇 地鐵', name: '慶州火車站 (Bus Stop)', dist: 300, rate: 4.2, status: '營業中', naver: 'https://map.naver.com/p/entry/place/13491807', kakao: 'https://map.kakao.com/?id=8116260', google: 'https://maps.app.goo.gl/gj_station' },
-      { type: '🛒 CU', name: 'CU 慶州皇南店', dist: 150, rate: 4.3, status: '24小時營業', naver: 'https://map.naver.com/p/entry/place/15560933', kakao: 'https://map.kakao.com/?id=8116260', google: 'https://maps.app.goo.gl/cu_gj' },
-      { type: '🏪 GS25', name: 'GS25 慶州大陵店', dist: 200, rate: 4.2, status: '24小時營業', naver: 'https://map.naver.com/p/entry/place/15560944', kakao: 'https://map.kakao.com/?id=8116261', google: 'https://maps.app.goo.gl/gs_gj' },
-      { type: '💄 Olive Young', name: 'Olive Young 慶州皇吾店', dist: 850, rate: 4.5, status: '10:00 - 22:00', naver: 'https://map.naver.com/p/entry/place/1057416399', kakao: 'https://map.kakao.com/?id=24785465', google: 'https://maps.app.goo.gl/oy_gj' },
-      { type: '🏬 Daiso', name: '大創 Daiso 慶州店', dist: 980, rate: 4.3, status: '10:00 - 22:00', naver: 'https://map.naver.com/p/entry/place/36735520', kakao: 'https://map.kakao.com/?id=26848030', google: 'https://maps.app.goo.gl/daiso_gj' },
-      { type: '🍜 美食', name: '慶州十元麵包 (皇理團路)', dist: 200, rate: 4.6, status: '10:00 - 21:00', naver: 'https://map.naver.com/p/entry/place/13491414', kakao: 'https://map.kakao.com/?id=7940176', google: 'https://maps.app.goo.gl/10won_gj' },
-      { type: '☕ 咖啡', name: '星巴克 慶州大陵苑店', dist: 350, rate: 4.5, status: '08:00 - 22:00', naver: 'https://map.naver.com/p/entry/place/13479633', kakao: 'https://map.kakao.com/?id=21160752', google: 'https://maps.app.goo.gl/star_gj' },
-      { type: '💊 藥局', name: '慶州中央藥局', dist: 650, rate: 4.1, status: '09:00 - 22:00', naver: 'https://map.naver.com/p/entry/place/13491807', kakao: 'https://map.kakao.com/?id=8116260', google: 'https://maps.app.goo.gl/ph_gj' },
-      { type: '🏪 ATM', name: '新韓銀行 ATM (大陵苑旁)', dist: 220, rate: 4.0, status: '24小時營業', naver: 'https://map.naver.com/p/entry/place/11571617', kakao: 'https://map.kakao.com/?id=7874945', google: 'https://maps.app.goo.gl/atm_gj' },
-      { type: '🏥 醫院', name: '慶州東國大學醫院 (急診中心)', dist: 2800, rate: 4.4, status: '24小時急診', naver: 'https://map.naver.com/p/entry/place/13491823', kakao: 'https://map.kakao.com/?id=7937367', google: 'https://maps.app.goo.gl/hosp_gj' },
-      { type: '🍚 午餐', name: '水鏡舍 / 수경사', naver: 'https://map.naver.com/v5/search/%EC%88%98%EA%B2%BD%EC%82%AC%20%EA%B2%BD%EC%A3%BC', kakao: 'https://map.kakao.com/?q=%EC%88%98%EA%B2%BD%EC%82%AC%20%EA%B2%BD%EC%A3%BC', google: 'https://www.google.com/maps/search/?api=1&query=%EC%88%98%EA%B2%BD%EC%82%AC%20%EA%B2%BD%EC%A3%BC' }
-    ]
+    Gyeongju: []
   };
 
   // ── RECOMMENDED_ITINERARY derived from canonical itinerary ───────────────
@@ -103,7 +88,7 @@
         time: item.time,
         desc: item.title + (item.desc ? ' - ' + item.desc : ''),
         tr: item.tr || '🚶 步行',
-        map: item.map || '',
+        mapKey: item.mapKey || '',
         route: item.route || '',
         destinationKr: item.destinationKr || ''
       });

@@ -25,6 +25,7 @@ const LOCAL_ASSETS = [
     './assets/images/olive-young-nampo-thumb.webp',
     './assets/images/olive-young-nampo.webp',
     './data/release.json',
+    './data/map-registry.js',
     './data/recommended.js',
     './data/travel-content.js',
     './data/places.json',
@@ -65,6 +66,7 @@ const NETWORK_ONLY_DOMAINS = [
     'googleapis.com',
     'imgbb.com',
     'exchangerate-api.com',
+    'api.open-meteo.com',
     'wttr.in',
     'cdnjs.cloudflare.com',
     'fonts.gstatic.com'

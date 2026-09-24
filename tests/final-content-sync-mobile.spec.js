@@ -42,7 +42,7 @@ test('final five-day content freeze renders correctly on mobile', async ({ page 
   expect(day2).not.toContain('SCENTICA Jeonpo');
 
   const day3 = await dayText(page, '11/15');
-  for (const value of ['水鏡舍', '수경사', 'Klook 慶州一日韓服', '大陵苑', '瞻星臺', '雞林', '月精橋', '皇理團路', 'Hwangnamppang Main Store', 'Park Yongja Gyeongju Myeongdong Jjolmyeon', 'Donggung & Wolji']) {
+  for (const value of ['水鏡舍', '수경사', '花路韓服', '꽃길한복', '大陵苑', '瞻星臺', '雞林', '月精橋', '皇理團路', 'Hwangnamppang Main Store', 'Park Yongja Gyeongju Myeongdong Jjolmyeon', 'Donggung & Wolji']) {
     expect(day3).toContain(value);
   }
   expect(day3).not.toMatch(/Solsot|솔솥|Byeolchaeban|별채반/);
@@ -65,7 +65,9 @@ test('final five-day content freeze renders correctly on mobile', async ({ page 
   const transport = page.locator('#itiContent .iti-transport-detail').first();
   await expect(transport.locator('summary')).toContainText('🚇 怎麼去');
   await transport.locator('summary').click();
-  await expect(transport.locator('.iti-map-actions a')).toHaveCount(3);
+  await expect(transport.locator('.iti-map-actions a').first()).toBeVisible();
+  const hrefs = await transport.locator('.iti-map-actions a').evaluateAll(links => links.map(link => link.href));
+  expect(hrefs.join('\n')).not.toMatch(/\/p\/search\/|\/v5\/search\/|maps\.app\.goo\.gl|map\.kakao\.com\/\?q=/);
 
   await page.evaluate(() => {
     window.showV37Tab('wallet');

@@ -82,8 +82,8 @@ test.describe('BUSAN.11 V45 — Owner UX Batch A', () => {
     }
     await expect(page.locator('.supermarket-direct-card')).toContainText('E-Mart Munhyeon');
     await expect(page.locator('.supermarket-direct-card')).toContainText('10:00–23:00');
-    await expect(page.locator('.supermarket-direct-card')).toContainText('CU 凡內谷站店');
-    await expect(page.locator('.supermarket-direct-card')).toContainText('GS25 凡內谷中央店');
+    await expect(page.locator('.supermarket-direct-card')).toContainText('GS25 서면유성점');
+    await expect(page.locator('.supermarket-direct-card')).toContainText('세븐일레븐 부산서면다인점');
   });
 
   test('translation workspace is one integrated SOS destination', async ({ page }) => {

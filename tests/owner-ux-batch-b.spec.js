@@ -148,21 +148,62 @@ test.describe('BUSAN.11 V45 — Batch B Owner Editable Experience', () => {
     await expect(page.locator('.bottom-nav')).toBeVisible();
   });
 
-  test('convenience hub renders all six topics inline with supermarket details and no portal hop', async ({ page }) => {
+  test('convenience hub keeps six same-page headers with one inline accordion open', async ({ page }) => {
     await page.evaluate(() => {
       window.showV37Tab('shop');
       window.setShopTabMode('convenience');
     });
     await expect(page.locator('[data-convenience-topic]')).toHaveCount(6);
+    await expect(page.locator('.convenience-accordion-header')).toHaveCount(6);
     for (const id of ['discount', 'compare', 'radar', 'microwave', 'combos', 'loot']) {
-      await expect(page.locator(`[data-convenience-topic="${id}"]`)).toBeVisible();
+      await expect(page.locator(`[data-convenience-topic="${id}"] .convenience-accordion-header`)).toBeVisible();
     }
+    await expect(page.locator('.convenience-accordion-header[aria-expanded="true"]')).toHaveCount(1);
+    await expect(page.locator('[data-convenience-topic="discount"] .convenience-accordion-header')).toHaveAttribute('aria-expanded', 'true');
+    await page.locator('[data-convenience-topic="radar"] .convenience-accordion-header').click();
+    await expect(page.locator('[data-convenience-topic="radar"] .convenience-accordion-header')).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.locator('[data-convenience-topic="discount"] .convenience-accordion-header')).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.locator('#conv-inline-radar')).toBeVisible();
+    await expect(page.locator('#conv-inline-discount')).toBeHidden();
     await expect(page.locator('.supermarket-direct-card')).toContainText('E-Mart Munhyeon');
     await expect(page.locator('.supermarket-direct-card')).toContainText('10:00–23:00');
-    await expect(page.locator('.supermarket-direct-card')).toContainText('CU 凡內谷站店');
-    await expect(page.locator('.supermarket-direct-card')).toContainText('GS25 凡內谷中央店');
+    await expect(page.locator('.supermarket-direct-card')).toContainText('GS25 서면유성점');
+    await expect(page.locator('.supermarket-direct-card')).toContainText('세븐일레븐 부산서면다인점');
     const portal = await page.evaluate(() => window.currentConveniencePortal);
     expect(portal).toBeNull();
+  });
+
+  test('Open-Meteo weather panel normalizes both cities and keeps distant trip dates honest', async ({ page }) => {
+    const normalized = await page.evaluate(() => {
+      const sample = {
+        current: { time: '2026-09-24T12:00', temperature_2m: 18, apparent_temperature: 16, relative_humidity_2m: 72, precipitation: 0.2, weather_code: 61, wind_speed_10m: 22 },
+        hourly: { time: ['2026-09-24T12:00'], precipitation_probability: [45] },
+        daily: { time: ['2026-09-24'], weather_code: [61], temperature_2m_max: [20], temperature_2m_min: [14], precipitation_probability_max: [55], sunrise: ['2026-09-24T06:10'], sunset: ['2026-09-24T18:20'] }
+      };
+      const busan = WeatherEngine._normalize('Busan', sample);
+      const gyeongju = WeatherEngine._normalize('Gyeongju', { ...sample, current: { ...sample.current, temperature_2m: 17, apparent_temperature: 15 } });
+      WeatherEngine.cache = { Busan: busan, Gyeongju: gyeongju };
+      window.homeWeatherDetailExpanded = true;
+      renderV37HomeDashboard();
+      return { busan, advice: WeatherEngine.getOutfitAdvice(busan), forecast: WeatherEngine.getTripForecastStatus(new Date('2026-09-24T00:00:00+09:00')) };
+    });
+
+    expect(normalized.busan.source).toBe('Open-Meteo');
+    expect(normalized.busan.apparentTemp).toBe(16);
+    expect(normalized.busan.rainChance).toBe(45);
+    expect(normalized.busan.windSpeed).toBe(22);
+    expect(normalized.busan.humidity).toBe(72);
+    expect(normalized.advice).toContain('折疊傘／防潑水鞋');
+    expect(normalized.advice).toContain('優先防風外層');
+    expect(normalized.forecast.available).toBe(false);
+    await expect(page.locator('[data-weather-city="Busan"]')).toContainText('體感 16°C');
+    await expect(page.locator('[data-weather-city="Gyeongju"]')).toContainText('體感 15°C');
+    await expect(page.locator('#homeWeatherDetailPanel')).toContainText('降雨 45%');
+    await expect(page.locator('#homeWeatherDetailPanel')).toContainText('風速 22 km/h');
+    await expect(page.locator('#homeWeatherDetailPanel')).toContainText('濕度 72%');
+    await expect(page.locator('#homeWeatherDetailPanel')).toContainText('最後更新');
+    await expect(page.locator('#homeWeatherDetailPanel')).toContainText('11/13–11/17 旅行日期預報將於出發前 7–10 天顯示');
+    await expect(page.locator('#refreshWeatherNowBtn')).toBeVisible();
   });
 
   test('Packing List ships a complete local-only default template while owner-added rows keep CRUD sync', async ({ page }) => {

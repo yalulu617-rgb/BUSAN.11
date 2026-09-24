@@ -11,18 +11,23 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Travel Knowledge & Itinerary Safety Verification', () => {
 
-  test('Thrill On The Mug is marked UNSAFE in itinerary and data files', async ({ page }) => {
+  test('Thrill On The Mug stays retired while new Cafe Age is a distinct rainy backup', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     const unsafeStatus = await page.evaluate(() => {
       const recStr = JSON.stringify(window.RECOMMENDED_ITINERARY || {});
       const hasActiveThrill = recStr.includes('Thrill On The Mug') && !recStr.includes('[UNSAFE]');
-      return {
-        hasActiveThrill
-      };
+      const rainText = JSON.stringify(window.TRAVEL_CONTENT_V45?.rainPlans?.day4 || {});
+      const age = window.AUTHORITATIVE_MAPS_V45?.age_yeongdo;
+      return { hasActiveThrill, rainText, age };
     });
 
     expect(unsafeStatus.hasActiveThrill, 'Thrill On The Mug appears as active in RECOMMENDED_ITINERARY! Must be marked UNSAFE.').toBe(false);
+    expect(unsafeStatus.rainText).toContain('Cafe Age');
+    expect(unsafeStatus.rainText).toContain('age_yeongdo');
+    expect(unsafeStatus.age.address).toContain('부산광역시 영도구 해양힐링로 55');
+    expect(unsafeStatus.age.naver).toBeUndefined();
+    expect(JSON.stringify(unsafeStatus.age)).not.toMatch(/THRILL|Thrill|xqylsCAu/);
   });
 
   test('Foot Bath Cafe View 2 (족욕카페뷰 2호점) has verified details', async ({ page }) => {
@@ -41,6 +46,7 @@ test.describe('Travel Knowledge & Itinerary Safety Verification', () => {
     });
 
     expect(footBathDetails.hasKnowledge, 'travelKnowledge missing in global context').toBe(true);
+    expect(footBathDetails.mentionedInItinerary, 'Footbath Cafe View 2 must remain in the sunny itinerary').toBe(true);
   });
 
   test('All day 1-5 itineraries have valid places and non-empty transport tips', async ({ page }) => {

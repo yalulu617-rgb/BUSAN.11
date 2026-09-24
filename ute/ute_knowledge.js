@@ -10,6 +10,8 @@ const travelKnowledge = {
       nameTW: "釜山",
       nameEN: "Busan",
       weatherQuery: "Busan",
+      latitude: 35.1796,
+      longitude: 129.0756,
       emergency: {
         hospital: "釜山大學醫院 (+82-51-240-5114)",
         police: "釜山鎮警察署 (+82-51-890-9224)",
@@ -35,6 +37,8 @@ const travelKnowledge = {
       nameTW: "慶州",
       nameEN: "Gyeongju",
       weatherQuery: "Gyeongju",
+      latitude: 35.8562,
+      longitude: 129.2247,
       emergency: {
         hospital: "慶州東國大學醫院 (+82-54-770-8114)",
         police: "慶州警察署 (+82-54-760-0324)",

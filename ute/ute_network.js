@@ -4,7 +4,7 @@
 // ==========================================
 // Provides a stable API for all external I/O:
 //   - Firebase Realtime Database (CRUD + listeners)
-//   - Weather API (wttr.in)
+//   - Weather API (Open-Meteo)
 //   - Exchange Rate API
 //   - ImgBB Image Upload
 //
@@ -179,18 +179,30 @@ const NetworkEngine = {
   // Weather API
   // ──────────────────────────────────────────
   /**
-   * Fetch weather for a city query string from wttr.in.
-   * @param {string} cityQuery - e.g. "Busan", "Gyeongju"
+   * Fetch current, hourly and daily weather from Open-Meteo.
+   * @param {{latitude:number, longitude:number, nameEN?:string}} city
    * @returns {Promise<{ success: boolean, data: object|null, error: string|null }>}
    */
-  async getWeather(cityQuery) {
+  async getWeather(city) {
     try {
-      const res = await fetch(`https://wttr.in/${encodeURIComponent(cityQuery)}?format=j1`);
+      if (!city || !Number.isFinite(city.latitude) || !Number.isFinite(city.longitude)) {
+        throw new Error('Missing verified city coordinates');
+      }
+      const params = new URLSearchParams({
+        latitude: String(city.latitude),
+        longitude: String(city.longitude),
+        timezone: 'Asia/Seoul',
+        forecast_days: '8',
+        current: 'temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m',
+        hourly: 'precipitation_probability',
+        daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset'
+      });
+      const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       return { success: true, data, error: null };
     } catch (err) {
-      console.warn('[NetworkEngine] getWeather error for', cityQuery, err);
+      console.warn('[NetworkEngine] getWeather error for', city?.nameEN || 'unknown city', err);
       return { success: false, data: null, error: err.message };
     }
   },

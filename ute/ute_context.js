@@ -93,7 +93,7 @@ const TripContextEngine = {
     };
     
     const currentWeather = WeatherEngine.getWeather(currentPlace.city);
-    const currentOutfit = WeatherEngine.getOutfitAdvice(currentWeather.temp);
+    const currentOutfit = WeatherEngine.getOutfitAdvice(currentWeather);
     
     const budget = BudgetEngine.calculateBudget(
       sharedBills,

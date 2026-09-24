@@ -988,6 +988,64 @@ window.renderCollections = function() {
     `;
 };
 
+window.homeWeatherDetailExpanded = false;
+
+window.toggleHomeWeatherDetail = function() {
+    window.homeWeatherDetailExpanded = !window.homeWeatherDetailExpanded;
+    renderV37HomeDashboard();
+    if (window.homeWeatherDetailExpanded) {
+        setTimeout(() => document.getElementById('homeWeatherDetailPanel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 0);
+    }
+};
+
+window.refreshWeatherNow = async function() {
+    window.homeWeatherDetailExpanded = true;
+    const button = document.getElementById('refreshWeatherNowBtn');
+    if (button) button.disabled = true;
+    try {
+        await WeatherEngine.fetchAll({ force: true });
+        if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
+        else renderV37HomeDashboard();
+    } finally {
+        const nextButton = document.getElementById('refreshWeatherNowBtn');
+        if (nextButton) nextButton.disabled = false;
+    }
+};
+
+window.renderHomeWeatherDetail = function() {
+    if (!window.homeWeatherDetailExpanded || !window.WeatherEngine) return '';
+    const timeLabel = timestamp => timestamp
+        ? new Intl.DateTimeFormat('zh-TW', { timeZone: 'Asia/Seoul', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(timestamp))
+        : '尚未更新';
+    const cityCard = (cityKey, cityName) => {
+        const weather = WeatherEngine.getWeather(cityKey);
+        if (weather.unavailable) return `<article class="home-weather-city-card" data-weather-city="${cityKey}"><h4>${cityName}</h4><p>即時天氣暫時無法更新</p></article>`;
+        return `
+            <article class="home-weather-city-card" data-weather-city="${cityKey}">
+                <h4>${cityName}｜${weather.conditionZH}</h4>
+                <div class="home-weather-metrics">
+                    <span>現在 ${weather.temp}°C</span><span>體感 ${weather.apparentTemp}°C</span>
+                    <span>降雨 ${weather.rainChance}%</span><span>風速 ${weather.windSpeed} km/h</span>
+                    <span>濕度 ${weather.humidity}%</span>
+                </div>
+                <p class="home-weather-outfit"><strong>穿搭建議：</strong>${WeatherEngine.getOutfitAdvice(weather)}</p>
+                <small>最後更新：${timeLabel(weather.timestamp)}｜Open-Meteo</small>
+            </article>
+        `;
+    };
+    const forecast = WeatherEngine.getTripForecastStatus();
+    const forecastHtml = forecast.available
+        ? Object.entries(forecast.forecasts).map(([city, days]) => `<div><strong>${city === 'Busan' ? '釜山' : '慶州'}旅行日：</strong>${days.map(day => `${day.date.slice(5)} ${day.minTemp}–${day.maxTemp}°C／降雨 ${day.rainChance}%`).join('、')}</div>`).join('')
+        : `<div class="home-weather-forecast-note">${forecast.message}</div>`;
+    return `
+        <section id="homeWeatherDetailPanel" class="home-weather-detail-panel fade-scale-in" aria-label="釜山與慶州即時天氣">
+            <div class="home-weather-detail-heading"><strong>🌤️ 釜山＋慶州即時天氣與穿搭</strong><button type="button" id="refreshWeatherNowBtn" class="v38-mini-btn" onclick="refreshWeatherNow()">🔄 更新天氣</button></div>
+            <div class="home-weather-city-grid">${cityCard('Busan', '釜山')}${cityCard('Gyeongju', '慶州')}</div>
+            <div class="home-weather-trip-forecast">${forecastHtml}</div>
+        </section>
+    `;
+};
+
 window.renderHomeNineGrid = function() {
     return `
         <div class="v45-home-nine-grid fade-scale-in" aria-label="旅行功能導覽">
@@ -998,7 +1056,7 @@ window.renderHomeNineGrid = function() {
                         <div class="v45-nine-icon"><i class="fa-solid fa-calendar-day" style="color:#3498db;"></i></div>
                         <div class="v45-nine-title">今日行程</div><div class="v45-nine-sub">當天路線 / 雨備</div>
                     </button>
-                    <button type="button" class="v45-nine-card" onclick="focusLiveTravelCard()">
+                    <button type="button" class="v45-nine-card" onclick="toggleHomeWeatherDetail()" aria-controls="homeWeatherDetailPanel" aria-expanded="${window.homeWeatherDetailExpanded}">
                         <div class="v45-nine-icon"><i class="fa-solid fa-cloud-sun" style="color:#00a8ff;"></i></div>
                         <div class="v45-nine-title">天氣・楓況</div><div class="v45-nine-sub">即時摘要 / 穿搭</div>
                     </button>
@@ -1088,7 +1146,7 @@ window.renderV37HomeDashboard = function() {
         widget3Html = widgets.widget3Html;
     }
     
-    container.innerHTML = simulatorHtml + `<div class="home-live-label"><span>LIVE TRAVEL CARD</span><small>即時旅程摘要</small></div>` + heroHtml + renderHomeNineGrid() + `
+    container.innerHTML = simulatorHtml + `<div class="home-live-label"><span>LIVE TRAVEL CARD</span><small>即時旅程摘要</small></div>` + heroHtml + renderHomeNineGrid() + renderHomeWeatherDetail() + `
         <div class="v38-widget-row">
             ${widget1Html}
             ${widget2Html}
@@ -1164,9 +1222,9 @@ window.renderSmartNearby = function() {
 
     fetchSmartNearbyPlaces(cityId).then(places => {
         const safePlaces = places.filter(p => !window.isOwnerHiddenTravelItem(p));
-        const conveniencePlaces = safePlaces.filter(p => /(?:CU|GS25)/i.test(`${p.type || ''} ${p.name || ''}`));
+        const conveniencePlaces = safePlaces.filter(p => /(?:CU|GS25|세븐일레븐|7-Eleven)/i.test(`${p.type || ''} ${p.name || ''}`));
         const otherPlaces = safePlaces.filter(p => !conveniencePlaces.includes(p));
-        const emartMaps = getMapLinks('이마트 문현점');
+        const emartMaps = (window.AUTHORITATIVE_MAPS_V45 || {}).emart_munhyeon || {};
         const mapAction = (url, label, bg, color = 'white') => url
             ? `<a href="${url}" target="_blank" class="v38-mini-btn" style="background:${bg}; color:${color}; border:none; text-decoration:none;">${label}</a>`
             : '';
@@ -1267,7 +1325,8 @@ window.renderShop = function() {
 };
 
 window.currentShopMode = 'my';
-window.currentConveniencePortal = null; // null = home screen (6 portal buttons)
+window.currentConveniencePortal = null;
+window.currentConvenienceAccordion = 'discount';
 window.currentConvenienceFilter = 'all';
 window.currentRadarCategory = 'all';
 window.currentRadarStore = 'all';
@@ -1304,6 +1363,20 @@ window.setShopTabMode = function(mode) {
     } else if (mode === 'rec') {
         renderRecommendedShopping();
     }
+};
+
+window.toggleConvenienceAccordion = function(id) {
+    const valid = ['discount', 'compare', 'radar', 'microwave', 'combos', 'loot'];
+    if (!valid.includes(id)) return;
+    window.currentConveniencePortal = null;
+    window.currentConvenienceAccordion = id;
+    document.querySelectorAll('[data-convenience-topic]').forEach(section => {
+        const expanded = section.getAttribute('data-convenience-topic') === id;
+        const header = section.querySelector('.convenience-accordion-header');
+        const body = section.querySelector('.convenience-accordion-body');
+        if (header) header.setAttribute('aria-expanded', String(expanded));
+        if (body) body.hidden = !expanded;
+    });
 };
 
 // ── NAVIGATE INTO A PORTAL ──────────────────────────────────────────────────
@@ -1452,7 +1525,7 @@ window.unlockComboDirect = function(comboIdx) {
     renderConvenienceStoreMatrix();
 };
 
-// ── CONVENIENCE STORE HOME (6 FUNCTIONAL PORTAL BUTTONS) ───────────────────
+// ── CONVENIENCE STORE HOME (SAME-PAGE SINGLE-OPEN ACCORDION) ───────────────
 window.renderConvenienceHome = function() {
     const list = document.getElementById('sConvenienceList');
     if (!list) return;
@@ -1483,8 +1556,8 @@ window.renderConvenienceHome = function() {
 
     const nearby = window.SMART_NEARBY_DATABASE?.Busan || [];
     const market = nearby.find(p => /E-Mart Munhyeon|이마트 문현점/i.test(p.name || ''));
-    const cu = nearby.find(p => /CU 凡內谷站店/i.test(p.name || ''));
-    const gs = nearby.find(p => /GS25 凡內谷中央店/i.test(p.name || ''));
+    const gs = nearby.find(p => /GS25 서면유성점/i.test(p.name || ''));
+    const seven = nearby.find(p => /세븐일레븐 부산서면다인점/i.test(p.name || ''));
 
     const navButtons = place => {
         if (!place) return '';
@@ -1512,28 +1585,30 @@ window.renderConvenienceHome = function() {
                 營業時間：10:00–23:00（2026/09/23 官方店舖資訊；出發前再確認）。
             </div>
             <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px;">${navButtons(market)}</div>
-            <div style="font-size:.72rem;font-weight:900;color:#8e6e53;margin-top:8px;">BACKUP｜飯店／凡內谷站周邊 24 小時便利商店</div>
-            ${backupRow(cu)}
+            <div style="font-size:.72rem;font-weight:900;color:#8e6e53;margin-top:8px;">BACKUP｜飯店／凡內谷站周邊便利商店</div>
             ${backupRow(gs)}
+            ${backupRow(seven)}
         </section>
 
         <div style="padding:10px 0 6px;">
-            <div style="font-size:.78rem;font-weight:900;color:var(--text-color);">🇰🇷 韓國超商 6 大入口</div>
-            <div style="font-size:.68rem;color:#7f8c8d;margin-top:2px;">六個主題直接列在同一頁，不再先點入口再跳下一層。</div>
+            <div style="font-size:.78rem;font-weight:900;color:var(--text-color);">🇰🇷 韓國超商 6 大主題</div>
+            <div style="font-size:.68rem;color:#7f8c8d;margin-top:2px;">六個標題固定同頁顯示；一次展開一個主題。</div>
         </div>
     `;
 
     portals.forEach(p => {
+        const expanded = window.currentConvenienceAccordion === p.id;
         html += `
-            <section class="convenience-inline-topic fade-scale-in" data-convenience-topic="${p.id}" style="background:var(--card-bg); border-radius:16px; padding:12px; border-left:4px solid ${p.color}; box-shadow:0 2px 8px rgba(0,0,0,0.08); margin-bottom:12px; overflow:hidden;">
-                <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;">
+            <section class="convenience-inline-topic fade-scale-in" data-convenience-topic="${p.id}" style="background:var(--card-bg); border-radius:16px; border-left:4px solid ${p.color}; box-shadow:0 2px 8px rgba(0,0,0,0.08); margin-bottom:12px; overflow:hidden; max-width:100%;">
+                <button type="button" class="convenience-accordion-header" aria-expanded="${expanded}" aria-controls="conv-inline-${p.id}" onclick="toggleConvenienceAccordion('${p.id}')" style="width:100%;display:flex;gap:8px;align-items:flex-start;padding:12px;background:transparent;border:0;text-align:left;cursor:pointer;color:inherit;">
                     <div style="font-size:1.35rem;line-height:1;">${p.icon}</div>
-                    <div>
+                    <div style="flex:1;min-width:0;">
                         <div style="font-size:.84rem;font-weight:900;color:var(--text-color);">${p.title}</div>
                         <div style="font-size:.68rem;color:#7f8c8d;font-weight:700;margin-top:2px;">${p.sub}</div>
                     </div>
-                </div>
-                <div id="conv-inline-${p.id}"></div>
+                    <span aria-hidden="true" style="font-size:.8rem;">${expanded ? '▴' : '▾'}</span>
+                </button>
+                <div id="conv-inline-${p.id}" class="convenience-accordion-body" style="padding:0 12px 12px;max-width:100%;overflow:hidden;" ${expanded ? '' : 'hidden'}></div>
             </section>
         `;
     });
@@ -1707,18 +1782,18 @@ function _renderPortalCompare(list) {
 // ── PORTAL ③ 必買雷達 ────────────────────────────────────────────────────────
 window.filterConvenienceFilter = function(filter) {
     window.currentConvenienceFilter = filter;
-    if (window.currentConveniencePortal === 'radar') _renderPortalRadar(document.getElementById('sConvenienceList'));
-    else if (window.currentConveniencePortal === 'loot') _renderPortalLoot(document.getElementById('sConvenienceList'));
+    if (window.currentConvenienceAccordion === 'radar') _renderPortalRadar(document.getElementById('conv-inline-radar'));
+    else if (window.currentConvenienceAccordion === 'loot') _renderPortalLoot(document.getElementById('conv-inline-loot'));
 };
 
 window.filterRadarCategory = function(cat) {
     window.currentRadarCategory = cat;
-    _renderPortalRadar(document.getElementById('sConvenienceList'));
+    _renderPortalRadar(document.getElementById('conv-inline-radar') || document.getElementById('sConvenienceList'));
 };
 
 window.filterRadarStore = function(store) {
     window.currentRadarStore = store;
-    _renderPortalRadar(document.getElementById('sConvenienceList'));
+    _renderPortalRadar(document.getElementById('conv-inline-radar') || document.getElementById('sConvenienceList'));
 };
 
 function _renderPortalRadar(list) {

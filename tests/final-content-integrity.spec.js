@@ -10,6 +10,7 @@ function loadContent() {
   const context = vm.createContext({ console });
   context.window = context;
   context.globalThis = context;
+  vm.runInContext(fs.readFileSync(path.join(root, 'data/map-registry.js'), 'utf8'), context);
   vm.runInContext(fs.readFileSync(path.join(root, 'data/travel-content.js'), 'utf8'), context);
   vm.runInContext(fs.readFileSync(path.join(root, 'data/recommended.js'), 'utf8'), context);
   return context;
@@ -71,7 +72,8 @@ test.describe('Final content integrity', () => {
 
     expect(day3Text).toContain('水鏡舍（수경사）');
     expect(day3Text).not.toMatch(/Solsot|솔솥|Byeolchaeban|별채반|Bulguksa|Beomeosa/);
-    expect(day3Text).toContain('Klook 慶州一日韓服');
+    expect(day3Text).toContain('花路韓服');
+    expect(day3Text).toContain('꽃길한복');
     expect(day3Text).toContain('最晚 18:50 前');
     expect(day3Text).toContain('韓服');
     expect(day3Text).toContain('大陵苑');
@@ -143,14 +145,27 @@ test.describe('Final content integrity', () => {
     expect(foodText).not.toContain('Pohang Dwaeji Gukbap');
     expect(foodText).not.toContain('東萊蔘雞湯');
 
-    const criticalItems = [
-      ...Object.values(content.itinerary).flat().filter(item => item.map),
-      ...content.food
-    ];
+    const { AUTHORITATIVE_MAPS_V45: registry } = loadContent();
+    const criticalItems = [...Object.values(content.itinerary).flat(), ...content.food];
     for (const item of criticalItems) {
-      expect(item.map, item.title || item.name).toMatch(/^https:\/\/map\.naver\.com\/p\/search\//);
-      expect(item.map, item.title || item.name).not.toContain('/entry/place/');
+      expect(item.mapKey, item.title || item.name).toBeTruthy();
+      expect(registry[item.mapKey], item.mapKey).toBeTruthy();
     }
+    const canonicalUrls = criticalItems.flatMap(item => {
+      const entry = registry[item.mapKey] || {};
+      return [entry.naver, entry.kakao, entry.google].filter(Boolean);
+    });
+    for (const url of canonicalUrls) {
+      expect(url).not.toMatch(/map\.naver\.com\/(?:p|v5)\/search\//);
+      expect(url).not.toContain('map.kakao.com/?q=');
+      expect(url).not.toContain('maps.app.goo.gl');
+    }
+    for (const platform of ['naver', 'kakao']) {
+      const urls = Object.values(registry).map(entry => entry[platform]).filter(Boolean);
+      expect(new Set(urls).size).toBe(urls.length);
+    }
+    expect(registry.age_yeongdo.naver).toBeUndefined();
+    expect(JSON.stringify(registry.age_yeongdo)).not.toMatch(/THRILL|Thrill|xqylsCAu/);
   });
 
   test('transport, nearby-life and WOWPASS truth states match the final addendum', () => {
