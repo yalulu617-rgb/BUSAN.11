@@ -2,6 +2,23 @@
 import { test, expect } from '@playwright/test';
 import { bootApp } from './helpers/boot.js';
 
+test('pre-trip assistant avoids misleading few-days countdown copy', async ({ page }) => {
+  await bootApp(page);
+
+  const suggestion = await page.evaluate(() => AIAssistantEngine.generateSuggestions({
+    currentDate: '11/10',
+    currentCity: { nameTW: '釜山', aiTips: [] },
+    currentWeather: null,
+    currentPlace: null,
+    uncompletedPreps: [{ text: '護照' }],
+    budget: null,
+    nextDestination: null
+  }));
+
+  expect(suggestion).toContain('目前還有');
+  expect(suggestion).not.toContain('離出發僅剩幾天');
+});
+
 test('Home navigation uses native, keyboard-operable controls', async ({ page }) => {
   await bootApp(page);
 

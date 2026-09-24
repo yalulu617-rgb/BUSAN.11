@@ -30,7 +30,7 @@ const AIAssistantEngine = {
       if (uncompletedCount === 0) {
         return `✨ <b>哆啦秋遊助手：</b>行前準備已 100% 完成！護照、換錢、隨身清單都準備妥當，期待出發囉！✈️`;
       } else {
-        return `🤖 <b>行前助手：</b>離出發僅剩幾天，您還有 <b>${uncompletedCount} 項</b> 準備工作尚未勾選完成。<br>${this.getImmigrationGuidance()}`;
+        return `🤖 <b>行前助手：</b>目前還有 <b>${uncompletedCount} 項</b> 準備工作尚未勾選完成。<br>${this.getImmigrationGuidance()}`;
       }
     } else if (dateStr === '11/20') {
       return `🎉 <b>哆啦回憶助手：</b>本次旅行已圓滿結束！希望旅途中的美景與體驗給您留下了珍貴的回憶！別忘了在下方寫下旅行心得喔！`;
