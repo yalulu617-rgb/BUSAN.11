@@ -22,7 +22,7 @@ function text(items) {
 
 test.describe('Final content integrity', () => {
   test('canonical itinerary has the approved five-day travel plan', () => {
-    const { TRAVEL_CONTENT_V45: content, RECOMMENDED_ITINERARY: derived } = loadContent();
+    const { TRAVEL_CONTENT_V45: content, RECOMMENDED_ITINERARY: derived, AUTHORITATIVE_MAPS_V45: registry } = loadContent();
     const day1 = content.itinerary['11/13'];
     const day2 = content.itinerary['11/14'];
     const day3 = content.itinerary['11/15'];
@@ -84,6 +84,12 @@ test.describe('Final content integrity', () => {
     expect(day3Text).toContain('慢郵筒／寄給未來自己的明信片');
     expect(day3Text).toContain('Hwangnamppang Main Store');
     expect(day3Text).toContain('Park Yongja Gyeongju Myeongdong Jjolmyeon');
+    const day3Dinner = day3.find(item => item.title === 'Park Yongja Gyeongju Myeongdong Jjolmyeon');
+    expect(day3Dinner).toMatchObject({
+      destinationKr: '박용자경주명동쫄면 본점',
+      mapKey: 'park_yongja'
+    });
+    expect(registry[day3Dinner.mapKey].naver).toBe('https://naver.me/x67y3OW9');
     expect(day3Text).toContain('東宮與月池（Donggung & Wolji）');
     expect(day3Text).toContain('不硬填未預訂車次');
 

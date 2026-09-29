@@ -560,7 +560,7 @@
         "desc": "東宮與月池前的固定晚餐，享用朴容子慶州明洞辣拌麵。",
         "tr": "🚶 步行 / 🚕 計程車",
         "route": "Hwangnamppang Main Store ➔ Park Yongja Jjolmyeon：以市區步行為主；晚餐後若時間緊，搭計程車前往 Donggung & Wolji。",
-        "destinationKr": "박용자경주명동쫄면",
+        "destinationKr": "박용자경주명동쫄면 본점",
       },
       {
         "time": "晚餐後",
