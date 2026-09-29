@@ -201,7 +201,6 @@ for (const viewport of [
 
     await page.evaluate(() => window.filterIti('11/14'));
     const verifiedNaverRow = page.locator('#itiContent .iti-row').filter({ hasText: 'OPS Haeundae 麵包店' });
-    await verifiedNaverRow.locator('.iti-transport-detail summary').click();
     const verifiedNaverAction = verifiedNaverRow.locator('.iti-map-actions a');
     await expect(verifiedNaverAction).toHaveCount(1);
     await expect(verifiedNaverAction).toBeVisible();
