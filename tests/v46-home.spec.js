@@ -163,3 +163,14 @@ test('V46: after-trip summaries derive from refreshed in-memory snapshots, not s
   expect(model.photosCount).toBe(2);
   expect(model.boughtCount).toBe(1);
 });
+
+test('V46: memory gallery only renders existing secure photo URLs, never mockup photos', () => {
+  const e=engine();
+  const state=e.createModel({
+    now:new Date('2026-11-20T09:00:00Z'),
+    photos:[{url:'https://example.org/real-trip.webp'},{url:'javascript:alert(1)'},{url:''}]
+  });
+  expect(state.photosCount).toBe(3);
+  expect(state.photoPreview.length).toBe(1);
+  expect(state.photoPreview[0].url).toBe('https://example.org/real-trip.webp');
+});
