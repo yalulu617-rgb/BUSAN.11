@@ -47,3 +47,9 @@ body {background:#fff7eb !important;color:#244b64 !important;filter:none !import
 #v37HomeDashboard .v46-home .v46-shortcut strong {color:#294e66 !important;}
 #v37HomeDashboard .v46-home .v46-shortcut small {color:#60788a !important;}
 .preview-footer {color:#665f5a !important;}
+
+
+/* Preview aligns with the OWNER-approved closed-by-default feature bag. */
+#v37HomeDashboard .v46-home details.v46-tools {padding:0!important;border:1.5px solid #aac4c7!important;background:#fffdf6!important;}
+#v37HomeDashboard .v46-home details.v46-tools:not([open]) > .v46-tools-content {display:none!important;}
+#v37HomeDashboard .v46-home .v46-tools-summary {color:#315a71!important;}
