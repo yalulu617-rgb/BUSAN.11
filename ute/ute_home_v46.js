@@ -109,6 +109,9 @@
       weather && weather.unavailable !== true && weather.temp !== null &&
       weather.temp !== undefined && Number.isFinite(Number(weather.temp));
     const photos = Array.isArray(data.photos) ? data.photos : [];
+    // Show only actual, safe image links already saved by the album; no placeholder trips.
+    const photoPreview = photos.filter(p => p && typeof p.url === 'string' &&
+      /^https:\/\//i.test(p.url)).slice(0, 3).map(p => ({ url: p.url }));
     const shopping = Array.isArray(data.shopping) ? data.shopping : [];
     const bills = ctx.budget || {};
     const ketaCredential = (ctx.credentials || []).find(r => r.id === 'keta');
@@ -130,6 +133,7 @@
       } : null,
       next: mode === 'during' && today === selectedDay ? ctx.nextDestination || null : null,
       photosCount: photos.length,
+      photoPreview,
       boughtCount: shopping.filter(p => p.checked === true).length,
       spent: data.hasExpenseRecords === true && typeof bills.overallSpent === 'number' &&
         Number.isFinite(bills.overallSpent) ? bills.overallSpent : null
