@@ -25,6 +25,37 @@
   const phaseArt = mode => mode === 'during' ? scene :
     mode === 'after' ? '<div class="v46-polaroid-art" aria-hidden="true"><span>🌉</span><span>🏯</span><span>🌊</span></div>' :
     '<div class="v46-flight-art" aria-hidden="true"><span>✈️</span><span>🍁</span><span>🧳</span></div>';
+  // Hand-rendered reusable travel mascot: the three phases use distinct props.
+  const mascotArt = mode => {
+    const accessory = mode === 'after'
+      ? '<rect x="154" y="173" width="64" height="44" rx="9" fill="#49758d" stroke="#34586c" stroke-width="4"/><circle cx="184" cy="194" r="14" fill="#e8eff0" stroke="#fffbf2" stroke-width="4"/><circle cx="205" cy="181" r="4" fill="#ffdb8f"/>'
+      : mode === 'during'
+        ? '<rect x="155" y="164" width="82" height="75" rx="14" fill="#ffca7c" stroke="#41647a" stroke-width="4"/><rect x="163" y="177" width="67" height="40" rx="6" fill="#b7dfe8"/>'
+        : '<rect x="181" y="169" width="48" height="78" rx="10" fill="#7eb6d2" stroke="#446e81" stroke-width="4"/><rect x="194" y="157" width="23" height="12" rx="4" fill="none" stroke="#446e81" stroke-width="4"/>';
+    return '<svg class="v46-mascot-art" viewBox="0 0 260 270" aria-hidden="true">' +
+      '<defs><filter id="v46-watercolor"><feTurbulence type="fractalNoise" baseFrequency=".02" numOctaves="2" seed="8" result="grain"/><feDisplacementMap in="SourceGraphic" in2="grain" scale="1.3"/></filter></defs>' +
+      '<g filter="url(#v46-watercolor)" stroke-linecap="round" stroke-linejoin="round">' +
+      '<ellipse cx="125" cy="223" rx="65" ry="38" fill="#4ea8d4" stroke="#345e78" stroke-width="5"/>' +
+      '<ellipse cx="123" cy="223" rx="40" ry="35" fill="#fff9ed"/>' +
+      '<ellipse cx="75" cy="246" rx="30" ry="13" fill="#fefbf3" stroke="#345e78" stroke-width="3"/>' +
+      '<ellipse cx="169" cy="246" rx="30" ry="13" fill="#fefbf3" stroke="#345e78" stroke-width="3"/>' +
+      accessory +
+      '<circle cx="127" cy="125" r="92" fill="#4eacd8" stroke="#345e78" stroke-width="5"/>' +
+      '<ellipse cx="127" cy="143" rx="77" ry="70" fill="#fffcf5" stroke="#345e78" stroke-width="3"/>' +
+      '<ellipse cx="107" cy="93" rx="23" ry="34" fill="#fffdf6" stroke="#345e78" stroke-width="3"/>' +
+      '<ellipse cx="148" cy="93" rx="23" ry="34" fill="#fffdf6" stroke="#345e78" stroke-width="3"/>' +
+      '<ellipse cx="118" cy="101" rx="5" ry="8" fill="#2c4a60"/><ellipse cx="139" cy="101" rx="5" ry="8" fill="#2c4a60"/>' +
+      '<circle cx="128" cy="124" r="13" fill="#dc5454" stroke="#ba474f" stroke-width="2"/><circle cx="124" cy="120" r="4" fill="#fff5ee"/>' +
+      '<path d="M128 137v24M93 153q34 35 69 0" fill="none" stroke="#3b6175" stroke-width="3"/>' +
+      '<path d="M93 155q35 40 71 0q-35 42-71 0" fill="#d65557" stroke="#3b6175" stroke-width="3"/>' +
+      '<path d="M55 139l40 8M52 158h41M58 174l37-15M163 147l39-9M164 158h43M162 159l42 16" stroke="#446a79" stroke-width="3"/>' +
+      '<path d="M65 79q-7-46 62-62q74 1 69 54" fill="#f6d99a" stroke="#a37a4d" stroke-width="4"/>' +
+      '<ellipse cx="126" cy="76" rx="100" ry="18" fill="#f8d99d" stroke="#a37a4d" stroke-width="3"/>' +
+      '<path d="M89 46q41-24 82-2" fill="none" stroke="#6b9db9" stroke-width="8"/>' +
+      '<path d="M81 199q45-13 90 1" stroke="#d7585d" stroke-width="9"/><circle cx="127" cy="203" r="9" fill="#f5cb6c" stroke="#a87f31" stroke-width="2"/>' +
+      '</g></svg>';
+  };
+
   const hero = (model, title, subtitle, action, actionLabel, slot) =>
     '<section id="liveTravelCard" class="v46-hero v38-hero-card hero-card card fade-scale-in">' +
     phaseArt(model.mode) + '<div class="v46-hero-copy">' +
@@ -32,7 +63,7 @@
     '<h2>' + esc(title) + '</h2><p class="v46-hero-subtitle">' + esc(subtitle) + '</p>' +
     slot + '<button type="button" class="v46-hero-link home-nav-button" aria-label="開啟' +
     esc(actionLabel) + '" onclick="' + action + '">' + esc(actionLabel) +
-    ' ›</button></div><img class="v46-hero-art" src="13972.png" alt="哆啦A夢旅行主題插畫" loading="eager"></section>';
+    ' ›</button></div>' + mascotArt(model.mode) + '</section>';
   const phases = model => '<nav class="v46-phase-nav" aria-label="旅行階段">' +
     phaseButton('before', '🧳 出發前', model.mode) +
     phaseButton('during', '🚞 旅途中', model.mode) +
