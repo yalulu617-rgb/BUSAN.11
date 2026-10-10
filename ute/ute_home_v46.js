@@ -131,7 +131,8 @@
       next: mode === 'during' && today === selectedDay ? ctx.nextDestination || null : null,
       photosCount: photos.length,
       boughtCount: shopping.filter(p => p.checked === true).length,
-      spent: typeof bills.overallSpent === 'number' && Number.isFinite(bills.overallSpent) ? bills.overallSpent : null
+      spent: data.hasExpenseRecords === true && typeof bills.overallSpent === 'number' &&
+        Number.isFinite(bills.overallSpent) ? bills.overallSpent : null
     };
   }
   target.V46HomeEngine = Object.freeze({ createModel, toDay, modeFor, daysBetween, labels: LABELS });

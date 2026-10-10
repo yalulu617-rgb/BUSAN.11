@@ -48,6 +48,7 @@ function triggerContextUpdateImmediate() {
         packing,
         photos: Array.isArray(window.photoList) ? window.photoList : [],
         shopping: Array.isArray(window.shopList) ? window.shopList : [],
+        hasExpenseRecords: globals.sharedBills.length > 0 || globals.privateBills.length > 0,
         previewMode: window.v46HomePreviewMode || 'auto',
         previewDay: window.v46HomePreviewDay || null
       });

@@ -135,3 +135,31 @@ test('V46: booking reminders only clear with explicitly linked confirmed voucher
   });
   expect(fullyVerified.reminders.find(r => r.id === 'sky-capsule')).toBeUndefined();
 });
+
+test('V46: financial summary stays empty until actual expense records exist', () => {
+  const e = engine();
+  const now = new Date('2026-11-20T00:00:00+09:00');
+  const empty = e.createModel({ now, context: { budget: { overallSpent: 0 } } });
+  expect(empty.spent).toBe(null);
+  const recorded = e.createModel({
+    now, hasExpenseRecords: true, context: { budget: { overallSpent: 2560 } }
+  });
+  expect(recorded.spent).toBe(2560);
+});
+
+test('V46: after-trip summaries derive from refreshed in-memory snapshots, not storage writes', async ({ page }) => {
+  await bootApp(page);
+  await page.evaluate(() => {
+    window.photoList = [{ url: 'photoA.webp' }, { url: 'photoB.webp' }];
+    window.shopList = [
+      { text: 'Yegam', checked: true }, { text: 'Coffee candy', checked: false }
+    ];
+    window.setV46HomePreview('after');
+  });
+  const summary = await page.locator('#v37HomeDashboard .v46-summary').innerText();
+  expect(summary).toContain('2');
+  expect(summary).toContain('1');
+  const model = await page.evaluate(() => window.getTripContext()?.v46Home);
+  expect(model.photosCount).toBe(2);
+  expect(model.boughtCount).toBe(1);
+});
