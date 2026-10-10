@@ -199,3 +199,21 @@ test('V4.1 visual evidence: capture all three mobile phases for human review', a
     await testInfo.attach('v46-' + mode + '-mobile-390px', {body:png,contentType:'image/png'});
   }
 });
+
+
+test('V4.1: all eleven functions are collapsed by default and open on demand', async ({ page }) => {
+  await bootApp(page);
+  for (const phase of ['before', 'during', 'after']) {
+    await page.evaluate(() => { window.v46AllToolsExpanded = false; });
+    await page.evaluate(p => window.setV46HomePreview(p), phase);
+    const bag = page.locator('#v37HomeDashboard details.v46-tools');
+    await expect(bag).not.toHaveAttribute('open', '');
+    await expect(bag.locator('.v45-nine-card')).toHaveCount(11);
+    await expect(bag.locator('.v45-nine-card').first()).toBeHidden();
+    await bag.locator('summary').click();
+    await expect(bag).toHaveAttribute('open', '');
+    await expect(bag.locator('.v45-nine-card').first()).toBeVisible();
+    await bag.locator('summary').click();
+    await expect(bag.locator('.v45-nine-card').first()).toBeHidden();
+  }
+});
