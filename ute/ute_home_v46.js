@@ -23,8 +23,27 @@
     const utc = iso => Date.UTC(...iso.split('-').map((s, i) => i === 1 ? Number(s) - 1 : Number(s)));
     return Math.max(0, Math.round((utc(to) - utc(from)) / 86400000));
   };
-  const completed = state => ['已完成', '已預訂'].includes(state);
   const booking = (reservations, id) => (reservations || []).find(row => row.id === id) || {};
+  // Do not infer a booking from a ticket's title or an itinerary description.
+  // Only an explicit reservationId can tie user-entered evidence to this reminder.
+  function reservationReminderStatus(reservations, tickets, id) {
+    const canonical = booking(reservations, id);
+    const evidence = Array.isArray(tickets)
+      ? tickets.find(t => t && t.reservationId === id)
+      : null;
+    if (evidence) {
+      const booked = evidence.booked === true || evidence.status === '已預訂';
+      const hasVoucher = typeof evidence.voucher === 'string' && evidence.voucher.trim() !== '';
+      if (booked && hasVoucher) return '已預訂・憑證已保存';
+      if (booked) return '已預訂・待保存憑證';
+      if (hasVoucher) return '憑證已保存・預訂待核對';
+      if (evidence.booked === false) return '待確認預約';
+    }
+    // Static canonical metadata is not independently verified purchase evidence.
+    return canonical.status === '已預訂'
+      ? '行程資料標記已預訂・憑證待核對'
+      : '待確認預約';
+  }
   function createModel(data = {}) {
     const now = data.now instanceof Date ? data.now : new Date(data.now || Date.now());
     const today = toDay(now);
@@ -40,13 +59,14 @@
     const sky = booking(reservations, 'sky-capsule');
     const ktx = booking(reservations, 'ktx-korail');
     const hanbok = booking(reservations, 'hanbok');
+    const tickets = Array.isArray(ctx.tickets) ? ctx.tickets : [];
     const reminders = [
       {
         id: 'sky-capsule',
         priority: 1,
         title: '天空膠囊列車・預約確認',
         detail: 'Day 2｜尾浦 → 青沙浦；預估開放時間請以官方公告為準',
-        status: completed(sky.status) ? '待核對憑證' : '待確認預約',
+        status: reservationReminderStatus(reservations, tickets, 'sky-capsule'),
         url: 'https://www.bluelinepark.com/eng/booking.do',
         action: 'ticket',
         openAt: '2026-10-13T07:00:00+09:00',
@@ -66,7 +86,7 @@
         priority: 4,
         title: '慶州韓服・確認預約憑證',
         detail: '靜態資料已標記預訂，不代表已檢視實際訂單',
-        status: completed(hanbok.status) ? '待確認憑證' : '待確認預約',
+        status: reservationReminderStatus(reservations, tickets, 'hanbok'),
         action: 'ticket',
         verification: 'unverified'
       },
@@ -80,7 +100,9 @@
         verification: 'conditional'
       }
     ];
-    const activeReminders = reminders.filter(r => r.status !== '不適用').sort((a, b) => a.priority - b.priority);
+    const activeReminders = reminders
+      .filter(r => r.status !== '不適用' && r.status !== '已預訂・憑證已保存')
+      .sort((a, b) => a.priority - b.priority);
     const weather = ctx.currentWeather || null;
     // Never relabel today's city weather as a forecast for another preview date.
     const realWeather = (mode === 'before' || (mode === 'during' && today === selectedDay)) &&
