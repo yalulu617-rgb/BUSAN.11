@@ -400,3 +400,18 @@
   #v37HomeDashboard .v46-home .v46-hero.card {min-height:283px}
 }
 [data-theme="dark"] #v37HomeDashboard .v46-home .v46-mascot-art {filter:drop-shadow(1px 4px 3px rgba(0,0,0,.2))}
+
+
+/* V4.1: eleven canonical routes stay available but the bag is collapsed by default. */
+#v37HomeDashboard .v46-home details.v46-tools{display:block;padding:0;margin:8px 0 0;background:rgba(255,252,244,.95);border:1.5px solid #aac4c7;border-radius:17px;box-shadow:2px 3px 0 rgba(62,105,120,.09);overflow:hidden}
+#v37HomeDashboard .v46-home .v46-tools-summary{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;cursor:pointer;list-style:none;font-size:.96rem;font-weight:900;color:#345d75}
+#v37HomeDashboard .v46-home .v46-tools-summary::-webkit-details-marker{display:none}
+#v37HomeDashboard .v46-home .v46-tools-summary small{font-size:.73rem;font-weight:650;color:#66839a}
+#v37HomeDashboard .v46-home .v46-tools-caret{font-size:1.6rem;line-height:1;transition:transform .17s ease}
+#v37HomeDashboard .v46-home details.v46-tools[open] .v46-tools-caret{transform:rotate(180deg)}
+#v37HomeDashboard .v46-home details.v46-tools:not([open]) > .v46-tools-content{display:none!important}
+#v37HomeDashboard .v46-home .v46-tools-content{padding:7px 13px 16px;border-top:1px dashed #c6d8d8}
+#v37HomeDashboard .v46-home .v46-tools-summary:focus-visible{outline:3px solid #389bc1;outline-offset:-3px;border-radius:13px}
+[data-theme="dark"] #v37HomeDashboard .v46-home details.v46-tools{background:#263b46;border-color:#678da2}
+[data-theme="dark"] #v37HomeDashboard .v46-home .v46-tools-summary{color:#eaf4f5}
+@media(prefers-reduced-motion:reduce){#v37HomeDashboard .v46-home .v46-tools-caret{transition:none}}
