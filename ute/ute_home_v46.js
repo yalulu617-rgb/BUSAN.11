@@ -24,9 +24,7 @@
     return Math.max(0, Math.round((utc(to) - utc(from)) / 86400000));
   };
   const completed = state => ['已完成', '已預訂'].includes(state);
-  const usableUrl = value => typeof value === 'string' && /^https:\/\//i.test(value);
   const booking = (reservations, id) => (reservations || []).find(row => row.id === id) || {};
-  const hasVoucher = tickets => (tickets || []).some(t => Boolean(t.voucher || t.image || t.img) && t.reservationId);
   function createModel(data = {}) {
     const now = data.now instanceof Date ? data.now : new Date(data.now || Date.now());
     const today = toDay(now);
@@ -84,7 +82,9 @@
     ];
     const activeReminders = reminders.filter(r => r.status !== '不適用').sort((a, b) => a.priority - b.priority);
     const weather = ctx.currentWeather || null;
-    const realWeather = weather && weather.unavailable !== true && Number.isFinite(Number(weather.temp));
+    // Never relabel today's city weather as a forecast for another preview date.
+    const realWeather = mode === 'during' && today === selectedDay &&
+      weather && weather.unavailable !== true && Number.isFinite(Number(weather.temp));
     const photos = Array.isArray(data.photos) ? data.photos : [];
     const shopping = Array.isArray(data.shopping) ? data.shopping : [];
     const bills = ctx.budget || {};
@@ -99,7 +99,7 @@
         condition: String(weather.conditionZH || weather.condition || '未標示'),
         updatedAt: weather.timestamp || null,
         cached: !!weather.isCached,
-        city: selectedDay === '2026-11-15' ? '慶州' : '釜山'
+        city: String(ctx.currentCity?.nameTW || (selectedDay === '2026-11-15' ? '慶州' : '釜山'))
       } : null,
       next: mode === 'during' && today === selectedDay ? ctx.nextDestination || null : null,
       photosCount: photos.length,
