@@ -87,3 +87,51 @@ test('V46: shopping source and album batch input remain untouched', () => {
   expect(source('components/v46-home.js')).toContain("setShopTabMode('my')");
   expect(source('services/utils.js')).toContain('window.uploadMultipleToImgBB');
 });
+
+test('V46: booking reminders only clear with explicitly linked confirmed voucher', () => {
+  const e = engine();
+  const base = {
+    now: new Date('2026-10-10T05:00:00Z'),
+    context: { reservations: [
+      { id: 'sky-capsule', status: '尚未預訂' },
+      { id: 'hanbok', status: '已預訂' }
+    ]}
+  };
+  const initial = e.createModel(base);
+  expect(initial.reminders.find(r => r.id === 'sky-capsule')?.status).toBe('待確認預約');
+  expect(initial.reminders.find(r => r.id === 'hanbok')?.status).toContain('行程資料標記已預訂');
+
+  const misleadingTitle = e.createModel({
+    ...base, context: {
+      ...base.context,
+      tickets: [{ title: '天空膠囊列車', booked: true, voucher: 'https://example.com/voucher' }]
+    }
+  });
+  expect(misleadingTitle.reminders.find(r => r.id === 'sky-capsule')).toBeDefined();
+
+  const bookedWithoutVoucher = e.createModel({
+    ...base, context: {
+      ...base.context,
+      tickets: [{ reservationId: 'sky-capsule', booked: true, voucher: '' }]
+    }
+  });
+  expect(bookedWithoutVoucher.reminders.find(r => r.id === 'sky-capsule')?.status)
+    .toBe('已預訂・待保存憑證');
+
+  const savedWithoutBooking = e.createModel({
+    ...base, context: {
+      ...base.context,
+      tickets: [{ reservationId: 'sky-capsule', booked: false, voucher: 'https://example.com/voucher' }]
+    }
+  });
+  expect(savedWithoutBooking.reminders.find(r => r.id === 'sky-capsule')?.status)
+    .toBe('憑證已保存・預訂待核對');
+
+  const fullyVerified = e.createModel({
+    ...base, context: {
+      ...base.context,
+      tickets: [{ reservationId: 'sky-capsule', booked: true, voucher: 'https://example.com/voucher' }]
+    }
+  });
+  expect(fullyVerified.reminders.find(r => r.id === 'sky-capsule')).toBeUndefined();
+});
