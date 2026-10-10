@@ -184,3 +184,18 @@ test('V4.1: all phase heroes use actual in-app illustration instead of old mount
     await expect(hero.locator('img[src="13972.png"]')).toHaveCount(0);
   }
 });
+
+test('V4.1 visual evidence: capture all three mobile phases for human review', async ({ page }, testInfo) => {
+  // Evidence, not an assertion that watercolor illustration matches OWNER's art.
+  if (testInfo.project.name !== 'chromium') test.skip();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await bootApp(page);
+  for (const mode of ['before','during','after']) {
+    await page.evaluate(p => window.setV46HomePreview(p), mode);
+    await expect(page.locator('#v37HomeDashboard .v46-home')).toHaveAttribute('data-v46-mode',mode);
+    await expect(page.locator('#liveTravelCard svg.v46-mascot-art')).toHaveCount(1);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    const png=await page.screenshot({animations:'disabled',fullPage:false});
+    await testInfo.attach('v46-' + mode + '-mobile-390px', {body:png,contentType:'image/png'});
+  }
+});
