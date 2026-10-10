@@ -1114,6 +1114,18 @@ window.renderV37HomeDashboard = function() {
     
     const ctx = getTripContext();
     if (!ctx || !ctx.currentDate) return;
+
+    // V46 home is a presentation plugin; keep the complete V45 eleven-entry grid.
+    // If the plugin is not available, preserve the existing V45 rendering fallback.
+    if (ctx.v46Home && typeof window.renderV46Home === 'function') {
+        container.innerHTML = window.renderV46Home(
+            ctx.v46Home,
+            renderHomeNineGrid(),
+            renderHomeWeatherDetail(),
+            renderDateSimulator(window.v37SimulatedDate, ctx.currentCity)
+        );
+        return;
+    }
     
     const dateStr = ctx.currentDate;
     const city = ctx.currentCity;
