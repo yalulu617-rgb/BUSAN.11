@@ -369,3 +369,34 @@
 #v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-panel[aria-label="入境申報狀態"] { order:4; }
 #v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-panel[aria-label="出發前天氣與預報"] { order:5; }
 #v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-panel.card:has(> .v46-progress-label) { order:6; }
+
+/* V4.1 visual correction: a full illustration replaces the former scenery photograph. */
+#v37HomeDashboard .v46-home .v46-mascot-art {
+  position:absolute;right:-8px;bottom:-5px;width:55%;height:95%;
+  z-index:2;display:block;overflow:visible;pointer-events:none;
+  filter:drop-shadow(2px 5px 4px rgba(64,91,104,.14));
+}
+#v37HomeDashboard .v46-home .v46-hero-copy {width:62%;z-index:4}
+#v37HomeDashboard .v46-home[data-v46-mode="during"] .v46-mascot-art {right:-14px;bottom:-11px;width:48%;height:74%}
+#v37HomeDashboard .v46-home[data-v46-mode="after"] .v46-mascot-art {right:-3%;bottom:-12px;width:51%;height:74%}
+#v37HomeDashboard .v46-home .v46-hero-subtitle {font-size:.83rem;line-height:1.56}
+#v37HomeDashboard .v46-home .v46-hero.card {min-height:295px}
+#v37HomeDashboard .v46-home[data-v46-mode="during"] .v46-hero.card {min-height:300px}
+#v37HomeDashboard .v46-home[data-v46-mode="after"] .v46-hero.card {min-height:295px}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-shortcut-emoji,
+#v37HomeDashboard .v46-home[data-v46-mode="during"] .v46-shortcut-emoji {box-shadow:0 2px 0 rgba(86,116,123,.08)}
+#v37HomeDashboard .v46-home .v46-phase {text-shadow:none}
+#v37HomeDashboard .v46-home .v46-masthead {background:transparent}
+@media(min-width:380px) and (max-width:739px){
+  #v37HomeDashboard .v46-home[data-v46-mode="during"] .v46-shortcuts {grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+  #v37HomeDashboard .v46-home[data-v46-mode="during"] .v46-shortcut {padding:9px 3px;min-height:130px}
+  #v37HomeDashboard .v46-home[data-v46-mode="during"] .v46-shortcut-emoji {width:55px;height:55px;font-size:2.15rem}
+  #v37HomeDashboard .v46-home[data-v46-mode="during"] .v46-shortcut strong {font-size:.81rem}
+  #v37HomeDashboard .v46-home[data-v46-mode="during"] .v46-shortcut small {font-size:.62rem}
+}
+@media(max-width:360px){
+  #v37HomeDashboard .v46-home .v46-hero-copy {width:65%}
+  #v37HomeDashboard .v46-home .v46-mascot-art {width:54%;right:-12px;opacity:.89}
+  #v37HomeDashboard .v46-home .v46-hero.card {min-height:283px}
+}
+[data-theme="dark"] #v37HomeDashboard .v46-home .v46-mascot-art {filter:drop-shadow(1px 4px 3px rgba(0,0,0,.2))}

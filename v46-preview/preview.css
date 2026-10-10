@@ -24,3 +24,26 @@ button { font-family: inherit; }
 #v37HomeDashboard .v46-home .v46-reminder>div { flex: 1; min-width:0;}
 #v37HomeDashboard .v46-home .v46-reminder button {cursor:pointer;}
 @media(max-width:350px){#v37HomeDashboard{padding:0 4px} .preview-banner{margin:6px 6px 0;}}
+
+/* Gallery previews must remain a LIGHT paper diary, independent of device dark mode. */
+html,html:root {color-scheme:only light !important;background:#fff8ec !important;}
+body {background:#fff7eb !important;color:#244b64 !important;filter:none !important;}
+.preview-banner {background:#fff2dc !important;color:#4c5364 !important;border-color:#d8a785 !important;}
+.preview-banner span {color:#776251 !important;}
+#v37HomeDashboard .v46-home {
+  background:repeating-linear-gradient(0deg,rgba(165,138,99,.018) 0,rgba(165,138,99,.018) 1px,transparent 1px,transparent 7px),
+    radial-gradient(circle at 93% 13%,#fef0da,transparent 37%),#fffaf0 !important;
+  color:#2e5268 !important;
+}
+#v37HomeDashboard .v46-home .v46-panel.card {background:#fffdf6 !important;color:#2e5268 !important;}
+#v37HomeDashboard .v46-home .v46-prep-panel {background:#fffdf5 !important;}
+#v37HomeDashboard .v46-home .v46-phase {background:#fffdf8 !important;color:#2e5268 !important;}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-phase.is-current {background:#fcd5af !important;}
+#v37HomeDashboard .v46-home[data-v46-mode="during"] .v46-phase.is-current {background:#a6d9ed !important;}
+#v37HomeDashboard .v46-home[data-v46-mode="after"] .v46-phase.is-current {background:#f7d6dc !important;}
+#v37HomeDashboard .v46-home .v45-nine-card {color:#2e5268 !important;}
+#v37HomeDashboard .v46-home .v46-brand {color:#294e6b !important;}
+#v37HomeDashboard .v46-home h3 {color:#2a516c !important;}
+#v37HomeDashboard .v46-home .v46-shortcut strong {color:#294e66 !important;}
+#v37HomeDashboard .v46-home .v46-shortcut small {color:#60788a !important;}
+.preview-footer {color:#665f5a !important;}

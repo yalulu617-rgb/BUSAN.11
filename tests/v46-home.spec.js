@@ -174,3 +174,13 @@ test('V46: memory gallery only renders existing secure photo URLs, never mockup 
   expect(state.photoPreview.length).toBe(1);
   expect(state.photoPreview[0].url).toBe('https://example.org/real-trip.webp');
 });
+
+test('V4.1: all phase heroes use actual in-app illustration instead of old mountain photo', async ({ page }) => {
+  await bootApp(page);
+  for (const phase of ['before','during','after']) {
+    await page.evaluate(p => window.setV46HomePreview(p), phase);
+    const hero=page.locator('#v37HomeDashboard #liveTravelCard');
+    await expect(hero.locator('svg.v46-mascot-art')).toHaveCount(1);
+    await expect(hero.locator('img[src="13972.png"]')).toHaveCount(0);
+  }
+});
