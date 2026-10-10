@@ -12,7 +12,7 @@
     '" aria-pressed="' + String(mode === id) + '" onclick="setV46HomePreview(\'' + id +
     '\')">' + title + '</button>';
   const hero = (title, subtitle, action, slot) =>
-    '<div class="v46-hero card fade-scale-in"><div class="v46-hero-copy">' +
+    '<div id="liveTravelCard" class="v46-hero v38-hero-card card fade-scale-in"><div class="v46-hero-copy">' +
     '<p class="v46-eyebrow">BUSAN × GYEONGJU · 5D4N</p>' +
     '<h2>' + esc(title) + '</h2><p class="v46-hero-subtitle">' + esc(subtitle) + '</p>' +
     slot + '</div><img class="v46-hero-art" src="13972.png" alt="哆啦A夢秋日旅行插畫" loading="eager"></div>';
@@ -99,7 +99,6 @@
     const content = model.mode === 'before' ? before(model) : model.mode === 'after' ? after(model) : during(model);
     return '<div class="v46-home" data-v46-mode="' + esc(model.mode) + '">' +
       phases(model) + '<div class="home-live-label"><span>LIVE TRAVEL CARD</span><small>秋日旅程</small></div>' +
-      '<div class="v38-hero-card v46-hero-compat" style="display:none" aria-hidden="true"></div>' +
       content + '<section class="v46-tools"><h3>🎒 旅行百寶袋・全部功能</h3>' + menu + '</section>' +
       weatherDetail +
       '<details class="v46-legacy-tool"><summary>舊版日期測試工具</summary>' + simulator + '</details>' +
