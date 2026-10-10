@@ -83,17 +83,22 @@
     const activeReminders = reminders.filter(r => r.status !== '不適用').sort((a, b) => a.priority - b.priority);
     const weather = ctx.currentWeather || null;
     // Never relabel today's city weather as a forecast for another preview date.
-    const realWeather = mode === 'during' && today === selectedDay &&
-      weather && weather.unavailable !== true && Number.isFinite(Number(weather.temp));
+    const realWeather = (mode === 'before' || (mode === 'during' && today === selectedDay)) &&
+      weather && weather.unavailable !== true && weather.temp !== null &&
+      weather.temp !== undefined && Number.isFinite(Number(weather.temp));
     const photos = Array.isArray(data.photos) ? data.photos : [];
     const shopping = Array.isArray(data.shopping) ? data.shopping : [];
     const bills = ctx.budget || {};
+    const ketaCredential = (ctx.credentials || []).find(r => r.id === 'keta');
+    const entryKeta = ketaCredential && typeof ketaCredential.status === 'string'
+      ? ketaCredential.status : '適用資格待確認';
     return {
       today, naturalMode, mode, previewMode, selectedDay,
       tripDays: LABELS.map(d => ({ ...d, selected: d.iso === selectedDay })),
       countdown: daysBetween(today, START),
       packing: { done: prepDone, total: packing.length },
       reminders: activeReminders,
+      entryKeta,
       weather: realWeather ? {
         temp: Number(weather.temp),
         condition: String(weather.conditionZH || weather.condition || '未標示'),

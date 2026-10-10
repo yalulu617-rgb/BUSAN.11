@@ -1122,7 +1122,8 @@ window.renderV37HomeDashboard = function() {
             ctx.v46Home,
             renderHomeNineGrid(),
             renderHomeWeatherDetail(),
-            renderDateSimulator(window.v37SimulatedDate, ctx.currentCity)
+            renderDateSimulator(window.v37SimulatedDate, ctx.currentCity),
+            renderCollections()
         );
         return;
     }

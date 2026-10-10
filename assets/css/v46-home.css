@@ -124,3 +124,10 @@
 @media (prefers-reduced-motion: reduce) {
   #v37HomeDashboard .v46-home *, #v37HomeDashboard .v46-home *::before { animation: none !important; transition: none !important; }
 }
+
+/* Retain existing home contract and recognizable, readable entry/weather summaries. */
+#v37HomeDashboard .v46-entry-status p { margin: 4px 0; line-height: 1.5; font-size: .8rem; font-weight: 740; }
+#v37HomeDashboard .v46-panel .v45-home-weather-box { padding: 9px 11px; background: rgba(177,212,227,.2); border-radius: 14px; line-height: 1.5; font-size: .8rem; margin-bottom: 10px; }
+#v37HomeDashboard .v46-panel .v45-home-weather-box span { color: #607b8b; font-size: .72rem; }
+#v37HomeDashboard .v46-panel .v45-home-weather-box p { margin: 5px 0 0; font-size: .75rem; color: #607b8b; }
+#v37HomeDashboard .v46-home .home-nav-button { display: inline-flex; align-items: center; }

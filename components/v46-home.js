@@ -11,11 +11,13 @@
     '<button type="button" class="v46-phase' + (mode === id ? ' is-current' : '') +
     '" aria-pressed="' + String(mode === id) + '" onclick="setV46HomePreview(\'' + id +
     '\')">' + title + '</button>';
-  const hero = (title, subtitle, action, slot) =>
-    '<div id="liveTravelCard" class="v46-hero v38-hero-card card fade-scale-in"><div class="v46-hero-copy">' +
+  const hero = (title, subtitle, action, actionLabel, slot) =>
+    '<div id="liveTravelCard" class="v46-hero v38-hero-card hero-card card fade-scale-in"><div class="v46-hero-copy">' +
     '<p class="v46-eyebrow">BUSAN × GYEONGJU · 5D4N</p>' +
     '<h2>' + esc(title) + '</h2><p class="v46-hero-subtitle">' + esc(subtitle) + '</p>' +
-    slot + '</div><img class="v46-hero-art" src="13972.png" alt="哆啦A夢秋日旅行插畫" loading="eager"></div>';
+    slot + '<button type="button" class="v46-hero-link home-nav-button" aria-label="開啟' +
+    esc(actionLabel) + '" onclick="' + action + '">' + esc(actionLabel) +
+    ' ›</button></div><img class="v46-hero-art" src="13972.png" alt="哆啦A夢秋日旅行插畫" loading="eager"></div>';
   const phases = model => '<nav class="v46-phase-nav" aria-label="旅行階段">' +
     phaseButton('before', '出發前', model.mode) +
     phaseButton('during', '旅途中', model.mode) +
@@ -33,9 +35,25 @@
     const progress = model.packing.total > 0 ?
       '已完成 ' + model.packing.done + '/' + model.packing.total + ' 項' : '還沒有建立打包項目';
     const heroPart = '<p class="v46-countdown"><span>D-' + model.countdown + '</span> 天後出發</p>' +
-      '<p class="v46-flight">✈ 11/13 · BX572 · 13:25 桃園 → 17:00 釜山</p>' +
-      '<button type="button" class="v46-hero-link" onclick="openPreTripPrep()">查看我的出發準備 ›</button>';
-    return hero('準備出發去釜山啦！', '和哆啦A夢一起迎接秋天的小旅行。', '', heroPart) +
+      '<p class="v46-flight">✈ 11/13 · BX572 · 13:25 桃園 → 17:00 釜山</p>';
+    const weather = model.weather;
+    const weatherLabel = weather ?
+      esc(weather.city) + '目前｜' + weather.temp + '°C｜' + esc(weather.condition) :
+      '即時天氣暫時無法更新';
+    const updatedLabel = weather && weather.updatedAt && !Number.isNaN(new Date(weather.updatedAt).getTime())
+      ? ' 更新：' + new Intl.DateTimeFormat('zh-TW', {
+        timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false
+      }).format(new Date(weather.updatedAt)) : '';
+    return hero('準備出發去釜山啦！', '和哆啦A夢一起迎接秋天的小旅行。',
+      'openPreTripPrep()', '行前準備', heroPart) +
+      '<section class="v46-panel card v46-entry-status" aria-label="入境申報狀態">' +
+      '<p>🪪 K-ETA：' + esc(model.entryKeta) + '</p>' +
+      '<p>📝 e-Arrival Card：依適用資格與抵達前 3 天窗口辦理</p>' +
+      '<p>🔄 Q-CODE：Q4出發前RECHECK（依 KDCA 條件）</p></section>' +
+      '<section class="v46-panel card" aria-label="出發前天氣與預報">' +
+      '<h3>🌤️ 天氣・楓況</h3><div class="v45-home-weather-box"><strong>' + weatherLabel +
+      '</strong><span>' + updatedLabel + '</span><p>📅 11/13~11/17 氣候預報：出發前 7–10 天提供詳細預報</p></div>' +
+      '<button type="button" class="v46-text-link" onclick="toggleHomeWeatherDetail()">查看詳細天氣 ›</button></section>' +
       '<section class="v46-panel card" aria-labelledby="v46-reminder-title"><h3 id="v46-reminder-title">🔔 出發前別忘記</h3>' +
       '<p class="v46-muted">優先顯示需要確認的事項；靜態資料不等於真實訂單。</p>' +
       (reminders || status('沒有待核對的重要事項')) +
@@ -57,7 +75,8 @@
     const weatherText = weather ? esc(weather.city + '｜' + weather.temp + '°C｜' + weather.condition) :
       '即時天氣暫時無法更新';
     const next = model.next && model.next.desc ? esc(model.next.desc) : '查看今日完整行程與雨備';
-    return hero('HELLO, BUSAN!', dayTitle + (isPreview ? '（預覽）' : ''), '',
+    return hero('HELLO, BUSAN!', dayTitle + (isPreview ? '（預覽）' : ''),
+      "showV37Tab('itinerary')", '今日行程',
       '<p class="v46-hero-tag">🍁 秋日海線 × 城市漫遊</p>') +
       '<section class="v46-panel card" aria-label="旅途五天日期軸"><h3>🚃 我們的五天小火車</h3>' +
       '<div class="v46-days">' + model.tripDays.map(d => '<button type="button" class="v46-day' +
@@ -82,8 +101,9 @@
   }
   function after(model) {
     const spent = model.spent === null ? '尚無記帳資料' : 'NT$ ' + model.spent.toLocaleString('zh-TW');
-    return hero('旅程結束了，回憶還在。', '謝謝這趟秋日旅行，把每一天都珍藏起來。', '',
-      '<p class="v46-hero-tag">2026.11.13 – 11.17 🍁</p><button type="button" class="v46-hero-link" onclick="showV37Tab(\'photo\')">打開我的旅行回憶 ›</button>') +
+    return hero('旅程結束了，回憶還在。', '謝謝這趟秋日旅行，把每一天都珍藏起來。',
+      "showV37Tab('photo')", '旅行回憶',
+      '<p class="v46-hero-tag">2026.11.13 – 11.17 🍁</p>') +
       '<section class="v46-panel"><h3>📸 把每一天都收藏起來</h3><div class="v46-shortcuts">' +
       btn('旅行相簿', '📷', "showV37Tab('photo')", '支援批次上傳') +
       btn('每日回顧', '📝', "showV37Tab('photo')", '精選回憶') +
@@ -94,13 +114,13 @@
       '<p class="v46-muted">旅行花費：' + esc(spent) + '</p>' +
       '<button type="button" class="v46-text-link" onclick="showV37Tab(\'split\')">查看旅行記帳 ›</button></section>';
   }
-  target.renderV46Home = function (model, menu, weatherDetail, simulator) {
+  target.renderV46Home = function (model, menu, weatherDetail, simulator, collections) {
     if (!model) return '';
     const content = model.mode === 'before' ? before(model) : model.mode === 'after' ? after(model) : during(model);
     return '<div class="v46-home" data-v46-mode="' + esc(model.mode) + '">' +
       phases(model) + '<div class="home-live-label"><span>LIVE TRAVEL CARD</span><small>秋日旅程</small></div>' +
       content + '<section class="v46-tools"><h3>🎒 旅行百寶袋・全部功能</h3>' + menu + '</section>' +
-      weatherDetail +
+      '<div class="v38-widget-row">' + (collections || '') + '</div>' + weatherDetail +
       '<details class="v46-legacy-tool"><summary>舊版日期測試工具</summary>' + simulator + '</details>' +
       '</div>';
   };
