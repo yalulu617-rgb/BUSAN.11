@@ -359,3 +359,13 @@
   #v37HomeDashboard .v46-home .v46-hero-art {opacity:.65}
 }
 @media(prefers-reduced-motion:reduce){#v37HomeDashboard .v46-home .v46-moving-train{transition:none!important}}
+
+/* Keep natural document order for all three phases, then prioritize pre-trip tasks. */
+#v37HomeDashboard .v46-home > .v46-panel { order:4; }
+#v37HomeDashboard .v46-home > .v46-memory-panel { order:3; }
+#v37HomeDashboard .v46-home > .v46-hero.card { order:1; }
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-panel[aria-label="出發前必做"] { order:2; }
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-panel[aria-labelledby="v46-reminder-title"] { order:3; }
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-panel[aria-label="入境申報狀態"] { order:4; }
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-panel[aria-label="出發前天氣與預報"] { order:5; }
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-panel.card:has(> .v46-progress-label) { order:6; }
