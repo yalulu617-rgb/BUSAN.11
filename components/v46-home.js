@@ -11,17 +11,32 @@
     '<button type="button" class="v46-phase' + (mode === id ? ' is-current' : '') +
     '" aria-pressed="' + String(mode === id) + '" onclick="setV46HomePreview(\'' + id +
     '\')">' + title + '</button>';
-  const hero = (title, subtitle, action, actionLabel, slot) =>
-    '<div id="liveTravelCard" class="v46-hero v38-hero-card hero-card card fade-scale-in"><div class="v46-hero-copy">' +
-    '<p class="v46-eyebrow">BUSAN × GYEONGJU · 5D4N</p>' +
+  // Phase art is decorative; the real hero actions remain keyboard-operable buttons.
+  const scene = '<svg class="v46-coast-scene" viewBox="0 0 420 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' +
+    '<defs><linearGradient id="v46-sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f8dfa9"/><stop offset=".6" stop-color="#bfdfe6"/><stop offset="1" stop-color="#77b5c3"/></linearGradient></defs>' +
+    '<rect width="420" height="240" fill="url(#v46-sky)"/><circle cx="316" cy="55" r="35" fill="#fff0bd"/>' +
+    '<path d="M0 138Q60 121 109 138T220 133T420 127V240H0Z" fill="#a8c3ba"/>' +
+    '<path d="M0 161Q42 145 83 160T177 158T277 159T420 153V240H0Z" fill="#78b4c7"/>' +
+    '<path d="M0 185Q44 173 96 185T190 185T290 180T420 185" stroke="#f7f5dd" stroke-width="5" fill="none"/>' +
+    '<path d="M24 145V112M167 145V104M24 112Q97 84 167 104M23 125H170" fill="none" stroke="#557986" stroke-width="3"/>' +
+    '<g stroke="#57798a" stroke-width="2"><rect x="234" y="104" width="125" height="98" rx="25" fill="#f9cb7e"/>' +
+    '<rect x="251" y="116" width="91" height="57" rx="12" fill="#d7f4f5"/><path d="M297 116v58"/>' +
+    '<circle cx="297" cy="187" r="6" fill="#f49c87"/></g></svg>';
+  const phaseArt = mode => mode === 'during' ? scene :
+    mode === 'after' ? '<div class="v46-polaroid-art" aria-hidden="true"><span>🌉</span><span>🏯</span><span>🌊</span></div>' :
+    '<div class="v46-flight-art" aria-hidden="true"><span>✈️</span><span>🍁</span><span>🧳</span></div>';
+  const hero = (model, title, subtitle, action, actionLabel, slot) =>
+    '<section id="liveTravelCard" class="v46-hero v38-hero-card hero-card card fade-scale-in">' +
+    phaseArt(model.mode) + '<div class="v46-hero-copy">' +
+    '<p class="v46-eyebrow">BUSAN × GYEONGJU · TRAVEL DIARY</p>' +
     '<h2>' + esc(title) + '</h2><p class="v46-hero-subtitle">' + esc(subtitle) + '</p>' +
     slot + '<button type="button" class="v46-hero-link home-nav-button" aria-label="開啟' +
     esc(actionLabel) + '" onclick="' + action + '">' + esc(actionLabel) +
-    ' ›</button></div><img class="v46-hero-art" src="13972.png" alt="哆啦A夢秋日旅行插畫" loading="eager"></div>';
+    ' ›</button></div><img class="v46-hero-art" src="13972.png" alt="哆啦A夢旅行主題插畫" loading="eager"></section>';
   const phases = model => '<nav class="v46-phase-nav" aria-label="旅行階段">' +
-    phaseButton('before', '出發前', model.mode) +
-    phaseButton('during', '旅途中', model.mode) +
-    phaseButton('after', '回憶錄', model.mode) +
+    phaseButton('before', '🧳 出發前', model.mode) +
+    phaseButton('during', '🚞 旅途中', model.mode) +
+    phaseButton('after', '📸 回憶錄', model.mode) +
     (model.previewMode !== 'auto' ? '<button class="v46-auto" type="button" onclick="setV46HomePreview(\'auto\')">↩ 回到自動</button>' : '') +
     '</nav>';
   const status = (text, detail) => '<p class="v46-state">' + esc(text) + (detail ? ' · ' + esc(detail) : '') + '</p>';
@@ -34,7 +49,8 @@
       '" aria-label="查看' + esc(r.title) + '">查看 ›</button></article>').join('');
     const progress = model.packing.total > 0 ?
       '已完成 ' + model.packing.done + '/' + model.packing.total + ' 項' : '還沒有建立打包項目';
-    const heroPart = '<p class="v46-countdown"><span>D-' + model.countdown + '</span> 天後出發</p>' +
+    const heroPart = '<div class="v46-countdown"><small>距離出發還有</small><span>D-' + model.countdown +
+      '</span><small>2026.11.13（五）出發 ✈</small></div>' +
       '<p class="v46-flight">✈ 11/13 · BX572 · 13:25 桃園 → 17:00 釜山</p>';
     const weather = model.weather;
     const weatherLabel = weather ?
@@ -44,7 +60,7 @@
       ? ' 更新：' + new Intl.DateTimeFormat('zh-TW', {
         timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false
       }).format(new Date(weather.updatedAt)) : '';
-    return hero('準備出發去釜山啦！', '和哆啦A夢一起迎接秋天的小旅行。',
+    return hero(model, '釜山 × 慶州', '我們的秋日旅行｜2026.11.13 – 11.17',
       'openPreTripPrep()', '行前準備', heroPart) +
       '<section class="v46-panel card v46-entry-status" aria-label="入境申報狀態">' +
       '<p>🪪 K-ETA：' + esc(model.entryKeta) + '</p>' +
@@ -70,19 +86,22 @@
   function during(model) {
     const selected = model.tripDays.find(d => d.selected);
     const dayTitle = selected ? selected.label + '｜' + selected.short : '今日行程';
+    const dayIndex = Math.max(0, model.tripDays.findIndex(d => d.selected));
     const isPreview = model.today !== model.selectedDay;
     const weather = model.weather;
     const weatherText = weather ? esc(weather.city + '｜' + weather.temp + '°C｜' + weather.condition) :
       '即時天氣暫時無法更新';
     const next = model.next && model.next.desc ? esc(model.next.desc) : '查看今日完整行程與雨備';
-    return hero('HELLO, BUSAN!', dayTitle + (isPreview ? '（預覽）' : ''),
+    return hero(model, 'HELLO, BUSAN!', dayTitle + (isPreview ? '（預覽）' : ''),
       "showV37Tab('itinerary')", '今日行程',
       '<p class="v46-hero-tag">🍁 秋日海線 × 城市漫遊</p>') +
       '<section class="v46-panel card" aria-label="旅途五天日期軸"><h3>🚃 我們的五天小火車</h3>' +
-      '<div class="v46-days">' + model.tripDays.map(d => '<button type="button" class="v46-day' +
+      '<div class="v46-train-track" aria-hidden="true"><span class="v46-moving-train" style="left:' +
+      (10 + dayIndex * 20) + '%">🚃</span></div><div class="v46-days">' + model.tripDays.map(d => '<button type="button" class="v46-day' +
       (d.selected ? ' is-current' : '') + '" aria-pressed="' + String(d.selected) +
       '" onclick="setV46HomeDay(\'' + d.iso + '\')"><span aria-hidden="true">🚃</span>' +
-      '<strong>' + esc(d.label) + '</strong><small>' + esc(d.iso.slice(5).replace('-', '/')) + '</small></button>').join('') +
+      '<span class="v46-day-dot" aria-hidden="true"></span><strong>' + esc(d.label) +
+      '</strong><small>' + esc(d.iso.slice(5).replace('-', '/')) + '</small></button>').join('') +
       '</div><p class="v46-muted">' + (isPreview ? '目前正在預覽其他日期；不會改變真實日期或提醒。' :
       '點選日期可預覽當天主題。') + '</p></section>' +
       '<section class="v46-panel card"><h3>🌤️ 天氣・楓況與穿搭</h3><p class="v46-weather">' +
@@ -101,10 +120,18 @@
   }
   function after(model) {
     const spent = model.spent === null ? '尚無記帳資料' : 'NT$ ' + model.spent.toLocaleString('zh-TW');
-    return hero('旅程結束了，回憶還在。', '謝謝這趟秋日旅行，把每一天都珍藏起來。',
+    const photos = Array.isArray(model.photoPreview) ? model.photoPreview.slice(0, 3) : [];
+    const memoryGallery = photos.length
+      ? '<div class="v46-memory-gallery">' + photos.map((photo, i) =>
+          '<button type="button" class="v46-memory-photo" onclick="showV37Tab(\'photo\')">' +
+          '<img loading="lazy" src="' + esc(photo.url) + '" alt="旅行照片 ' + (i+1) + '">' +
+          '<small>打開旅行相簿 ›</small></button>').join('') + '</div>'
+      : '<div class="v46-memory-empty">📸 🍁 📷<p>等著收藏你真正拍下的旅行照片。</p></div>';
+    return hero(model, '旅程結束，回憶還在', '釜山 × 慶州｜2026.11.13 – 11.17',
       "showV37Tab('photo')", '旅行回憶',
       '<p class="v46-hero-tag">2026.11.13 – 11.17 🍁</p>') +
-      '<section class="v46-panel"><h3>📸 把每一天都收藏起來</h3><div class="v46-shortcuts">' +
+      '<section class="v46-panel v46-memory-panel"><h3>📸 旅行回憶精選</h3>' +
+      memoryGallery + '<div class="v46-shortcuts">' +
       btn('旅行相簿', '📷', "showV37Tab('photo')", '支援批次上傳') +
       btn('每日回顧', '📝', "showV37Tab('photo')", '精選回憶') +
       '</div></section>' +
@@ -118,8 +145,11 @@
     if (!model) return '';
     const content = model.mode === 'before' ? before(model) : model.mode === 'after' ? after(model) : during(model);
     return '<div class="v46-home" data-v46-mode="' + esc(model.mode) + '">' +
+      '<div class="v46-masthead"><div class="v46-brand"><span aria-hidden="true">🔔</span>' +
+      '<div><strong>BUSAN.11</strong><small>TRAVEL DIARY</small></div></div>' +
+      '<span class="v46-headleaf" aria-hidden="true">🍁</span></div>' +
       phases(model) + '<div class="home-live-label"><span>LIVE TRAVEL CARD</span><small>秋日旅程</small></div>' +
-      content + '<section class="v46-tools"><h3>🎒 旅行百寶袋・全部功能</h3>' + menu + '</section>' +
+      content + '<section class="v46-tools"><h3>🧸 我的旅行百寶袋・固定 11 項</h3>' + menu + '</section>' +
       '<div class="v38-widget-row">' + (collections || '') + '</div>' + weatherDetail +
       '<details class="v46-legacy-tool"><summary>舊版日期測試工具</summary>' + simulator + '</details>' +
       '</div>';
