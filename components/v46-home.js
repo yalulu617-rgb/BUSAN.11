@@ -180,7 +180,11 @@
       '<div><strong>BUSAN.11</strong><small>TRAVEL DIARY</small></div></div>' +
       '<span class="v46-headleaf" aria-hidden="true">🍁</span></div>' +
       phases(model) + '<div class="home-live-label"><span>LIVE TRAVEL CARD</span><small>秋日旅程</small></div>' +
-      content + '<section class="v46-tools"><h3>🧸 我的旅行百寶袋・固定 11 項</h3>' + menu + '</section>' +
+      content + '<details class="v46-tools"' + (target.v46AllToolsExpanded ? ' open' : '') +
+      ' ontoggle="window.v46AllToolsExpanded=this.open">' +
+      '<summary class="v46-tools-summary"><span>🎒 我的旅行百寶袋 <small>・11 項功能</small></span>' +
+      '<span class="v46-tools-caret" aria-hidden="true">⌄</span></summary>' +
+      '<div class="v46-tools-content">' + menu + '</div></details>' +
       '<div class="v38-widget-row">' + (collections || '') + '</div>' + weatherDetail +
       '<details class="v46-legacy-tool"><summary>舊版日期測試工具</summary>' + simulator + '</details>' +
       '</div>';
