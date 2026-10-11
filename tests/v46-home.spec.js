@@ -180,7 +180,7 @@ test('V4.1: all phase heroes use actual in-app illustration instead of old mount
   for (const phase of ['before','during','after']) {
     await page.evaluate(p => window.setV46HomePreview(p), phase);
     const hero=page.locator('#v37HomeDashboard #liveTravelCard');
-    await expect(hero.locator('svg.v46-mascot-art')).toHaveCount(1);
+    await expect(hero.locator('.v46-watercolor-illustration')).toHaveCount(1);
     await expect(hero.locator('img[src="13972.png"]')).toHaveCount(0);
   }
 });
@@ -193,7 +193,7 @@ test('V4.1 visual evidence: capture all three mobile phases for human review', a
   for (const mode of ['before','during','after']) {
     await page.evaluate(p => window.setV46HomePreview(p), mode);
     await expect(page.locator('#v37HomeDashboard .v46-home')).toHaveAttribute('data-v46-mode',mode);
-    await expect(page.locator('#liveTravelCard svg.v46-mascot-art')).toHaveCount(1);
+    await expect(page.locator('#liveTravelCard .v46-watercolor-illustration')).toHaveCount(1);
     await page.evaluate(() => window.scrollTo(0, 0));
     const png=await page.screenshot({animations:'disabled',fullPage:false});
     await testInfo.attach('v46-' + mode + '-mobile-390px', {body:png,contentType:'image/png'});
@@ -215,5 +215,21 @@ test('V4.1: all eleven functions are collapsed by default and open on demand', a
     await expect(bag.locator('.v45-nine-card').first()).toBeVisible();
     await bag.locator('summary').click();
     await expect(bag.locator('.v45-nine-card').first()).toBeHidden();
+  }
+});
+
+test('V46: illustrated rail only during travel with five real day buttons', async ({ page }) => {
+  await bootApp(page);
+  for (const mode of ['before','during','after']) {
+    await page.evaluate(m => window.setV46HomePreview(m), mode);
+    const train=page.locator('#v37HomeDashboard .v46-train-world');
+    await expect(train).toHaveCount(mode==='during'?1:0);
+    if (mode==='during') {
+      const days=page.locator('#v37HomeDashboard button.v46-day');
+      await expect(days).toHaveCount(5);
+      await days.nth(2).click();
+      await expect(days.nth(2)).toHaveAttribute('aria-pressed','true');
+      await expect(train.locator('.v46-train-art')).toHaveCount(1);
+    }
   }
 });
