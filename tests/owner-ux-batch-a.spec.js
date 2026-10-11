@@ -1,6 +1,15 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
 import { bootApp } from './helpers/boot.js';
+// In V46 the eleven canonical navigation entries are intentionally collapsed.
+// Open the bag before testing interaction; the dedicated V46 suite checks default state.
+async function openTravelBag(page) {
+  const bag=page.locator('#v37HomeDashboard details.v46-tools');
+  if (await bag.count() && !(await bag.evaluate(el => el.open))) {
+    await bag.locator('summary').click();
+  }
+}
+
 
 const firebaseWritesByPage = new WeakMap();
 const firebaseWriteMethods = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
@@ -28,6 +37,7 @@ test.describe('BUSAN.11 V45 — Owner UX Batch A', () => {
     await expect(page.locator('#liveTravelCard')).toBeVisible();
     await expect(page.locator('#v37HomeDashboard')).toContainText('LIVE TRAVEL CARD');
     await expect(page.locator('#v37HomeDashboard')).toContainText('楓況');
+    await openTravelBag(page);
     await expect(page.locator('#homeHighFrequencyTitle')).toContainText('旅行中高頻');
     await expect(page.locator('#homeManagementTitle')).toContainText('旅行管理');
 
@@ -67,6 +77,7 @@ test.describe('BUSAN.11 V45 — Owner UX Batch A', () => {
 
   test('supermarket is discoverable from Home without changing the 6 convenience portals', async ({ page }) => {
     await bootApp(page);
+    await openTravelBag(page);
     await page.locator('.v45-nine-card').filter({ hasText: '超商・超市' }).click();
     await expect(page.locator('#shop')).toHaveClass(/active/);
     await expect(page.locator('#shopConvenienceContainer')).toBeVisible();
@@ -110,6 +121,7 @@ test.describe('BUSAN.11 V45 — Owner UX Batch A', () => {
     await expect(page.locator('#tab-more')).toHaveClass(/active/);
 
     await page.evaluate(() => window.showV37Tab('home'));
+    await openTravelBag(page);
     await page.locator('.v45-nine-card').filter({ hasText: '行前準備' }).click();
     await expect(page.locator('#wallet')).toHaveClass(/active/);
     await expect(page.locator('#walletDocSection')).toBeVisible();
