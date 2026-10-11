@@ -63,7 +63,11 @@
     '<h2>' + esc(title) + '</h2><p class="v46-hero-subtitle">' + esc(subtitle) + '</p>' +
     slot + '<button type="button" class="v46-hero-link home-nav-button" aria-label="開啟' +
     esc(actionLabel) + '" onclick="' + action + '">' + esc(actionLabel) +
-    ' ›</button></div>' + mascotArt(model.mode) + '</section>';
+    ' ›</button></div>' +
+    '<div class="v46-watercolor-illustration v46-watercolor-' + model.mode +
+    '" role="img" aria-label="' + esc(model.mode === 'before' ? '哆啦A夢與旅伴整理行李準備出發' :
+    model.mode === 'during' ? '哆啦A夢和朋友在釜山海岸列車旅行' :
+    '哆啦A夢與旅伴用相機回顧釜山旅程') + '"></div></section>';
   const phases = model => '<nav class="v46-phase-nav" aria-label="旅行階段">' +
     phaseButton('before', '🧳 出發前', model.mode) +
     phaseButton('during', '🚞 旅途中', model.mode) +
