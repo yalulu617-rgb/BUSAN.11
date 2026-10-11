@@ -415,3 +415,69 @@
 [data-theme="dark"] #v37HomeDashboard .v46-home details.v46-tools{background:#263b46;border-color:#678da2}
 [data-theme="dark"] #v37HomeDashboard .v46-home .v46-tools-summary{color:#eaf4f5}
 @media(prefers-reduced-motion:reduce){#v37HomeDashboard .v46-home .v46-tools-caret{transition:none}}
+
+
+/* Illustrated Haeundae rail timeline: warm, bright, touchable and motion-safe. */
+#v37HomeDashboard .v46-home .v46-train-world{
+  height:118px;position:relative;overflow:hidden;margin:2px 2px 0;
+  background:linear-gradient(180deg,#e2f1f3,#fff4de);border-radius:15px;
+  border:1px solid rgba(98,142,157,.29);isolation:isolate;
+}
+#v37HomeDashboard .v46-home .v46-railway-scene{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+}
+#v37HomeDashboard .v46-home .v46-train-position{
+  position:absolute;bottom:11px;left:var(--v46-train-left,10%);width:82px;height:64px;
+  transform:translateX(-50%);z-index:2;
+  transition:left .58s cubic-bezier(.24,.84,.3,1.03);
+}
+#v37HomeDashboard .v46-home .v46-train-bob{
+  display:block;width:100%;height:100%;animation:v46-rail-bob 2.4s ease-in-out infinite;
+}
+#v37HomeDashboard .v46-home .v46-train-art {width:100%;height:100%;overflow:visible;filter:drop-shadow(0 3px 2px #30587533);}
+#v37HomeDashboard .v46-home .v46-days{
+  display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin:0 1px;padding:5px 0 9px;
+  overflow:visible;min-width:0;
+}
+#v37HomeDashboard .v46-home .v46-day{
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;
+  min-width:0;min-height:100px;flex:auto;padding:6px 2px 7px;
+  border:1.3px solid #d6c8b0;background:#fffaf1;color:#416176;
+  border-radius:13px;box-shadow:0 3px 0 rgba(95,117,115,.08);
+}
+#v37HomeDashboard .v46-home .v46-day.is-current{
+  background:#ffebbd;border-color:#daab68;box-shadow:0 3px 0 #f0cc974d;
+}
+#v37HomeDashboard .v46-home .v46-station-mark{
+  display:grid;place-items:center;font-size:1.3rem;width:30px;height:27px;
+  background:radial-gradient(circle,#fffdfa,#fff4d9);border-radius:10px;
+  line-height:1;
+}
+#v37HomeDashboard .v46-home .v46-day strong{font-size:.73rem;font-weight:920;}
+#v37HomeDashboard .v46-home .v46-day small{font-size:.68rem;font-weight:760;line-height:1.15;}
+#v37HomeDashboard .v46-home .v46-day .v46-station-name{font-size:.61rem;line-height:1.2;white-space:normal;word-break:keep-all;}
+#v37HomeDashboard .v46-home .v46-train-world + .v46-days{margin-top:-1px;}
+#v37HomeDashboard .v46-home .v46-day:focus-visible{
+  outline:3px solid #4387a3;outline-offset:2px;
+}
+@keyframes v46-rail-bob{
+  0%,100%{transform:translateY(0) rotate(-.4deg)}
+  45%{transform:translateY(-3px) rotate(.3deg)}
+}
+@media(min-width:740px){
+  #v37HomeDashboard .v46-home .v46-train-world{height:136px;}
+  #v37HomeDashboard .v46-home .v46-train-position{width:104px;height:78px;}
+  #v37HomeDashboard .v46-home .v46-day{min-height:90px;}
+}
+@media(max-width:360px){
+  #v37HomeDashboard .v46-home .v46-train-world{height:109px;}
+  #v37HomeDashboard .v46-home .v46-train-position{width:72px;height:59px;}
+  #v37HomeDashboard .v46-home .v46-days{gap:3px;}
+  #v37HomeDashboard .v46-home .v46-day{padding:5px 1px;min-height:104px;}
+  #v37HomeDashboard .v46-home .v46-station-mark{font-size:1.12rem;width:26px;height:26px;}
+  #v37HomeDashboard .v46-home .v46-day .v46-station-name{font-size:.56rem;}
+}
+@media(prefers-reduced-motion:reduce){
+  #v37HomeDashboard .v46-home .v46-train-position{transition:none!important;}
+  #v37HomeDashboard .v46-home .v46-train-bob{animation:none!important;}
+}
