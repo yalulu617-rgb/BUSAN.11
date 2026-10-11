@@ -5,6 +5,15 @@
 // ──────────────────────────────────────────────────────────────────────────
 import { test, expect } from '@playwright/test';
 import { bootApp } from './helpers/boot.js';
+// In V46 the eleven canonical navigation entries are intentionally collapsed.
+// Open the bag before testing interaction; the dedicated V46 suite checks default state.
+async function openTravelBag(page) {
+  const bag=page.locator('#v37HomeDashboard details.v46-tools');
+  if (await bag.count() && !(await bag.evaluate(el => el.open))) {
+    await bag.locator('summary').click();
+  }
+}
+
 
 test.describe('BATCH 3 - Rain Plan Toggle', () => {
   test('Weather toggle buttons exist in itinerary tab', async ({ page }) => {
@@ -286,6 +295,7 @@ test.describe('BATCH 3 - Consolidated Navigation (Tokyo/Fuji Style)', () => {
     await bootApp(page);
     await page.evaluate(() => window.showV37Tab('home'));
     await page.waitForSelector('.v45-nine-grid', { timeout: 10000 });
+    await openTravelBag(page);
     const cards = page.locator('.v45-nine-card');
     expect(await cards.count()).toBe(11);
     
@@ -307,6 +317,7 @@ test.describe('BATCH 3 - Consolidated Navigation (Tokyo/Fuji Style)', () => {
     await bootApp(page);
     await page.evaluate(() => window.showV37Tab('home'));
     await page.waitForSelector('.v45-nine-grid', { timeout: 10000 });
+    await openTravelBag(page);
     
     // Click on 韓國超商 card
     await page.evaluate(() => {
