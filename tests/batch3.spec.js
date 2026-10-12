@@ -294,8 +294,9 @@ test.describe('BATCH 3 - Consolidated Navigation (Tokyo/Fuji Style)', () => {
   test('Home dashboard exposes the 11 traveler-model feature cards', async ({ page }) => {
     await bootApp(page);
     await page.evaluate(() => window.showV37Tab('home'));
-    await page.waitForSelector('.v45-nine-grid', { timeout: 10000 });
     await openTravelBag(page);
+    await expect(page.locator('#v37HomeDashboard details.v46-tools')).toHaveAttribute('open', '');
+    await expect(page.locator('#v37HomeDashboard .v45-nine-grid').first()).toBeVisible();
     const cards = page.locator('.v45-nine-card');
     expect(await cards.count()).toBe(11);
     
@@ -316,14 +317,14 @@ test.describe('BATCH 3 - Consolidated Navigation (Tokyo/Fuji Style)', () => {
   test('Home 超商・超市 card directly opens 6 functional portals in shop tab', async ({ page }) => {
     await bootApp(page);
     await page.evaluate(() => window.showV37Tab('home'));
-    await page.waitForSelector('.v45-nine-grid', { timeout: 10000 });
     await openTravelBag(page);
+    await expect(page.locator('#v37HomeDashboard details.v46-tools')).toHaveAttribute('open', '');
+    await expect(page.locator('#v37HomeDashboard .v45-nine-grid').first()).toBeVisible();
     
-    // Click on 韓國超商 card
-    await page.evaluate(() => {
-      window.showV37Tab('shop');
-      window.setShopTabMode('convenience');
-    });
+    // Navigate through the canonical V46 expanded shopping entry, not a bypass.
+    const convenienceCard = page.locator('#v37HomeDashboard .v45-nine-card').filter({ hasText: '超商・超市' });
+    await expect(convenienceCard).toBeVisible();
+    await convenienceCard.click();
     await page.waitForSelector('#sConvenienceList', { timeout: 5000 });
     const content = await page.evaluate(() => document.getElementById('sConvenienceList')?.textContent || '');
     expect(content).toContain('優惠怎麼看');
