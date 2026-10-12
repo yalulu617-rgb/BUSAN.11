@@ -306,3 +306,15 @@ test('V46 release gate: auto mode restores Korea-local day after manual train pr
   const expectedDay = state.model.naturalMode === 'during' ? state.model.today : '2026-11-13';
   expect(state.model.selectedDay).toBe(expectedDay);
 });
+
+
+test('V46 release safety: CI browser never initializes real Firebase', async ({ page }) => {
+  if (process.env.BUSAN_CI_FIREBASE_ISOLATED !== '1') test.skip();
+  await bootApp(page);
+  const result=await page.evaluate(() => ({
+    firebaseAppCount:Array.isArray(window.firebase?.apps) ? window.firebase.apps.length : 0,
+    networkDbAttached:Boolean(window.NetworkEngine?._db)
+  }));
+  expect(result.firebaseAppCount).toBe(0);
+  expect(result.networkDbAttached).toBe(false);
+});

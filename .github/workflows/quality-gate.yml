@@ -155,6 +155,7 @@ jobs:
         run: npx playwright test --project=${{ matrix.project }} ${{ matrix.workers }} --reporter=html,list
         env:
           PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
+          BUSAN_CI_FIREBASE_ISOLATED: '1'
           CI: true
           PLAYWRIGHT_HTML_OPEN: never
 
@@ -207,6 +208,7 @@ jobs:
         run: npx playwright test tests/accessibility.spec.js tests/ux.spec.js tests/travel.spec.js tests/critical.spec.js --project=chromium --reporter=html,list
         env:
           PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
+          BUSAN_CI_FIREBASE_ISOLATED: '1'
           PLAYWRIGHT_HTML_OPEN: never
           CI: true
 
