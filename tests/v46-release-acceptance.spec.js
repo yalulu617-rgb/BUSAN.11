@@ -224,16 +224,24 @@ test('V46 offline: cache includes new artwork, travel shell, and remains usable 
     });
     expect(offlineAsset.ok).toBe(true);
     expect(offlineAsset.bytes).toBeGreaterThan(1000);
-    // navigator.onLine is not a reliable assertion under Playwright mobile emulation.
-    // A real uncached JS resource MUST fail network-first with 503 while offline.
-    // It would return 200 if the browser could actually reach the local server.
+    // navigator.onLine is not reliable under browser emulation. Probe a same-origin
+    // JS resource that was NOT precached: online it is 200; offline the SW may
+    // return 503, or Firefox may reject fetch with a network TypeError outright.
     const sentinel=await page.evaluate(async()=>{
-      const response=await fetch('tests/v46-release-acceptance.spec.js?ci-network-probe='+Date.now(), {
-        cache:'no-store'
-      });
-      return {status:response.status};
+      try {
+        const response=await fetch('tests/v46-release-acceptance.spec.js?ci-network-probe='+Date.now(), {
+          cache:'no-store'
+        });
+        return {status:response.status,errorName:null};
+      }catch(error){
+        return {status:null,errorName:String(error?.name || '')};
+      }
     });
-    expect(sentinel.status).toBe(503);
+    expect(
+      sentinel.status===503 ||
+      (sentinel.status===null && ['TypeError','NetworkError'].includes(sentinel.errorName)),
+      'An uncached resource must be unreachable while offline: '+JSON.stringify(sentinel)
+    ).toBe(true);
   }finally {
     await context.setOffline(false);
   }
