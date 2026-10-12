@@ -233,3 +233,26 @@ test('V46: illustrated rail only during travel with five real day buttons', asyn
     }
   }
 });
+
+
+test('V46: approved two-paw illustration is a real WebP asset rendered on travel hero', async ({ page }) => {
+  const art = readFileSync(new URL('../assets/images/v46-during-characters.webp', import.meta.url));
+  expect(art.subarray(0,4).toString('ascii')).toBe('RIFF');
+  expect(art.subarray(8,12).toString('ascii')).toBe('WEBP');
+
+  await bootApp(page);
+  await page.evaluate(() => window.setV46HomePreview('during'));
+  const heroArt = page.locator('#v37HomeDashboard .v46-watercolor-during');
+  await expect(heroArt).toHaveCount(1);
+  const result = await heroArt.evaluate(async node => {
+    const style = getComputedStyle(node);
+    const url = style.backgroundImage;
+    const base64 = url.match(/base64,([^"')]+)/)?.[1];
+    if (!base64) return {source:false,decoded:false};
+    const img = new Image();
+    img.src = 'data:image/webp;base64,' + base64;
+    try { await img.decode(); return {source:true,decoded:true,width:img.naturalWidth,height:img.naturalHeight}; }
+    catch { return {source:true,decoded:false}; }
+  });
+  expect(result).toEqual({source:true,decoded:true,width:155,height:125});
+});
