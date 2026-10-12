@@ -51,7 +51,8 @@
     const previewMode = ['before', 'during', 'after'].includes(data.previewMode) ? data.previewMode : 'auto';
     const mode = previewMode === 'auto' ? naturalMode : previewMode;
     const defaultDay = naturalMode === 'during' ? today : START;
-    const selectedDay = LABELS.some(d => d.iso === data.previewDay) ? data.previewDay : defaultDay;
+    const selectedDay = previewMode !== 'auto' && LABELS.some(d => d.iso === data.previewDay)
+      ? data.previewDay : defaultDay;
     const packing = Array.isArray(data.packing) ? data.packing : [];
     const prepDone = packing.filter(p => p.done).length;
     const ctx = data.context || {};

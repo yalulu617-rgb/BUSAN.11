@@ -278,3 +278,29 @@ test('V46 integration: preview and collapsible menu never overwrite existing per
   });
   expect(after).toEqual(before);
 });
+
+
+test('V46 release gate: auto mode restores Korea-local day after manual train preview', async ({ page }) => {
+  const e=engine();
+  const stale=e.createModel({
+    now:new Date('2026-11-15T06:00:00Z'), previewMode:'auto', previewDay:'2026-11-14'
+  });
+  expect(stale.today).toBe('2026-11-15');
+  expect(stale.selectedDay).toBe('2026-11-15');
+
+  await bootApp(page);
+  await page.evaluate(() => {
+    window.setV46HomePreview('during');
+    window.setV46HomeDay('2026-11-16');
+  });
+  await expect(page.locator('#v37HomeDashboard .v46-day[aria-pressed="true"]')).toContainText('Day 4');
+  await page.evaluate(() => window.setV46HomePreview('auto'));
+  const state=await page.evaluate(() => ({
+    previewMode:window.v46HomePreviewMode, previewDay:window.v46HomePreviewDay,
+    model:window.getTripContext()?.v46Home
+  }));
+  expect(state.previewMode).toBe('auto');
+  expect(state.previewDay).toBe(null);
+  expect(state.model.mode).toBe(state.model.naturalMode);
+  expect(state.model.selectedDay).toBe('2026-11-13'); // before trip, default day.
+});
