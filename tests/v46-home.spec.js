@@ -256,3 +256,25 @@ test('V46: approved two-paw illustration is a real WebP asset rendered on travel
   });
   expect(result).toEqual({source:true,decoded:true,width:155,height:125});
 });
+
+
+test('V46 integration: preview and collapsible menu never overwrite existing personal storage', async ({ page }) => {
+  await bootApp(page);
+  const before=await page.evaluate(() => {
+    const keys=['busan_v36_shopList','busan_v36_p_bills','busan_v36_tickets','busan_v36_photos'];
+    return Object.fromEntries(keys.map(k=>[k,localStorage.getItem(k)]));
+  });
+  for(const phase of ['before','during','after']) {
+    await page.evaluate(p=>window.setV46HomePreview(p),phase);
+    const bag=page.locator('#v37HomeDashboard details.v46-tools');
+    await bag.locator('summary').click();
+    await expect(bag).toHaveAttribute('open','');
+    await bag.locator('summary').click();
+    await expect(bag).not.toHaveAttribute('open','');
+  }
+  const after=await page.evaluate(() => {
+    const keys=['busan_v36_shopList','busan_v36_p_bills','busan_v36_tickets','busan_v36_photos'];
+    return Object.fromEntries(keys.map(k=>[k,localStorage.getItem(k)]));
+  });
+  expect(after).toEqual(before);
+});

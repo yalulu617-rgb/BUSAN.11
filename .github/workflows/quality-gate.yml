@@ -23,15 +23,15 @@ jobs:
   # ─────────────────────────────────────────────────────
   static-validation:
     name: 🔍 Static Validation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Validate JS syntax (all 21 modules)
         run: |
@@ -89,6 +89,8 @@ jobs:
           test -f manifest.json && echo "✅ manifest.json exists"
           test -f icon.png && echo "✅ icon.png exists"
           test -f 13972.png && echo "✅ 13972.png (Doraemon hero) exists"
+          test -f assets/images/v46-watercolor-hero-atlas.webp && echo "✅ V46 watercolor art exists"
+          test -f assets/images/v46-during-characters.webp && echo "✅ V46 corrected train artwork exists"
 
       - name: Verify UNSAFE venues removed from itinerary
         run: |
@@ -111,7 +113,7 @@ jobs:
   e2e-tests:
     name: 🎭 E2E Browser Tests (${{ matrix.project }})
     needs: static-validation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -125,12 +127,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
 
       - name: Install dependencies
@@ -153,9 +155,10 @@ jobs:
         env:
           PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
           CI: true
+          PLAYWRIGHT_HTML_OPEN: never
 
       - name: Upload test report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: playwright-report-${{ matrix.project }}
@@ -163,7 +166,7 @@ jobs:
           retention-days: 14
 
       - name: Upload test screenshots (failures only)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: failure()
         with:
           name: playwright-screenshots-${{ matrix.project }}
@@ -176,15 +179,15 @@ jobs:
   accessibility-ux-travel:
     name: ♿ UX, Travel Data & Accessibility
     needs: static-validation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
 
       - name: Install dependencies
@@ -200,12 +203,14 @@ jobs:
           sleep 3
 
       - name: Run Accessibility, UX & Travel tests
-        run: npx playwright test tests/accessibility.spec.js tests/ux.spec.js tests/travel.spec.js tests/critical.spec.js --project=chromium --reporter=list
+        run: npx playwright test tests/accessibility.spec.js tests/ux.spec.js tests/travel.spec.js tests/critical.spec.js --project=chromium --reporter=html,list
         env:
           PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
+          PLAYWRIGHT_HTML_OPEN: never
+          CI: true
 
       - name: Upload reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: accessibility-ux-report
@@ -218,7 +223,7 @@ jobs:
   deploy:
     name: 🚀 Deploy to GitHub Pages
     needs: [static-validation, e2e-tests, accessibility-ux-travel]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     environment:
       name: github-pages
@@ -226,22 +231,22 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup GitHub Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v5
 
       - name: Stamp deployed release metadata
         run: node scripts/stamp-release.mjs "$GITHUB_SHA"
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: '.'
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
       - name: Install production verification dependencies
         run: |
