@@ -145,6 +145,44 @@ test('V46 legacy data: shopping owners, bought marks, tickets, photos, bills and
   expect(upload.handler).toContain("uploadMultipleToImgBB(this.files, 'photo')");
 });
 
+
+// Test the actual multiple-file upload loop while replacing only the external ImgBB API.
+// The Firebase write destination is the CI-only in-memory database.
+test('V46 existing album: two images upload as distinct records without replacing existing photos', async ({ page }) => {
+  await page.evaluate(async () => {
+    if (!window.NetworkEngine?._db?.__testOnly) throw new Error('Unsafe test database');
+    await window.NetworkEngine._db.ref(window.DB_PHOTOS).set({
+      existing: {url:'https://example.org/existing.webp',date:'11/13',desc:'原有相簿紀錄'}
+    });
+  });
+  await page.waitForFunction(()=>window.photoList?.length===1);
+  const state=await page.evaluate(async()=>{
+    const png='iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGP8vy2RgYGBiYGBgYGBAQAZ0AIaFSfNtAAAAABJRU5ErkJggg==';
+    const bytes=Uint8Array.from(atob(png),c=>c.charCodeAt(0));
+    const files=[
+      new File([bytes],'test-one.png',{type:'image/png'}),
+      new File([bytes],'test-two.png',{type:'image/png'})
+    ];
+    let uploadIndex=0;
+    window.NetworkEngine.uploadImage=async()=>({
+      success:true,data:{url:'https://example.org/ci-image-'+ ++uploadIndex+'.webp'}
+    });
+    await window.uploadMultipleToImgBB(files,'photo');
+    const snap=await window.NetworkEngine._db.ref(window.DB_PHOTOS).once('value');
+    return {
+      uploadStatus:document.getElementById('photoUploadStatus').textContent,
+      records:Object.values(snap.val()||{}),
+      calls:uploadIndex
+    };
+  });
+  expect(state.calls).toBe(2);
+  expect(state.uploadStatus).toContain('成功 2/2');
+  expect(state.records).toHaveLength(3);
+  expect(state.records.some(x=>x.desc==='原有相簿紀錄')).toBe(true);
+  expect(state.records.filter(x=>/^https:\/\/example\.org\/ci-image-[12]\.webp$/.test(x.url))).toHaveLength(2);
+  await page.waitForFunction(()=>window.photoList?.length===3);
+});
+
 test('V46 offline: cache includes new artwork, travel shell, and remains usable without network', async ({ page, context, browserName }) => {
   await page.evaluate(async()=>{await navigator.serviceWorker.ready;});
   await page.waitForFunction(()=>Boolean(navigator.serviceWorker.controller),null,{timeout:15000});
@@ -160,12 +198,14 @@ test('V46 offline: cache includes new artwork, travel shell, and remains usable 
     return {active:Boolean(r.active),cacheName,missing:(await Promise.all(
       expected.map(async path=>(await cache.match(path)) ? null : path))).filter(Boolean),
       controlled:Boolean(navigator.serviceWorker.controller),
-      installSkipsWaiting:/self\.addEventListener\('install'[\s\S]*?self\.skipWaiting\(\)/.test(source)
+      installSkipsWaiting:(source.match(/self\.addEventListener\('install'[\s\S]*?\n\}\);/)||[''])[0].includes('self.skipWaiting()'),
+      manualUpdateEnabled:source.includes("event.data.action === 'skipWaiting'")
     };
   });
   expect(cacheResult.active).toBe(true);
   expect(cacheResult.missing).toEqual([]);
   expect(cacheResult.installSkipsWaiting).toBe(false);
+  expect(cacheResult.manualUpdateEnabled).toBe(true);
   if(browserName==='webkit') {
     // Playwright/Linux WebKit is unable to commit offline top-level navigations.
     // The warm cache and controlled-update policy are tested above; true offline
