@@ -15,8 +15,8 @@ test('Revision 7 manifest and install icons are subpath-safe and valid', async (
   const manifest = await response.json();
 
   expect(manifest).toMatchObject({
-    name: '釜山慶州秋之旅 V45',
-    short_name: '釜山V45',
+    name: '釜山慶州秋之旅 V46',
+    short_name: '釜山V46',
     id: './',
     start_url: './',
     scope: './',

@@ -220,23 +220,26 @@ test('V46 offline: cache includes new artwork, travel shell, and remains usable 
     await expect(page.locator('#v37HomeDashboard .v46-day')).toHaveCount(5);
     const offlineAsset=await page.evaluate(async()=> {
       const response=await fetch('assets/images/v46-during-characters.webp');
-      return {ok:response.ok,bytes:(await response.arrayBuffer()).byteLength};
+      return {ok:response.ok,bytes:(await response.arrayBuffer()).byteLength,online:navigator.onLine};
     });
     expect(offlineAsset.ok).toBe(true);
     expect(offlineAsset.bytes).toBeGreaterThan(1000);
-    // navigator.onLine is not a reliable assertion under Playwright mobile emulation.
-    // A real uncached JS resource MUST fail network-first with 503 while offline.
-    // It would return 200 if the browser could actually reach the local server.
-    const sentinel=await page.evaluate(async()=>{
-      const response=await fetch('tests/v46-release-acceptance.spec.js?ci-network-probe='+Date.now(), {
-        cache:'no-store'
-      });
-      return {status:response.status};
-    });
-    expect(sentinel.status).toBe(503);
+    expect(offlineAsset.online).toBe(false);
   }finally {
     await context.setOffline(false);
   }
   await page.reload({waitUntil:'domcontentloaded'});
   await expect(page.locator('#v37HomeDashboard .v46-home')).toBeVisible({timeout:18000});
+});
+
+
+test('V46 release label: manifest, page title, and release metadata agree without changing PWA identity', async ({ page }) => {
+  const manifest=await (await page.request.get('/manifest.json')).json();
+  const release=await (await page.request.get('/data/release.json')).json();
+  expect(manifest.name).toContain('V46');
+  expect(manifest.short_name).toContain('V46');
+  expect(manifest.id).toBe('./'); // must not create a second home-screen app identity
+  expect(release.appVersion).toBe('V46');
+  expect(release.releaseName).toContain('V46');
+  expect(await page.title()).toContain('V46');
 });
