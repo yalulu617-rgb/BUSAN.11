@@ -220,11 +220,20 @@ test('V46 offline: cache includes new artwork, travel shell, and remains usable 
     await expect(page.locator('#v37HomeDashboard .v46-day')).toHaveCount(5);
     const offlineAsset=await page.evaluate(async()=> {
       const response=await fetch('assets/images/v46-during-characters.webp');
-      return {ok:response.ok,bytes:(await response.arrayBuffer()).byteLength,online:navigator.onLine};
+      return {ok:response.ok,bytes:(await response.arrayBuffer()).byteLength};
     });
     expect(offlineAsset.ok).toBe(true);
     expect(offlineAsset.bytes).toBeGreaterThan(1000);
-    expect(offlineAsset.online).toBe(false);
+    // navigator.onLine is not a reliable assertion under Playwright mobile emulation.
+    // A real uncached JS resource MUST fail network-first with 503 while offline.
+    // It would return 200 if the browser could actually reach the local server.
+    const sentinel=await page.evaluate(async()=>{
+      const response=await fetch('tests/v46-release-acceptance.spec.js?ci-network-probe='+Date.now(), {
+        cache:'no-store'
+      });
+      return {status:response.status};
+    });
+    expect(sentinel.status).toBe(503);
   }finally {
     await context.setOffline(false);
   }
