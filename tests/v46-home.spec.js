@@ -302,5 +302,7 @@ test('V46 release gate: auto mode restores Korea-local day after manual train pr
   expect(state.previewMode).toBe('auto');
   expect(state.previewDay).toBe(null);
   expect(state.model.mode).toBe(state.model.naturalMode);
-  expect(state.model.selectedDay).toBe('2026-11-13'); // before trip, default day.
+  // Date-independent: the same test must pass before, during and after November travel.
+  const expectedDay = state.model.naturalMode === 'during' ? state.model.today : '2026-11-13';
+  expect(state.model.selectedDay).toBe(expectedDay);
 });
