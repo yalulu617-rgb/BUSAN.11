@@ -176,6 +176,74 @@ jobs:
           retention-days: 14
 
   # ─────────────────────────────────────────────────────
+  # JOB 3: V46 mobile/tablet & offline release acceptance (CI-only fixtures)
+  # ─────────────────────────────────────────────────────
+  v46-mobile-acceptance:
+    name: 📱 V46 Acceptance (${{ matrix.device }})
+    needs: static-validation
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - device: android-360
+            project: mobile-chrome
+            browser: chromium
+            width: 360
+            height: 780
+          - device: android-390
+            project: mobile-chrome
+            browser: chromium
+            width: 390
+            height: 844
+          - device: iphone-safari-390
+            project: mobile-safari
+            browser: webkit
+            width: 390
+            height: 844
+          - device: ipad-webkit-834
+            project: tablet
+            browser: webkit
+            width: 834
+            height: 1112
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright browser (${{ matrix.browser }})
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Start isolated HTTP test server
+        run: |
+          npm install -g serve
+          serve -s . -l 8080 &
+          sleep 3
+          curl -f http://localhost:8080/ >/dev/null
+      - name: Run V46 mobile, legacy-data and offline acceptance
+        run: npx playwright test tests/v46-release-acceptance.spec.js --project=${{ matrix.project }} --workers=1 --reporter=html,list
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
+          BUSAN_CI_FIREBASE_ISOLATED: '1'
+          CI: true
+          PLAYWRIGHT_HTML_OPEN: never
+          V46_QA_WIDTH: ${{ matrix.width }}
+          V46_QA_HEIGHT: ${{ matrix.height }}
+      - name: Save real browser screenshots and HTML report
+        uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: v46-mobile-acceptance-${{ matrix.device }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
+
+  # ─────────────────────────────────────────────────────
   # JOB 3: Accessibility, UX & Travel Data Checks
   # ─────────────────────────────────────────────────────
   accessibility-ux-travel:
@@ -225,7 +293,7 @@ jobs:
   # ─────────────────────────────────────────────────────
   deploy:
     name: 🚀 Deploy to GitHub Pages
-    needs: [static-validation, e2e-tests, accessibility-ux-travel]
+    needs: [static-validation, e2e-tests, accessibility-ux-travel, v46-mobile-acceptance]
     runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     environment:
