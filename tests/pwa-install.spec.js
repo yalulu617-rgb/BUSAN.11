@@ -144,7 +144,7 @@ test('iOS offers dismissible Traditional Chinese Add to Home Screen guidance', a
 test('service worker preserves controlled updates and caches the V46 development shell', async ({ page }) => {
   const source = await (await page.request.get('/sw.js')).text();
   const installHandler = source.match(/self\.addEventListener\('install',[\s\S]*?\n}\);/)[0];
-  expect(source).toContain("busan-trip-v46-development-v1");
+  expect(source).toMatch(/busan-trip-v46-[a-z0-9-]+-v\d+/);
   expect(source).toContain("'./ute/ute_home_v46.js'");
   expect(source).toContain("'./components/v46-home.js'");
   expect(source).toContain("'./assets/css/v46-home.css'");

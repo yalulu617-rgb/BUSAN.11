@@ -381,19 +381,20 @@ test.describe('BATCH 3 - Owner Visual Corrections', () => {
     await bootApp(page);
     await page.evaluate(() => window.showV37Tab('home'));
     await page.waitForSelector('#v37HomeDashboard', { timeout: 5000 });
-    await page.waitForFunction(() => {
-      const text = document.getElementById('v37HomeDashboard')?.textContent || '';
-      return text.includes('K-ETA：本次免申請')
-        && text.includes('2026/12/31')
-        && text.includes('e-Arrival Card')
-        && text.includes('Q-CODE：Q4出發前RECHECK');
-    }, null, { timeout: 10000 });
-    const text = await page.evaluate(() => document.getElementById('v37HomeDashboard')?.textContent || '');
+    // V46 correctly uses a compact reminder on Home; the detailed
+    // immigration rules are still available from the canonical Wallet docs.
+    await expect(page.locator('#liveTravelCard')).toBeVisible();
+    const text = await page.locator('#v37HomeDashboard').innerText();
+    expect(text).toContain('韓國入境申報核對');
     expect(text).not.toContain('待辦：K-ETA');
-    expect(text).toContain('K-ETA：本次免申請');
-    expect(text).toContain('2026/12/31');
-    expect(text).toContain('e-Arrival Card');
-    expect(text).toContain('Q-CODE：Q4出發前RECHECK');
+    await page.evaluate(() => {
+      window.showV37Tab('wallet');
+      window.switchWalletTab('doc');
+    });
+    const docs=await page.locator('#walletDocSection').innerText();
+    expect(docs).toContain('2026/12/31');
+    expect(docs).toContain('e-Arrival');
+    expect(docs).toContain('Q-CODE');
     expect(text).not.toContain('72 小時申請 K-ETA');
     expect(text).not.toContain('請務必申請 K-ETA');
     expect(text).not.toContain('Q-Code 必填');

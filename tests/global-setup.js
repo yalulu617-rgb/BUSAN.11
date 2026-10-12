@@ -19,14 +19,14 @@ async function globalSetup() {
     }
     const firebasePath = new URL('../js/firebase.js', import.meta.url);
     const original = fs.readFileSync(firebasePath, 'utf8');
-    const initAnchor = '    if (window.firebase) {';
-    if (original.split(initAnchor).length !== 2) {
-      throw new Error('Unexpected Firebase bootstrap shape; cannot safely isolate tests');
+    const initAnchor = '    const firebaseConfig = {';
+    const fixture = fs.readFileSync(new URL('./fixtures/ci-firebase.js', import.meta.url), 'utf8');
+    if (original.split(initAnchor).length !== 2 || !fixture.includes('__ciOnly:true')) {
+      throw new Error('Unexpected Firebase bootstrap or missing isolated fixture; fail closed');
     }
-    fs.writeFileSync(firebasePath,
-      original.replace(initAnchor,
-        '    if (false && window.firebase) { // CI TEST ONLY: disable production DB initialization'));
-    console.log('[Setup] CI Firebase isolation ACTIVE: no database initialization');
+    // CI test runtime gets a process-local in-memory Firebase facade. Original repo JS is never changed.
+    fs.writeFileSync(firebasePath, original.replace(initAnchor, fixture + '\n' + initAnchor));
+    console.log('[Setup] CI Firebase isolation ACTIVE: in-memory database only');
   }
   console.log('[Setup] Test output directories ready.');
 }

@@ -216,7 +216,7 @@
       phases(model) + '<div class="home-live-label"><span>LIVE TRAVEL CARD</span><small>秋日旅程</small></div>' +
       content + '<details class="v46-tools"' + (target.v46AllToolsExpanded ? ' open' : '') +
       ' ontoggle="window.v46AllToolsExpanded=this.open">' +
-      '<summary class="v46-tools-summary"><span>🎒 我的旅行百寶袋 <small>・11 項功能</small></span>' +
+      '<summary class="v46-tools-summary" onclick="window.v46AllToolsExpanded=!this.parentElement.open"><span>🎒 我的旅行百寶袋 <small>・11 項功能</small></span>' +
       '<span class="v46-tools-caret" aria-hidden="true">⌄</span></summary>' +
       '<div class="v46-tools-content">' + menu + '</div></details>' +
       '<div class="v38-widget-row">' + (collections || '') + '</div>' + weatherDetail +

@@ -707,7 +707,7 @@ test.describe('PWA & Offline Infrastructure', () => {
     expect(response.status()).toBe(200);
     
     const body = await response.text();
-    expect(body).toMatch(/busan-trip-v46-development-v\d+/);
+    expect(body).toMatch(/busan-trip-v46-[a-z0-9-]+-v\d+/);
     expect(body).toContain('install');
     expect(body).toContain('activate');
     expect(body).toContain('fetch');

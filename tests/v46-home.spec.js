@@ -313,8 +313,10 @@ test('V46 release safety: CI browser never initializes real Firebase', async ({ 
   await bootApp(page);
   const result=await page.evaluate(() => ({
     firebaseAppCount:Array.isArray(window.firebase?.apps) ? window.firebase.apps.length : 0,
-    networkDbAttached:Boolean(window.NetworkEngine?._db)
+    networkDbAttached:Boolean(window.NetworkEngine?._db),
+    testOnly:Boolean(window.NetworkEngine?._db?.__testOnly && window.firebase?.__ciOnly)
   }));
   expect(result.firebaseAppCount).toBe(0);
-  expect(result.networkDbAttached).toBe(false);
+  expect(result.networkDbAttached).toBe(true);
+  expect(result.testOnly).toBe(true);
 });
