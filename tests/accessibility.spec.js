@@ -30,11 +30,17 @@ test.describe('MOBILE-ZOOM-01', () => {
       await page.setViewportSize({ width, height: 844 });
       const home = page.locator('#v37HomeDashboard .v46-home');
       const bag = page.locator('#v37HomeDashboard details.v46-tools');
+      const openBag = async () => {
+        if (!(await bag.evaluate(node => node.open))) {
+          await bag.locator('summary').click();
+        }
+        await expect(bag).toHaveJSProperty('open', true);
+      };
       for (const phase of ['before', 'during', 'after']) {
         await page.evaluate(value => window.setV46HomePreview(value), phase);
         await expect(home).toHaveAttribute('data-v46-mode', phase);
         await expect(page.locator('#liveTravelCard')).toBeVisible();
-        await bag.locator('summary').click();
+        await openBag();
         await expect(bag.locator('button.v45-nine-card')).toHaveCount(11);
         const geometry = await home.evaluate(node => ({
           viewport: document.documentElement.clientWidth,
@@ -71,10 +77,12 @@ test.describe('MOBILE-ZOOM-01', () => {
       for (const [label, destination] of destinations) {
         await page.locator('#tab-home').click();
         await page.evaluate(() => window.setV46HomePreview('during'));
-        await bag.locator('summary').click();
+        await openBag();
         await enlargeText();
         const card = bag.locator('button.v45-nine-card').filter({ hasText: label });
         await expect(card).toHaveCount(1);
+        await expect(bag).toHaveJSProperty('open', true);
+        await expect(card).toBeVisible();
         await card.click();
         await expect(page.locator(destination)).toBeVisible();
         if (label === '吃喝・景點') {
