@@ -9,6 +9,93 @@ import { test, expect } from '@playwright/test';
 
 import { bootApp } from './helpers/boot.js';
 
+// MOBILE-ZOOM-01 repair regression. Text enlargement is a CSS simulation,
+// not physical-device pinch zoom or an independent release acceptance.
+test.describe('MOBILE-ZOOM-01', () => {
+  test.beforeEach(async ({ page }) => {
+    await bootApp(page);
+    expect(await page.evaluate(() => Boolean(
+      window.firebase?.__ciOnly && window.NetworkEngine?._db?.__testOnly
+    )), 'Zoom regression requires isolated Firebase').toBe(true);
+  });
+
+  test('viewport allows user zoom', async ({ page }) => {
+    const viewport = page.locator('meta[name="viewport"]');
+    await expect(viewport).toHaveCount(1);
+    await expect(viewport).toHaveAttribute('content', 'width=device-width, initial-scale=1.0');
+  });
+
+  for (const width of [320, 360, 390, 430]) {
+    test(`${width}px: three phases reflow and 200% text keeps navigation operable`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 844 });
+      const home = page.locator('#v37HomeDashboard .v46-home');
+      const bag = page.locator('#v37HomeDashboard details.v46-tools');
+      for (const phase of ['before', 'during', 'after']) {
+        await page.evaluate(value => window.setV46HomePreview(value), phase);
+        await expect(home).toHaveAttribute('data-v46-mode', phase);
+        await expect(page.locator('#liveTravelCard')).toBeVisible();
+        await bag.locator('summary').click();
+        await expect(bag.locator('button.v45-nine-card')).toHaveCount(11);
+        const geometry = await home.evaluate(node => ({
+          viewport: document.documentElement.clientWidth,
+          pageWidth: document.documentElement.scrollWidth,
+          clipped: [...node.querySelectorAll('#liveTravelCard, summary, button.v45-nine-card')]
+            .filter(el => {
+              const r = el.getBoundingClientRect();
+              return r.left < -2 || r.right > document.documentElement.clientWidth + 3;
+            }).map(el => el.textContent.trim())
+        }));
+        expect(geometry.pageWidth, `${phase}: horizontal overflow`).toBeLessThanOrEqual(geometry.viewport + 3);
+        expect(geometry.clipped, `${phase}: clipped primary entry`).toEqual([]);
+      }
+
+      // Freeze computed sizes before applying 2x text so descendants are not
+      // multiplied by inherited sizes. Reapply after home rendering replaces nodes.
+      const enlargeText = () => page.evaluate(() => {
+        const nodes = [...document.querySelectorAll('#mainApp, #mainApp *')];
+        const sizes = nodes.filter(el => !el.hasAttribute('data-zoom-regression'))
+          .map(el => [el, parseFloat(getComputedStyle(el).fontSize)]);
+        for (const [el, size] of sizes) {
+          el.style.setProperty('font-size', `${size * 2}px`, 'important');
+          el.setAttribute('data-zoom-regression', '200');
+        }
+      });
+      const destinations = [
+        ['今日行程', '#itinerary.active'], ['天氣・楓況', '#homeWeatherDetailPanel'],
+        ['旅行記帳', '#split.active'], ['吃喝・景點', '#guideDetail'],
+        ['超商・超市', '#shopConvenienceContainer'], ['快樂購', '#shop.active'],
+        ['翻譯・SOS', '#more.active'], ['旅行回憶', '#wallet.active'],
+        ['住宿・交通', '#wallet.active'], ['票券・優惠', '#wallet.active'],
+        ['行前準備', '#prepChecklistCard']
+      ];
+      for (const [label, destination] of destinations) {
+        await page.locator('#tab-home').click();
+        await page.evaluate(() => window.setV46HomePreview('during'));
+        await bag.locator('summary').click();
+        await enlargeText();
+        const card = bag.locator('button.v45-nine-card').filter({ hasText: label });
+        await expect(card).toHaveCount(1);
+        await card.click();
+        await expect(page.locator(destination)).toBeVisible();
+        if (label === '吃喝・景點') {
+          await page.getByRole('button', { name: '返回首頁功能導覽' }).click();
+          await expect(page.locator('#guideDetail')).toBeHidden();
+          await expect(home).toBeVisible();
+        }
+      }
+      for (const [tab, panel] of [
+        ['home', 'guide'], ['itinerary', 'itinerary'], ['bill', 'split'],
+        ['wallet', 'wallet'], ['more', 'more'], ['home', 'guide']
+      ]) {
+        await enlargeText();
+        await page.locator(`#tab-${tab}`).click();
+        await expect(page.locator(`#${panel}.active`)).toBeVisible();
+        await expect(page.locator(`#tab-${tab}`)).toHaveAttribute('aria-selected', 'true');
+      }
+    });
+  }
+});
+
 
 // ── Touch Target Size (44×44px minimum) ─────────────────────────────────────
 test.describe('Accessibility: Touch Target Sizes', () => {
