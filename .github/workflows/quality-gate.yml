@@ -244,6 +244,53 @@ jobs:
           retention-days: 14
 
   # ─────────────────────────────────────────────────────
+  # Firefox responsive 320/360/390/430 + 200% text acceptance.
+  # This replaces the inaccessible one-off private QA workflow; Playwright
+  # screenshots are configured in playwright.config.js, not via unsupported CLI.
+  # Isolated CI memory fixtures only; no production Firebase writes.
+  # ─────────────────────────────────────────────────────
+  firefox-mobile-zoom-qa:
+    name: "🦊 Firefox 320-430px / 200% Text QA"
+    needs: static-validation
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout V46 PR branch
+        uses: actions/checkout@v5
+      - name: Set up Node 24
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: 'npm'
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Install Firefox for Playwright
+        run: npx playwright install --with-deps firefox
+      - name: Start isolated local server
+        run: |
+          npm install -g serve
+          serve -s . -l 8080 &
+          sleep 3
+          curl -f http://localhost:8080/ >/dev/null
+      - name: Run Firefox responsive + 200% text regression
+        run: npx playwright test tests/accessibility.spec.js --project=firefox --grep "MOBILE-ZOOM-01" --workers=1 --reporter=html,list
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
+          BUSAN_CI_FIREBASE_ISOLATED: '1'
+          CI: true
+          PLAYWRIGHT_HTML_OPEN: never
+      - name: Preserve HTML report, screenshots, and traces
+        uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: v46-firefox-responsive-zoom-qa
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
+
+  # ─────────────────────────────────────────────────────
   # JOB 3: Accessibility, UX & Travel Data Checks
   # ─────────────────────────────────────────────────────
   accessibility-ux-travel:
@@ -293,7 +340,7 @@ jobs:
   # ─────────────────────────────────────────────────────
   deploy:
     name: 🚀 Deploy to GitHub Pages
-    needs: [static-validation, e2e-tests, accessibility-ux-travel, v46-mobile-acceptance]
+    needs: [static-validation, e2e-tests, accessibility-ux-travel, v46-mobile-acceptance, firefox-mobile-zoom-qa]
     runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     environment:
