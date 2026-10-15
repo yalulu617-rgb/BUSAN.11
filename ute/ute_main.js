@@ -37,6 +37,23 @@ function triggerContextUpdateImmediate() {
       TripContextEngine.updateContext(dateStr, globals);
     }
     
+    // V46 presentation model: aggregate already-loaded user snapshots without mutations.
+    // The specialized V46 engine is pure; TripContext remains the UI source of truth.
+    if (window.V46HomeEngine && window.TripContextEngine) {
+      const context = TripContextEngine.getTripContext();
+      const packing = typeof window.getPackingDisplayList === 'function'
+        ? window.getPackingDisplayList() : (globals.prepData || []);
+      context.v46Home = window.V46HomeEngine.createModel({
+        context,
+        packing,
+        photos: Array.isArray(window.photoList) ? window.photoList : [],
+        shopping: Array.isArray(window.shopList) ? window.shopList : [],
+        hasExpenseRecords: globals.sharedBills.length > 0 || globals.privateBills.length > 0,
+        previewMode: window.v46HomePreviewMode || 'auto',
+        previewDay: window.v46HomePreviewDay || null
+      });
+    }
+
     // Distribute updates to widgets/renderers in index.html
     if (typeof window.renderV37HomeDashboard === "function") {
       window.renderV37HomeDashboard();
@@ -58,4 +75,17 @@ function triggerContextUpdateImmediate() {
 if (typeof window !== "undefined") {
   window.triggerContextUpdate = triggerContextUpdate;
   window.triggerContextUpdateImmediate = triggerContextUpdateImmediate;
+  window.setV46HomePreview = function (mode) {
+    window.v46HomePreviewMode = ['auto', 'before', 'during', 'after'].includes(mode) ? mode : 'auto';
+    // Returning to live mode must also clear the old manually selected day.
+    if (window.v46HomePreviewMode === 'auto') window.v46HomePreviewDay = null;
+    triggerContextUpdateImmediate();
+  };
+  window.setV46HomeDay = function (dateISO) {
+    if (window.V46HomeEngine?.labels?.some(d => d.iso === dateISO)) {
+      window.v46HomePreviewDay = dateISO;
+      triggerContextUpdateImmediate();
+    }
+  };
+
 }

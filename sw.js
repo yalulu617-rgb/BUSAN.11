@@ -8,7 +8,7 @@
 // - Cache-first with network fallback for static media (images, icons)
 // ─────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'busan-trip-v45-production-v7-final-pwa';
+const CACHE_NAME = 'busan-trip-v46-release-candidate-v2';
 
 const LOCAL_ASSETS = [
     './',
@@ -20,6 +20,9 @@ const LOCAL_ASSETS = [
     './13972.png',
     './style.css',
     './assets/css/item-images.css',
+    './assets/css/v46-home.css',
+    './assets/images/v46-watercolor-hero-atlas.webp',
+    './assets/images/v46-during-characters.webp',
     './assets/images/scentica-gwangan-thumb.webp',
     './assets/images/scentica-gwangan.webp',
     './assets/images/olive-young-nampo-thumb.webp',
@@ -42,6 +45,7 @@ const LOCAL_ASSETS = [
     './ute/ute_budget.js',
     './ute/ute_ai.js',
     './ute/ute_context.js',
+    './ute/ute_home_v46.js',
     './ute/ute_main.js',
     './ute/ute_shopping_photo.js',
     './ute/ute_private_ledger.js',
@@ -54,6 +58,7 @@ const LOCAL_ASSETS = [
     './js/wallet.js',
     './js/memory.js',
     './js/itinerary.js',
+    './components/v46-home.js',
     './components/renderers.js',
     './js/app.js'
 ];

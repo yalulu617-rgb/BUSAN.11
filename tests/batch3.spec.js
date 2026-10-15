@@ -5,6 +5,15 @@
 // ──────────────────────────────────────────────────────────────────────────
 import { test, expect } from '@playwright/test';
 import { bootApp } from './helpers/boot.js';
+// In V46 the eleven canonical navigation entries are intentionally collapsed.
+// Open the bag before testing interaction; the dedicated V46 suite checks default state.
+async function openTravelBag(page) {
+  const bag=page.locator('#v37HomeDashboard details.v46-tools');
+  if (await bag.count() && !(await bag.evaluate(el => el.open))) {
+    await bag.locator('summary').click();
+  }
+}
+
 
 test.describe('BATCH 3 - Rain Plan Toggle', () => {
   test('Weather toggle buttons exist in itinerary tab', async ({ page }) => {
@@ -285,7 +294,9 @@ test.describe('BATCH 3 - Consolidated Navigation (Tokyo/Fuji Style)', () => {
   test('Home dashboard exposes the 11 traveler-model feature cards', async ({ page }) => {
     await bootApp(page);
     await page.evaluate(() => window.showV37Tab('home'));
-    await page.waitForSelector('.v45-nine-grid', { timeout: 10000 });
+    await openTravelBag(page);
+    await expect(page.locator('#v37HomeDashboard details.v46-tools')).toHaveAttribute('open', '');
+    await expect(page.locator('#v37HomeDashboard .v45-nine-grid').first()).toBeVisible();
     const cards = page.locator('.v45-nine-card');
     expect(await cards.count()).toBe(11);
     
@@ -306,13 +317,14 @@ test.describe('BATCH 3 - Consolidated Navigation (Tokyo/Fuji Style)', () => {
   test('Home 超商・超市 card directly opens 6 functional portals in shop tab', async ({ page }) => {
     await bootApp(page);
     await page.evaluate(() => window.showV37Tab('home'));
-    await page.waitForSelector('.v45-nine-grid', { timeout: 10000 });
+    await openTravelBag(page);
+    await expect(page.locator('#v37HomeDashboard details.v46-tools')).toHaveAttribute('open', '');
+    await expect(page.locator('#v37HomeDashboard .v45-nine-grid').first()).toBeVisible();
     
-    // Click on 韓國超商 card
-    await page.evaluate(() => {
-      window.showV37Tab('shop');
-      window.setShopTabMode('convenience');
-    });
+    // Navigate through the canonical V46 expanded shopping entry, not a bypass.
+    const convenienceCard = page.locator('#v37HomeDashboard .v45-nine-card').filter({ hasText: '超商・超市' });
+    await expect(convenienceCard).toBeVisible();
+    await convenienceCard.click();
     await page.waitForSelector('#sConvenienceList', { timeout: 5000 });
     const content = await page.evaluate(() => document.getElementById('sConvenienceList')?.textContent || '');
     expect(content).toContain('優惠怎麼看');
@@ -369,19 +381,20 @@ test.describe('BATCH 3 - Owner Visual Corrections', () => {
     await bootApp(page);
     await page.evaluate(() => window.showV37Tab('home'));
     await page.waitForSelector('#v37HomeDashboard', { timeout: 5000 });
-    await page.waitForFunction(() => {
-      const text = document.getElementById('v37HomeDashboard')?.textContent || '';
-      return text.includes('K-ETA：本次免申請')
-        && text.includes('2026/12/31')
-        && text.includes('e-Arrival Card')
-        && text.includes('Q-CODE：Q4出發前RECHECK');
-    }, null, { timeout: 10000 });
-    const text = await page.evaluate(() => document.getElementById('v37HomeDashboard')?.textContent || '');
+    // V46 correctly uses a compact reminder on Home; the detailed
+    // immigration rules are still available from the canonical Wallet docs.
+    await expect(page.locator('#liveTravelCard')).toBeVisible();
+    const text = await page.locator('#v37HomeDashboard').innerText();
+    expect(text).toContain('韓國入境申報核對');
     expect(text).not.toContain('待辦：K-ETA');
-    expect(text).toContain('K-ETA：本次免申請');
-    expect(text).toContain('2026/12/31');
-    expect(text).toContain('e-Arrival Card');
-    expect(text).toContain('Q-CODE：Q4出發前RECHECK');
+    await page.evaluate(() => {
+      window.showV37Tab('wallet');
+      window.switchWalletTab('doc');
+    });
+    const docs=await page.locator('#walletDocSection').innerText();
+    expect(docs).toContain('2026/12/31');
+    expect(docs).toContain('e-Arrival');
+    expect(docs).toContain('Q-CODE');
     expect(text).not.toContain('72 小時申請 K-ETA');
     expect(text).not.toContain('請務必申請 K-ETA');
     expect(text).not.toContain('Q-Code 必填');

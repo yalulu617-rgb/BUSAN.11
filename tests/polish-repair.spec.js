@@ -1,6 +1,15 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
 import { bootApp } from './helpers/boot.js';
+// In V46 the eleven canonical navigation entries are intentionally collapsed.
+// Open the bag before testing interaction; the dedicated V46 suite checks default state.
+async function openTravelBag(page) {
+  const bag=page.locator('#v37HomeDashboard details.v46-tools');
+  if (await bag.count() && !(await bag.evaluate(el => el.open))) {
+    await bag.locator('summary').click();
+  }
+}
+
 
 test('pre-trip assistant avoids misleading few-days countdown copy', async ({ page }) => {
   await bootApp(page);
@@ -22,6 +31,7 @@ test('pre-trip assistant avoids misleading few-days countdown copy', async ({ pa
 test('Home navigation uses native, keyboard-operable controls', async ({ page }) => {
   await bootApp(page);
 
+  await openTravelBag(page);
   const cards = page.locator('.v45-nine-card');
   await expect(cards).toHaveCount(11);
   for (let index = 0; index < 11; index += 1) {
@@ -48,6 +58,7 @@ test('Home navigation uses native, keyboard-operable controls', async ({ page })
   await expect(page.locator('#itinerary')).toHaveClass(/active/);
 
   await page.locator('#tab-home').click();
+  await openTravelBag(page);
   await cards.first().focus();
   await page.keyboard.press('Space');
   await expect(page.locator('#itinerary')).toHaveClass(/active/);
@@ -56,6 +67,7 @@ test('Home navigation uses native, keyboard-operable controls', async ({ page })
 test('icon-only controls expose descriptive accessible names', async ({ page }) => {
   await bootApp(page);
 
+  await openTravelBag(page);
   const shoppingCard = page.locator('.v45-nine-card').filter({ hasText: '快樂購' });
   await shoppingCard.click();
   await page.waitForSelector('#shop.active');

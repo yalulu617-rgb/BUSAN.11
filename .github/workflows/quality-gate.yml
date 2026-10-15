@@ -23,17 +23,17 @@ jobs:
   # ─────────────────────────────────────────────────────
   static-validation:
     name: 🔍 Static Validation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '24'
 
-      - name: Validate JS syntax (all 21 modules)
+      - name: Validate JS syntax (including V46 engines and renderer)
         run: |
           node -e "
           const fs = require('fs');
@@ -41,12 +41,13 @@ jobs:
             'ute/ute_storage.js','ute/ute_network.js','ute/ute_knowledge.js',
             'ute/ute_place.js','ute/ute_city.js','ute/ute_weather.js',
             'ute/ute_navigation.js','ute/ute_budget.js','ute/ute_ai.js',
-            'ute/ute_context.js','ute/ute_main.js',
-            'services/nearby.js','services/utils.js',
+            'ute/ute_context.js','ute/ute_main.js','ute/ute_home_v46.js',
+            'ute/ute_shopping_photo.js','ute/ute_private_ledger.js','ute/ute_pwa_install.js',
+            'services/nearby.js','services/utils.js','services/item-images.js',
             'data/recommended.js',
             'js/firebase.js','js/ui.js','js/wallet.js',
             'js/memory.js','js/itinerary.js','js/app.js',
-            'components/renderers.js'
+            'components/v46-home.js','components/renderers.js'
           ];
           let pass = 0; let fail = 0;
           files.forEach(f => {
@@ -89,6 +90,8 @@ jobs:
           test -f manifest.json && echo "✅ manifest.json exists"
           test -f icon.png && echo "✅ icon.png exists"
           test -f 13972.png && echo "✅ 13972.png (Doraemon hero) exists"
+          test -f assets/images/v46-watercolor-hero-atlas.webp && echo "✅ V46 watercolor art exists"
+          test -f assets/images/v46-during-characters.webp && echo "✅ V46 corrected train artwork exists"
 
       - name: Verify UNSAFE venues removed from itinerary
         run: |
@@ -111,7 +114,7 @@ jobs:
   e2e-tests:
     name: 🎭 E2E Browser Tests (${{ matrix.project }})
     needs: static-validation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -125,12 +128,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
 
       - name: Install dependencies
@@ -152,10 +155,12 @@ jobs:
         run: npx playwright test --project=${{ matrix.project }} ${{ matrix.workers }} --reporter=html,list
         env:
           PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
+          BUSAN_CI_FIREBASE_ISOLATED: '1'
           CI: true
+          PLAYWRIGHT_HTML_OPEN: never
 
       - name: Upload test report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: playwright-report-${{ matrix.project }}
@@ -163,11 +168,126 @@ jobs:
           retention-days: 14
 
       - name: Upload test screenshots (failures only)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: playwright-screenshots-${{ matrix.project }}
           path: test-results/
+          retention-days: 14
+
+  # ─────────────────────────────────────────────────────
+  # JOB 3: V46 mobile/tablet & offline release acceptance (CI-only fixtures)
+  # ─────────────────────────────────────────────────────
+  v46-mobile-acceptance:
+    name: 📱 V46 Acceptance (${{ matrix.device }})
+    needs: static-validation
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - device: android-360
+            project: mobile-chrome
+            browser: chromium
+            width: 360
+            height: 780
+          - device: android-390
+            project: mobile-chrome
+            browser: chromium
+            width: 390
+            height: 844
+          - device: iphone-safari-390
+            project: mobile-safari
+            browser: webkit
+            width: 390
+            height: 844
+          - device: ipad-webkit-834
+            project: tablet
+            browser: webkit
+            width: 834
+            height: 1112
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright browser (${{ matrix.browser }})
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Start isolated HTTP test server
+        run: |
+          npm install -g serve
+          serve -s . -l 8080 &
+          sleep 3
+          curl -f http://localhost:8080/ >/dev/null
+      - name: Run V46 mobile, legacy-data and offline acceptance
+        run: npx playwright test tests/v46-release-acceptance.spec.js --project=${{ matrix.project }} --workers=1 --reporter=html,list
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
+          BUSAN_CI_FIREBASE_ISOLATED: '1'
+          CI: true
+          PLAYWRIGHT_HTML_OPEN: never
+          V46_QA_WIDTH: ${{ matrix.width }}
+          V46_QA_HEIGHT: ${{ matrix.height }}
+      - name: Save real browser screenshots and HTML report
+        uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: v46-mobile-acceptance-${{ matrix.device }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
+
+  # ─────────────────────────────────────────────────────
+  # Firefox responsive 320/360/390/430 + 200% text acceptance.
+  # This replaces the inaccessible one-off private QA workflow; Playwright
+  # screenshots are configured in playwright.config.js, not via unsupported CLI.
+  # Isolated CI memory fixtures only; no production Firebase writes.
+  # ─────────────────────────────────────────────────────
+  firefox-mobile-zoom-qa:
+    name: "🦊 Firefox 320-430px / 200% Text QA"
+    needs: static-validation
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout V46 PR branch
+        uses: actions/checkout@v5
+      - name: Set up Node 24
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: 'npm'
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Install Firefox for Playwright
+        run: npx playwright install --with-deps firefox
+      - name: Start isolated local server
+        run: |
+          npm install -g serve
+          serve -s . -l 8080 &
+          sleep 3
+          curl -f http://localhost:8080/ >/dev/null
+      - name: Run Firefox responsive + 200% text regression
+        run: npx playwright test tests/accessibility.spec.js --project=firefox --grep "MOBILE-ZOOM-01" --workers=1 --reporter=html,list
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
+          BUSAN_CI_FIREBASE_ISOLATED: '1'
+          CI: true
+          PLAYWRIGHT_HTML_OPEN: never
+      - name: Preserve HTML report, screenshots, and traces
+        uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: v46-firefox-responsive-zoom-qa
+          path: |
+            playwright-report/
+            test-results/
           retention-days: 14
 
   # ─────────────────────────────────────────────────────
@@ -176,15 +296,15 @@ jobs:
   accessibility-ux-travel:
     name: ♿ UX, Travel Data & Accessibility
     needs: static-validation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
 
       - name: Install dependencies
@@ -200,12 +320,15 @@ jobs:
           sleep 3
 
       - name: Run Accessibility, UX & Travel tests
-        run: npx playwright test tests/accessibility.spec.js tests/ux.spec.js tests/travel.spec.js tests/critical.spec.js --project=chromium --reporter=list
+        run: npx playwright test tests/accessibility.spec.js tests/ux.spec.js tests/travel.spec.js tests/critical.spec.js --project=chromium --reporter=html,list
         env:
           PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
+          BUSAN_CI_FIREBASE_ISOLATED: '1'
+          PLAYWRIGHT_HTML_OPEN: never
+          CI: true
 
       - name: Upload reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: accessibility-ux-report
@@ -217,8 +340,8 @@ jobs:
   # ─────────────────────────────────────────────────────
   deploy:
     name: 🚀 Deploy to GitHub Pages
-    needs: [static-validation, e2e-tests, accessibility-ux-travel]
-    runs-on: ubuntu-latest
+    needs: [static-validation, e2e-tests, accessibility-ux-travel, v46-mobile-acceptance, firefox-mobile-zoom-qa]
+    runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     environment:
       name: github-pages
@@ -226,22 +349,22 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup GitHub Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v6
 
       - name: Stamp deployed release metadata
         run: node scripts/stamp-release.mjs "$GITHUB_SHA"
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: '.'
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
       - name: Install production verification dependencies
         run: |
