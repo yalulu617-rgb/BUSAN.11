@@ -698,6 +698,8 @@
                     window.shopList = loaded;
                     StorageEngine.set('busan_v36_shopList', window.shopList);
                     if (typeof renderShop === 'function') renderShop();
+                    // Refresh V46's read-only totals after the existing shopping sync.
+                    if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
                 } catch (e) { console.error('[FirebaseOn DB_SHOP]', e); }
             });
 
@@ -720,6 +722,8 @@
                         snap.forEach(ch => { window.photoList.push({ ...ch.val(), key: ch.key }); });
                     }
                     if (typeof renderMemoryAlbum === 'function') renderMemoryAlbum();
+                    // Do not change upload/delete flows; only update the home summary.
+                    if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
                 } catch (e) { console.error('[FirebaseOn DB_PHOTOS]', e); }
             });
 
@@ -763,6 +767,7 @@
                         StorageEngine.set('busan_v36_tickets', window.ticketData);
                     }
                     if (typeof renderTickets_LogicOnly === 'function') renderTickets_LogicOnly();
+                    if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
                 } catch (e) { console.error('[FirebaseOn DB_TICKETS]', e); }
             });
 

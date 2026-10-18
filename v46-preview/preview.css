@@ -1,0 +1,55 @@
+* { box-sizing: border-box; }
+:root { color-scheme: light; font-family: "Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif; }
+body { margin: 0; padding: 0; min-width: 280px; color:#2e5066; background:radial-gradient(ellipse at 12% 8%,#f9e3cb,transparent 44%),radial-gradient(ellipse at 92% 60%,#d5e9ed,transparent 48%),#faf4eb; }
+button { font-family: inherit; }
+#v37HomeDashboard { max-width: 500px; min-height: 90vh; margin: 16px auto; padding: 0 10px; }
+.preview-banner { max-width:500px; margin:16px auto 0; padding:12px 15px; border-radius:15px; border:1px solid #d8b8a2; display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;background:#fff8ef; color:#644a3d; font-size:.84rem; }
+.preview-banner span { font-size:.71rem; color:#8b6a55; }
+.preview-footer { text-align:center;line-height:1.7;font-size:.67rem;color:#857b6f;padding:14px 15px 32px; }
+.preview-notice:not([hidden]) { position:fixed;inset:auto 15px 18px;max-width:450px;margin:auto; z-index:50; background:#2d506b; color:white; box-shadow:0 7px 22px #27425955; border-radius:14px; padding:13px 16px;text-align:center;font-size:.86rem; }
+#v37HomeDashboard .v45-home-nine-grid { display:grid; gap:12px; }
+#v37HomeDashboard .v45-nine-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px; }
+#v37HomeDashboard .v45-nine-card { display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:118px;text-align:center;cursor:pointer; font:inherit; }
+#v37HomeDashboard .v45-nine-icon { display:grid;place-items:center;font-size:2.15rem; }
+#v37HomeDashboard .v45-nine-title { font-weight:850; }
+#v37HomeDashboard .v45-nine-sub {font-size:.7rem;}
+#v37HomeDashboard .home-ia-heading {font-weight:850;margin:4px 0 12px}
+#v37HomeDashboard .home-ia-section + .home-ia-section {margin-top:18px;}
+#v37HomeDashboard .v46-home .v46-tools {border-top:1px dashed #c7bfae;margin-top:8px;padding-top:17px;}
+#v37HomeDashboard .v46-home button:focus-visible {outline:3px solid #2a7498;outline-offset:3px;}
+#v37HomeDashboard .v46-home .v45-nine-card {color:#32556c;}
+#v37HomeDashboard .v46-home .v46-legacy-tool {display:none;}
+#v37HomeDashboard .v46-home .home-live-label {display:flex;justify-content:space-between;gap:10px;}
+#v37HomeDashboard .v46-home .v46-panel.card { color:#375b6c; }
+#v37HomeDashboard .v46-home .v46-reminder>div { flex: 1; min-width:0;}
+#v37HomeDashboard .v46-home .v46-reminder button {cursor:pointer;}
+@media(max-width:350px){#v37HomeDashboard{padding:0 4px} .preview-banner{margin:6px 6px 0;}}
+
+/* Gallery previews must remain a LIGHT paper diary, independent of device dark mode. */
+html,html:root {color-scheme:only light !important;background:#fff8ec !important;}
+body {background:#fff7eb !important;color:#244b64 !important;filter:none !important;}
+.preview-banner {background:#fff2dc !important;color:#4c5364 !important;border-color:#d8a785 !important;}
+.preview-banner span {color:#776251 !important;}
+#v37HomeDashboard .v46-home {
+  background:repeating-linear-gradient(0deg,rgba(165,138,99,.018) 0,rgba(165,138,99,.018) 1px,transparent 1px,transparent 7px),
+    radial-gradient(circle at 93% 13%,#fef0da,transparent 37%),#fffaf0 !important;
+  color:#2e5268 !important;
+}
+#v37HomeDashboard .v46-home .v46-panel.card {background:#fffdf6 !important;color:#2e5268 !important;}
+#v37HomeDashboard .v46-home .v46-prep-panel {background:#fffdf5 !important;}
+#v37HomeDashboard .v46-home .v46-phase {background:#fffdf8 !important;color:#2e5268 !important;}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-phase.is-current {background:#fcd5af !important;}
+#v37HomeDashboard .v46-home[data-v46-mode="during"] .v46-phase.is-current {background:#a6d9ed !important;}
+#v37HomeDashboard .v46-home[data-v46-mode="after"] .v46-phase.is-current {background:#f7d6dc !important;}
+#v37HomeDashboard .v46-home .v45-nine-card {color:#2e5268 !important;}
+#v37HomeDashboard .v46-home .v46-brand {color:#294e6b !important;}
+#v37HomeDashboard .v46-home h3 {color:#2a516c !important;}
+#v37HomeDashboard .v46-home .v46-shortcut strong {color:#294e66 !important;}
+#v37HomeDashboard .v46-home .v46-shortcut small {color:#60788a !important;}
+.preview-footer {color:#665f5a !important;}
+
+
+/* Preview aligns with the OWNER-approved closed-by-default feature bag. */
+#v37HomeDashboard .v46-home details.v46-tools {padding:0!important;border:1.5px solid #aac4c7!important;background:#fffdf6!important;}
+#v37HomeDashboard .v46-home details.v46-tools:not([open]) > .v46-tools-content {display:none!important;}
+#v37HomeDashboard .v46-home .v46-tools-summary {color:#315a71!important;}
