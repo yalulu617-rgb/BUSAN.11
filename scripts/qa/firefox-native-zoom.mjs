@@ -70,7 +70,10 @@ function findWindow() {
   return chosen;
 }
 async function checkPhase(phase) {
-  await page.locator('#tab-home').click();
+  // Avoid a redundant click on an already-active home tab: it is not a return-navigation test.
+  if (await page.locator('#tab-home').getAttribute('aria-selected') !== 'true') {
+    await page.locator('#tab-home').click({ timeout: 6000 });
+  }
   await page.evaluate(value => window.setV46HomePreview(value), phase);
   const home = page.locator('#v37HomeDashboard .v46-home');
   await home.waitFor({ state: 'visible', timeout: 10000 });
@@ -199,6 +202,28 @@ try {
   };
   console.log('[NATIVE_ZOOM_CONFIRMED] ' + JSON.stringify(report.nativeZoom));
   await shot('native-200-confirmed');
+  // Diagnose the actual CSS hit-test independently of Playwright pointer injection.
+  // If the nav is covered, this is a true layout blocker. Otherwise, test harness
+  // pointer targeting must be investigated before blaming app source.
+  const navHit = await page.evaluate(() => {
+    const tab = document.getElementById('tab-home');
+    const r = tab.getBoundingClientRect();
+    const x = r.left + r.width / 2;
+    const y = r.top + r.height / 2;
+    const hit = document.elementFromPoint(x, y);
+    return {
+      tabRect: { x: r.x, y: r.y, width: r.width, height: r.height },
+      point: { x, y },
+      hitTag: hit?.tagName || null,
+      hitId: hit?.id || null,
+      hitClass: hit?.className?.toString().slice(0, 120) || null,
+      tabActuallyTopmost: hit === tab || tab.contains(hit),
+    };
+  });
+  report.navCssHitTest = navHit;
+  console.log('[NATIVE_ZOOM_NAV_HIT_TEST] ' + JSON.stringify(navHit));
+  assert.ok(navHit.tabActuallyTopmost,
+    'Native Firefox 200% genuine CSS hit test: bottom tab center is covered by ' + navHit.hitId);
   for (const phase of ['before', 'during', 'after']) await checkPhase(phase);
   await checkElevenFeatures();
   const finalMetrics = await record('native-200-after-navigation');
