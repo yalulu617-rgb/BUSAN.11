@@ -129,6 +129,31 @@ test.describe('Accessibility: Touch Target Sizes', () => {
     }
   });
 
+  test('Bottom navigation remains 44px tappable when icon CDN is unavailable', async ({ page }) => {
+    // Simulate an unreachable external icon font and an empty icon rendering.
+    await page.route(/cdnjs\.cloudflare\.com\/ajax\/libs\/font-awesome\//, route => route.abort());
+    await bootApp(page);
+    await page.addStyleTag({ content: '.bottom-nav .nav-item > i { display: none !important; }' });
+
+    const navItems = page.locator('.bottom-nav .nav-item');
+    await expect(navItems).toHaveCount(5);
+    for (const width of [320, 360, 390, 430]) {
+      await page.setViewportSize({ width, height: 844 });
+      for (const item of await navItems.all()) {
+        const box = await item.boundingBox();
+        expect(box, `${width}px: missing navigation hit area`).not.toBeNull();
+        expect(box.width, `${width}px: navigation width`).toBeGreaterThanOrEqual(44);
+        expect(box.height, `${width}px: navigation height without icon`).toBeGreaterThanOrEqual(44);
+      }
+    }
+
+    // The minimum hit area must still perform real navigation.
+    await page.locator('#tab-itinerary').click();
+    await expect(page.locator('#tab-itinerary')).toHaveAttribute('aria-selected', 'true');
+    await page.locator('#tab-home').click();
+    await expect(page.locator('#tab-home')).toHaveAttribute('aria-selected', 'true');
+  });
+
   test('Action buttons meet 44px touch target height', async ({ page }) => {
     await bootApp(page);
     
