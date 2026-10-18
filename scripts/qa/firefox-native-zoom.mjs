@@ -48,6 +48,39 @@ async function record(label) {
 async function shot(name) {
   await page.screenshot({ path: OUT + '/' + name + '.png', animations: 'disabled' });
 }
+async function x11Tap(locator, label) {
+  // Playwright's locator.click coordinates can be wrong at native Firefox 200%.
+  // Use independent OS XTEST pointer input, not dispatchEvent/evaluate.click.
+  await locator.scrollIntoViewIfNeeded({ timeout: 9000 });
+  const box = await locator.boundingBox();
+  assert.ok(box && box.width > 1 && box.height > 1, 'No visible target for native X11 tap: ' + label);
+  const point = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  const hit = await locator.evaluate((node, p) => {
+    const top = document.elementFromPoint(p.x, p.y);
+    return { valid: top === node || node.contains(top), id: top?.id || '',
+      name: top?.tagName || '', className: String(top?.className || '').slice(0, 90) };
+  }, point);
+  assert.ok(hit.valid, 'Real DOM hit-test obstructs ' + label + ' with ' + JSON.stringify(hit));
+  const v = await page.evaluate(() => ({
+    dpr: window.devicePixelRatio, innerHeight: window.innerHeight, innerWidth: window.innerWidth,
+  }));
+  const os = xdo('getwindowgeometry', '--shell', report.targetX11Window.id);
+  const osHeight = Number(os.match(/^HEIGHT=(\d+)$/m)?.[1] || 0);
+  const osWidth = Number(os.match(/^WIDTH=(\d+)$/m)?.[1] || 0);
+  const chromeTopPx = osHeight - v.innerHeight * v.dpr;
+  const px = Math.round(point.x * v.dpr);
+  const py = Math.round(chromeTopPx + point.y * v.dpr);
+  assert.ok(px >= 0 && px < osWidth && py >= 0 && py < osHeight,
+    'X11 pointer coordinate outside browser: ' + label + ' ' + px + ',' + py);
+  const data = { label, cssPoint: point, osPoint: { x: px, y: py }, dpr: v.dpr, chromeTopPx };
+  report.x11PointerTaps ??= [];
+  report.x11PointerTaps.push(data);
+  console.log('[NATIVE_X11_POINTER_TAP] ' + JSON.stringify(data));
+  xdo('mousemove', '--window', report.targetX11Window.id, String(px), String(py));
+  xdo('click', '1');
+  await sleep(220);
+}
+
 function findWindow() {
   let ids;
   try {
@@ -72,7 +105,7 @@ function findWindow() {
 async function checkPhase(phase) {
   // Avoid a redundant click on an already-active home tab: it is not a return-navigation test.
   if (await page.locator('#tab-home').getAttribute('aria-selected') !== 'true') {
-    await page.locator('#tab-home').click({ timeout: 6000 });
+    await x11Tap(page.locator('#tab-home'), 'return to home');
   }
   await page.evaluate(value => window.setV46HomePreview(value), phase);
   const home = page.locator('#v37HomeDashboard .v46-home');
@@ -80,7 +113,7 @@ async function checkPhase(phase) {
   assert.equal(await home.getAttribute('data-v46-mode'), phase);
   await page.locator('#v37HomeDashboard #liveTravelCard').waitFor({ state: 'visible' });
   const bag = page.locator('#v37HomeDashboard details.v46-tools');
-  if (!await bag.evaluate(el => el.open)) await bag.locator('summary').click();
+  if (!await bag.evaluate(el => el.open)) await x11Tap(bag.locator('summary'), 'open 11-feature bag');
   assert.equal(await bag.locator('button.v45-nine-card').count(), 11);
   const geometry = await page.evaluate(() => ({
     viewport: document.documentElement.clientWidth,
@@ -106,23 +139,23 @@ async function checkElevenFeatures() {
     ['行前準備', '#prepChecklistCard'],
   ];
   for (const [label, destination] of destinations) {
-    await page.locator('#tab-home').click();
+    await x11Tap(page.locator('#tab-home'), 'return to home');
     await page.evaluate(() => window.setV46HomePreview('during'));
     if (label === '天氣・楓況') {
       await page.evaluate(() => { if (window.homeWeatherDetailExpanded) window.toggleHomeWeatherDetail(); });
     }
     const bag = page.locator('#v37HomeDashboard details.v46-tools');
-    if (!await bag.evaluate(el => el.open)) await bag.locator('summary').click();
+    if (!await bag.evaluate(el => el.open)) await x11Tap(bag.locator('summary'), 'open 11-feature bag');
     const card = bag.locator('button.v45-nine-card').filter({ hasText: label });
     assert.equal(await card.count(), 1, 'Missing feature: ' + label);
-    await card.click({ timeout: 12000 });
+    await x11Tap(card, 'feature ' + label);
     await page.locator(destination).waitFor({ state: 'visible', timeout: 12000 });
     report.features.push({ label, destination, result: 'PASS' });
     if (label === '吃喝・景點') {
-      await page.getByRole('button', { name: '返回首頁功能導覽' }).click();
+      await x11Tap(page.getByRole('button', { name: '返回首頁功能導覽' }), 'return from guide');
       await page.locator('#v37HomeDashboard .v46-home').waitFor({ state: 'visible' });
     } else {
-      await page.locator('#tab-home').click();
+      await x11Tap(page.locator('#tab-home'), 'return to home');
       await page.locator('#v37HomeDashboard .v46-home').waitFor({ state: 'visible' });
     }
   }
