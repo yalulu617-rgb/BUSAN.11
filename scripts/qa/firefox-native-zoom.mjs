@@ -33,7 +33,14 @@ async function record(label) {
     scrollWidth: document.documentElement.scrollWidth,
     rootCssZoom: getComputedStyle(document.documentElement).zoom,
   }));
-  const row = { label, ...metrics };
+  // OS X11 geometry is measured OUTSIDE Firefox content and cannot be changed
+  // by CSS, DOM, or Playwright's device pixel ratio emulation.
+  const x11 = report.targetX11Window
+    ? xdo('getwindowgeometry', '--shell', report.targetX11Window.id)
+    : '';
+  const osWindowWidth = Number(x11.match(/^WIDTH=(\d+)$/m)?.[1] || 0);
+  const osWindowHeight = Number(x11.match(/^HEIGHT=(\d+)$/m)?.[1] || 0);
+  const row = { label, ...metrics, osWindowWidth, osWindowHeight };
   report.measurements.push(row);
   console.log('[NATIVE_ZOOM_METRIC] ' + JSON.stringify(row));
   return row;
@@ -130,7 +137,7 @@ try {
   report.firefoxVersion = browser.version();
   context = await browser.newContext({
     baseURL: 'http://localhost:8080',
-    viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1,
+    viewport: null, // Real Firefox desktop window; do not pin an emulated CSS viewport.
   });
   await context.route('**/*', route => {
     const url = route.request().url();
@@ -165,24 +172,29 @@ try {
     xdo('key', '--clearmodifiers', 'ctrl+plus');
     await sleep(450);
     const observation = await record('X11-CtrlPlus-' + n);
-    const dprRatio = observation.devicePixelRatio / baseline.devicePixelRatio;
     const widthRatio = baseline.innerWidth / observation.innerWidth;
-    if (Math.abs(dprRatio - 2) <= 0.07 && Math.abs(widthRatio - 2) <= 0.17) {
+    const osWidthStable = Math.abs(observation.osWindowWidth - baseline.osWindowWidth) <= 6;
+    const osHeightStable = Math.abs(observation.osWindowHeight - baseline.osWindowHeight) <= 6;
+    if (Math.abs(widthRatio - 2) <= 0.06 && osWidthStable && osHeightStable) {
       zoom = observation;
       break;
     }
   }
-  assert.ok(zoom, 'Firefox native 200% NOT PROVEN: no simultaneous DPR and layout-width confirmation');
-  assert.ok(Math.abs(baseline.outerWidth - zoom.outerWidth) <= 12,
-    'Outer window width changed, invalid zoom control');
+  assert.ok(zoom,
+    'Firefox native 200% NOT PROVEN: CSS viewport must halve while OS X11 window remains physically unchanged');
   assert.equal(baseline.rootCssZoom, zoom.rootCssZoom,
     'CSS zoom was modified; native evidence invalid');
   report.nativeZoom = {
     result: 'PASS', from: 100, to: 200, x11Window: win.id,
     dprRatio: zoom.devicePixelRatio / baseline.devicePixelRatio,
     cssViewportWidthRatio: baseline.innerWidth / zoom.innerWidth,
-    physicalOuterWidthBefore: baseline.outerWidth,
-    physicalOuterWidthAfter: zoom.outerWidth,
+    osWindowWidthBefore: baseline.osWindowWidth,
+    osWindowWidthAfter: zoom.osWindowWidth,
+    osWindowHeightBefore: baseline.osWindowHeight,
+    osWindowHeightAfter: zoom.osWindowHeight,
+    browserOuterWidthCssBefore: baseline.outerWidth,
+    browserOuterWidthCssAfter: zoom.outerWidth,
+    dprNotUsedAsProof: 'Firefox Playwright may report pinned DPR=1 even during native zoom',
     commandCount: report.commands.filter(c => c.includes('ctrl+plus')).length,
   };
   console.log('[NATIVE_ZOOM_CONFIRMED] ' + JSON.stringify(report.nativeZoom));
@@ -190,8 +202,9 @@ try {
   for (const phase of ['before', 'during', 'after']) await checkPhase(phase);
   await checkElevenFeatures();
   const finalMetrics = await record('native-200-after-navigation');
-  assert.ok(Math.abs(finalMetrics.devicePixelRatio / baseline.devicePixelRatio - 2) < 0.08,
-    'Firefox zoom did not remain at native 200% throughout acceptance');
+  assert.ok(Math.abs(baseline.innerWidth / finalMetrics.innerWidth - 2) < 0.07 &&
+    Math.abs(baseline.osWindowWidth - finalMetrics.osWindowWidth) <= 6,
+    'Native Firefox 200% zoom did not remain stable throughout acceptance');
   assert.deepEqual(report.blockedProductionFirebaseRequests, [],
     'Production Firebase request attempted; isolation violated');
   report.verdict = 'PASS';
