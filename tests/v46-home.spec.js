@@ -180,7 +180,7 @@ test('V4.1: all phase heroes use actual in-app illustration instead of old mount
   for (const phase of ['before','during','after']) {
     await page.evaluate(p => window.setV46HomePreview(p), phase);
     const hero=page.locator('#v37HomeDashboard #liveTravelCard');
-    await expect(hero.locator('.v46-watercolor-illustration')).toHaveCount(1);
+    await expect(hero.locator('.v46-story-img')).toHaveCount(1);
     await expect(hero.locator('img[src="13972.png"]')).toHaveCount(0);
   }
 });
@@ -193,7 +193,7 @@ test('V4.1 visual evidence: capture all three mobile phases for human review', a
   for (const mode of ['before','during','after']) {
     await page.evaluate(p => window.setV46HomePreview(p), mode);
     await expect(page.locator('#v37HomeDashboard .v46-home')).toHaveAttribute('data-v46-mode',mode);
-    await expect(page.locator('#liveTravelCard .v46-watercolor-illustration')).toHaveCount(1);
+    await expect(page.locator('#liveTravelCard .v46-story-img')).toHaveCount(1);
     await page.evaluate(() => window.scrollTo(0, 0));
     const png=await page.screenshot({animations:'disabled',fullPage:false});
     await testInfo.attach('v46-' + mode + '-mobile-390px', {body:png,contentType:'image/png'});
@@ -222,41 +222,57 @@ test('V46: illustrated rail only during travel with five real day buttons', asyn
   await bootApp(page);
   for (const mode of ['before','during','after']) {
     await page.evaluate(m => window.setV46HomePreview(m), mode);
-    const train=page.locator('#v37HomeDashboard .v46-train-world');
+    const train=page.locator('#v37HomeDashboard .v46-owner-train-track');
     await expect(train).toHaveCount(mode==='during'?1:0);
     if (mode==='during') {
       const days=page.locator('#v37HomeDashboard button.v46-day');
       await expect(days).toHaveCount(5);
       await days.nth(2).click();
       await expect(days.nth(2)).toHaveAttribute('aria-pressed','true');
-      await expect(train.locator('.v46-train-art')).toHaveCount(1);
+      await expect(train.locator('.v46-owner-train-marker img')).toHaveCount(1);
     }
   }
 });
 
 
-test('V46: approved two-paw illustration is a real WebP asset rendered on travel hero', async ({ page }) => {
-  const art = readFileSync(new URL('../assets/images/v46-during-characters.webp', import.meta.url));
-  expect(art.subarray(0,4).toString('ascii')).toBe('RIFF');
-  expect(art.subarray(8,12).toString('ascii')).toBe('WEBP');
-
-  await bootApp(page);
-  await page.evaluate(() => window.setV46HomePreview('during'));
-  const heroArt = page.locator('#v37HomeDashboard .v46-watercolor-during');
-  await expect(heroArt).toHaveCount(1);
-  const result = await heroArt.evaluate(async node => {
-    const style = getComputedStyle(node);
-    const url = style.backgroundImage;
-    const base64 = url.match(/base64,([^"')]+)/)?.[1];
-    if (!base64) return {source:false,decoded:false};
-    const img = new Image();
-    img.src = 'data:image/webp;base64,' + base64;
-    try { await img.decode(); return {source:true,decoded:true,width:img.naturalWidth,height:img.naturalHeight}; }
-    catch { return {source:true,decoded:false}; }
+test('V46: the three approved mobile-fit hero assets decode at full source resolution',async({page})=>{
+ await bootApp(page);
+ for(const phase of ['before','during','after']){
+  await page.evaluate(p=>window.setV46HomePreview(p),phase);
+  const img=page.locator('#v37HomeDashboard .v46-story-img');
+  await expect(img).toHaveAttribute('src','assets/images/v46-owner-fit-'+phase+'.webp');
+  const result=await img.evaluate(async node=>{
+    await node.decode();
+    return {width:node.naturalWidth,height:node.naturalHeight,fit:getComputedStyle(node).objectFit};
   });
-  expect(result).toEqual({source:true,decoded:true,width:155,height:125});
+  expect(result).toEqual({width:1190,height:1322,fit:'contain'});
+ }
 });
 
+test('V46: capsule car faces Day5 and remains inside rail at 390px after real taps',async({page})=>{
+ await page.setViewportSize({width:390,height:844});await bootApp(page);
+ await page.evaluate(()=>window.setV46HomePreview('during'));
+ const rail=page.locator('#v37HomeDashboard .v46-owner-train-track');
+ const car=rail.locator('.v46-owner-train-marker');
+ const art=car.locator('img');
+ await art.evaluate(async node=>node.decode());
+ await expect(art).toHaveAttribute('src','assets/images/v46-owner-fit-train.webp');
+ const mirror=await art.evaluate(node=>getComputedStyle(node).transform);
+ expect(mirror).toContain('-1');
+ const days=page.locator('#v37HomeDashboard .v46-owner-days button.v46-day');
+ await expect(days).toHaveCount(5);
+ const positions=[];
+ for(const i of [0,2,4]){
+   await days.nth(i).click();await expect(days.nth(i)).toHaveAttribute('aria-pressed','true');
+   const m=await car.boundingBox(),p=await rail.boundingBox();
+   expect(m&&p).toBeTruthy();
+   expect(m.x).toBeGreaterThanOrEqual(p.x-2);
+   expect(m.x+m.width).toBeLessThanOrEqual(p.x+p.width+2);
+   positions.push(m.x);
+ }
+ expect(positions[0]).toBeLessThan(positions[1]);
+ expect(positions[1]).toBeLessThan(positions[2]);
+});
 
 test('V46 integration: preview and collapsible menu never overwrite existing personal storage', async ({ page }) => {
   await bootApp(page);

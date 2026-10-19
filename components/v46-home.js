@@ -61,11 +61,13 @@
   const hero = (model, title, subtitle, action, actionLabel, slot) =>
     '<section id="liveTravelCard" class="v46-hero v46-story-hero v38-hero-card hero-card card fade-scale-in" data-story-mode="' +
     esc(model.mode) + '">' +
-    '<div class="v46-story-scene v46-story-' + esc(model.mode) +
-      '" role="img" aria-label="' + esc(model.mode === 'before' ?
-      '釜山機場前哆啦A夢和朋友戴著旅行帽準備出發' :
-      model.mode === 'during' ? '釜山海岸黃色列車中的哆啦A夢與旅伴' :
-      '釜山海邊夕陽與戴旅行帽的哆啦A夢和朋友回憶旅程') + '"></div>' +
+    '<img class="v46-story-img v46-story-' + esc(model.mode) +
+      '" src="assets/images/v46-owner-fit-' + esc(model.mode) +
+      '.webp" alt="' + esc(model.mode === 'before' ?
+      '哆啦A夢和旅伴準備出發的水彩旅行情境' :
+      model.mode === 'during' ? '哆啦A夢與旅伴搭乘黃色海岸列車欣賞釜山秋日海景' :
+      '哆啦A夢與旅伴在釜山秋日海岸收藏旅途回憶') +
+      '" decoding="async" loading="eager" />' +
     '<div class="v46-hero-copy v46-story-copy">' +
       '<div class="v46-story-intro"><p class="v46-eyebrow">BUSAN × GYEONGJU · 2026 秋日旅行</p>' +
       '<h2>' + esc(title) + '</h2><p class="v46-hero-subtitle">' + esc(subtitle) + '</p></div>' +
@@ -127,9 +129,9 @@
   // Owner reference: the large illustrated yellow coast train is in the hero;
   // this miniature full-color scene tracks the selected day instead of a generic SVG icon.
   const renderTravelTrain = (model, dayIndex) =>
-    '<div class="v46-owner-train-track" aria-label="五天黃色海岸列車行程">' +
-    '<div class="v46-owner-train-marker" style="--v46-owner-train-left:' + (9 + dayIndex * 18) +
-    '%"><img src="assets/images/busan-owner-train-detail.webp" alt="水彩黃色海岸列車"></div></div>' +
+    '<div class="v46-owner-train-track" aria-label="海岸膠囊列車沿 Day1 到 Day5 向右前進">' +
+    '<span class="v46-rail" aria-hidden="true"></span><div class="v46-owner-train-marker" style="--v46-owner-train-left:' + (25 + dayIndex * 12.5) +
+    '%"><img src="assets/images/v46-owner-fit-train.webp" alt="水彩黃色海岸列車"></div></div>' +
     '<div class="v46-days v46-owner-days" role="group" aria-label="Day 1 至 Day 5 日期選擇">' +
     model.tripDays.map((d,i) => '<button type="button" class="v46-day' +
     (d.selected ? ' is-current' : '') + '" aria-pressed="' + String(d.selected) +
