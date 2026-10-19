@@ -56,18 +56,23 @@
       '</g></svg>';
   };
 
+  // OWNER rebuild: stage-specific high-resolution image with ACTUAL HTML overlaid,
+  // never bake countdown, dates or action labels into the illustration.
   const hero = (model, title, subtitle, action, actionLabel, slot) =>
-    '<section id="liveTravelCard" class="v46-hero v38-hero-card hero-card card fade-scale-in">' +
-    phaseArt(model.mode) + '<div class="v46-hero-copy">' +
-    '<p class="v46-eyebrow">BUSAN × GYEONGJU · TRAVEL DIARY</p>' +
-    '<h2>' + esc(title) + '</h2><p class="v46-hero-subtitle">' + esc(subtitle) + '</p>' +
-    slot + '<button type="button" class="v46-hero-link home-nav-button" aria-label="開啟' +
-    esc(actionLabel) + '" onclick="' + action + '">' + esc(actionLabel) +
-    ' ›</button></div>' +
-    '<div class="v46-watercolor-illustration v46-watercolor-' + model.mode +
-    '" role="img" aria-label="' + esc(model.mode === 'before' ? '哆啦A夢與旅伴整理行李準備出發' :
-    model.mode === 'during' ? '哆啦A夢和朋友在釜山海岸列車旅行' :
-    '哆啦A夢與旅伴用相機回顧釜山旅程') + '"></div></section>';
+    '<section id="liveTravelCard" class="v46-hero v46-story-hero v38-hero-card hero-card card fade-scale-in" data-story-mode="' +
+    esc(model.mode) + '">' +
+    '<div class="v46-story-scene v46-story-' + esc(model.mode) +
+      '" role="img" aria-label="' + esc(model.mode === 'before' ?
+      '釜山機場前哆啦A夢和朋友戴著旅行帽準備出發' :
+      model.mode === 'during' ? '釜山海岸黃色列車中的哆啦A夢與旅伴' :
+      '釜山海邊夕陽與戴旅行帽的哆啦A夢和朋友回憶旅程') + '"></div>' +
+    '<div class="v46-hero-copy v46-story-copy">' +
+      '<div class="v46-story-intro"><p class="v46-eyebrow">BUSAN × GYEONGJU · 2026 秋日旅行</p>' +
+      '<h2>' + esc(title) + '</h2><p class="v46-hero-subtitle">' + esc(subtitle) + '</p></div>' +
+      '<div class="v46-story-actions">' + slot +
+      '<button type="button" class="v46-hero-link home-nav-button" aria-label="開啟' +
+      esc(actionLabel) + '" onclick="' + action + '">' + esc(actionLabel) +
+      ' ›</button></div></div></section>';
   const phases = model => '<nav class="v46-phase-nav" aria-label="旅行階段">' +
     phaseButton('before', '🧳 出發前', model.mode) +
     phaseButton('during', '🚞 旅途中', model.mode) +
@@ -119,32 +124,13 @@
       '" aria-label="行李準備進度"></progress><button type="button" class="v46-text-link" onclick="openPreTripPrep()">查看完整清單 ›</button></section>';
   }
 
-  // Decorative watercolor railway. Real day buttons stay accessible and editable.
-  const trainCar = '<svg class="v46-train-art" viewBox="0 0 112 74" aria-hidden="true">' +
-    '<path d="M13 48V26Q13 13 30 13H81Q96 13 96 28V54Q94 61 83 61H25Q13 59 13 48" fill="#fac87b" stroke="#385e76" stroke-width="3"/>' +
-    '<path d="M24 17H83Q91 18 91 29V44H20V28Q20 19 24 17" fill="#b9e6ef" stroke="#4a778f" stroke-width="2"/>' +
-    '<path d="M55 17V44M19 48H94" stroke="#52778e" stroke-width="2"/>' +
-    '<circle cx="39" cy="31" r="11" fill="#4aa8d6" stroke="#2e5878" stroke-width="2"/>' +
-    '<ellipse cx="39" cy="35" rx="8" ry="7" fill="#fffdf4"/>' +
-    '<circle cx="36" cy="31" r="1.6" fill="#2f4e62"/><circle cx="42" cy="31" r="1.6" fill="#2f4e62"/>' +
-    '<circle cx="40" cy="34" r="2.4" fill="#df5c60"/><path d="M35 38q6 4 9-1" fill="none" stroke="#2e5268" stroke-width="1.4"/>' +
-    '<path d="M18 52H94" stroke="#d77c60" stroke-width="6"/>' +
-    '<circle cx="32" cy="61" r="7" fill="#405b6c" stroke="#fff8ed" stroke-width="2"/>' +
-    '<circle cx="78" cy="61" r="7" fill="#405b6c" stroke="#fff8ed" stroke-width="2"/>' +
-    '<path d="M9 27q-7 6-4 12" fill="none" stroke="#9bc1d0" stroke-width="4"/></svg>';
-  const coastalRail = '<svg class="v46-railway-scene" viewBox="0 0 500 105" preserveAspectRatio="none" aria-hidden="true">' +
-    '<rect width="500" height="105" rx="15" fill="#e5f5f3"/><circle cx="415" cy="27" r="18" fill="#ffe0a4"/>' +
-    '<path d="M0 68Q47 53 100 66T205 65T312 67T500 63V105H0Z" fill="#c0dccb"/>' +
-    '<path d="M0 77Q52 63 110 80T251 77T381 80T500 74V105H0Z" fill="#97c9d4"/>' +
-    '<path d="M29 69V51M128 68V43M29 51Q78 36 128 43M29 59H128" stroke="#739caa" fill="none" stroke-width="3"/>' +
-    '<path d="M157 67l13-28 13 28M187 67l11-32 13 32M354 67l12-29 13 29" fill="#c7dfc3" stroke="#769f93" stroke-width="2"/>' +
-    '<path d="M10 85H490M10 95H490" stroke="#597c8e" stroke-width="3"/>' +
-    '<path d="M34 85v10M68 85v10M102 85v10M136 85v10M170 85v10M204 85v10M238 85v10M272 85v10M306 85v10M340 85v10M374 85v10M408 85v10M442 85v10M476 85v10" stroke="#7897a0" stroke-width="2"/></svg>';
+  // Owner reference: the large illustrated yellow coast train is in the hero;
+  // this miniature full-color scene tracks the selected day instead of a generic SVG icon.
   const renderTravelTrain = (model, dayIndex) =>
-    '<div class="v46-train-world" aria-label="釜山海岸插畫小火車">' + coastalRail +
-    '<div class="v46-train-position" style="--v46-train-left:' + (10 + dayIndex * 20) +
-    '%" aria-hidden="true"><span class="v46-train-bob">' + trainCar + '</span></div></div>' +
-    '<div class="v46-days" role="group" aria-label="Day 1 至 Day 5 日期選擇">' +
+    '<div class="v46-owner-train-track" aria-label="五天黃色海岸列車行程">' +
+    '<div class="v46-owner-train-marker" style="--v46-owner-train-left:' + (9 + dayIndex * 18) +
+    '%"><img src="assets/images/busan-owner-train-detail.webp" alt="水彩黃色海岸列車"></div></div>' +
+    '<div class="v46-days v46-owner-days" role="group" aria-label="Day 1 至 Day 5 日期選擇">' +
     model.tripDays.map((d,i) => '<button type="button" class="v46-day' +
     (d.selected ? ' is-current' : '') + '" aria-pressed="' + String(d.selected) +
     '" data-iso="' + esc(d.iso) + '" onclick="setV46HomeDay(this.dataset.iso)">' +
@@ -152,7 +138,6 @@
     '</span><strong>' + esc(d.label) + '</strong><small>' +
     esc(d.iso.slice(5).replace('-', '/')) + '</small>' +
     '<small class="v46-station-name">' + esc(d.short) + '</small></button>').join('') + '</div>';
-
   function during(model) {
     const selected = model.tripDays.find(d => d.selected);
     const dayTitle = selected ? selected.label + '｜' + selected.short : '今日行程';
