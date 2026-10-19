@@ -31,6 +31,28 @@ try{
    await page.screenshot({path:out+'/'+basename+'-viewport.png',animations:'disabled'});
    await page.screenshot({path:out+'/'+basename+'-full.png',fullPage:true,animations:'disabled'});
    report.scenes.push({width,phase,...m});
+   // OWNER-visible proof: real day-linked train, scrolled above the fixed nav.
+   if(phase==='during'){
+     const route=page.locator('#v37HomeDashboard .v46-diary-train-world');
+     await route.waitFor({state:'visible'});
+     await route.scrollIntoViewIfNeeded();
+     await page.waitForTimeout(350);
+     const train=page.locator('#v37HomeDashboard .v46-diary-train-position');
+     if(await train.count()!==1)throw Error('Missing illustrated travel train');
+     const first=await train.getAttribute('style');
+     const d3=page.locator('#v37HomeDashboard .v46-journey-tickets .v46-day').nth(2);
+     await d3.click();
+     await page.waitForTimeout(600);
+     const selected=await page.locator('#v37HomeDashboard .v46-journey-tickets .v46-day[aria-pressed="true"]').count();
+     if(selected!==1)throw Error('Day3 not uniquely selected after real click');
+     await page.locator('#v37HomeDashboard .v46-diary-train-world').scrollIntoViewIfNeeded();
+     await page.waitForTimeout(150);
+     const next=await page.locator('#v37HomeDashboard .v46-diary-train-position').getAttribute('style');
+     if(first===next)throw Error('Travel train did not follow Day3 choice');
+     await page.screenshot({path:out+'/'+String(width)+'-during-train-day3.png',animations:'disabled'});
+     report.scenes.push({width,phase:'during-day3',trainBefore:first,trainAfter:next,dateClicked:true});
+   }
+
    if(!m.art || !m.artBackground?.includes('v46-watercolor-hero-atlas.webp'))throw Error(basename+' full-width illustration missing');
    if(m.oldTrainCount!==0)throw Error(basename+' rejected train DOM still present');
    if(phase==='during' && m.dayCount!==5)throw Error(basename+' 5 travel dates missing');
