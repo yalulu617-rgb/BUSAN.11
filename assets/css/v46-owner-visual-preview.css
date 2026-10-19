@@ -54,3 +54,182 @@
 #v37HomeDashboard .v46-home[data-v46-mode="during"] .v46-hero-link{max-width:170px}
 #v37HomeDashboard .v46-home[data-v46-mode="after"] .v46-hero-link{max-width:185px}
 .bottom-nav .nav-center{top:-18px;width:66px;height:66px}
+
+
+/* OWNER ROUND 2: STRUCTURAL REBUILD, replacing rejected CSS-only preview. */
+#v37HomeDashboard .v46-home {
+  background:#fffaf1 !important;
+  background-image:none!important;
+  border:none!important;
+  padding:12px 11px 55px!important;
+  gap:14px!important;
+  --v46-paper:#fffaf1;
+  --v46-navy:#235473;
+  --v46-peach:#f3b178;
+}
+#v37HomeDashboard .v46-masthead {background:none!important;padding:5px 2px 9px!important;}
+#v37HomeDashboard .v46-phase-nav {padding:4px!important;background:#fffdf8!important;border:1px solid #d6dfe3!important;border-radius:22px!important;gap:5px!important;box-shadow:none!important;}
+#v37HomeDashboard .v46-phase {background:transparent!important;color:#426680!important;border:none!important;border-radius:17px!important;box-shadow:none!important;min-height:44px!important;}
+#v37HomeDashboard .v46-phase.is-current {background:#cce9f7!important;color:#165b8b!important;border:1px solid #78bedc!important;}
+#v37HomeDashboard .v46-home .v46-story-hero.card,
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-story-hero.card,
+#v37HomeDashboard .v46-home[data-v46-mode="during"] .v46-story-hero.card,
+#v37HomeDashboard .v46-home[data-v46-mode="after"] .v46-story-hero.card {
+  display:flex!important;
+  flex-direction:column!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  padding:0!important;
+  border:1px solid #b9ced2!important;
+  border-radius:23px!important;
+  background:#fffdf7!important;
+  box-shadow:0 5px 16px rgba(53,84,103,.09)!important;
+  overflow:hidden!important;
+  isolation:isolate;
+  gap:0!important;
+}
+#v37HomeDashboard .v46-home .v46-story-hero::before,
+#v37HomeDashboard .v46-home .v46-story-hero::after {content:none!important;display:none!important;}
+#v37HomeDashboard .v46-home .v46-story-art {
+  display:block!important;
+  position:relative!important;
+  flex:0 0 auto!important;
+  inset:auto!important;
+  width:100%!important;
+  height:auto!important;
+  aspect-ratio:1.52/1!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background-image:url("assets/images/v46-watercolor-hero-atlas.webp")!important;
+  background-size:300% 100%!important;
+  background-repeat:no-repeat!important;
+  image-rendering:auto;
+}
+#v37HomeDashboard .v46-home .v46-story-before {background-position:0% 50%!important;background-color:#d8eff8!important;}
+#v37HomeDashboard .v46-home .v46-story-during {background-position:50% 50%!important;background-color:#d8eef6!important;}
+#v37HomeDashboard .v46-home .v46-story-after {background-position:100% 50%!important;background-color:#f9e4d9!important;}
+#v37HomeDashboard .v46-home .v46-story-copy,
+#v37HomeDashboard .v46-home[data-v46-mode="after"] .v46-story-copy {
+  position:relative!important;
+  inset:auto!important;
+  display:grid!important;
+  align-content:start!important;
+  justify-items:start!important;
+  width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+  padding:15px 17px 18px!important;
+  background:#fffdf7!important;
+  margin:0!important;
+  z-index:2!important;
+}
+#v37HomeDashboard .v46-story-copy .v46-eyebrow {
+  color:#527b8e!important;
+  margin:0 0 7px!important;
+  font-size:.66rem!important;
+  letter-spacing:.035em!important;
+}
+#v37HomeDashboard .v46-story-copy h2,
+#v37HomeDashboard .v46-home[data-v46-mode="after"] .v46-story-copy h2 {
+  color:#184c70!important;
+  font-size:clamp(1.52rem,5.3vw,2rem)!important;
+  margin:0 0 6px!important;
+  line-height:1.28!important;
+}
+#v37HomeDashboard .v46-story-copy .v46-hero-subtitle{margin:0 0 9px!important;color:#546c7a!important;font-size:.84rem!important;}
+#v37HomeDashboard .v46-story-copy .v46-hero-tag,
+#v37HomeDashboard .v46-story-copy .v46-flight {margin:5px 0 10px!important;}
+#v37HomeDashboard .v46-story-copy .v46-countdown {
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  flex-direction:row!important;
+  width:auto!important;
+  max-width:100%!important;
+  margin:3px 0 10px!important;
+  padding:7px 12px!important;
+  border-radius:12px!important;
+  background:#fff2db!important;
+  border:1px dashed #dfae77!important;
+  color:#8f5e42!important;
+}
+#v37HomeDashboard .v46-story-copy .v46-countdown span{font-size:2.1rem!important;line-height:1!important;color:#c7684a!important;}
+#v37HomeDashboard .v46-story-copy .v46-hero-link {
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:auto!important;
+  max-width:none!important;
+  min-height:45px!important;
+  margin:2px 0 0!important;
+  padding:8px 24px!important;
+  background:#d9effa!important;
+  border:1px solid #82bcd4!important;
+  color:#195476!important;
+  box-shadow:none!important;
+  font-size:.93rem!important;
+  border-radius:14px!important;
+}
+#v37HomeDashboard .v46-home .v46-railway-scene,
+#v37HomeDashboard .v46-home .v46-train-world,
+#v37HomeDashboard .v46-home .v46-coast-scene,
+#v37HomeDashboard .v46-home .v46-polaroid-art,
+#v37HomeDashboard .v46-home .v46-flight-art,
+#v37HomeDashboard .v46-home .v46-watercolor-illustration {display:none!important;}
+#v37HomeDashboard .v46-home .v46-panel[aria-label="旅途五天日期軸"]{
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  padding:5px 0 10px!important;
+}
+#v37HomeDashboard .v46-home .v46-panel[aria-label="旅途五天日期軸"] h3 {
+  font-size:1.13rem!important;
+  margin:3px 0 11px!important;
+  color:#24526f!important;
+}
+#v37HomeDashboard .v46-home .v46-journey-tickets {
+  display:grid!important;
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  gap:5px!important;
+  background:transparent!important;
+  border:0!important;
+}
+#v37HomeDashboard .v46-home .v46-journey-tickets .v46-day{
+  min-width:0!important;
+  min-height:92px!important;
+  padding:7px 1px!important;
+  background:#fffcf5!important;
+  border:1px solid #d3c8ba!important;
+  border-radius:11px!important;
+  color:#315a70!important;
+  box-shadow:0 2px 0 rgba(110,96,73,.07)!important;
+  font-size:.73rem!important;
+  text-align:center!important;
+}
+#v37HomeDashboard .v46-home .v46-journey-tickets .v46-day.is-current{
+  background:#ffedc7!important;
+  border-color:#e9b36e!important;
+}
+#v37HomeDashboard .v46-home .v46-journey-tickets .v46-station-mark{
+  font-size:1.25rem!important;
+  display:block!important;
+  margin:0 auto 3px!important;
+}
+#v37HomeDashboard .v46-home .v46-journey-tickets .v46-station-name {
+  font-size:.65rem!important;line-height:1.15!important;overflow-wrap:anywhere;
+}
+#v37HomeDashboard .v46-home .v46-panel.card{
+  border-radius:17px!important;
+  background:#fffcf6!important;
+  border:1px solid #ece2d4!important;
+  box-shadow:none!important;
+}
+@media(max-width:390px){
+  #v37HomeDashboard .v46-home .v46-story-art{aspect-ratio:1.48/1!important;}
+  #v37HomeDashboard .v46-story-copy{padding:13px 14px 17px!important;}
+  #v37HomeDashboard .v46-home .v46-journey-tickets{gap:3px!important;}
+  #v37HomeDashboard .v46-home .v46-journey-tickets .v46-day{font-size:.68rem!important;}
+}
