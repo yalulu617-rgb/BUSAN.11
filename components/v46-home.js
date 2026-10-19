@@ -56,21 +56,22 @@
       '</g></svg>';
   };
 
-  // The artwork occupies its own full-width image surface.
-  // No cropped corner sticker, old train SVG, or background illustration overlap.
+  // OWNER ROUND 2 — real HTML text over a complete scene.
+  // Background illustration stays independent; changing trip data stays accessible.
   const hero = (model, title, subtitle, action, actionLabel, slot) =>
     '<section id="liveTravelCard" class="v46-hero v46-story-hero v38-hero-card hero-card card fade-scale-in">' +
     '<div class="v46-story-art v46-story-' + esc(model.mode) +
       '" role="img" aria-label="' + esc(model.mode === 'before' ?
       '釜山出發前，哆啦A夢和旅伴準備行李的秋日旅行插畫' :
-      model.mode === 'during' ? '哆啦A夢與旅伴在釜山海岸旅行的完整情境插畫' :
+      model.mode === 'during' ? '釜山海岸與角色搭乘列車的完整情境插畫' :
       '釜山慶州旅途相簿與哆啦A夢回憶插畫') + '"></div>' +
     '<div class="v46-hero-copy v46-story-copy">' +
-    '<p class="v46-eyebrow">BUSAN × GYEONGJU · 2026.11.13 — 11.17</p>' +
-    '<h2>' + esc(title) + '</h2><p class="v46-hero-subtitle">' + esc(subtitle) + '</p>' +
-    slot + '<button type="button" class="v46-hero-link home-nav-button" aria-label="開啟' +
-    esc(actionLabel) + '" onclick="' + action + '">' + esc(actionLabel) +
-    ' ›</button></div></section>';
+      '<div class="v46-story-intro"><p class="v46-eyebrow">BUSAN × GYEONGJU · 2026.11.13 — 11.17</p>' +
+      '<h2>' + esc(title) + '</h2><p class="v46-hero-subtitle">' + esc(subtitle) + '</p></div>' +
+      '<div class="v46-story-actions">' + slot +
+      '<button type="button" class="v46-hero-link home-nav-button" aria-label="開啟' +
+      esc(actionLabel) + '" onclick="' + action + '">' + esc(actionLabel) +
+      ' ›</button></div></div></section>';
   const phases = model => '<nav class="v46-phase-nav" aria-label="旅行階段">' +
     phaseButton('before', '🧳 出發前', model.mode) +
     phaseButton('during', '🚞 旅途中', model.mode) +
@@ -122,17 +123,57 @@
       '" aria-label="行李準備進度"></progress><button type="button" class="v46-text-link" onclick="openPreTripPrep()">查看完整清單 ›</button></section>';
   }
 
-  // Real date selectors; remove the rejected decorative train entirely.
-  const renderTravelDays = model =>
-    '<div class="v46-days v46-journey-tickets" role="group" aria-label="Day 1 至 Day 5 日期選擇">' +
-    model.tripDays.map((d,i) => '<button type="button" class="v46-day' +
-    (d.selected ? ' is-current' : '') + '" aria-pressed="' + String(d.selected) +
-    '" data-iso="' + esc(d.iso) + '" onclick="setV46HomeDay(this.dataset.iso)">' +
-    '<span class="v46-station-mark" aria-hidden="true">' + ['🧳','🌊','🏯','🚠','✈️'][i] +
-    '</span><strong>' + esc(d.label) + '</strong><small>' +
-    esc(d.iso.slice(5).replace('-', '/')) + '</small>' +
-    '<small class="v46-station-name">' + esc(d.short) + '</small></button>').join('') + '</div>';
-
+  // OWNER ROUND 2: hand-illustrated railway mascot, not the rejected flat icon.
+  // The train follows the selected day; the five buttons are still native HTML buttons.
+  const diaryTrain = '<svg class="v46-diary-train-svg" viewBox="0 0 192 106" role="img" aria-label="戴著秋日旅行帽的藍色海岸小火車">' +
+    '<defs><linearGradient id="train-shell-46" x1="0" y1="0" x2=".1" y2="1"><stop stop-color="#ffedb6"/><stop offset="1" stop-color="#f7bb6b"/></linearGradient>' +
+    '<linearGradient id="train-sea-46" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#9ee5f4"/><stop offset="1" stop-color="#c8f4ee"/></linearGradient></defs>' +
+    '<ellipse cx="96" cy="92" rx="78" ry="8" fill="#6196ac" opacity=".18"/>' +
+    '<path d="M26 25C36 14 54 12 71 12h64c20 0 28 12 30 24v42c0 8-7 15-16 15H33c-8 0-13-8-13-16V46c0-8 2-15 6-21Z" fill="url(#train-shell-46)" stroke="#23587b" stroke-width="4" stroke-linejoin="round"/>' +
+    '<path d="M27 29h129v13H24Z" fill="#6db9de" stroke="#23587b" stroke-width="3"/>' +
+    '<rect x="36" y="40" width="41" height="36" rx="11" fill="url(#train-sea-46)" stroke="#347795" stroke-width="3"/>' +
+    '<rect x="82" y="40" width="42" height="36" rx="11" fill="#dcf8f6" stroke="#347795" stroke-width="3"/>' +
+    '<rect x="129" y="40" width="24" height="36" rx="9" fill="#bdeaf3" stroke="#347795" stroke-width="3"/>' +
+    '<path d="M28 81h128" stroke="#f98e79" stroke-width="8"/>' +
+    '<g fill="#346b87" stroke="#fef9df" stroke-width="3"><circle cx="54" cy="93" r="10"/><circle cx="143" cy="93" r="10"/></g>' +
+    '<g transform="translate(57 57)"><circle r="18" fill="#55b5e4" stroke="#1c678a" stroke-width="2.4"/><ellipse cx="0" cy="7" rx="15" ry="12" fill="#fffefd"/>' +
+    '<ellipse cx="-5" cy="-3" rx="5" ry="7" fill="#fff"/><ellipse cx="5" cy="-3" rx="5" ry="7" fill="#fff"/>' +
+    '<circle cx="-3" cy="-2" r="1.6" fill="#203a50"/><circle cx="4" cy="-2" r="1.6" fill="#203a50"/>' +
+    '<circle cy="4" r="4" fill="#e64c50"/><path d="M-9 9Q0 20 10 8" fill="#d35254" stroke="#9d3a44" stroke-width="1.8"/>' +
+    '<path d="M-17-14Q0-31 17-14" fill="#ffdc8f" stroke="#a47742" stroke-width="3"/>' +
+    '<path d="M-21-14h42" stroke="#b68b50" stroke-width="3"/>' +
+    '</g><g transform="translate(102 60)"><circle r="15" fill="#f8caaa" stroke="#376079" stroke-width="1.5"/>' +
+    '<path d="M-16-5q0-17 16-18Q19-20 16-3" fill="#325c75"/>' +
+    '<ellipse cx="-6" cy="-3" rx="5" ry="7" fill="#fff"/><ellipse cx="6" cy="-3" rx="5" ry="7" fill="#fff"/>' +
+    '<circle cx="-4" cy="-2" r="1.5" fill="#263d50"/><circle cx="5" cy="-2" r="1.5" fill="#263d50"/>' +
+    '<path d="M-6 7Q0 13 8 5" fill="none" stroke="#9e5550" stroke-width="2.5"/>' +
+    '<path d="M-16-16Q-1-30 16-16" fill="#fce3a2" stroke="#bd8f51" stroke-width="2"/>' +
+    '<path d="M-21-14H18" stroke="#b78a53" stroke-width="3"/>' +
+    '</g><path d="M168 31q8-9 12 0M173 46q8-9 12 0" stroke="#82bdd3" fill="none" stroke-width="3" stroke-linecap="round"/>' +
+    '<path d="M16 13l4-10 4 10 10 4-10 3-4 9-4-9-9-3Z" fill="#ef9f56"/>' +
+    '</svg>';
+  const coastalStationLine = '<div class="v46-rail-station-line" aria-hidden="true">' +
+    '<svg viewBox="0 0 400 40" preserveAspectRatio="none"><path d="M8 30Q70 19 135 29T270 29T394 24" stroke="#5e9bb4" stroke-width="3" stroke-dasharray="6 5" fill="none"/>' +
+    '<path d="M8 36Q70 25 135 35T270 35T394 30" stroke="#b2d6db" stroke-width="3" fill="none"/>' +
+    '<g fill="#fffbf0" stroke="#d69f61" stroke-width="2"><circle cx="60" cy="28" r="5"/><circle cx="130" cy="28" r="5"/><circle cx="200" cy="28" r="5"/><circle cx="270" cy="28" r="5"/><circle cx="340" cy="28" r="5"/></g></svg></div>';
+  const renderTravelDays = model => {
+    const index = Math.max(0, model.tripDays.findIndex(d => d.selected));
+    return '<div class="v46-diary-train-world" aria-label="海岸五天小火車旅行路線">' +
+      '<span class="v46-diary-sun" aria-hidden="true">☀️</span>' +
+      '<span class="v46-diary-cloud" aria-hidden="true">☁️</span>' +
+      '<span class="v46-diary-wave" aria-hidden="true">〰 釜山海岸 · 秋日旅行 〰</span>' +
+      coastalStationLine +
+      '<div class="v46-diary-train-position" style="--v46-diary-position:' +
+      (15 + 17.5 * index) + '%">' + diaryTrain + '</div></div>' +
+      '<div class="v46-days v46-journey-tickets" role="group" aria-label="Day 1 至 Day 5 日期選擇">' +
+      model.tripDays.map((d,i) => '<button type="button" class="v46-day' +
+      (d.selected ? ' is-current' : '') + '" aria-pressed="' + String(d.selected) +
+      '" data-iso="' + esc(d.iso) + '" onclick="setV46HomeDay(this.dataset.iso)">' +
+      '<span class="v46-station-mark" aria-hidden="true">' + ['🧳','🌊','🏯','🚠','✈️'][i] +
+      '</span><strong>' + esc(d.label) + '</strong><small>' +
+      esc(d.iso.slice(5).replace('-', '/')) + '</small>' +
+      '<small class="v46-station-name">' + esc(d.short) + '</small></button>').join('') + '</div>';
+  };
   function during(model) {
     const selected = model.tripDays.find(d => d.selected);
     const dayTitle = selected ? selected.label + '｜' + selected.short : '今日行程';
@@ -144,7 +185,7 @@
     return hero(model, 'HELLO, BUSAN!', dayTitle + (isPreview ? '（預覽）' : ''),
       "showV37Tab('itinerary')", '今日行程',
       '<p class="v46-hero-tag">🍁 秋日海線 × 城市漫遊</p>') +
-      '<section class="v46-panel card" aria-label="旅途五天日期軸"><h3>🗓️ 五天秋日旅行日記</h3>' +
+      '<section class="v46-panel card" aria-label="旅途五天日期軸"><h3>🚞 我們的海岸五天小火車</h3>' +
       renderTravelDays(model) +
       '<p class="v46-muted">' + (isPreview ? '目前正在預覽其他日期；不會改變真實日期或提醒。' :
       '點選日期可預覽當天主題。') + '</p></section>' +
