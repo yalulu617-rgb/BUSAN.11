@@ -1,7 +1,7 @@
 name: V46 Visual Review — isolated screenshots
 on:
   push:
-    branches: [v46-visual-review-20261019]
+    branches: [v46-owner-live-preview-20261019]
   workflow_dispatch:
 permissions:
   contents: read

@@ -8,7 +8,7 @@ await fs.mkdir(out,{recursive:true});
 if(process.env.CI!=='true'||process.env.BUSAN_CI_FIREBASE_ISOLATED!=='1') throw Error('Visual review must use CI in-memory Firebase');
 await globalSetup();
 const browser = await chromium.launch({headless:true});
-const report={kind:'V46 OWNER VISUAL PREVIEW, NOT RELEASE',branch:'v46-visual-review-20261019',scenes:[]};
+const report={kind:'V46 OWNER VISUAL PREVIEW, NOT RELEASE',branch:'v46-owner-live-preview-20261019',scenes:[]};
 try{
  for(const width of [390,360]){
   const context=await browser.newContext({viewport:{width,height:844},deviceScaleFactor:1,serviceWorkers:'block',baseURL:'http://localhost:8080'});
@@ -23,14 +23,17 @@ try{
    const m=await page.evaluate(()=>{
       const hero=document.querySelector('#liveTravelCard');
       const a=document.querySelector('#v37HomeDashboard .v46-hero-copy');
-      const art=document.querySelector('#v37HomeDashboard .v46-watercolor-illustration');
+      const art=document.querySelector('#v37HomeDashboard .v46-story-art');
       const layout=r=>{if(!r)return null;const q=r.getBoundingClientRect();return {x:q.x,y:q.y,w:q.width,h:q.height}};
-      return {viewport:document.documentElement.clientWidth,pageWidth:document.documentElement.scrollWidth,hero:layout(hero),copy:layout(a),art:layout(art),buttons:[...document.querySelectorAll('#v37HomeDashboard .v46-phase')].map(el=>({title:el.textContent.trim(),r:layout(el)})),nav:[...document.querySelectorAll('.bottom-nav .nav-item')].map(el=>({name:el.id,box:layout(el)}))};
+      return {viewport:document.documentElement.clientWidth,pageWidth:document.documentElement.scrollWidth,hero:layout(hero),copy:layout(a),art:layout(art),dayCount:document.querySelectorAll('#v37HomeDashboard .v46-journey-tickets .v46-day').length,oldTrainCount:document.querySelectorAll('#v37HomeDashboard .v46-train-world').length,artBackground:art?getComputedStyle(art).backgroundImage:null,buttons:[...document.querySelectorAll('#v37HomeDashboard .v46-phase')].map(el=>({title:el.textContent.trim(),r:layout(el)})),nav:[...document.querySelectorAll('.bottom-nav .nav-item')].map(el=>({name:el.id,box:layout(el)}))};
    });
    const basename=String(width)+'-'+phase;
    await page.screenshot({path:out+'/'+basename+'-viewport.png',animations:'disabled'});
    await page.screenshot({path:out+'/'+basename+'-full.png',fullPage:true,animations:'disabled'});
    report.scenes.push({width,phase,...m});
+   if(!m.art || !m.artBackground?.includes('v46-watercolor-hero-atlas.webp'))throw Error(basename+' full-width illustration missing');
+   if(m.oldTrainCount!==0)throw Error(basename+' rejected train DOM still present');
+   if(phase==='during' && m.dayCount!==5)throw Error(basename+' 5 travel dates missing');
    if(m.pageWidth>m.viewport+3)throw Error(basename+' horizontal overflow');
    if(m.nav.some(x=>x.box?.h<44))throw Error(basename+' bottom nav hit area');
   }
