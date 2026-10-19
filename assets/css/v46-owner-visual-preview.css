@@ -472,3 +472,44 @@
 @media(prefers-reduced-motion:reduce){
   #v37HomeDashboard .v46-home .v46-diary-train-position{transition:none!important;}
 }
+
+
+/* OWNER visual safeguard: keep headers over open sky, not over faces.
+   The original compressed collage image is a TEMPORARY source pending a high-res replacement. */
+#v37HomeDashboard .v46-home .v46-story-hero.card,
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-story-hero.card,
+#v37HomeDashboard .v46-home[data-v46-mode="during"] .v46-story-hero.card,
+#v37HomeDashboard .v46-home[data-v46-mode="after"] .v46-story-hero.card {
+ height:clamp(395px,115vw,470px)!important;
+ min-height:395px!important;
+}
+#v37HomeDashboard .v46-home .v46-story-hero .v46-story-art {
+  background-image:
+    url("../images/v46-watercolor-hero-atlas.webp"),
+    linear-gradient(180deg,#d8f0f7 0%,#e7f6f8 48%,#fdf6e7 100%)!important;
+  background-size:300% 62%,cover!important;
+  background-position:0% 100%,center!important;
+  background-repeat:no-repeat,no-repeat!important;
+}
+#v37HomeDashboard .v46-home .v46-story-hero .v46-story-during {
+  background-position:50% 100%,center!important;
+}
+#v37HomeDashboard .v46-home .v46-story-hero .v46-story-after {
+  background-image:
+    url("../images/v46-watercolor-hero-atlas.webp"),
+    linear-gradient(180deg,#ffe4da 0%,#fff1dc 55%,#fff9e9 100%)!important;
+  background-position:100% 100%,center!important;
+}
+#v37HomeDashboard .v46-home .v46-story-hero .v46-story-copy {
+  width:68%!important;
+}
+#v37HomeDashboard .v46-home .v46-story-hero .v46-story-intro {
+  padding:2px 2px 6px 0!important;
+}
+#v37HomeDashboard .v46-home .v46-story-hero .v46-story-intro h2 {
+  text-shadow:0 1px 0 rgba(255,255,255,.82)!important;
+}
+@media(max-width:360px){
+  #v37HomeDashboard .v46-home .v46-story-hero.card{height:418px!important;min-height:418px!important;}
+  #v37HomeDashboard .v46-home .v46-story-hero .v46-story-copy{width:72%!important;}
+}
