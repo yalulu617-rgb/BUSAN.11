@@ -1,0 +1,37 @@
+name: V46 Visual Review — isolated screenshots
+on:
+  push:
+    branches: [v46-visual-review-20261019]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  visual-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: {node-version: '24', cache: 'npm'}
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Start local ephemeral server
+        run: |
+          ./node_modules/.bin/serve -s . -l 8080 >/tmp/visual-serve.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8080/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - name: Capture real V46 visual branch in isolated APP
+        env:
+          CI: 'true'
+          BUSAN_CI_FIREBASE_ISOLATED: '1'
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
+        run: node scripts/qa/owner-visual-preview.mjs
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: owner-v46-visual-review-390-360
+          path: visual-review/
+          retention-days: 14
