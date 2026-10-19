@@ -11,7 +11,7 @@ const browser = await chromium.launch({headless:true});
 const report={kind:'V46 OWNER VISUAL PREVIEW, NOT RELEASE',branch:'v46-visual-review-20261019',scenes:[]};
 try{
  for(const width of [390,360]){
-  const context=await browser.newContext({viewport:{width,height:844},deviceScaleFactor:1,serviceWorkers:'block'});
+  const context=await browser.newContext({viewport:{width,height:844},deviceScaleFactor:1,serviceWorkers:'block',baseURL:'http://localhost:8080'});
   const page=await context.newPage();
   await bootApp(page);
   const safe=await page.evaluate(()=>Boolean(window.firebase?.__ciOnly && window.NetworkEngine?._db?.__testOnly));
