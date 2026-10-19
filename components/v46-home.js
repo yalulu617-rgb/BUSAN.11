@@ -164,7 +164,7 @@
       '<span class="v46-diary-wave" aria-hidden="true">〰 釜山海岸 · 秋日旅行 〰</span>' +
       coastalStationLine +
       '<div class="v46-diary-train-position" style="--v46-diary-position:' +
-      (15 + 17.5 * index) + '%">' + diaryTrain + '</div></div>' +
+      (26 + 12 * index) + '%">' + diaryTrain + '</div></div>' +
       '<div class="v46-days v46-journey-tickets" role="group" aria-label="Day 1 至 Day 5 日期選擇">' +
       model.tripDays.map((d,i) => '<button type="button" class="v46-day' +
       (d.selected ? ' is-current' : '') + '" aria-pressed="' + String(d.selected) +

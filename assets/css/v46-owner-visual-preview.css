@@ -513,3 +513,29 @@
   #v37HomeDashboard .v46-home .v46-story-hero.card{height:418px!important;min-height:418px!important;}
   #v37HomeDashboard .v46-home .v46-story-hero .v46-story-copy{width:72%!important;}
 }
+
+
+/* OWNER: illustration should be a characterful miniature train, not a tiny icon. */
+#v37HomeDashboard .v46-home .v46-diary-train-world{
+  height:175px!important;
+  background:
+    radial-gradient(circle at 86% 18%,#ffebaf 0 20px,transparent 21px),
+    radial-gradient(circle at 30% 5%,rgba(255,255,255,.68) 0 28px,transparent 29px),
+    linear-gradient(180deg,#e1f5f9 0%,#f7f8e9 48%,#bee2d8 49%,#9bcdda 100%)!important;
+}
+#v37HomeDashboard .v46-home .v46-diary-train-position{
+  width:166px!important;
+  height:124px!important;
+  bottom:20px!important;
+}
+#v37HomeDashboard .v46-home .v46-rail-station-line{
+  bottom:7px;
+}
+#v37HomeDashboard .v46-home .v46-diary-wave{
+  color:#275d71!important;
+}
+@media(max-width:360px){
+  #v37HomeDashboard .v46-home .v46-diary-train-position{
+    width:152px!important;height:116px!important;
+  }
+}
