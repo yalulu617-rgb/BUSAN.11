@@ -233,3 +233,31 @@
   #v37HomeDashboard .v46-home .v46-journey-tickets{gap:3px!important;}
   #v37HomeDashboard .v46-home .v46-journey-tickets .v46-day{font-size:.68rem!important;}
 }
+
+
+/* OWNER second-round screenshot audit: keep countdown number unbroken. */
+#v37HomeDashboard .v46-story-copy .v46-countdown {
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  grid-template-rows:auto auto!important;
+  align-items:center!important;
+  column-gap:10px!important;
+  row-gap:3px!important;
+  width:100%!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+  padding:10px 12px!important;
+}
+#v37HomeDashboard .v46-story-copy .v46-countdown small:first-child{
+  grid-column:1!important;grid-row:1!important;white-space:normal!important;
+  font-size:.77rem!important;line-height:1.3!important;
+}
+#v37HomeDashboard .v46-story-copy .v46-countdown span{
+  grid-column:2!important;grid-row:1/span 2!important;
+  font-size:2.35rem!important;line-height:1!important;white-space:nowrap!important;word-break:keep-all!important;
+  letter-spacing:-.035em!important;margin:0!important;
+}
+#v37HomeDashboard .v46-story-copy .v46-countdown small:last-child{
+  grid-column:1!important;grid-row:2!important;
+  font-size:.72rem!important;line-height:1.35!important;white-space:normal!important;
+}
