@@ -39,7 +39,7 @@ const assertions={
   networkConnectionsLimited:html.includes("connect-src 'self'"),
   firebaseInMemory:firebase.includes('__ciOnly:true')&&firebase.includes('__testOnly:true'),
   liveFirebaseSecretsAbsent:!firebase.includes('busan-trip-2026-4148f'),
-  previewCssIncluded:html.includes('v46-owner-visual-preview.css'),
+  previewCssIncluded:html.includes('v46-owner-rebuild.css'),
 };
 if(Object.values(assertions).some(v=>!v))throw Error('STOP unsafe sandbox build '+JSON.stringify(assertions));
 console.log('[OWNER_SANDBOX_BUILD]',JSON.stringify(assertions));
