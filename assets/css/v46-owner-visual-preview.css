@@ -42,3 +42,15 @@
 @media(min-width:740px){#v37HomeDashboard .v46-home .v46-hero.card{min-height:340px}#v37HomeDashboard .v46-home .v46-hero-copy{width:65%}#v37HomeDashboard .v46-home .v46-watercolor-illustration{height:82%;width:41%}}
 @media(max-width:360px){#v37HomeDashboard .v46-home{padding:12px 9px 40px}#v37HomeDashboard .v46-home .v46-hero-copy{width:63%}#v37HomeDashboard .v46-home .v46-hero.card{min-height:350px;padding:22px 13px}#v37HomeDashboard .v46-home .v46-watercolor-illustration{width:53%;height:53%}#v37HomeDashboard .v46-home .v46-hero h2{font-size:1.41rem}#v37HomeDashboard .v46-home .v46-phase{font-size:.78rem}}
 @media(prefers-reduced-motion:reduce){#v37HomeDashboard .v46-home *,#v37HomeDashboard .v46-home *::before,#v37HomeDashboard .v46-home *::after{animation:none!important;transition:none!important}}
+
+
+/* OWNER visual preview iteration 2: free vertical space; keep text off artwork. */
+#v37HomeDashboard .v46-phase-nav{position:relative}
+#v37HomeDashboard .v46-auto{position:absolute;top:-28px;right:1px;width:auto;padding:2px 7px;font-size:.69rem;min-height:24px;background:#fff8e9;border-radius:7px}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-hero.card{min-height:358px}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-watercolor-illustration{height:49%;width:47%;right:-1%;bottom:0}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-flight{max-width:153px;padding:5px 6px;margin:6px 0 8px;border-radius:9px;background:rgba(255,247,229,.88)}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-hero-link{max-width:155px}
+#v37HomeDashboard .v46-home[data-v46-mode="during"] .v46-hero-link{max-width:170px}
+#v37HomeDashboard .v46-home[data-v46-mode="after"] .v46-hero-link{max-width:185px}
+.bottom-nav .nav-center{top:-18px;width:66px;height:66px}
