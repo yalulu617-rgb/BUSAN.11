@@ -1,6 +1,29 @@
 import { test, expect, chromium, devices } from '@playwright/test';
 import fs from 'node:fs/promises';
 import { bootApp } from './helpers/boot.js';
+
+// Inspect the actual rendered screenshot; getComputedStyle() does NOT prove that
+// a Chrome / Android in-app browser has refrained from auto-darkening the pixels.
+async function assertCreamPixels(page, screenshotPath) {
+  const png = await page.screenshot({path:screenshotPath, animations:'disabled'});
+  const pixels = await page.evaluate(async (b64)=>{
+    const image=new Image();
+    image.src='data:image/png;base64,'+b64;
+    await image.decode();
+    const canvas=document.createElement('canvas');
+    canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});
+    ctx.drawImage(image,0,0);
+    return [Math.round(canvas.height*0.3),Math.round(canvas.height*0.6)]
+      .map(y=>Array.from(ctx.getImageData(2,y,1,1).data).slice(0,3));
+  },png.toString('base64'));
+  for (const rgb of pixels) {
+    // The outer page gutter is cream (251,245,233), not dark brown/black.
+    expect(Math.min(...rgb), 'Android forced darkened cream page gutter: '+rgb).toBeGreaterThan(200);
+  }
+  return pixels;
+}
+
 function assertLightRendering(state) {
   // CSSOM serializes "only light" as "light only" or simply "light" on
   // different Android/Chromium versions. Reject dark, not serialization order.
@@ -32,7 +55,7 @@ test('V46 opts out of UA auto darkening, including dark Android browser', async 
   expect(x.meta).toBe('only light');
   assertLightRendering(x);
   expect(x.theme).toBe('light');
-  await page.screenshot({path:'visual-android-force-light/os-dark-390.png',animations:'disabled'});
+  await assertCreamPixels(page,'visual-android-force-light/os-dark-390.png');
   // An explicit opt-in theme switch is separate from browser-generated forced dark.
   await page.reload({waitUntil:'domcontentloaded'});
   await expect(page.locator('#v37HomeDashboard .v46-home')).toBeVisible();
@@ -60,9 +83,9 @@ test('Chromium force dark web contents honors only-light opt-out',async()=>{
     expect(state.rootLightMeta).toBe('only light');
     assertLightRendering(state);
     expect(state.mode).toBe('light');
-    await page.screenshot({path:'visual-android-force-light/force-dark-webcontents-393px.png',animations:'disabled'});
+    await assertCreamPixels(page,'visual-android-force-light/force-dark-webcontents-393px.png');
     await page.evaluate(()=>window.showV37Tab('wallet',null,{haptic:false}));
-    await page.screenshot({path:'visual-android-force-light/force-dark-wallet.png',animations:'disabled'});
+    await assertCreamPixels(page,'visual-android-force-light/force-dark-wallet.png');
     await context.close();
   }finally{await browser.close();}
 });
