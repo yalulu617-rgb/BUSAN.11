@@ -42,6 +42,7 @@ test('compact V46 owner interactive screenshots 360 and 390', async ({page})=>{
    await page.screenshot({path:'visual-compact/'+width+'-floating-tools-open.png',animations:'disabled'});
    await fab.locator('summary').click();
    await expect(fab).not.toHaveAttribute('open','');
+   await page.evaluate(()=>window.setV46HomePreview('during'));
    await home.locator('.v46-rail-summary').click();
    const rail=home.locator('.v46-rail-accordion');
    await expect(rail).toHaveAttribute('open','');
