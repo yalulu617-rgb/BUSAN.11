@@ -17,15 +17,15 @@ test('V46 opts out of UA auto darkening, including dark Android browser', async 
   });
   let x=await read();
   expect(x.meta).toBe('only light');
-  expect(x.rootColorScheme).toContain('only light');
-  expect(x.bodyColorScheme).toContain('only light');
+  expect(x.rootColorScheme).toMatch(/(?:only light|light only)/);
+  expect(x.bodyColorScheme).toMatch(/(?:only light|light only)/);
   expect(x.theme).toBe('light');
   await page.screenshot({path:'visual-android-force-light/os-dark-390.png',animations:'disabled'});
   // An explicit opt-in theme switch is separate from browser-generated forced dark.
   await page.reload({waitUntil:'domcontentloaded'});
   await expect(page.locator('#v37HomeDashboard .v46-home')).toBeVisible();
   x=await read();
-  expect(x.rootColorScheme).toContain('only light');
+  expect(x.rootColorScheme).toMatch(/(?:only light|light only)/);
 });
 
 test('Chromium force dark web contents honors only-light opt-out',async()=>{
@@ -46,7 +46,7 @@ test('Chromium force dark web contents honors only-light opt-out',async()=>{
       rootLightMeta:document.querySelector('meta[name="color-scheme"]')?.content
     }));
     expect(state.rootLightMeta).toBe('only light');
-    expect(state.root).toContain('only light');
+    expect(state.root).toMatch(/(?:only light|light only)/);
     expect(state.mode).toBe('light');
     await page.screenshot({path:'visual-android-force-light/force-dark-webcontents-393px.png',animations:'disabled'});
     await page.evaluate(()=>window.showV37Tab('wallet',null,{haptic:false}));
