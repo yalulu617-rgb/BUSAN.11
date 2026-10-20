@@ -209,19 +209,54 @@
       '<button type="button" class="v46-weather-detail-button" onclick="toggleHomeWeatherDetail()" ' +
       'aria-label="查看即時天氣詳情與穿搭建議">詳情 ›</button></div>';
   };
+
+  const condensedWeather = () => {
+    const api = target.WeatherEngine;
+    const w = api && typeof api.getWeather === 'function' ? api.getWeather('Busan') : null;
+    const valid = w && w.unavailable !== true && w.temp != null && Number.isFinite(Number(w.temp));
+    const caption = valid ? '釜山 ' + Math.round(Number(w.temp)) + '°' : '天氣待更新';
+    return '<button type="button" class="v46-mini-weather" onclick="toggleHomeWeatherDetail()" aria-label="' +
+      esc(caption) + '，開啟釜山慶州天氣詳情">🌤 <span>' + esc(caption) + '</span></button>';
+  };
+  const condensedPhase = model =>
+    '<label class="v46-phase-minibar">' +
+      '<span class="v46-sr-only">切換旅行階段</span>' +
+      '<select class="v46-mini-phase-select" aria-label="切換出發前、旅途中、回憶錄" onchange="setV46HomePreview(this.value)">' +
+        [['before','🧳 出發前'],['during','🚞 旅途中'],['after','📸 回憶錄'],['auto','↩ 自動模式']].map(([value,label]) =>
+          '<option value="' + value + '"' + (model.mode === value ? ' selected' : '') +
+          '>' + label + '</option>').join('') +
+      '</select><span class="v46-phase-dropdown" aria-hidden="true">⌄</span></label>';
+  // Keep only one scroll listener across rerenders. The expanded masthead collapses
+  // after the user has scrolled; the same real data, menus and controls remain available.
+  if (!target.v46StickyHeaderBound) {
+    target.v46StickyHeaderBound = true;
+    let pending = false;
+    target.addEventListener('scroll', () => {
+      if (pending) return;
+      pending = true;
+      target.requestAnimationFrame(() => {
+        pending = false;
+        const el = document.querySelector('#guide.active #v37HomeDashboard .v46-sticky-head');
+        if (el) el.classList.toggle('is-compact', target.scrollY > 128);
+      });
+    }, { passive: true });
+  }
+
   target.renderV46Home = function (model, menu, weatherDetail, simulator, collections) {
     if (!model) return '';
     const content = model.mode === 'before' ? before(model) : model.mode === 'after' ? after(model) : during(model);
     return '<div class="v46-home" data-v46-mode="' + esc(model.mode) + '">' +
-      '<div class="v46-masthead"><div class="v46-brand"><span aria-hidden="true">🔔</span>' +
+      '<div class="v46-sticky-head' + (target.scrollY > 128 ? ' is-compact' : '') + '">' +
+      '<div class="v46-sticky-expanded"><div class="v46-masthead"><div class="v46-brand"><span aria-hidden="true">🔔</span>' +
       '<div><strong>BUSAN.11</strong><small>TRAVEL DIARY</small></div></div>' +
       '<span class="v46-headleaf" aria-hidden="true">🍁</span></div>' +
-      phases(model) + '<div class="v46-top-quick-actions">' + compactWeather(model) +
+      phases(model) + '</div>' +
+      '<div class="v46-top-quick-actions">' + condensedPhase(model) + compactWeather(model) + condensedWeather() +
       '<details class="v46-tools v46-inline-tools"' + (target.v46AllToolsExpanded ? ' open' : '') +
       ' ontoggle="window.v46AllToolsExpanded=this.open">' +
       '<summary class="v46-tools-summary v46-inline-bag-summary" aria-label="開啟或收起旅行百寶袋 11 項功能">' +
       '<span aria-hidden="true">🎒</span><span class="v46-bag-label">百寶袋</span></summary>' +
-      '<div class="v46-tools-content">' + menu + '</div></details></div>' +
+      '<div class="v46-tools-content">' + menu + '</div></details></div></div>' +
       weatherDetail + content + '<div class="v38-widget-row">' + (collections || '') + '</div>' +
       '<details class="v46-legacy-tool"><summary>舊版日期測試工具</summary>' + simulator + '</details>' +
       '</div>';

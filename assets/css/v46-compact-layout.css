@@ -129,3 +129,68 @@ body:has(#guide.active #v37HomeDashboard .v46-home){
   #v37HomeDashboard .v46-weather-city small{font-size:8px!important}
   #v37HomeDashboard .v46-weather-symbol{display:none}
 }
+
+/* Owner-approved condensed sticky masthead. Full design returns near page top. */
+#v37HomeDashboard .v46-sticky-head{
+  position:sticky!important;top:env(safe-area-inset-top,0px)!important;z-index:1100!important;
+  display:flex!important;flex-direction:column!important;gap:10px!important;
+  padding:1px 0 8px!important;margin:0!important;
+  border-radius:0 0 15px 15px!important;
+  background:rgba(251,245,233,.98)!important;
+  -webkit-backdrop-filter:blur(15px)!important;backdrop-filter:blur(15px)!important;
+}
+#v37HomeDashboard .v46-sticky-expanded{
+  display:flex!important;flex-direction:column!important;gap:10px!important;
+}
+#v37HomeDashboard .v46-sticky-head .v46-masthead{padding:2px 2px 4px!important}
+#v37HomeDashboard .v46-sticky-head .v46-phase-nav{margin:0!important}
+#v37HomeDashboard .v46-phase-minibar{display:none!important}
+#v37HomeDashboard .v46-mini-weather{display:none!important}
+#v37HomeDashboard .v46-sticky-head.is-compact{
+  gap:0!important;padding:4px 1px 6px!important;border-bottom:1px solid #e5d7bf!important;
+  box-shadow:0 6px 12px rgba(43,81,111,.09)!important
+}
+#v37HomeDashboard .v46-sticky-head.is-compact .v46-sticky-expanded{display:none!important}
+#v37HomeDashboard .v46-sticky-head.is-compact .v46-weather-current{display:none!important}
+#v37HomeDashboard .v46-sticky-head.is-compact .v46-phase-minibar{
+  position:relative;display:flex!important;align-items:center!important;
+  min-width:0;flex:0 1 45%;min-height:50px;
+}
+#v37HomeDashboard .v46-phase-minibar .v46-mini-phase-select{
+  width:100%;height:50px;min-height:50px;padding:8px 19px 8px 9px;
+  font-weight:900;font-size:clamp(11px,3.3vw,14px);
+  color:#265571;background:#fffdf7!important;border:1px solid #c9d8dc!important;
+  border-radius:13px;appearance:none;-webkit-appearance:none;cursor:pointer;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+#v37HomeDashboard .v46-phase-minibar .v46-phase-dropdown{
+  position:absolute;right:7px;top:50%;transform:translateY(-50%);
+  pointer-events:none;color:#34617b;font-size:14px
+}
+#v37HomeDashboard .v46-sticky-head.is-compact .v46-mini-weather{
+  display:flex!important;align-items:center;justify-content:center;gap:3px;
+  min-width:0;flex:1 1 auto;height:50px;min-height:50px;padding:5px 2px;
+  border-radius:13px;border:1px solid #c7dee4!important;
+  background:#e8f4f9!important;color:#225775!important;font-size:clamp(10px,2.7vw,12px)!important;
+  font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer
+}
+#v37HomeDashboard .v46-mini-weather span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#v37HomeDashboard .v46-sticky-head.is-compact .v46-top-quick-actions{gap:5px!important}
+#v37HomeDashboard .v46-sticky-head.is-compact .v46-inline-tools{
+  width:55px!important;min-width:55px!important;max-width:55px!important;flex:0 0 55px!important
+}
+#v37HomeDashboard .v46-sticky-head.is-compact .v46-inline-bag-summary{
+  min-width:55px!important;min-height:50px!important;width:55px!important;height:50px!important;
+  padding:3px!important
+}
+#v37HomeDashboard .v46-sticky-head.is-compact .v46-inline-bag-summary span:first-child{font-size:19px!important}
+#v37HomeDashboard .v46-sticky-head.is-compact .v46-bag-label{font-size:9px!important}
+#v37HomeDashboard .v46-phase-minibar select:focus-visible,
+#v37HomeDashboard .v46-mini-weather:focus-visible{outline:3px solid #efa86e!important;outline-offset:1px!important}
+#v37HomeDashboard .v46-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:350px){
+  #v37HomeDashboard .v46-sticky-head.is-compact .v46-phase-minibar{flex-basis:43%!important}
+  #v37HomeDashboard .v46-sticky-head.is-compact .v46-top-quick-actions{gap:3px!important}
+  #v37HomeDashboard .v46-sticky-head.is-compact .v46-inline-tools{flex-basis:50px!important;width:50px!important;min-width:50px!important;max-width:50px!important}
+  #v37HomeDashboard .v46-sticky-head.is-compact .v46-inline-bag-summary{min-width:50px!important;width:50px!important}
+}
