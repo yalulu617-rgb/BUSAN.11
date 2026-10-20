@@ -20,7 +20,8 @@ window.speakKorean = function (text) {
 window.toggleDarkMode = function() {
     const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', theme);
-    StorageEngine.set('busan_v36_theme', theme);
+    // Persist only V46's explicit choice; never revive stale V36 dark mode.
+    StorageEngine.set('busan_v46_theme', theme);
     triggerHapticFeedback();
 };
 

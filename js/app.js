@@ -57,9 +57,12 @@
         '超商': ['GS25', 'CU', '7-11']
     };
 
-    // ── Theme Init (ui.js owns toggleDarkMode; we only apply saved value here) ──
-    const savedTheme = StorageEngine.get('busan_v36_theme', 'light').data;
-    document.documentElement.setAttribute('data-theme', savedTheme);
+    // ── V46 Theme Init ────────────────────────────────────────────────────
+    // Use V46's own preference. Do not import legacy V36 dark mode: that makes
+    // an upgraded phone open to a black background without the owner choosing it.
+    // The previously stored V36 preference remains untouched for old versions.
+    const v46Theme = StorageEngine.get('busan_v46_theme', 'light').data;
+    document.documentElement.setAttribute('data-theme', v46Theme === 'dark' ? 'dark' : 'light');
 
     // ── PWA Service Worker ────────────────────────────────────────────────
     if ('serviceWorker' in navigator) {
