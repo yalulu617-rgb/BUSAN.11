@@ -194,3 +194,21 @@ body:has(#guide.active #v37HomeDashboard .v46-home){
   #v37HomeDashboard .v46-sticky-head.is-compact .v46-inline-tools{flex-basis:50px!important;width:50px!important;min-width:50px!important;max-width:50px!important}
   #v37HomeDashboard .v46-sticky-head.is-compact .v46-inline-bag-summary{min-width:50px!important;width:50px!important}
 }
+
+/*
+ * V46 Android / mobile web view forced-dark opt-out:
+ * "color-scheme: only light" opts out of UA auto-darkening, including images.
+ * This is independent of the app's opt-in V46 theme selector.
+ */
+:root, html, body, #mainApp {
+  color-scheme: only light !important;
+}
+#guide.active, #guide.active #v37HomeDashboard,
+#guide.active #v37HomeDashboard .v46-home {
+  color-scheme: only light !important;
+}
+/* Keep both viewport scroll background and cards on the approved cream paper. */
+html:not([data-theme="dark"]),
+html:not([data-theme="dark"]) body {
+  background-color: #fbf5e9 !important;
+}

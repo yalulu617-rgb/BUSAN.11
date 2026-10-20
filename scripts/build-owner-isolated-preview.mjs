@@ -27,7 +27,10 @@ html=html.replace('BUSAN.11 V45・2026 秋季雙城旅行版','此為隔離資�
 html=html.replace('<body>','<body>\n<!-- V46 sandbox only: NO live Firebase; changes reset on page reload. -->');
 await writeFile(join(target,'index.html'),html);
 let sw=await readFile(join(target,'sw.js'),'utf8');
-sw=sw.replace(/const CACHE_NAME = '[^']+';/,"const CACHE_NAME = 'busan-v46-owner-sandbox-20261019';");
+sw=sw.replace(/const CACHE_NAME = '[^']+';/,"const CACHE_NAME = 'busan-v46-owner-sandbox-20261020-anti-autodark-v3';");
+sw=sw.replace("    event.waitUntil(\n        caches.open(CACHE_NAME)", "    self.skipWaiting();\n    event.waitUntil(\n        caches.open(CACHE_NAME)");
+if (!sw.includes("self.skipWaiting();\n    event.waitUntil(")) throw Error('STOP: preview SW did not get immediate activation');
+
 await writeFile(join(target,'sw.js'),sw);
 let manifest=JSON.parse(await readFile(join(target,'manifest.json'),'utf8'));
 manifest.name='BUSAN.11 V46｜操作預覽';
