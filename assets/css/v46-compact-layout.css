@@ -1,0 +1,50 @@
+/* BUSAN.11 independent layout experiment: preserve approved visual assets. */
+#v37HomeDashboard .v46-home{padding-bottom:116px!important;position:relative}
+#v37HomeDashboard .v46-quick-weather{
+ width:100%;min-height:55px;padding:7px 11px;display:flex;align-items:center;gap:9px;
+ background:linear-gradient(110deg,#e5f3fb,#fff8e9)!important;border:1px solid #b7d5e1;
+ box-shadow:0 2px 6px #4f789314;border-radius:14px;color:#285670;text-align:left;
+ cursor:pointer;box-sizing:border-box;
+}
+#v37HomeDashboard .v46-weather-symbol{font-size:22px;line-height:1}
+#v37HomeDashboard .v46-weather-word{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+#v37HomeDashboard .v46-weather-word strong{font-size:12px;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#v37HomeDashboard .v46-weather-word small{font-size:10px;color:#657e8c;font-weight:700}
+#v37HomeDashboard .v46-weather-open{font-size:12px;font-weight:900;white-space:nowrap;color:#286e96}
+#v37HomeDashboard .v46-home .v46-compact-rail-card{padding:0!important;border:1px solid #e3d6bf!important;background:#fffdf6!important}
+#v37HomeDashboard .v46-rail-accordion{padding:0!important;margin:0}
+#v37HomeDashboard .v46-rail-summary{display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;padding:10px 12px;min-height:56px;box-sizing:border-box}
+#v37HomeDashboard .v46-rail-summary::-webkit-details-marker{display:none}
+#v37HomeDashboard .v46-rail-summary-icon{width:40px;height:40px;flex:none;display:grid;place-items:center;font-size:25px;border-radius:11px;background:#e1f1f5}
+#v37HomeDashboard .v46-rail-summary-text{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+#v37HomeDashboard .v46-rail-summary-text strong{color:#214e6c;font-size:13px;font-weight:900}
+#v37HomeDashboard .v46-rail-summary-text small{color:#657e8e;font-size:11px}
+#v37HomeDashboard .v46-rail-summary-action{color:#35759b;font-size:11px;white-space:nowrap;font-weight:900}
+#v37HomeDashboard .v46-rail-summary-action span{display:inline-block;transition:transform .22s}
+#v37HomeDashboard .v46-rail-accordion[open] .v46-rail-summary-action span{transform:rotate(180deg)}
+#v37HomeDashboard .v46-rail-reveal{padding:0 9px 12px}
+#v37HomeDashboard .v46-rail-accordion:not([open]) .v46-rail-reveal{display:none}
+#v37HomeDashboard .v46-floating-tools{position:fixed!important;right:12px!important;bottom:calc(92px + env(safe-area-inset-bottom,0px))!important;
+ padding:0!important;margin:0!important;border:0!important;background:none!important;
+ box-shadow:none!important;z-index:1400!important;width:auto!important;max-width:min(94vw,380px)}
+#v37HomeDashboard .v46-floating-tools >.v46-fab-summary{display:flex!important;align-items:center!important;justify-content:center!important;gap:4px!important;
+ width:64px!important;height:64px!important;min-width:64px!important;min-height:64px!important;flex-direction:column!important;
+ border-radius:50%!important;border:2px solid #fffdf3!important;background:linear-gradient(145deg,#55a5d4,#1e7fb5)!important;
+ color:#fff!important;box-shadow:0 5px 15px #23546b66!important;cursor:pointer;list-style:none!important;font-weight:900!important}
+#v37HomeDashboard .v46-fab-summary::-webkit-details-marker{display:none}
+#v37HomeDashboard .v46-fab-summary >span:first-child{font-size:24px;line-height:1}
+#v37HomeDashboard .v46-fab-text{font-size:10px;line-height:1.1}
+#v37HomeDashboard .v46-floating-tools[open] >.v46-fab-summary{box-shadow:0 0 0 4px #baddeb!important}
+#v37HomeDashboard .v46-floating-tools >.v46-tools-content{position:absolute!important;right:0;bottom:73px;
+ width:min(89vw,362px)!important;max-height:min(65vh,520px)!important;overflow:auto!important;
+ background:#fffdf7!important;border-radius:19px!important;border:1px solid #e4d4bd!important;
+ box-shadow:0 9px 28px #234f6580!important;padding:12px!important;box-sizing:border-box!important}
+#v37HomeDashboard .v46-floating-tools:not([open]) >.v46-tools-content{display:none!important}
+#v37HomeDashboard .v46-floating-tools .v45-home-nine-grid{margin:0!important}
+#v37HomeDashboard .v46-floating-tools .v45-nine-card{min-height:63px!important}
+#v37HomeDashboard .v46-home .home-weather-detail-panel{position:relative;margin:7px 0 0!important}
+#v37HomeDashboard .v46-quick-weather:focus-visible,
+#v37HomeDashboard .v46-rail-summary:focus-visible,
+#v37HomeDashboard .v46-fab-summary:focus-visible{outline:3px solid #e5a052!important;outline-offset:2px}
+@media(min-width:650px){#v37HomeDashboard .v46-floating-tools{right:max(12px,calc((100vw - 500px)/2))!important}}
+@media(prefers-reduced-motion:reduce){#v37HomeDashboard .v46-rail-summary-action span{transition:none!important}}

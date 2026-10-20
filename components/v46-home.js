@@ -108,10 +108,7 @@
       '<p>🪪 K-ETA：' + esc(model.entryKeta) + '</p>' +
       '<p>📝 e-Arrival Card：依適用資格與抵達前 3 天窗口辦理</p>' +
       '<p>🔄 Q-CODE：Q4出發前RECHECK（依 KDCA 條件）</p></section>' +
-      '<section class="v46-panel card" aria-label="出發前天氣與預報">' +
-      '<h3>🌤️ 天氣・楓況</h3><div class="v45-home-weather-box"><strong>' + weatherLabel +
-      '</strong><span>' + updatedLabel + '</span><p>📅 11/13~11/17 氣候預報：出發前 7–10 天提供詳細預報</p></div>' +
-      '<button type="button" class="v46-text-link" onclick="toggleHomeWeatherDetail()">查看詳細天氣 ›</button></section>' +
+      
       '<section class="v46-panel card" aria-labelledby="v46-reminder-title"><h3 id="v46-reminder-title">🔔 出發前別忘記</h3>' +
       '<p class="v46-muted">優先顯示需要確認的事項；靜態資料不等於真實訂單。</p>' +
       (reminders || status('沒有待核對的重要事項')) +
@@ -152,13 +149,13 @@
     return hero(model, 'HELLO, BUSAN!', dayTitle + (isPreview ? '（預覽）' : ''),
       "showV37Tab('itinerary')", '今日行程',
       '<p class="v46-hero-tag">🍁 秋日海線 × 城市漫遊</p>') +
-      '<section class="v46-panel card" aria-label="旅途五天日期軸"><h3>🚃 我們的五天小火車</h3>' +
-      renderTravelTrain(model, dayIndex) +
-      '<p class="v46-muted">' + (isPreview ? '目前正在預覽其他日期；不會改變真實日期或提醒。' :
-      '點選日期可預覽當天主題。') + '</p></section>' +
-      '<section class="v46-panel card"><h3>🌤️ 天氣・楓況與穿搭</h3><p class="v46-weather">' +
-      weatherText + '</p><p class="v46-muted">🍁 楓況請依最新來源確認；天氣資訊以最後更新為準。</p>' +
-      '<button type="button" class="v46-text-link" onclick="toggleHomeWeatherDetail()">查看釜山／慶州詳細天氣 ›</button></section>' +
+      '<section class="v46-panel card v46-compact-rail-card" aria-label="旅途五天日期軸">' +
+      '<details class="v46-rail-accordion"' + (target.v46TrainExpanded ? ' open' : '') +
+      ' ontoggle="window.v46TrainExpanded=this.open">' +
+      '<summary class="v46-rail-summary"><span class="v46-rail-summary-icon">🚞</span><span class="v46-rail-summary-text"><strong>我們的五天小火車</strong><small>' + esc(dayTitle) + '</small></span><span class="v46-rail-summary-action">展開路線 <span aria-hidden="true">⌄</span></span></summary>' +
+      '<div class="v46-rail-reveal">' + renderTravelTrain(model, dayIndex) +
+      '<p class="v46-muted">' + (isPreview ? '目前正在預覽其他日期；不會改變真實日期或提醒。' : '點選日期可預覽當天主題。') + '</p></div></details></section>' +
+      
       '<section class="v46-panel"><h3>旅途快捷百寶袋</h3><div class="v46-shortcuts">' +
       btn('今日行程', '🗺️', "showV37Tab('itinerary')", '路線・雨備') +
       btn('天氣・楓況', '🌤️', 'toggleHomeWeatherDetail()', '氣溫・穿搭') +
@@ -193,6 +190,20 @@
       '<p class="v46-muted">旅行花費：' + esc(spent) + '</p>' +
       '<button type="button" class="v46-text-link" onclick="showV37Tab(\'split\')">查看旅行記帳 ›</button></section>';
   }
+  const compactWeather = model => {
+    const w = model.weather;
+    const today = model.today === model.selectedDay;
+    const current = w && Number.isFinite(Number(w.temp));
+    const text = current ? esc(w.city) + ' ' + esc(w.condition) + ' · ' + Number(w.temp) + '°C'
+      : model.mode === 'during' && !today ? '預覽日期 · 不顯示假天氣' : '即時天氣尚未更新';
+    const freshness = current ? (w.cached ? '快取天氣' : '目前天氣') : '釜山／慶州天氣與穿搭';
+    return '<button type="button" class="v46-quick-weather" onclick="toggleHomeWeatherDetail()" ' +
+      'aria-controls="homeWeatherDetailPanel" aria-expanded="' + String(!!target.homeWeatherDetailExpanded) + '">' +
+      '<span class="v46-weather-symbol" aria-hidden="true">🌤️</span>' +
+      '<span class="v46-weather-word"><strong>' + text + '</strong><small>' + freshness +
+      '</small></span><span class="v46-weather-open">詳情 ›</span></button>';
+  };
+
   target.renderV46Home = function (model, menu, weatherDetail, simulator, collections) {
     if (!model) return '';
     const content = model.mode === 'before' ? before(model) : model.mode === 'after' ? after(model) : during(model);
@@ -200,13 +211,13 @@
       '<div class="v46-masthead"><div class="v46-brand"><span aria-hidden="true">🔔</span>' +
       '<div><strong>BUSAN.11</strong><small>TRAVEL DIARY</small></div></div>' +
       '<span class="v46-headleaf" aria-hidden="true">🍁</span></div>' +
-      phases(model) + '<div class="home-live-label"><span>LIVE TRAVEL CARD</span><small>秋日旅程</small></div>' +
-      content + '<details class="v46-tools"' + (target.v46AllToolsExpanded ? ' open' : '') +
+      phases(model) + compactWeather(model) + weatherDetail +
+      content + '<details class="v46-tools v46-floating-tools"' + (target.v46AllToolsExpanded ? ' open' : '') +
       ' ontoggle="window.v46AllToolsExpanded=this.open">' +
-      '<summary class="v46-tools-summary" onclick="window.v46AllToolsExpanded=!this.parentElement.open"><span>🎒 我的旅行百寶袋 <small>・11 項功能</small></span>' +
-      '<span class="v46-tools-caret" aria-hidden="true">⌄</span></summary>' +
+      '<summary class="v46-tools-summary v46-fab-summary" aria-label="開啟旅行百寶袋 11 項功能">' +
+      '<span aria-hidden="true">🎒</span><span class="v46-fab-text">百寶袋</span></summary>' +
       '<div class="v46-tools-content">' + menu + '</div></details>' +
-      '<div class="v38-widget-row">' + (collections || '') + '</div>' + weatherDetail +
+      '<div class="v38-widget-row">' + (collections || '') + '</div>' +
       '<details class="v46-legacy-tool"><summary>舊版日期測試工具</summary>' + simulator + '</details>' +
       '</div>';
   };
