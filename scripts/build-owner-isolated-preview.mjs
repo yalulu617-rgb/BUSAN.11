@@ -19,7 +19,7 @@ firebase=firebase.replace(configRegex,'    const firebaseConfig = Object.freeze(
 firebase=firebase.replace('    const firebaseConfig = ',fixture.replace('apps:[],','apps:[ciApp],')+'\n    const firebaseConfig = ');
 if(/busan-trip-2026-4148f|AIzaSy/.test(firebase))throw Error('STOP: preview output still has live Firebase config');
 await writeFile(join(target,'js/firebase.js'),firebase);
-const csp='<meta http-equiv="Content-Security-Policy" content="connect-src \'self\'; form-action \'self\';">';
+const csp='<meta http-equiv="Content-Security-Policy" content="connect-src \'self\' https://api.open-meteo.com https://api.exchangerate-api.com; form-action \'self\';">';
 html=html.replace('<meta charset="UTF-8">','<meta charset="UTF-8">\n    '+csp);
 html=html.replace('<title>釜山慶州秋之旅 V46 旗艦版</title>','<title>BUSAN.11 V46｜操作預覽（隔離資料）</title>');
 html=html.replace('V45 旗艦真我版','V46 視覺操作預覽');
@@ -36,7 +36,7 @@ manifest.id='./?owner-visual-preview-20261019';
 await writeFile(join(target,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');
 const assertions={
   firebaseSdkScriptsGone:!html.includes('firebase-app-compat.js')&&!html.includes('firebase-database-compat.js'),
-  networkConnectionsLimited:html.includes("connect-src 'self'"),
+  networkConnectionsLimited:html.includes("connect-src 'self' https://api.open-meteo.com https://api.exchangerate-api.com") && !html.includes('firebaseio.com'),
   firebaseInMemory:firebase.includes('__ciOnly:true')&&firebase.includes('__testOnly:true'),
   liveFirebaseSecretsAbsent:!firebase.includes('busan-trip-2026-4148f'),
   previewCssIncluded:html.includes('v46-owner-rebuild.css'),

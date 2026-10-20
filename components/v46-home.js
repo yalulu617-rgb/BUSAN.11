@@ -190,20 +190,25 @@
       '<p class="v46-muted">旅行花費：' + esc(spent) + '</p>' +
       '<button type="button" class="v46-text-link" onclick="showV37Tab(\'split\')">查看旅行記帳 ›</button></section>';
   }
+  // Real current conditions only: never label current weather as a future travel-day forecast.
   const compactWeather = model => {
-    const w = model.weather;
-    const today = model.today === model.selectedDay;
-    const current = w && Number.isFinite(Number(w.temp));
-    const text = current ? esc(w.city) + ' ' + esc(w.condition) + ' · ' + Number(w.temp) + '°C'
-      : model.mode === 'during' && !today ? '預覽日期 · 不顯示假天氣' : '即時天氣尚未更新';
-    const freshness = current ? (w.cached ? '快取天氣' : '目前天氣') : '釜山／慶州天氣與穿搭';
-    return '<button type="button" class="v46-quick-weather" onclick="toggleHomeWeatherDetail()" ' +
-      'aria-controls="homeWeatherDetailPanel" aria-expanded="' + String(!!target.homeWeatherDetailExpanded) + '">' +
+    const api = target.WeatherEngine;
+    const current = (key, label) => {
+      const w = api && typeof api.getWeather === 'function' ? api.getWeather(key) : null;
+      const valid = w && w.unavailable !== true && w.temp != null && Number.isFinite(Number(w.temp));
+      return valid
+        ? '<span class="v46-weather-city"><strong>' + label + ' ' + Math.round(Number(w.temp)) + '°C</strong>' +
+          '<small>' + esc(w.conditionZH || w.condition || '') + (w.isCached ? ' · 快取' : '') + '</small></span>'
+        : '<span class="v46-weather-city"><strong>' + label + ' --°</strong><small>待更新</small></span>';
+    };
+    const busan = current('Busan', '釜山');
+    const gyeongju = current('Gyeongju', '慶州');
+    return '<div class="v46-weather-current" aria-label="釜山與慶州現在天氣">' +
       '<span class="v46-weather-symbol" aria-hidden="true">🌤️</span>' +
-      '<span class="v46-weather-word"><strong>' + text + '</strong><small>' + freshness +
-      '</small></span><span class="v46-weather-open">詳情 ›</span></button>';
+      busan + '<span class="v46-weather-separator" aria-hidden="true"></span>' + gyeongju +
+      '<button type="button" class="v46-weather-detail-button" onclick="toggleHomeWeatherDetail()" ' +
+      'aria-label="查看即時天氣詳情與穿搭建議">詳情 ›</button></div>';
   };
-
   target.renderV46Home = function (model, menu, weatherDetail, simulator, collections) {
     if (!model) return '';
     const content = model.mode === 'before' ? before(model) : model.mode === 'after' ? after(model) : during(model);
@@ -211,13 +216,13 @@
       '<div class="v46-masthead"><div class="v46-brand"><span aria-hidden="true">🔔</span>' +
       '<div><strong>BUSAN.11</strong><small>TRAVEL DIARY</small></div></div>' +
       '<span class="v46-headleaf" aria-hidden="true">🍁</span></div>' +
-      phases(model) + compactWeather(model) + weatherDetail +
-      content + '<details class="v46-tools v46-floating-tools"' + (target.v46AllToolsExpanded ? ' open' : '') +
+      phases(model) + '<div class="v46-top-quick-actions">' + compactWeather(model) +
+      '<details class="v46-tools v46-inline-tools"' + (target.v46AllToolsExpanded ? ' open' : '') +
       ' ontoggle="window.v46AllToolsExpanded=this.open">' +
-      '<summary class="v46-tools-summary v46-fab-summary" aria-label="開啟旅行百寶袋 11 項功能">' +
-      '<span aria-hidden="true">🎒</span><span class="v46-fab-text">百寶袋</span></summary>' +
-      '<div class="v46-tools-content">' + menu + '</div></details>' +
-      '<div class="v38-widget-row">' + (collections || '') + '</div>' +
+      '<summary class="v46-tools-summary v46-inline-bag-summary" aria-label="開啟或收起旅行百寶袋 11 項功能">' +
+      '<span aria-hidden="true">🎒</span><span class="v46-bag-label">百寶袋</span></summary>' +
+      '<div class="v46-tools-content">' + menu + '</div></details></div>' +
+      weatherDetail + content + '<div class="v38-widget-row">'' + (collections || '') + '</div>' +
       '<details class="v46-legacy-tool"><summary>舊版日期測試工具</summary>' + simulator + '</details>' +
       '</div>';
   };

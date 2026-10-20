@@ -48,3 +48,84 @@
 #v37HomeDashboard .v46-fab-summary:focus-visible{outline:3px solid #e5a052!important;outline-offset:2px}
 @media(min-width:650px){#v37HomeDashboard .v46-floating-tools{right:max(12px,calc((100vw - 500px)/2))!important}}
 @media(prefers-reduced-motion:reduce){#v37HomeDashboard .v46-rail-summary-action span{transition:none!important}}
+
+/* V46 October 20 phone corrections: no iPhone AssistiveTouch collision. */
+#v37HomeDashboard .v46-home{color-scheme:light!important;--v46-ink:#234b67!important;--v46-paper:#fbf5e9!important;background-color:#fbf5e9!important;color:#234b67!important}
+body:has(#guide.active #v37HomeDashboard .v46-home){
+  --bg-color:#fbf5e9!important;--card-bg:rgba(255,253,248,.96)!important;
+  --text-color:#294c65!important;--border-color:#ebdcc5!important;
+  background:#fbf5e9!important;color:#294c65!important;color-scheme:light!important;
+}
+[data-theme="dark"] #guide.active #v37HomeDashboard .v46-home .v46-panel.card{
+  background:#fffcf5!important;border-color:#e8d7c0!important;color:#294c65!important
+}
+[data-theme="dark"] #guide.active #v37HomeDashboard .v46-home .v46-panel h3,
+[data-theme="dark"] #guide.active #v37HomeDashboard .v46-home .v46-panel strong{
+  color:#234e6d!important
+}
+[data-theme="dark"] #guide.active #v37HomeDashboard .v46-home .v46-hero h2{color:#15547f!important}
+[data-theme="dark"] #guide.active #v37HomeDashboard .v46-home .v46-hero-subtitle{color:#3a6682!important}
+[data-theme="dark"] #guide.active #v37HomeDashboard .v46-home .v46-phase{
+  background:transparent!important;color:#55748b!important
+}
+[data-theme="dark"] #guide.active #v37HomeDashboard .v46-home .v46-phase.is-current{
+  background:#daedf9!important;color:#245a80!important
+}
+#v37HomeDashboard .v46-top-quick-actions{
+  display:flex!important;align-items:stretch!important;gap:7px!important;position:relative!important;z-index:6!important
+}
+#v37HomeDashboard .v46-weather-current{
+  flex:1 1 auto;min-width:0;min-height:58px;display:flex;align-items:center;gap:6px;
+  box-sizing:border-box;background:linear-gradient(100deg,#e6f4fb,#fff6e7)!important;
+  border:1px solid #bdd7e2;border-radius:14px;padding:6px 7px;color:#244e6d;
+}
+#v37HomeDashboard .v46-weather-city{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+#v37HomeDashboard .v46-weather-city strong{
+  font-size:clamp(10px,2.8vw,12px)!important;white-space:nowrap;line-height:1.2;
+  color:#1e5375!important
+}
+#v37HomeDashboard .v46-weather-city small{font-size:9px;color:#627f91;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#v37HomeDashboard .v46-weather-separator{width:1px;height:30px;background:#c2d6db;flex:none}
+#v37HomeDashboard .v46-weather-symbol{font-size:17px!important;flex:none}
+#v37HomeDashboard .v46-weather-detail-button{
+  min-width:39px;min-height:44px;align-self:center;flex:none;
+  background:transparent;border:0;color:#236a94;font-weight:900;font-size:11px;padding:5px 2px;cursor:pointer
+}
+#v37HomeDashboard .v46-home .v46-inline-tools{
+  flex:0 0 75px;display:block;position:relative!important;right:auto!important;bottom:auto!important;top:auto!important;
+  padding:0!important;margin:0!important;width:75px!important;min-width:75px!important;max-width:75px!important;
+  z-index:7!important;background:transparent!important;border:0!important;box-shadow:none!important
+}
+#v37HomeDashboard .v46-home .v46-inline-bag-summary{
+  min-width:75px!important;min-height:58px!important;height:100%!important;
+  display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;
+  gap:3px!important;padding:6px!important;margin:0!important;
+  background:#e9f2f6!important;border:1px solid #b4d2e0!important;border-radius:14px!important;
+  color:#235978!important;box-shadow:none!important;cursor:pointer;list-style:none!important;
+}
+#v37HomeDashboard .v46-inline-bag-summary::-webkit-details-marker{display:none}
+#v37HomeDashboard .v46-inline-bag-summary span:first-child{font-size:22px;line-height:1}
+#v37HomeDashboard .v46-inline-bag-summary .v46-bag-label{font-size:11px;font-weight:950;color:#235978}
+#v37HomeDashboard .v46-inline-tools[open] >.v46-inline-bag-summary{background:#d5edf8!important;border-color:#79b5d3!important}
+#v37HomeDashboard .v46-home .v46-inline-tools > .v46-tools-content{
+  position:absolute!important;right:0!important;top:calc(100% + 8px)!important;bottom:auto!important;
+  width:min(87vw,356px)!important;max-height:min(62vh,530px)!important;overflow-y:auto!important;
+  padding:10px!important;border-radius:18px!important;border:1px solid #e4d5c0!important;
+  background:#fffdf7!important;box-shadow:0 10px 25px #3b566f55!important;
+  color:#234b67!important;box-sizing:border-box!important;
+}
+#v37HomeDashboard .v46-home .v46-inline-tools:not([open]) > .v46-tools-content{display:none!important}
+#v37HomeDashboard .v46-home .v46-inline-tools[open] > .v46-tools-content{display:block!important}
+#v37HomeDashboard .v46-inline-tools .v45-home-nine-grid{margin:0!important}
+#v37HomeDashboard .v46-inline-tools .v45-nine-card{min-height:62px!important}
+#v37HomeDashboard .v46-inline-bag-summary:focus-visible,
+#v37HomeDashboard .v46-weather-detail-button:focus-visible{outline:3px solid #e49c5a!important;outline-offset:2px}
+@media(max-width:350px){
+  #v37HomeDashboard .v46-top-quick-actions{gap:5px!important}
+  #v37HomeDashboard .v46-home .v46-inline-tools{flex-basis:66px!important;min-width:66px!important;max-width:66px!important;width:66px!important}
+  #v37HomeDashboard .v46-home .v46-inline-bag-summary{min-width:66px!important}
+  #v37HomeDashboard .v46-weather-current{gap:4px;padding:5px 5px}
+  #v37HomeDashboard .v46-weather-city strong{font-size:10px!important}
+  #v37HomeDashboard .v46-weather-city small{font-size:8px!important}
+  #v37HomeDashboard .v46-weather-symbol{display:none}
+}
