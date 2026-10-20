@@ -222,7 +222,7 @@
       '<summary class="v46-tools-summary v46-inline-bag-summary" aria-label="開啟或收起旅行百寶袋 11 項功能">' +
       '<span aria-hidden="true">🎒</span><span class="v46-bag-label">百寶袋</span></summary>' +
       '<div class="v46-tools-content">' + menu + '</div></details></div>' +
-      weatherDetail + content + '<div class="v38-widget-row">'' + (collections || '') + '</div>' +
+      weatherDetail + content + '<div class="v38-widget-row">' + (collections || '') + '</div>' +
       '<details class="v46-legacy-tool"><summary>舊版日期測試工具</summary>' + simulator + '</details>' +
       '</div>';
   };
