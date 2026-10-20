@@ -7,15 +7,24 @@ test('compact V46 owner interactive screenshots 360 and 390', async ({page})=>{
  for (const width of [360,390]){
    await page.setViewportSize({width,height:844});
    await bootApp(page);
+   await page.emulateMedia({colorScheme:'dark'});
+   await page.evaluate(()=>document.documentElement.setAttribute('data-theme','dark'));
+   await page.evaluate(()=>window.WeatherEngine.cache={Busan:{temp:18,conditionZH:'晴朗',timestamp:Date.now(),source:'Open-Meteo'},Gyeongju:{temp:16,conditionZH:'多雲',timestamp:Date.now(),source:'Open-Meteo'}});
+   await page.evaluate(()=>window.triggerContextUpdate?.());
    for(const mode of ['before','during','after']){
       await page.evaluate(()=>{window.v46AllToolsExpanded=false;window.v46TrainExpanded=false});
       await page.evaluate(m=>window.setV46HomePreview(m),mode);
       const home=page.locator('#v37HomeDashboard .v46-home');
       await expect(home).toHaveAttribute('data-v46-mode',mode);
-      const weather=home.locator('.v46-quick-weather');
+      const weather=home.locator('.v46-weather-current');
       const hero=home.locator('#liveTravelCard');
       const img=hero.locator('img.v46-story-img');
       await expect(weather).toBeVisible();
+      await expect(weather).toContainText('釜山 18°C');
+      await expect(weather).toContainText('慶州 16°C');
+      const colors=await page.evaluate(()=>({body:getComputedStyle(document.body).backgroundColor,home:getComputedStyle(document.querySelector('#v37HomeDashboard .v46-home')).backgroundColor}));
+      expect(colors.body).not.toBe('rgb(15, 15, 17)');
+      expect(colors.home).not.toBe('rgb(15, 15, 17)');
       await expect(img).toHaveAttribute('src','assets/images/v46-owner-fit-'+mode+'.webp');
       await img.evaluate(e=>e.decode());
       const weatherBox=await weather.boundingBox(),heroBox=await hero.boundingBox();
@@ -24,8 +33,8 @@ test('compact V46 owner interactive screenshots 360 and 390', async ({page})=>{
       const rail=home.locator('.v46-rail-accordion');
       await expect(rail).toHaveCount(mode==='during'?1:0);
       if(mode==='during')await expect(rail).not.toHaveAttribute('open','');
-      const fab=home.locator('.v46-floating-tools');
-      await expect(fab.locator('summary')).toBeVisible();
+      const fab=home.locator('.v46-inline-tools');
+      await expect(fab.locator('.v46-inline-bag-summary')).toBeVisible();
       await expect(fab.locator('.v45-nine-card')).toHaveCount(11);
       const screen=await page.evaluate(()=>({sw:document.documentElement.scrollWidth,cw:document.documentElement.clientWidth}));
       expect(screen.sw).toBeLessThanOrEqual(screen.cw+3);
@@ -35,9 +44,13 @@ test('compact V46 owner interactive screenshots 360 and 390', async ({page})=>{
       report.push({mode,width,weatherAboveHero:true,overflow:screen,rail:mode==='during'?'folded':null,fabEntries:11});
    }
    const home=page.locator('#v37HomeDashboard .v46-home');
-   const fab=home.locator('.v46-floating-tools');
-   await fab.locator('summary').click();
+   const fab=home.locator('.v46-inline-tools');
+   await fab.locator('.v46-inline-bag-summary').click()
    await expect(fab).toHaveAttribute('open','');
+   const bagBox=await fab.locator('.v46-inline-bag-summary').boundingBox();
+   const viewport=page.viewportSize();
+   expect(bagBox.y).toBeLessThan(440);
+   expect(bagBox.x+bagBox.width).toBeLessThanOrEqual(viewport.width+3);
    await expect(fab.locator('.v45-nine-card').first()).toBeVisible();
    await page.screenshot({path:'visual-compact/'+width+'-floating-tools-open.png',animations:'disabled'});
    await fab.locator('summary').click();
