@@ -112,8 +112,23 @@ const TripContextEngine = {
     const dayToRainKey = { '11/14': 'day2', '11/15': 'day3', '11/16': 'day4' };
     const rainPlanKey = dayToRainKey[dateStr];
     const todayRainPlan = rainPlanKey && canonical.rainPlans ? canonical.rainPlans[rainPlanKey] : null;
+    // Mutable personal ticket overrides enrich read-only canonical reservations.
+    // Deleting an override restores original travel information; no baseline mutation.
     const reservations = Array.isArray(canonical.reservations)
-      ? canonical.reservations.map(item => ({ ...item, status: this.resolveReservationState(item) }))
+      ? canonical.reservations.map(item => {
+          const matches = ticketData.filter(t => t.reservationId === item.id && t.key);
+          const override = matches.sort((a,b) =>
+            (Number(b.updatedAt || b.ts) || 0) - (Number(a.updatedAt || a.ts) || 0))[0];
+          if (!override) return { ...item, status: this.resolveReservationState(item) };
+          return {
+            ...item,
+            status: this.resolveReservationState(override),
+            details: override.desc || item.details,
+            voucher: override.voucher || '',
+            credentialStatus: override.voucher ? '憑證已上傳' : '憑證尚未上傳',
+            ticketKey: override.key
+          };
+        })
       : [];
     const credentials = Array.isArray(canonical.credentials)
       ? canonical.credentials.map(item => ({ ...item }))

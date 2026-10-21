@@ -3,48 +3,113 @@
 // Responsibilities: ticket CRUD, hotel CRUD, wallet tab switching, renderers
 // ─────────────────────────────────────────────────────────────────────────
 
-// ── Ticket CRUD ────────────────────────────────────────────────────────────
-window.addTicket = async function () {
-    const typeEl    = document.getElementById('tkType');
-    const titleEl   = document.getElementById('tkTitle');
-    const descEl    = document.getElementById('tkDesc');
-    const linkEl    = document.getElementById('tkLink');
-    const voucherEl = document.getElementById('tempVoucher');
+// ── Ticket CRUD: personal records are mutable; canonical itinerary facts are not ──
+let ticketSaveBusy = false;
 
-    const title = titleEl?.value?.trim();
-    if (!title) { showToast('請填入票券名稱', 'warning'); return; }
-
-    const ticket = {
-        type    : typeEl?.value || '🎫 門票',
-        title,
-        desc    : descEl?.value?.trim() || '',
-        link    : linkEl?.value?.trim() || '',
-        voucher : voucherEl?.value || '',
-        booked  : false,
-        ts      : Date.now()
-    };
-    try {
-        await NetworkEngine.firebasePush(DB_TICKETS, ticket);
-    } catch (e) {
-        console.error('[Wallet] addTicket push failed:', e);
-        showToast('票券儲存失敗，請稍後重試', 'error');
-        return;
+function resetTicketForm() {
+    for (const id of ['tkEditKey','tkReservationId','tkTitle','tkDesc','tkLink','tempVoucher']) {
+        const el = document.getElementById(id); if (el) el.value = '';
     }
+    const type = document.getElementById('tkType'); if (type) type.value = '🎫 門票';
+    const state = document.getElementById('tkReservationState'); if (state) state.value = '資訊不足';
+    const save = document.getElementById('saveTicketBtn'); if (save) save.textContent = '💾 儲存票券';
+    const cancel = document.getElementById('cancelTicketEditBtn'); if (cancel) cancel.style.display = 'none';
+    const status = document.getElementById('voucherStatus'); if (status) status.textContent = '';
+    const upload = document.getElementById('tkVoucherUpload'); if (upload) upload.value = '';
+}
+window.cancelTicketEdit = resetTicketForm;
 
-    if (titleEl)   titleEl.value   = '';
-    if (descEl)    descEl.value    = '';
-    if (linkEl)    linkEl.value    = '';
-    if (voucherEl) voucherEl.value = '';
-    showToast('✅ 票券已儲存', 'success');
+function fillTicketForm(item, key = '') {
+    document.getElementById('tkEditKey').value = key;
+    document.getElementById('tkReservationId').value = item.reservationId || '';
+    const select = document.getElementById('tkType');
+    select.value = [...select.options].some(x => x.value === item.type) ? item.type : '📌 其他';
+    document.getElementById('tkTitle').value = item.title || '';
+    document.getElementById('tkDesc').value = item.desc || '';
+    document.getElementById('tkLink').value = item.link || '';
+    document.getElementById('tempVoucher').value = item.voucher || '';
+    document.getElementById('tkReservationState').value = TripContextEngine.resolveReservationState(item);
+    document.getElementById('voucherStatus').textContent = item.voucher ? '目前憑證已保留；可上傳新圖片替換' : '';
+    document.getElementById('saveTicketBtn').textContent = key ? '💾 儲存修改' : '💾 儲存預約資料';
+    document.getElementById('cancelTicketEditBtn').style.display = 'inline-flex';
+    if (typeof showV37Tab === 'function') showV37Tab('wallet');
+    if (typeof switchWalletTab === 'function') switchWalletTab('ticket');
+    document.getElementById('ticketForm')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+window.editTicket = function(key) {
+    const item = (window.ticketData || []).find(t => t.key === key);
+    if (!item) { showToast('找不到票券，請重新載入', 'warning'); return; }
+    fillTicketForm(item, key);
+};
+window.editReservation = function(id) {
+    const item = getTripContext()?.reservations?.find(row => row.id === id);
+    if (!item) { showToast('找不到此預約項目', 'warning'); return; }
+    const existing = (window.ticketData || []).find(row => row.reservationId === id);
+    if (existing) { fillTicketForm(existing, existing.key); return; }
+    const type = item.category === '航班' ? '✈️ 機票' : item.category === '交通' ? '🚄 車票' : '🎫 門票';
+    fillTicketForm({reservationId:id, type, title:item.name, desc:item.details, reservationState:item.status});
 };
 
-window.deleteTicket = async function (key) {
-    if (!confirm('確認刪除此票券？')) return;
+window.saveTicket = async function() {
+    if (ticketSaveBusy) return;
+    const editKey = document.getElementById('tkEditKey')?.value || '';
+    const existing = editKey ? (window.ticketData || []).find(t => t.key === editKey) : null;
+    if (editKey && !existing) { showToast('原票券不存在，請取消編輯後再開啟', 'error'); return; }
+    const reservationId = document.getElementById('tkReservationId')?.value || existing?.reservationId || '';
+    const title = document.getElementById('tkTitle')?.value?.trim() || '';
+    if (!title) { showToast('請填入票券名稱', 'warning'); return; }
+    const reservationState = document.getElementById('tkReservationState')?.value || '資訊不足';
+    if (!TripContextEngine.reservationStates.includes(reservationState)) {
+        showToast('預約狀態無效', 'warning'); return;
+    }
+    const payload = {
+        ...(existing || {}),
+        type:document.getElementById('tkType')?.value || '🎫 門票',
+        title,
+        desc:document.getElementById('tkDesc')?.value?.trim() || '',
+        link:document.getElementById('tkLink')?.value?.trim() || '',
+        voucher:document.getElementById('tempVoucher')?.value || '',
+        reservationState,
+        booked:reservationState === '已預訂',
+        updatedAt:Date.now()
+    };
+    if (reservationId) payload.reservationId = reservationId;
+    if (!editKey) payload.ts = Date.now();
+    delete payload.key;
+    ticketSaveBusy = true;
+    const saveBtn = document.getElementById('saveTicketBtn');
+    if (saveBtn) saveBtn.disabled = true;
     try {
-        await NetworkEngine.firebaseRemove(`${DB_TICKETS}/${key}`);
-    } catch (e) {
-        console.error('[Wallet] deleteTicket failed:', e);
-        showToast('刪除票券失敗', 'error');
+        const result = editKey
+            ? await NetworkEngine.firebaseUpdate(DB_TICKETS + '/' + editKey, payload)
+            : await NetworkEngine.firebasePush(DB_TICKETS, payload);
+        if (!result || result.success !== true) throw Error(result?.error || 'write incomplete');
+        resetTicketForm();
+        showToast(editKey ? '✅ 票券已更新' : '✅ 票券已儲存', 'success');
+    } catch (err) {
+        console.error('[Wallet] saveTicket failed:', err);
+        showToast('票券未儲存；原資料保留，請檢查連線後重試', 'error');
+    } finally {
+        ticketSaveBusy = false;
+        if (saveBtn) saveBtn.disabled = false;
+    }
+};
+window.addTicket = window.saveTicket;
+
+window.deleteTicket = async function(key) {
+    const item = (window.ticketData || []).find(t => t.key === key);
+    if (!item) { showToast('找不到要刪除的個人票券', 'warning'); return; }
+    if (!confirm(item.reservationId
+        ? '確認移除這份個人預約資料／憑證？原始旅程摘要仍會保留。'
+        : '確認刪除此票券？')) return;
+    try {
+        const result = await NetworkEngine.firebaseRemove(DB_TICKETS + '/' + key);
+        if (!result || result.success !== true) throw Error(result?.error || 'remove incomplete');
+        if (document.getElementById('tkEditKey')?.value === key) resetTicketForm();
+        showToast('個人票券已刪除', 'success');
+    } catch (err) {
+        console.error('[Wallet] deleteTicket failed:', err);
+        showToast('刪除失敗；票券仍保留，請檢查連線後重試', 'error');
     }
 };
 
@@ -408,7 +473,10 @@ window.renderTickets_LogicOnly = function() {
                                 ${lh} ${vh}
                             </div>
                         </div>
-                        <button class="btn-delete" aria-label="刪除票券" onclick="deleteTicket('${t.key}')" style="background:none; border:none; color:#e74c3c; cursor:pointer;"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                            <button class="btn-edit" type="button" aria-label="編輯票券 ${walletEscape(t.title)}" onclick="editTicket(${walletEscape(JSON.stringify(t.key))})"><i class="fa-solid fa-pen" aria-hidden="true"></i> 編輯</button>
+                            <button class="btn-delete" type="button" aria-label="刪除票券 ${walletEscape(t.title)}" onclick="deleteTicket(${walletEscape(JSON.stringify(t.key))})"><i class="fa-solid fa-trash" aria-hidden="true"></i> 刪除</button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -431,6 +499,11 @@ window.renderTickets_LogicOnly = function() {
                 </div>
                 <div class="reservation-details" style="font-size:0.75rem;color:#dfe4ea;margin-top:4px;">${item.details}</div>
                 <div class="reservation-credential" style="font-size:0.7rem;color:#f5cd79;font-weight:800;margin-top:5px;">${item.credentialStatus}</div>
+                <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:7px;">
+                    <button type="button" class="v38-mini-btn" aria-label="編輯預約 ${walletEscape(item.name)}" onclick="editReservation(${walletEscape(JSON.stringify(item.id))})">✏️ 編輯預約</button>
+                    ${item.ticketKey ? `<button type="button" class="v38-mini-btn" aria-label="刪除個人預約資料 ${walletEscape(item.name)}" onclick="deleteTicket(${walletEscape(JSON.stringify(item.ticketKey))})">🗑 移除個人資料</button>` : ''}
+                    ${item.voucher ? `<a class="map-tag" href="${walletEscape(item.voucher)}" target="_blank" rel="noopener noreferrer">檢視憑證</a>` : ''}
+                </div>
             </div>`;
     }).join('');
     const canonicalSummaryHtml = `

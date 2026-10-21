@@ -765,10 +765,9 @@
                     if (snap && typeof snap.forEach === 'function') {
                         snap.forEach(ch => { loaded.push({ ...ch.val(), key: ch.key }); });
                     }
-                    if (loaded.length > 0) {
-                        window.ticketData = loaded;
-                        StorageEngine.set('busan_v36_tickets', window.ticketData);
-                    }
+                    // The empty authoritative snapshot must clear the last deleted ticket.
+                    window.ticketData = loaded;
+                    StorageEngine.set('busan_v36_tickets', window.ticketData);
                     if (typeof renderTickets_LogicOnly === 'function') renderTickets_LogicOnly();
                     if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
                 } catch (e) { console.error('[FirebaseOn DB_TICKETS]', e); }
