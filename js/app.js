@@ -743,7 +743,11 @@
                     if (snap && typeof snap.forEach === 'function') {
                         snap.forEach(ch => { loaded.push({ ...ch.val(), key: ch.key }); });
                     }
-                    const customRows = loaded.length > 0 ? loaded : (StorageEngine.get('busan_v36_itinerary', []).data || []);
+                    // Firebase is authoritative, INCLUDING its empty snapshot.
+                    // Falling back to stale localStorage after the last item is
+                    // deleted resurrected the owner's removed custom itinerary.
+                    // Offline startup still reads its cache before the listener.
+                    const customRows = loaded;
                     window.itineraryData = typeof window.mergeCanonicalItinerary === 'function'
                         ? window.mergeCanonicalItinerary(customRows)
                         : (window.RECOMMENDED_ITINERARY || []).concat(customRows);
