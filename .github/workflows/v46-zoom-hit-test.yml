@@ -34,7 +34,8 @@ jobs:
           sleep 3
           curl -fsS http://localhost:8080/ >/dev/null
       - name: Run real 200-percent zoom hit tests without retries
-        run: npx playwright test tests/accessibility.spec.js --project=${{ matrix.project }} --workers=1 --retries=0 --grep '320px: three phases reflow' --reporter=list
+        run: |
+          npx playwright test tests/accessibility.spec.js --project=${{ matrix.project }} --workers=1 --retries=0 --grep '320px: three phases reflow' --reporter=list
         env:
           CI: 'true'
           BUSAN_CI_FIREBASE_ISOLATED: '1'
