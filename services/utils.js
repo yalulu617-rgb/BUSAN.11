@@ -158,8 +158,8 @@ window.uploadSingleToImgBB = async function(file, type) {
     try {
         const compressed = await compressImage(file);
         const res = await NetworkEngine.uploadImage(compressed);
-        const url = res.data ? res.data.url : (res.data && res.data.url);
-        if (!url) throw new Error("No URL returned");
+        const url = res?.success === true ? res.data?.url : null;
+        if (!url) throw new Error(res?.error || "No URL returned");
         if (hidden) hidden.value = url;
         if (status) status.innerText = "✅ 上傳成功！";
         showToast("圖片上傳成功", "success");
@@ -174,17 +174,36 @@ window.uploadMultipleToImgBB = async function(files, type) {
     if (!files || files.length === 0) return;
     if (status) status.innerText = `準備上傳 ${files.length} 張照片...`;
     let success = 0;
+    let failures = 0;
     for (let i = 0; i < files.length; i++) {
         if (status) status.innerText = `⏳ 正在上傳第 ${i + 1}/${files.length} 張...`;
         try {
             const compressed = await compressImage(files[i]);
             const res = await NetworkEngine.uploadImage(compressed);
-            const url = res.data ? res.data.url : null;
-            if (!url) throw new Error("No URL");
-            await NetworkEngine.firebasePush(DB_PHOTOS, { url, date: getV37SelectedDate(), timestamp: Date.now() });
+            if (!res || res.success !== true || !res.data?.url) {
+                throw new Error(res?.error || '圖片上傳未完成');
+            }
+            const saved = await NetworkEngine.firebasePush(DB_PHOTOS, {
+                url: res.data.url,
+                date: getV37SelectedDate(),
+                timestamp: Date.now()
+            });
+            // A successful ImgBB upload is NOT proof that the photo record
+            // was saved. The Firebase write must succeed too.
+            if (!saved || saved.success !== true) {
+                throw new Error(saved?.error || '照片紀錄未儲存');
+            }
             success++;
-        } catch (err) { /* skip failed photo */ }
+        } catch (err) {
+            failures++;
+            console.error('[Memory] photo upload/save failed:', err);
+        }
     }
-    if (status) status.innerText = `✅ 上傳完成，成功 ${success}/${files.length} 張！`;
-    showToast(`📸 成功批次上傳了 ${success} 張回憶！`, "success");
+    if (status) {
+        status.innerText = failures
+            ? `⚠️ 已儲存 ${success}/${files.length} 張；失敗 ${failures} 張，請重試未完成的照片。`
+            : `✅ 上傳完成，成功 ${success}/${files.length} 張！`;
+    }
+    if (success === files.length) showToast(`📸 成功批次上傳了 ${success} 張回憶！`, 'success');
+    else showToast(`照片僅儲存 ${success}/${files.length} 張；失敗的照片沒有成功儲存。`, 'error');
 };
