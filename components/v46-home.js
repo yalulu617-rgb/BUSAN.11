@@ -243,6 +243,10 @@
       target.requestAnimationFrame(() => {
         pending = false;
         const el = document.querySelector('#guide.active #v37HomeDashboard .v46-sticky-head');
+        // WebKit scrolls the page while moving through the long 11-item bag.
+        // Never resize its containing sticky header during that interaction:
+        // changing the target's geometry would make real taps fail.
+        if (el?.querySelector('details.v46-tools[open]')) return;
         // Hysteresis avoids scroll/height oscillation when expanded header
         // collapses at the same position that the page is scrolling.
         if (target.scrollY > 256) target.v46StickyCompact = true;
@@ -255,9 +259,12 @@
   target.renderV46Home = function (model, menu, weatherDetail, simulator, collections) {
     if (!model) return '';
     const content = model.mode === 'before' ? before(model) : model.mode === 'after' ? after(model) : during(model);
-    // Rerendered phase/weather content must inherit the actual scroll state.
-    if (target.scrollY > 256) target.v46StickyCompact = true;
-    else if (target.scrollY < 24) target.v46StickyCompact = false;
+    // Preserve the open bag's geometry across weather/phase rerenders.
+    const activeBag = document.querySelector('#guide.active #v37HomeDashboard details.v46-tools[open]');
+    if (!activeBag && !target.v46AllToolsExpanded) {
+      if (target.scrollY > 256) target.v46StickyCompact = true;
+      else if (target.scrollY < 24) target.v46StickyCompact = false;
+    }
     return '<div class="v46-home" data-v46-mode="' + esc(model.mode) + '">' +
       '<div class="v46-sticky-head' + (target.v46StickyCompact ? ' is-compact' : '') + '">' +
       '<div class="v46-sticky-expanded"><div class="v46-masthead"><div class="v46-brand"><span aria-hidden="true">🔔</span>' +
