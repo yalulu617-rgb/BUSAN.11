@@ -237,7 +237,11 @@
       target.requestAnimationFrame(() => {
         pending = false;
         const el = document.querySelector('#guide.active #v37HomeDashboard .v46-sticky-head');
-        if (el) el.classList.toggle('is-compact', target.scrollY > 128);
+        // Hysteresis avoids scroll/height oscillation when expanded header
+        // collapses at the same position that the page is scrolling.
+        if (target.scrollY > 176) target.v46StickyCompact = true;
+        else if (target.scrollY < 24) target.v46StickyCompact = false;
+        if (el) el.classList.toggle('is-compact', Boolean(target.v46StickyCompact));
       });
     }, { passive: true });
   }
@@ -245,15 +249,17 @@
   target.renderV46Home = function (model, menu, weatherDetail, simulator, collections) {
     if (!model) return '';
     const content = model.mode === 'before' ? before(model) : model.mode === 'after' ? after(model) : during(model);
+    if (target.scrollY > 176) target.v46StickyCompact = true;
+    else if (target.scrollY < 24) target.v46StickyCompact = false;
     return '<div class="v46-home" data-v46-mode="' + esc(model.mode) + '">' +
-      '<div class="v46-sticky-head' + (target.scrollY > 128 ? ' is-compact' : '') + '">' +
+      '<div class="v46-sticky-head' + (target.v46StickyCompact ? ' is-compact' : '') + '">' +
       '<div class="v46-sticky-expanded"><div class="v46-masthead"><div class="v46-brand"><span aria-hidden="true">🔔</span>' +
       '<div><strong>BUSAN.11</strong><small>TRAVEL DIARY</small></div></div>' +
       '<span class="v46-headleaf" aria-hidden="true">🍁</span></div>' +
       phases(model) + '</div>' +
       '<div class="v46-top-quick-actions">' + condensedPhase(model) + compactWeather(model) + condensedWeather() +
       '<details class="v46-tools v46-inline-tools"' + (target.v46AllToolsExpanded ? ' open' : '') +
-      ' ontoggle="window.v46AllToolsExpanded=this.open">' +
+      ' ontoggle="if(this.isConnected) window.v46AllToolsExpanded=this.open">' +
       '<summary class="v46-tools-summary v46-inline-bag-summary" aria-label="開啟或收起旅行百寶袋 11 項功能">' +
       '<span aria-hidden="true">🎒</span><span class="v46-bag-label">百寶袋</span></summary>' +
       '<div class="v46-tools-content">' + menu + '</div></details></div></div>' +

@@ -275,7 +275,11 @@ test.describe('Wallet (Ticket / Hotel / Docs / Coupon / Memory)', () => {
     for (const id of fields) {
       await expect(page.locator(`#walletTicketSection ${id}`)).toBeVisible();
     }
-    await expect(page.locator('#walletTicketSection button[onclick="addTicket()"]')).toBeVisible();
+    const save = page.locator('#walletTicketSection #saveTicketBtn');
+    await expect(save).toBeVisible();
+    await expect(save).toBeEnabled();
+    await expect(save).toHaveAttribute('onclick', 'saveTicket()');
+    await expect(page.locator('#tkReservationState')).toBeVisible();
   });
 });
 

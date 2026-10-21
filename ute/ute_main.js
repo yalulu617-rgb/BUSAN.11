@@ -76,6 +76,11 @@ if (typeof window !== "undefined") {
   window.triggerContextUpdate = triggerContextUpdate;
   window.triggerContextUpdateImmediate = triggerContextUpdateImmediate;
   window.setV46HomePreview = function (mode) {
+    // A phase change must never resurrect an open dropdown from the DOM being
+    // replaced, because its hidden overlay blocks the rail's real touch target.
+    window.v46AllToolsExpanded = false;
+    const bag = document.querySelector('#v37HomeDashboard details.v46-tools');
+    if (bag?.open) bag.open = false;
     window.v46HomePreviewMode = ['auto', 'before', 'during', 'after'].includes(mode) ? mode : 'auto';
     // Returning to live mode must also clear the old manually selected day.
     if (window.v46HomePreviewMode === 'auto') window.v46HomePreviewDay = null;

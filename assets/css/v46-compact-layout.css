@@ -109,7 +109,11 @@ body:has(#guide.active #v37HomeDashboard .v46-home){
 #v37HomeDashboard .v46-inline-tools[open] >.v46-inline-bag-summary{background:#d5edf8!important;border-color:#79b5d3!important}
 #v37HomeDashboard .v46-home .v46-inline-tools > .v46-tools-content{
   position:absolute!important;right:0!important;top:calc(100% + 8px)!important;bottom:auto!important;
-  width:min(87vw,356px)!important;max-height:min(62vh,530px)!important;overflow-y:auto!important;
+  width:min(87vw,356px)!important;
+  /* Keep the scrollable 11-function list clear of the fixed bottom navigation,
+     including at 200% font size; the content itself remains fully accessible. */
+  max-height:min(46vh,calc(100dvh - 300px),480px)!important;
+  overflow-y:auto!important;
   padding:10px!important;border-radius:18px!important;border:1px solid #e4d5c0!important;
   background:#fffdf7!important;box-shadow:0 10px 25px #3b566f55!important;
   color:#234b67!important;box-sizing:border-box!important;
