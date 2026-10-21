@@ -370,6 +370,13 @@
         try {
             if (!options || options.haptic !== false) triggerHapticFeedback();
 
+            // Closing a route from the sticky eleven-function bag must also
+            // dismiss its dropdown. Leaving it open covers the train and
+            // intercepts subsequent real touch events on the Home dashboard.
+            const openBag = document.querySelector('#v37HomeDashboard details.v46-tools');
+            if (openBag?.open) openBag.open = false;
+            window.v46AllToolsExpanded = false;
+
             document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
             syncBottomNavState(id, btn);
 
