@@ -139,6 +139,10 @@ body:has(#guide.active #v37HomeDashboard .v46-home){
   #v37HomeDashboard .v46-weather-symbol{display:none}
 }
 
+/* Decorative leaf must not steal taps from the adjacent sticky tool menu.
+   No change to owner-approved artwork, theme or layout. */
+#v37HomeDashboard .v46-headleaf{pointer-events:none!important}
+
 /* Owner-approved condensed sticky masthead. Full design returns near page top. */
 #v37HomeDashboard .v46-sticky-head{
   position:sticky!important;top:env(safe-area-inset-top,0px)!important;z-index:1100!important;
