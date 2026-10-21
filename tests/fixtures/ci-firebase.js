@@ -1,11 +1,23 @@
     // CI-only ephemeral Firebase replacement injected into the runner's copy
     // before the actual config is evaluated. This code is NEVER included in main.
-    const ciData = {
+    // CI ONLY: opt-in session-persistent backend for reload/migration tests.
+    // Ordinary CI tests stay ephemeral. NEVER present in the deployed app.
+    const ciPersistFlag = '__busan_v46_ci_fixture_persist';
+    const ciPersistKey = '__busan_v46_ci_fixture_data';
+    let ciData = {
       busan_v36_shop: {
         'fixture-1': { text: 'Re4dy', owner: 'user2', checked: false, category: '保養', where: '測試用商店' },
         'fixture-2': { text: 'Imint無糖咖啡糖', owner: 'user2', checked: false, category: '食品', where: '測試用商店' }
       }
     };
+    if (sessionStorage.getItem(ciPersistFlag) === '1') {
+      try {
+        const old = JSON.parse(sessionStorage.getItem(ciPersistKey) || 'null');
+        if (old && typeof old === 'object' && !Array.isArray(old)) ciData = old;
+      } catch (error) {
+        console.warn('[CI] invalid disposable reload fixture', error);
+      }
+    }
     const ciCallbacks = new Map();
     let ciNextId = 100;
     const ciClone = value => value === undefined ? null : JSON.parse(JSON.stringify(value));
@@ -28,6 +40,9 @@
       }
       const last = keys[keys.length - 1];
       if (value == null) delete node[last]; else node[last] = ciClone(value);
+      if (sessionStorage.getItem(ciPersistFlag) === '1') {
+        sessionStorage.setItem(ciPersistKey, JSON.stringify(ciData));
+      }
       for (const [listenerPath, callbacks] of ciCallbacks) {
         if (path === listenerPath || path.startsWith(listenerPath + '/') || listenerPath.startsWith(path + '/')) {
           for (const callback of callbacks) queueMicrotask(() => callback(ciSnapshot(listenerPath, ciGet(listenerPath))));
