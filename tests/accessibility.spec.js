@@ -50,6 +50,11 @@ test.describe('MOBILE-ZOOM-01', () => {
                 parent:parent?.id||String(parent?.className||'').slice(0,100)};
             };
             return {scrollY,innerWidth,innerHeight,devicePixelRatio,
+              screen:{width:screen.width,height:screen.height},
+              visualViewport:window.visualViewport && {width:visualViewport.width,height:visualViewport.height,
+                scale:visualViewport.scale,offsetLeft:visualViewport.offsetLeft,offsetTop:visualViewport.offsetTop},
+              document:{clientWidth:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth},
+              viewportMeta:document.querySelector('meta[name=viewport]')?.content,
               nav:pick('#tab-home'),
               navBar:pick('#mainApp .bottom-nav'),
               route:pick('#itinerary.active .iti-row'),
