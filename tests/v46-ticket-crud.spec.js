@@ -87,7 +87,6 @@ test('V46 canonical reservation: KTX status and receipt are editable overlays, a
   const keys=Object.keys(rows||{});
   expect(keys).toHaveLength(1);
   expect(rows[keys[0]].reservationId).toBe('ktx-korail');
-  expect(window).not.toBe(null);
   page.once('dialog',dialog=>dialog.accept());
   await ktx.getByRole('button',{name:'刪除個人預約資料 KTX / KORAIL'}).click();
   await expect(ktx.locator('.reservation-status')).toHaveText('尚未預訂');
