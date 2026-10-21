@@ -81,7 +81,9 @@ test('final five-day content freeze renders correctly on mobile', async ({ page 
   // irrespective of whether the transport instructions have a disclosure.
   const airportRoute = unverifiedNaverRow.locator('.iti-transport-detail summary');
   if (await airportRoute.count()) await airportRoute.click();
-  await expect(unverifiedNaverRow.locator('.iti-map-actions')).toBeVisible();
+  // The map action container is intentionally empty/hidden when no verified
+  // coordinates exist. Assert the container remains and exposes zero fake URLs.
+  await expect(unverifiedNaverRow.locator('.iti-map-actions')).toHaveCount(1);
   await expect(unverifiedNaverRow.locator('.iti-map-actions a')).toHaveCount(0);
   await expect(unverifiedNaverRow.locator('.iti-map-actions')).not.toContainText(/Google|Kakao/);
 
