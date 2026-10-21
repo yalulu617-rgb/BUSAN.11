@@ -55,6 +55,12 @@ test.describe('MOBILE-ZOOM-01', () => {
                 scale:visualViewport.scale,offsetLeft:visualViewport.offsetLeft,offsetTop:visualViewport.offsetTop},
               document:{clientWidth:document.documentElement.clientWidth,scrollWidth:document.documentElement.scrollWidth},
               viewportMeta:document.querySelector('meta[name=viewport]')?.content,
+              overflowNodes:[...document.querySelectorAll('#mainApp *')]
+                .map(el=>({el,rect:el.getBoundingClientRect()}))
+                .filter(v=>v.rect.width>0 && (v.rect.right>document.documentElement.clientWidth+3 || v.rect.left< -3))
+                .sort((a,b)=>b.rect.right-a.rect.right).slice(0,18)
+                .map(v=>({tag:v.el.tagName,id:v.el.id,className:String(v.el.className||'').slice(0,90),
+                  left:Math.round(v.rect.left),right:Math.round(v.rect.right),width:Math.round(v.rect.width)})),
               nav:pick('#tab-home'),
               navBar:pick('#mainApp .bottom-nav'),
               route:pick('#itinerary.active .iti-row'),
