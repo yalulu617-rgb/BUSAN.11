@@ -5,6 +5,13 @@ on:
     branches: [v46-ticket-crud-repair-20261021]
     paths:
       - '.github/workflows/v46-cross-browser-qa.yml'
+      - 'assets/css/**'
+      - 'style.css'
+      - 'components/v46-home.js'
+      - 'js/app.js'
+      - 'tests/accessibility.spec.js'
+      - 'tests/v46-release-acceptance.spec.js'
+      - 'tests/v46-ticket-crud.spec.js'
   workflow_dispatch:
 
 permissions:
