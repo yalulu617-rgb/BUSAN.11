@@ -66,7 +66,9 @@ test('final five-day content freeze renders correctly on mobile', async ({ page 
   // transport leg. Select the verified bakery row itself, not both rows.
   const verifiedNaverRow = page.locator('#itiContent .iti-row').filter({ hasText: 'Day 2 官方麵包站：OPS Haeundae' });
   await expect(verifiedNaverRow).toHaveCount(1);
-  await verifiedNaverRow.locator('.iti-transport-detail summary').click();
+  // Bakery stop has no route disclosure: its verified NAVER link is directly visible.
+  await expect(verifiedNaverRow.locator('.iti-transport-detail summary')).toHaveCount(0);
+  await expect(verifiedNaverRow.locator('.iti-map-actions')).toBeVisible();
   const verifiedNaverActions = verifiedNaverRow.locator('.iti-map-actions a');
   await expect(verifiedNaverActions).toHaveCount(1);
   await expect(verifiedNaverActions).toContainText('NAVER');
@@ -75,7 +77,11 @@ test('final five-day content freeze renders correctly on mobile', async ({ page 
 
   await page.evaluate(() => window.filterIti('11/13'));
   const unverifiedNaverRow = page.locator('#itiContent .iti-row').filter({ hasText: '抵達金海國際機場' });
-  await unverifiedNaverRow.locator('.iti-transport-detail summary').click();
+  // A row with no known NAVER location must not invent a navigation link,
+  // irrespective of whether the transport instructions have a disclosure.
+  const airportRoute = unverifiedNaverRow.locator('.iti-transport-detail summary');
+  if (await airportRoute.count()) await airportRoute.click();
+  await expect(unverifiedNaverRow.locator('.iti-map-actions')).toBeVisible();
   await expect(unverifiedNaverRow.locator('.iti-map-actions a')).toHaveCount(0);
   await expect(unverifiedNaverRow.locator('.iti-map-actions')).not.toContainText(/Google|Kakao/);
 
