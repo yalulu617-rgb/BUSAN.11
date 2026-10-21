@@ -12,6 +12,9 @@ on:
       - 'components/**'
       - 'data/**'
       - 'services/**'
+      - 'assets/css/**'
+      - 'style.css'
+      - '.github/workflows/quick-test.yml'
 
 jobs:
   test-chromium-only:
