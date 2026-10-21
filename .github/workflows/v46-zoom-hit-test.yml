@@ -17,7 +17,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: [mobile-chrome, webkit]
+        include:
+          - {project: mobile-chrome, browser: chromium}
+          - {project: webkit, browser: webkit}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -25,7 +27,7 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps ${{ matrix.project == 'webkit' && 'webkit' || 'chromium' }}
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: |
           npm install -g serve
           serve -s . -l 8080 &
