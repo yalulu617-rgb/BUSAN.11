@@ -231,6 +231,16 @@
   if (!target.v46StickyHeaderBound) {
     target.v46StickyHeaderBound = true;
     let pending = false;
+    // Distinguish intentional human scrolling from browser scrollIntoView()
+    // during a click. Otherwise WebKit flips the masthead while the summary
+    // is being tapped, moving its hit target out from under the finger.
+    target.v46UserScrollIntent = false;
+    target.addEventListener('wheel', () => { target.v46UserScrollIntent = true; }, {passive:true});
+    target.addEventListener('touchmove', () => { target.v46UserScrollIntent = true; }, {passive:true});
+    target.addEventListener('keydown', event => {
+      if (['PageDown','PageUp','ArrowDown','ArrowUp','Home','End',' '].includes(event.key))
+        target.v46UserScrollIntent = true;
+    });
     target.addEventListener('scroll', () => {
       if (pending) return;
       pending = true;
@@ -239,8 +249,12 @@
         const el = document.querySelector('#guide.active #v37HomeDashboard .v46-sticky-head');
         // Hysteresis avoids scroll/height oscillation when expanded header
         // collapses at the same position that the page is scrolling.
+        if (!target.v46UserScrollIntent) return;
         if (target.scrollY > 176) target.v46StickyCompact = true;
-        else if (target.scrollY < 24) target.v46StickyCompact = false;
+        else if (target.scrollY < 24) {
+          target.v46StickyCompact = false;
+          target.v46UserScrollIntent = false;
+        }
         if (el) el.classList.toggle('is-compact', Boolean(target.v46StickyCompact));
       });
     }, { passive: true });
@@ -249,8 +263,10 @@
   target.renderV46Home = function (model, menu, weatherDetail, simulator, collections) {
     if (!model) return '';
     const content = model.mode === 'before' ? before(model) : model.mode === 'after' ? after(model) : during(model);
-    if (target.scrollY > 176) target.v46StickyCompact = true;
-    else if (target.scrollY < 24) target.v46StickyCompact = false;
+    if (target.v46UserScrollIntent) {
+      if (target.scrollY > 176) target.v46StickyCompact = true;
+      else if (target.scrollY < 24) target.v46StickyCompact = false;
+    }
     return '<div class="v46-home" data-v46-mode="' + esc(model.mode) + '">' +
       '<div class="v46-sticky-head' + (target.v46StickyCompact ? ' is-compact' : '') + '">' +
       '<div class="v46-sticky-expanded"><div class="v46-masthead"><div class="v46-brand"><span aria-hidden="true">🔔</span>' +
