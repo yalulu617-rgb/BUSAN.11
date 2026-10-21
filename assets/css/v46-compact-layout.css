@@ -143,6 +143,20 @@ body:has(#guide.active #v37HomeDashboard .v46-home){
    No change to owner-approved artwork, theme or layout. */
 #v37HomeDashboard .v46-headleaf{pointer-events:none!important}
 
+/* 200% mobile type: the five horizontal day pills must scroll INSIDE their
+   rail, never inflate Chromium's layout viewport from 320px to 618px.
+   Keep the owner's existing swipeable day-selector appearance. */
+#itinerary .day-tabs{
+  min-width:0!important;
+  max-width:100%!important;
+  width:100%!important;
+  box-sizing:border-box!important;
+  contain:inline-size;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  -webkit-overflow-scrolling:touch;
+}
+
 /* Owner-approved condensed sticky masthead. Full design returns near page top. */
 #v37HomeDashboard .v46-sticky-head{
   position:sticky!important;top:env(safe-area-inset-top,0px)!important;z-index:1100!important;
