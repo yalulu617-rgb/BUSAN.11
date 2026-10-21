@@ -2,7 +2,10 @@ name: V46 Five-Day Real Itinerary Mobile Data Gate
 on:
   push:
     branches: [v46-ticket-crud-repair-20261021]
-    paths: ['.github/workflows/v46-five-day-mobile-qa.yml']
+    paths:
+      - '.github/workflows/v46-five-day-mobile-qa.yml'
+      - 'tests/final-content-sync-mobile.spec.js'
+      - 'js/itinerary.js'
   workflow_dispatch:
 permissions:
   contents: read
