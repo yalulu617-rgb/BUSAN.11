@@ -41,6 +41,7 @@ jobs:
           CI: 'true'
           PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
           BUSAN_CI_FIREBASE_ISOLATED: '1'
+          V46_SANDBOX_BUILD: '1'
       - name: Retain isolated static preview and evidence
         if: always()
         uses: actions/upload-artifact@v6
