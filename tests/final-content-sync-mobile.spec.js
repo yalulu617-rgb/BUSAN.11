@@ -62,7 +62,10 @@ test('final five-day content freeze renders correctly on mobile', async ({ page 
   expect(day5).not.toMatch(/Zimcarry|짐캐리|Pohang Dwaeji Gukbap|포항돼지국밥/);
 
   await page.evaluate(() => window.filterIti('11/14'));
-  const verifiedNaverRow = page.locator('#itiContent .iti-row').filter({ hasText: 'OPS Haeundae' });
+  // The Day 2 plan includes both the bakery stop and the separate OPS → Mipo
+  // transport leg. Select the verified bakery row itself, not both rows.
+  const verifiedNaverRow = page.locator('#itiContent .iti-row').filter({ hasText: 'Day 2 官方麵包站：OPS Haeundae' });
+  await expect(verifiedNaverRow).toHaveCount(1);
   await verifiedNaverRow.locator('.iti-transport-detail summary').click();
   const verifiedNaverActions = verifiedNaverRow.locator('.iti-map-actions a');
   await expect(verifiedNaverActions).toHaveCount(1);
