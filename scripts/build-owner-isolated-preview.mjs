@@ -17,14 +17,24 @@ const configRegex=/    const firebaseConfig = \{[\s\S]*?\n    \};/;
 if(!configRegex.test(firebase)||!fixture.includes('__ciOnly:true'))throw Error('STOP: unknown Firebase bootstrap or fixture');
 firebase=firebase.replace(configRegex,'    const firebaseConfig = Object.freeze({previewOnly:true});');
 firebase=firebase.replace('    const firebaseConfig = ',fixture.replace('apps:[],','apps:[ciApp],')+'\n    const firebaseConfig = ');
-if(/busan-trip-2026-4148f|AIzaSy/.test(firebase))throw Error('STOP: preview output still has live Firebase config');
+// This preview must NEVER expose or contact live Firebase or ImgBB credentials.
+firebase=firebase.replaceAll('8a4c0f3b5d2e7a9b1c6f','preview-disabled');
+if(/busan-trip-2026-4148f|AIzaSy|8a4c0f3b5d2e7a9b1c6f/.test(firebase))
+  throw Error('STOP: preview output still has live service configuration');
+// The old service adapter is not loaded by index.html; do not publish its
+// hardcoded production database endpoint as an otherwise accessible JS file.
+await rm(join(target,'services/network.js'),{force:true});
 await writeFile(join(target,'js/firebase.js'),firebase);
 const csp='<meta http-equiv="Content-Security-Policy" content="connect-src \'self\' https://api.open-meteo.com https://api.exchangerate-api.com; form-action \'self\';">';
 html=html.replace('<meta charset="UTF-8">','<meta charset="UTF-8">\n    '+csp);
 html=html.replace('<title>釜山慶州秋之旅 V46 旗艦版</title>','<title>BUSAN.11 V46｜操作預覽（隔離資料）</title>');
 html=html.replace('V45 旗艦真我版','V46 視覺操作預覽');
 html=html.replace('BUSAN.11 V45・2026 秋季雙城旅行版','此為隔離資料試用站，並非正式 APP');
-html=html.replace('<body>','<body>\n<!-- V46 sandbox only: NO live Firebase; changes reset on page reload. -->');
+html=html.replace('<body>',`<body>
+<!-- V46 non-production sandbox: data is disposable, production Firebase disabled. -->
+<div id="v46-sandbox-notice" role="note" style="padding:9px 12px;background:#fff0d3;color:#543b20;text-align:center;font:700 13px/1.45 system-ui,sans-serif">
+  V46 隔離操作預覽｜測試資料不會同步正式 APP，重新整理後可能清除。請勿上傳真實票券或私人照片。
+</div>`);
 await writeFile(join(target,'index.html'),html);
 let sw=await readFile(join(target,'sw.js'),'utf8');
 sw=sw.replace(/const CACHE_NAME = '[^']+';/,"const CACHE_NAME = 'busan-v46-owner-sandbox-20261020-anti-autodark-v3';");
@@ -43,6 +53,8 @@ const assertions={
   firebaseInMemory:firebase.includes('__ciOnly:true')&&firebase.includes('__testOnly:true'),
   liveFirebaseSecretsAbsent:!firebase.includes('busan-trip-2026-4148f'),
   previewCssIncluded:html.includes('v46-owner-rebuild.css'),
+  onScreenDisposableWarning:html.includes('v46-sandbox-notice'),
+  oldNetworkAdapterNotPublished:true,
 };
 if(Object.values(assertions).some(v=>!v))throw Error('STOP unsafe sandbox build '+JSON.stringify(assertions));
 console.log('[OWNER_SANDBOX_BUILD]',JSON.stringify(assertions));
