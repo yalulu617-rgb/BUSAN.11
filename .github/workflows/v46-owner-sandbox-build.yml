@@ -1,0 +1,53 @@
+name: V46 Owner Isolated Preview Build
+on:
+  push:
+    branches: [v46-ticket-crud-repair-20261021]
+    paths:
+      - '.github/workflows/v46-owner-sandbox-build.yml'
+      - 'scripts/build-owner-isolated-preview.mjs'
+      - 'tests/v46-owner-sandbox.spec.js'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  safe-preview:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: {node-version: '24', cache: npm}
+      - run: npm ci
+      - name: Generate strictly isolated candidate preview, not production
+        run: node scripts/build-owner-isolated-preview.mjs
+      - name: Refuse live database endpoint in generated preview
+        run: |
+          if grep -R -l -E 'busan-trip-2026-4148f|AIzaSy' public/js/firebase.js public/index.html; then
+            echo 'STOP: preview still has real database config'
+            exit 1
+          fi
+          test ! -f public/services/network.js
+          grep -q 'v46-sandbox-notice' public/index.html
+      - run: npx playwright install --with-deps chromium
+      - name: Start generated preview, not normal app
+        run: |
+          npm install -g serve
+          serve -s public -l 8080 &
+          sleep 3
+          curl -fsS http://localhost:8080/ >/dev/null
+      - name: Browser smoke for sandbox and mock tickets
+        run: npx playwright test tests/v46-owner-sandbox.spec.js --project=chromium --workers=1 --retries=0 --reporter=html,list
+        env:
+          CI: 'true'
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
+          BUSAN_CI_FIREBASE_ISOLATED: '1'
+      - name: Retain isolated static preview and evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: v46-owner-disposable-preview-artifact
+          path: |
+            public/
+            playwright-report/
+            test-results/
+          retention-days: 14
