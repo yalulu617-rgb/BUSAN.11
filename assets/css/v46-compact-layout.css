@@ -143,6 +143,13 @@ body:has(#guide.active #v37HomeDashboard .v46-home){
    No change to owner-approved artwork, theme or layout. */
 #v37HomeDashboard .v46-headleaf{pointer-events:none!important}
 
+/* Clip accidental page-wide overflow at the root, without creating a
+   new scrolling ancestor that would break the owner-approved sticky header.
+   Scrollable day tabs retain their own horizontal scrollbar. */
+html:has(#mainApp){max-width:100%;overflow-x:clip!important}
+html:has(#mainApp) body{max-width:100%;overflow-x:clip!important}
+#mainApp{max-width:100%;min-width:0}
+
 /* 200% mobile type: the five horizontal day pills must scroll INSIDE their
    rail, never inflate Chromium's layout viewport from 320px to 618px.
    Keep the owner's existing swipeable day-selector appearance. */
