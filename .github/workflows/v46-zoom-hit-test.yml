@@ -7,6 +7,8 @@ on:
       - 'tests/accessibility.spec.js'
       - 'assets/css/v46-compact-layout.css'
       - 'style.css'
+      - 'js/app.js'
+      - 'components/v46-home.js'
   workflow_dispatch:
 permissions:
   contents: read
