@@ -30,9 +30,41 @@ test.describe('MOBILE-ZOOM-01', () => {
       await page.setViewportSize({ width, height: 844 });
       const home = page.locator('#v37HomeDashboard .v46-home');
       const bag = page.locator('#v37HomeDashboard details.v46-tools');
+      // Diagnostic only: a failed real click retains the original failure and
+      // prints geometry / elementFromPoint evidence; it never force-clicks.
+      const clickWithEvidence = async (target, label) => {
+        try { await target.click(); } catch (error) {
+          const evidence = await page.evaluate(() => {
+            const pick = (query) => {
+              const el = document.querySelector(query);
+              if (!el) return {missing:query};
+              const r=el.getBoundingClientRect();
+              const cs=getComputedStyle(el);
+              const x=Math.min(innerWidth-1, Math.max(0,r.left+r.width/2));
+              const y=Math.min(innerHeight-1, Math.max(0,r.top+r.height/2));
+              const hit=document.elementFromPoint(x,y);
+              const parent=hit?.closest('.bottom-nav,.container,.v46-sticky-head,.v46-tools-content');
+              return {selector:query, rect:{x:r.x,y:r.y,width:r.width,height:r.height},
+                style:{position:cs.position,zIndex:cs.zIndex,transform:cs.transform,overflow:cs.overflow,pointerEvents:cs.pointerEvents},
+                hit:{tag:hit?.tagName,id:hit?.id,className:String(hit?.className||'').slice(0,150),text:hit?.textContent?.trim().slice(0,90)},
+                parent:parent?.id||String(parent?.className||'').slice(0,100)};
+            };
+            return {scrollY,innerWidth,innerHeight,devicePixelRatio,
+              nav:pick('#tab-home'),
+              navBar:pick('#mainApp .bottom-nav'),
+              route:pick('#itinerary.active .iti-row'),
+              bag:pick('#v37HomeDashboard details.v46-tools summary'),
+              sticky:pick('#v37HomeDashboard .v46-sticky-head')
+            };
+          });
+          console.error('[V46 TOUCH FAILURE '+label+'] '+JSON.stringify(evidence));
+          throw error;
+        }
+      };
+
       const openBag = async () => {
         if (!(await bag.evaluate(node => node.open))) {
-          await bag.locator('summary').click();
+          await clickWithEvidence(bag.locator('summary'), 'open-bag');
         }
         await expect(bag).toHaveJSProperty('open', true);
       };
@@ -75,7 +107,7 @@ test.describe('MOBILE-ZOOM-01', () => {
         ['行前準備', '#prepChecklistCard']
       ];
       for (const [label, destination] of destinations) {
-        await page.locator('#tab-home').click();
+        await clickWithEvidence(page.locator('#tab-home'),'return-home-from-function');
         await page.evaluate(() => window.setV46HomePreview('during'));
         await openBag();
         await enlargeText();
@@ -96,7 +128,7 @@ test.describe('MOBILE-ZOOM-01', () => {
         ['wallet', 'wallet'], ['more', 'more'], ['home', 'guide']
       ]) {
         await enlargeText();
-        await page.locator(`#tab-${tab}`).click();
+        await clickWithEvidence(page.locator(`#tab-${tab}`),'bottom-tab-'+tab);
         await expect(page.locator(`#${panel}.active`)).toBeVisible();
         await expect(page.locator(`#tab-${tab}`)).toHaveAttribute('aria-selected', 'true');
       }
