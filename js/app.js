@@ -863,7 +863,33 @@
     setInterval(() => { if (navigator.onLine) syncOfflineQueue(); }, 15000);
 
     // ── Bootstrap ─────────────────────────────────────────────────────────
+    // On small touch screens, enlarged text can push the layout viewport wider
+    // than the actual visible screen (e.g. 320px -> 618px on Chromium).
+    // Fixed navigation sized against that inflated layout viewport cannot be
+    // tapped reliably. Bound its width to the REAL visual viewport; preserve
+    // full-size nav and existing design on desktop and tablets.
+    function fitBottomNavToVisiblePhone() {
+        try {
+            if (!window.matchMedia?.('(pointer: coarse)').matches || screen.width > 600) return;
+            const nav = document.querySelector('#mainApp .bottom-nav');
+            if (!nav) return;
+            const visible = window.visualViewport;
+            const width = Math.min(screen.width, visible?.width || screen.width);
+            if (!Number.isFinite(width) || width < 240) return;
+            nav.style.setProperty('width', Math.floor(width) + 'px', 'important');
+            nav.style.setProperty('left', Math.max(0, visible?.offsetLeft || 0) + 'px', 'important');
+            nav.style.setProperty('min-width', '0', 'important');
+        } catch (error) {
+            console.warn('[V46] Unable to size visible phone nav:', error);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
+        fitBottomNavToVisiblePhone();
+        window.addEventListener('resize', fitBottomNavToVisiblePhone, {passive:true});
+        window.addEventListener('orientationchange', fitBottomNavToVisiblePhone, {passive:true});
+        window.visualViewport?.addEventListener('resize', fitBottomNavToVisiblePhone, {passive:true});
+        window.visualViewport?.addEventListener('scroll', fitBottomNavToVisiblePhone, {passive:true});
         setupPwaInstallUx();
 
         // Guarantee UI visibility regardless of network or API failure
