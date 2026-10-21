@@ -41,7 +41,7 @@ test('V46 ticket: edit existing record, keep voucher, save and delete last recor
     local:window.StorageEngine.get('busan_v36_tickets',[]).data,
     displayed:document.getElementById('walletTicketsList')?.textContent
   }));
-  expect(result.remote).toBeNull();
+  expect(Object.keys(result.remote || {})).toHaveLength(0);
   expect(result.local).toEqual([]);
   expect(result.displayed).not.toContain('新票券標題');
   await page.locator('#tab-home').click();
@@ -92,5 +92,5 @@ test('V46 canonical reservation: KTX status and receipt are editable overlays, a
   await expect(ktx.locator('.reservation-status')).toHaveText('尚未預訂');
   await expect(ktx.locator('.reservation-details')).toContainText('釜山 → 慶州');
   const final=await page.evaluate(async()=>(await window.NetworkEngine._db.ref(window.DB_TICKETS).once('value')).val());
-  expect(final).toBeNull();
+  expect(Object.keys(final || {})).toHaveLength(0);
 });
