@@ -20,8 +20,12 @@ test('V46 owner sandbox has a visible warning and cannot access real Firebase',a
   expect(body).toContain('__testOnly:true');
   expect(body).not.toContain('busan-trip-2026-4148f');
   expect(body).not.toMatch(/AIzaSy|8a4c0f3b5d2e7a9b1c6f/);
+  // The preview is served as an SPA: a removed file can return the index
+  // fallback (HTTP 200). Verify absence of adapter code, not HTTP status.
   const legacy=await page.request.get('/services/network.js');
-  expect(legacy.status()).toBe(404);
+  const legacyBody=await legacy.text();
+  expect(legacyBody).not.toContain('firebaseRootUrl: function');
+  expect(legacyBody).not.toContain('busan-trip-2026-4148f');
   expect(outgoing).toEqual([]);
 });
 
