@@ -35,7 +35,8 @@ test.describe('BUSAN.11 V45 — Owner UX Batch A', () => {
     await page.evaluate(() => window.showV37Tab('home'));
 
     await expect(page.locator('#liveTravelCard')).toBeVisible();
-    await expect(page.locator('#v37HomeDashboard')).toContainText('LIVE TRAVEL CARD');
+    await expect(page.locator('#v37HomeDashboard .v46-story-img')).toBeVisible();
+    await expect(page.locator('#v37HomeDashboard .v46-weather-current')).toBeVisible();
     await expect(page.locator('#v37HomeDashboard')).toContainText('楓況');
     await openTravelBag(page);
     await expect(page.locator('#homeHighFrequencyTitle')).toContainText('旅行中高頻');

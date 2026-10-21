@@ -225,6 +225,10 @@ test('V46: illustrated rail only during travel with five real day buttons', asyn
     const train=page.locator('#v37HomeDashboard .v46-owner-train-track');
     await expect(train).toHaveCount(mode==='during'?1:0);
     if (mode==='during') {
+      const accordion=page.locator('#v37HomeDashboard details.v46-rail-accordion');
+      await accordion.locator('summary').click();
+      await expect(accordion).toHaveAttribute('open', '');
+      await expect(train).toBeVisible();
       const days=page.locator('#v37HomeDashboard button.v46-day');
       await expect(days).toHaveCount(5);
       await days.nth(2).click();
@@ -252,6 +256,9 @@ test('V46: the three approved mobile-fit hero assets decode at full source resol
 test('V46: capsule car faces Day5 and remains inside rail at 390px after real taps',async({page})=>{
  await page.setViewportSize({width:390,height:844});await bootApp(page);
  await page.evaluate(()=>window.setV46HomePreview('during'));
+ const accordion=page.locator('#v37HomeDashboard details.v46-rail-accordion');
+ if (!(await accordion.evaluate(node=>node.open))) await accordion.locator('summary').click();
+ await expect(accordion).toHaveAttribute('open','');
  const rail=page.locator('#v37HomeDashboard .v46-owner-train-track');
  const car=rail.locator('.v46-owner-train-marker');
  const art=car.locator('img');
@@ -283,6 +290,8 @@ test('V46 integration: preview and collapsible menu never overwrite existing per
   for(const phase of ['before','during','after']) {
     await page.evaluate(p=>window.setV46HomePreview(p),phase);
     const bag=page.locator('#v37HomeDashboard details.v46-tools');
+    if (await bag.evaluate(node=>node.open)) await bag.locator('summary').click();
+    await expect(bag).not.toHaveAttribute('open','');
     await bag.locator('summary').click();
     await expect(bag).toHaveAttribute('open','');
     await bag.locator('summary').click();

@@ -114,6 +114,11 @@ body:has(#guide.active #v37HomeDashboard .v46-home){
   background:#fffdf7!important;box-shadow:0 10px 25px #3b566f55!important;
   color:#234b67!important;box-sizing:border-box!important;
 }
+/* QA: old details overflow:hidden clipped the sticky 11-function dropdown.
+   Fix physical hit targets; never force-click obscured controls. */
+#v37HomeDashboard .v46-home details.v46-tools.v46-inline-tools{overflow:visible!important}
+#v37HomeDashboard .v46-home details.v46-tools.v46-inline-tools[open]{z-index:1201!important}
+#v37HomeDashboard .v46-home .v46-inline-tools > .v46-tools-content{z-index:1202!important;overscroll-behavior:contain}
 #v37HomeDashboard .v46-home .v46-inline-tools:not([open]) > .v46-tools-content{display:none!important}
 #v37HomeDashboard .v46-home .v46-inline-tools[open] > .v46-tools-content{display:block!important}
 #v37HomeDashboard .v46-inline-tools .v45-home-nine-grid{margin:0!important}

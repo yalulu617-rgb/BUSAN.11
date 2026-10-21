@@ -404,10 +404,11 @@ test.describe('BATCH 3 - Owner Visual Corrections', () => {
   test('Home weather summary is visible directly without opening a separate page', async ({ page }) => {
     await bootApp(page);
     await page.evaluate(() => window.showV37Tab('home'));
-    await page.waitForSelector('.v45-home-weather-box', { timeout: 5000 });
-    const weatherText = await page.evaluate(() => document.querySelector('.v45-home-weather-box')?.textContent || '');
-    expect(weatherText.includes('釜山目前') || weatherText.includes('即時天氣暫時無法更新')).toBe(true);
-    expect(weatherText).toContain('出發前 7–10 天提供詳細預報');
+    await expect(page.locator('#v37HomeDashboard .v46-weather-current')).toBeVisible();
+    const weatherText = await page.locator('#v37HomeDashboard .v46-weather-current').innerText();
+    expect(weatherText).toContain('釜山');
+    expect(weatherText).toContain('慶州');
+    expect(weatherText).toMatch(/\d+°C|--°/);
   });
 
   test('Weather advisory never auto-switches itinerary into Rain Mode', async ({ page }) => {
@@ -492,10 +493,11 @@ test.describe('BATCH 3 - Owner Visual Corrections', () => {
       triggerContextUpdateImmediate();
     });
     const weatherBoxText = await page.evaluate(() => {
-      const box = document.querySelector('.v45-home-weather-box');
+      const box = document.querySelector('#v37HomeDashboard .v46-weather-current');
       return box ? box.textContent : '';
     });
-    expect(weatherBoxText).toContain('即時天氣暫時無法更新');
+    expect(weatherBoxText).toContain('釜山 --°');
+    expect(weatherBoxText).toContain('待更新');
     expect(weatherBoxText).not.toContain('12°C');
   });
 
@@ -526,11 +528,12 @@ test.describe('BATCH 3 - Owner Visual Corrections', () => {
       triggerContextUpdateImmediate();
     });
     const weatherBoxText = await page.evaluate(() => {
-      const box = document.querySelector('.v45-home-weather-box');
+      const box = document.querySelector('#v37HomeDashboard .v46-weather-current');
       return box ? box.textContent : '';
     });
-    expect(weatherBoxText).toContain('釜山目前｜28°C｜');
-    expect(weatherBoxText).toContain('更新：');
+    expect(weatherBoxText).toContain('釜山 28°C');
+    expect(weatherBoxText).toContain('陣雨');
+    expect(weatherBoxText).not.toContain('待更新');
   });
 
   test('Wallet active context heading dynamically matches Ticket / Prep / Memory destination', async ({ page }) => {

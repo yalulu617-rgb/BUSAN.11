@@ -44,6 +44,9 @@ test('V46 owner fit: real app screenshots, full-size image, rightward rail, 11 e
      report.push({width,phase,image:asset,overflow,hero:hrect,cta:rect});
    }
    await page.evaluate(()=>window.setV46HomePreview('during'));
+   const accordion=page.locator('#v37HomeDashboard details.v46-rail-accordion');
+   if (!(await accordion.evaluate(node=>node.open))) await accordion.locator('summary').click();
+   await expect(accordion).toHaveAttribute('open','');
    const rail=page.locator('#v37HomeDashboard .v46-owner-train-track');
    const train=rail.locator('.v46-owner-train-marker');
    const img=train.locator('img');

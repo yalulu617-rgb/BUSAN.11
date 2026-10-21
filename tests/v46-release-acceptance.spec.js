@@ -66,6 +66,9 @@ test('V46 touchscreen and navigation: full eleven entries remain operable and co
   await page.locator('#tab-home').click();
   await expect(page.locator('#v37HomeDashboard .v46-home')).toBeVisible();
   await preview(page,'during');
+  const accordion=page.locator('#v37HomeDashboard details.v46-rail-accordion');
+  if (!(await accordion.evaluate(node=>node.open))) await accordion.locator('summary').click();
+  await expect(accordion).toHaveAttribute('open','');
   const day=page.locator('#v37HomeDashboard .v46-day');
   await expect(day).toHaveCount(5);
   await day.nth(2).click();
