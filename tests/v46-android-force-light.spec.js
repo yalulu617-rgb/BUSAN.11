@@ -64,6 +64,7 @@ test('V46 opts out of UA auto darkening, including dark Android browser', async 
 });
 
 test('Chromium force dark web contents honors only-light opt-out',async()=>{
+  test.skip(test.info().project.name !== 'chromium', 'This test launches Chromium explicitly; run only in Chromium project');
   await fs.mkdir('visual-android-force-light',{recursive:true});
   const browser=await chromium.launch({headless:true,args:[
     '--enable-features=WebContentsForceDark',
