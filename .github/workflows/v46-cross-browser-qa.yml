@@ -1,0 +1,60 @@
+name: V46 Cross-Browser Mobile Data And Offline Acceptance
+
+on:
+  push:
+    branches: [v46-ticket-crud-repair-20261021]
+    paths:
+      - '.github/workflows/v46-cross-browser-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-data-offline:
+    name: "V46 isolated acceptance / ${{ matrix.device }}"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {device: firefox-390, project: firefox, browser: firefox, width: 390, height: 844}
+          - {device: webkit-390, project: webkit, browser: webkit, width: 390, height: 844}
+          - {device: android-360, project: mobile-chrome, browser: chromium, width: 360, height: 780}
+          - {device: iphone-safari-390, project: mobile-safari, browser: webkit, width: 390, height: 844}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Start isolated localhost server
+        run: |
+          npm install -g serve
+          serve -s . -l 8080 &
+          sleep 3
+          curl -fsS http://localhost:8080/ > /dev/null
+      - name: Validate ticket CRUD, actual touch, saved data, theme and offline
+        run: |
+          npx playwright test tests/v46-release-acceptance.spec.js tests/v46-ticket-crud.spec.js tests/v46-theme-release-guard.spec.js tests/offline.spec.js tests/accessibility.spec.js \
+            --project=${{ matrix.project }} --workers=1 --retries=0 --reporter=html,list
+        env:
+          CI: 'true'
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
+          BUSAN_CI_FIREBASE_ISOLATED: '1'
+          PLAYWRIGHT_HTML_OPEN: never
+          V46_QA_WIDTH: ${{ matrix.width }}
+          V46_QA_HEIGHT: ${{ matrix.height }}
+      - name: Retain screenshots traces and results
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: v46-acceptance-${{ matrix.device }}
+          path: |
+            playwright-report/
+            test-results/
+            visual-theme/
+          retention-days: 14
