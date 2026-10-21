@@ -2,6 +2,10 @@
 import {test,expect} from '@playwright/test';
 import {bootApp} from './helpers/boot.js';
 
+// These checks require the GENERATED public/ preview, never the normal app.
+// Regular acceptance tests remain active in the default app build.
+test.skip(process.env.V46_SANDBOX_BUILD !== '1', 'Only applicable to isolated owner-preview build');
+
 test('V46 owner sandbox has a visible warning and cannot access real Firebase',async({page})=>{
   const outgoing=[];
   page.on('request', request=>{
