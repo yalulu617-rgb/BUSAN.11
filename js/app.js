@@ -635,7 +635,14 @@
                        day: getV37SelectedDate(), ts: Date.now() };
 
         if (type === '公費') {
-            await NetworkEngine.firebasePush(DB_BILLS, bill);
+            try {
+                const saved = await NetworkEngine.firebasePush(DB_BILLS, bill);
+                if (saved?.success !== true) throw new Error(saved?.error || 'Shared bill not acknowledged');
+            } catch (error) {
+                console.error('[Accounting] shared bill save failed:', error);
+                showToast('公費記帳儲存失敗；內容已保留，請確認連線後重試', 'error');
+                return;
+            }
         } else {
             if (!await ensurePrivateLedgerUnlocked()) return;
             const id = `${Date.now()}-${crypto.getRandomValues(new Uint32Array(1))[0]}`;
@@ -657,7 +664,13 @@
 
     window.deleteSharedBill = async function (key) {
         if (!confirm('確認刪除此筆公費記帳？')) return;
-        await NetworkEngine.firebaseRemove(`${DB_BILLS}/${key}`);
+        try {
+            const removed = await NetworkEngine.firebaseRemove(`${DB_BILLS}/${key}`);
+            if (removed?.success !== true) throw new Error(removed?.error || 'Shared bill delete not acknowledged');
+        } catch (error) {
+            console.error('[Accounting] shared bill delete failed:', error);
+            showToast('刪除公費記帳失敗；原紀錄仍保留', 'error');
+        }
     };
 
     window.deletePrivateBill = async function (id) {

@@ -189,8 +189,10 @@ window.saveCoupon = async function() {
         updatedAt: Date.now()
     };
     try {
-        if (editKey) await NetworkEngine.firebaseUpdate(`${DB_COUPONS}/${editKey}`, payload);
-        else await NetworkEngine.firebasePush(DB_COUPONS, { ...payload, ts: Date.now() });
+        const saved = editKey
+            ? await NetworkEngine.firebaseUpdate(`${DB_COUPONS}/${editKey}`, payload)
+            : await NetworkEngine.firebasePush(DB_COUPONS, { ...payload, ts: Date.now() });
+        if (saved?.success !== true) throw new Error(saved?.error || 'Coupon save not acknowledged');
     } catch (e) {
         console.error('[Wallet] saveCoupon failed:', e);
         showToast('優惠券儲存失敗', 'error');
@@ -220,8 +222,13 @@ window.editCoupon = function(key) {
 
 window.deleteCoupon = async function(key) {
     if (!confirm('確認刪除此優惠券／會員卡？')) return;
-    try { await NetworkEngine.firebaseRemove(`${DB_COUPONS}/${key}`); }
-    catch (e) { console.error('[Wallet] deleteCoupon failed:', e); showToast('刪除優惠券失敗', 'error'); }
+    try {
+        const removed = await NetworkEngine.firebaseRemove(`${DB_COUPONS}/${key}`);
+        if (removed?.success !== true) throw new Error(removed?.error || 'Coupon delete not acknowledged');
+    } catch (e) {
+        console.error('[Wallet] deleteCoupon failed:', e);
+        showToast('刪除優惠券失敗；原紀錄仍保留', 'error');
+    }
 };
 
 window.renderCoupons = function() {

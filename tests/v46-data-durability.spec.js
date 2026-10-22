@@ -211,3 +211,65 @@ test('V46 shopping and packing UPDATE rejections enter the persisted offline que
   expect(result.queue[0].path).toContain('qa-shop');
   expect(result.queue[1].path).toContain('qa-prep');
 });
+
+test('V46 failed shared bill write preserves entered values and does not claim saved', async ({page}) => {
+  const result=await page.evaluate(async()=>{
+    if (!window.NetworkEngine?._db?.__testOnly) throw Error('NOT ISOLATED');
+    const original=window.NetworkEngine.firebasePush;
+    const oldToast=window.showToast;
+    const messages=[];
+    try {
+      window.showToast=(message,kind)=>messages.push({message,kind});
+      document.querySelector('#billName').value='QA 公費測試';
+      document.querySelector('#billAmt').value='400';
+      document.querySelector('#billType').value='公費';
+      window.NetworkEngine.firebasePush=async()=>({success:false,error:'CI denied'});
+      await window.addBill();
+      return {
+        name:document.querySelector('#billName').value,
+        amount:document.querySelector('#billAmt').value,
+        messages
+      };
+    } finally {
+      window.NetworkEngine.firebasePush=original;
+      window.showToast=oldToast;
+    }
+  });
+  expect(result.name).toBe('QA 公費測試');
+  expect(result.amount).toBe('400');
+  expect(result.messages.some(x=>x.kind==='success')).toBe(false);
+  expect(result.messages.some(x=>x.kind==='error')).toBe(true);
+});
+
+test('V46 rejected coupon save keeps input and rejected coupon/bill deletion never reports success', async ({page}) => {
+  const result=await page.evaluate(async()=>{
+    if (!window.NetworkEngine?._db?.__testOnly) throw Error('NOT ISOLATED');
+    const oldPush=window.NetworkEngine.firebasePush;
+    const oldRemove=window.NetworkEngine.firebaseRemove;
+    const oldToast=window.showToast;
+    const oldConfirm=window.confirm;
+    const messages=[];
+    try {
+      window.showToast=(message,kind)=>messages.push({message,kind});
+      window.confirm=()=>true;
+      document.querySelector('#couponTitle').value='QA 優惠券保留';
+      window.NetworkEngine.firebasePush=async()=>({success:false,error:'CI denied'});
+      window.NetworkEngine.firebaseRemove=async()=>({success:false,error:'CI denied'});
+      await window.saveCoupon();
+      await window.deleteCoupon('sample-key');
+      await window.deleteSharedBill('sample-key');
+      return {
+        title:document.querySelector('#couponTitle').value,
+        messages
+      };
+    } finally {
+      window.NetworkEngine.firebasePush=oldPush;
+      window.NetworkEngine.firebaseRemove=oldRemove;
+      window.showToast=oldToast;
+      window.confirm=oldConfirm;
+    }
+  });
+  expect(result.title).toBe('QA 優惠券保留');
+  expect(result.messages.filter(x=>x.kind==='error')).toHaveLength(3);
+  expect(result.messages.filter(x=>x.kind==='success')).toHaveLength(0);
+});
