@@ -112,3 +112,55 @@ test('V46 image upload with failed Firebase write never reports a stored photo',
     window.compressImage=window.__originalCompress;
   });
 });
+
+test('V46 pending offline sync: rejected Firebase envelope retains changes until acknowledged', async ({page}) => {
+  const result = await page.evaluate(async () => {
+    if (!window.NetworkEngine?._db?.__testOnly) throw new Error('NOT ISOLATED');
+    const previous = window.NetworkEngine.firebaseWrite;
+    try {
+      window.StorageEngine.set('pendingSyncQueue', []);
+      const queued = window.addToOfflineQueue('SET', 'busan_v36_shop/test-offline', {text:'keep me'});
+      window.NetworkEngine.firebaseWrite = async () => ({success:false, error:'CI offline write rejected'});
+      await window.syncOfflineQueue();
+      const afterReject = window.StorageEngine.get('pendingSyncQueue', []).data;
+      window.NetworkEngine.firebaseWrite = async () => ({success:true, data:null, error:null});
+      await window.syncOfflineQueue();
+      const afterSuccess = window.StorageEngine.get('pendingSyncQueue', []).data;
+      return {queued, afterReject, afterSuccess, syncing: window.isSyncing};
+    } finally {
+      window.NetworkEngine.firebaseWrite = previous;
+    }
+  });
+  expect(result.queued).toBe(true);
+  expect(result.afterReject).toHaveLength(1);
+  expect(result.afterReject[0].data.text).toBe('keep me');
+  expect(result.afterSuccess).toEqual([]);
+  expect(result.syncing).toBe(false);
+});
+
+test('V46 pending offline sync: unknown operations and failed local persistence never silently dequeue', async ({page}) => {
+  const result = await page.evaluate(async () => {
+    if (!window.NetworkEngine?._db?.__testOnly) throw new Error('NOT ISOLATED');
+    const storageSet = window.StorageEngine.set;
+    const firebaseWrite = window.NetworkEngine.firebaseWrite;
+    try {
+      window.StorageEngine.set('pendingSyncQueue', [{method:'UNRECOGNIZED',path:'test',data:1}]);
+      await window.syncOfflineQueue();
+      const unknownKept = window.StorageEngine.get('pendingSyncQueue', []).data.length;
+      window.StorageEngine.set('pendingSyncQueue', [{method:'SET',path:'test',data:2}]);
+      window.NetworkEngine.firebaseWrite = async () => ({success:true, data:null, error:null});
+      window.StorageEngine.set = (key, value) => key === 'pendingSyncQueue'
+        ? {success:false, error:'CI simulated quota error'} : storageSet.call(window.StorageEngine,key,value);
+      await window.syncOfflineQueue();
+      window.StorageEngine.set = storageSet;
+      const failedSaveKept = window.StorageEngine.get('pendingSyncQueue', []).data.length;
+      return {unknownKept, failedSaveKept, syncing:window.isSyncing};
+    } finally {
+      window.StorageEngine.set = storageSet;
+      window.NetworkEngine.firebaseWrite = firebaseWrite;
+    }
+  });
+  expect(result.unknownKept).toBe(1);
+  expect(result.failedSaveKept).toBe(1);
+  expect(result.syncing).toBe(false);
+});

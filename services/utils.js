@@ -89,38 +89,62 @@ window.isRestrictedPath = function(path) {
     return p.includes('prep') || p.includes('bill') || p.includes('profile') || p.includes('shop');
 };
 
+// Fail closed: a failed Firebase response is not a completed offline sync.
+// Save the remaining queue after EACH acknowledged operation so an interruption
+// cannot discard later entries. No production data is touched by this logic.
 window.addToOfflineQueue = function(method, path, data) {
-    let queue = StorageEngine.get('pendingSyncQueue', []).data;
-    queue.push({ method, path, data, timestamp: Date.now() });
-    StorageEngine.set('pendingSyncQueue', queue);
+    const stored = StorageEngine.get('pendingSyncQueue', []);
+    if (!stored?.success || !Array.isArray(stored.data)) {
+        showToast('❌ 無法讀取離線待同步資料；本次變更未加入佇列', 'error');
+        return false;
+    }
+    const next = [...stored.data, { method, path, data, timestamp: Date.now() }];
+    const saved = StorageEngine.set('pendingSyncQueue', next);
+    if (saved?.success !== true) {
+        showToast('❌ 無法儲存離線佇列；請先保留原始資料', 'error');
+        return false;
+    }
+    return true;
 };
 
 window.syncOfflineQueue = async function() {
     if (window.isSyncing) return;
     window.isSyncing = true;
-    let queue = StorageEngine.get('pendingSyncQueue', []).data;
-    if (queue.length === 0) { window.isSyncing = false; return; }
-    showToast(`⏳ 偵測到網路恢復，正在同步離線佇列 (${queue.length} 筆)...`, "info");
     let successCount = 0;
     let failed = false;
-    while (queue.length > 0) {
-        const item = queue[0];
-        try {
-            if (item.method === 'SET') await NetworkEngine.firebaseWrite(item.path, item.data);
-            else if (item.method === 'UPDATE') await NetworkEngine.firebaseUpdate(item.path, item.data);
-            else if (item.method === 'REMOVE') await NetworkEngine.firebaseRemove(item.path);
-            else if (item.method === 'PUSH') await NetworkEngine.firebasePush(item.path, item.data);
+    try {
+        const stored = StorageEngine.get('pendingSyncQueue', []);
+        if (!stored?.success || !Array.isArray(stored.data)) {
+            throw new Error('Cannot read pending offline sync queue');
+        }
+        const queue = [...stored.data];
+        if (!queue.length) return;
+        showToast(`⏳ 偵測到網路恢復，正在同步離線佇列 (${queue.length} 筆)...`, 'info');
+        while (queue.length) {
+            const item = queue[0];
+            let response;
+            if (item.method === 'SET') response = await NetworkEngine.firebaseWrite(item.path, item.data);
+            else if (item.method === 'UPDATE') response = await NetworkEngine.firebaseUpdate(item.path, item.data);
+            else if (item.method === 'REMOVE') response = await NetworkEngine.firebaseRemove(item.path);
+            else if (item.method === 'PUSH') response = await NetworkEngine.firebasePush(item.path, item.data);
+            else throw new Error('Unknown offline queue operation');
+            if (response?.success !== true) {
+                throw new Error(response?.error || 'Firebase did not acknowledge offline sync');
+            }
+            // Never dequeue on an unacknowledged remote write or failed local save.
+            const saved = StorageEngine.set('pendingSyncQueue', queue.slice(1));
+            if (saved?.success !== true) throw new Error('Unable to persist remaining offline queue');
             queue.shift();
             successCount++;
-        } catch (err) {
-            failed = true;
-            break;
         }
+    } catch (error) {
+        failed = true;
+        console.warn('[Offline Sync] Preserving pending operations:', error);
+    } finally {
+        window.isSyncing = false;
+        if (successCount) showToast(`✅ 離線同步完成：已更新 ${successCount} 筆！`, 'success');
+        if (failed) showToast('❌ 離線同步未完成；未確認的項目保留待下次重試', 'error');
     }
-    StorageEngine.set('pendingSyncQueue', queue);
-    window.isSyncing = false;
-    if (successCount > 0) showToast(`✅ 離線同步完成：已更新 ${successCount} 筆！`, "success");
-    if (failed) showToast("❌ 部分同步失敗，將於網路恢復時重試", "error");
 };
 
 window.compressImage = function(file) {

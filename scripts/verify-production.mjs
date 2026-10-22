@@ -3,7 +3,7 @@ import { chromium } from 'playwright';
 const expectedSha = process.env.EXPECTED_SHA;
 const productionUrl = process.env.PRODUCTION_URL
   || 'https://yalulu617-rgb.github.io/BUSAN.11/index.html';
-const expectedCacheName = 'busan-trip-v45-production-v7-final-pwa';
+const expectedCacheName = 'busan-trip-v46-release-candidate-v2';
 
 if (!/^[0-9a-f]{40}$/i.test(expectedSha || '')) {
   throw new Error('EXPECTED_SHA must be a full 40-character Git commit SHA');
@@ -40,8 +40,8 @@ try {
   const release = await releaseResponse.json();
   const serviceWorkerSource = await serviceWorkerResponse.text();
   const cacheMatch = serviceWorkerSource.match(/\bconst\s+CACHE_NAME\s*=\s*['"]([^'"]+)['"]/);
-  if (release.appVersion !== 'V45') {
-    throw new Error(`Expected deployed appVersion V45, found ${release.appVersion}`);
+  if (release.appVersion !== 'V46') {
+    throw new Error(`Expected deployed appVersion V46, found ${release.appVersion}`);
   }
   if (release.gitCommit !== expectedSha) {
     throw new Error(`Deployed gitCommit mismatch: ${release.gitCommit}`);
@@ -70,54 +70,25 @@ try {
   await page.waitForSelector('#mainApp', { state: 'visible', timeout: 15000 });
   console.log('✅ Main App visible');
 
-    const homeIa = page.locator('.v45-home-nine-grid');
-    await homeIa.waitFor({ state: 'visible', timeout: 10000 });
-
-    const highFrequencyCount = await homeIa
-      .locator('.home-high-frequency-grid .v45-nine-card')
-      .count();
-
-    const managementCount = await homeIa
-      .locator('.home-management-grid .v45-nine-card')
-      .count();
-
-    if (highFrequencyCount !== 8) {
-      throw new Error(
-        `Expected 8 travel-use Home entries, found ${highFrequencyCount}`
-      );
-    }
-
-    if (managementCount !== 3) {
-      throw new Error(
-        `Expected 3 travel-management Home entries, found ${managementCount}`
-      );
-    }
-
-    const homeText = (await homeIa.innerText()).replace(/\s+/g, ' ');
-
+    // V46 places the original eleven tools in a collapsible, sticky travel bag.
+    // Verify the actual release UI rather than the retired V45 grid layout.
+    const home = page.locator('#v37HomeDashboard .v46-home');
+    await home.waitFor({ state: 'visible', timeout: 15000 });
+    const bag = home.locator('details.v46-tools');
+    await bag.locator('summary').click();
+    const cards = bag.locator('button.v45-nine-card');
+    const count = await cards.count();
+    if (count !== 11) throw new Error(`Expected 11 V46 travel tools, found ${count}`);
+    const homeText = (await cards.allInnerTexts()).join(' ').replace(/\\s+/g, ' ');
     const requiredHomeEntries = [
-      '今日行程',
-      '天氣・楓況',
-      '旅行記帳',
-      '吃喝・景點',
-      '超商・超市',
-      '快樂購',
-      '翻譯・SOS',
-      '旅行回憶',
-      '住宿・交通',
-      '票券・優惠',
-      '行前準備'
+      '今日行程', '天氣・楓況', '旅行記帳', '吃喝・景點',
+      '超商・超市', '快樂購', '翻譯・SOS', '旅行回憶',
+      '住宿・交通', '票券・優惠', '行前準備'
     ];
-
     for (const label of requiredHomeEntries) {
-      if (!homeText.includes(label)) {
-        throw new Error(`Missing required Home entry: ${label}`);
-      }
+      if (!homeText.includes(label)) throw new Error(`Missing required V46 tool: ${label}`);
     }
-
-    console.log(
-      `✅ Home IA verified: ${highFrequencyCount} travel-use + ${managementCount} management entries`
-    );
+    console.log('✅ V46 home and eleven collapsible travel tools verified');
 
     const ownerCapabilities = await page.evaluate(() => ({
       editGuide: typeof window.editGuide === 'function',
