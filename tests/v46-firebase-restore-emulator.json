@@ -1,4 +1,4 @@
 {
-  "database": {"rules": "tests/v46-firebase-restore-rules.json"},
+  "database": {"rules": "v46-firebase-restore-rules.json"},
   "emulators": {"database": {"host": "127.0.0.1", "port": 9000}, "ui": {"enabled": false}}
 }
