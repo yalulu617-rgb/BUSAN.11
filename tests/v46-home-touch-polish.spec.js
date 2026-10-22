@@ -47,14 +47,18 @@ for (const width of [360,390]) {
     expect(state.htmlOverflow).toBe('hidden');
     expect(state.bodyOverflow).toBe('hidden');
     expect(state.panelScrollable).toBe(true);
-    const rect=await bag.locator('.v46-tools-content').boundingBox();
-    expect(rect).not.toBeNull();
-    await page.mouse.move(rect.x+Math.min(60,rect.width/2),rect.y+Math.min(60,rect.height/2));
-    await page.mouse.wheel(0,500);
-    await expect.poll(async()=>page.evaluate(()=>
-      document.querySelector('#v37HomeDashboard .v46-inline-tools > .v46-tools-content').scrollTop
-    )).toBeGreaterThan(0);
-    await page.mouse.wheel(0,1600);
+    // Browser-native scrollIntoView scrolls the nearest overflow container,
+    // including WebKit mobile where mouse.wheel is unsupported. This proves
+    // all eleven actions remain reachable without moving the background.
+    await bag.locator('button.v45-nine-card').last().evaluate(
+      node=>node.scrollIntoView({block:'nearest',inline:'nearest'})
+    );
+    const scrollResult=await page.evaluate(()=>{
+      const p=document.querySelector('#v37HomeDashboard .v46-inline-tools > .v46-tools-content');
+      return {scrollTop:p.scrollTop,maxScroll:p.scrollHeight-p.clientHeight};
+    });
+    expect(scrollResult.maxScroll).toBeGreaterThan(0);
+    expect(scrollResult.scrollTop,'Bag must actually scroll to the final action').toBeGreaterThan(0);
     const bgScroll=await page.evaluate(()=>window.scrollY);
     expect(Math.abs(bgScroll-state.scrollY),'Background must not scroll with bag').toBeLessThan(8);
     await bag.locator('summary').click();
