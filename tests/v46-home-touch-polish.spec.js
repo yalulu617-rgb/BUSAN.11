@@ -1,0 +1,64 @@
+import {test,expect} from '@playwright/test';
+import {bootApp} from './helpers/boot.js';
+
+for (const width of [360,390]) {
+  test(`V46 S25: weather opens immediately beneath sticky summary at ${width}px`,async({page})=>{
+    await page.setViewportSize({width,height:844});
+    await bootApp(page);
+    await page.evaluate(()=>window.scrollTo(0,400));
+    const weatherButton=page.locator('#v37HomeDashboard .v46-sticky-head.is-compact .v46-mini-weather');
+    await expect(weatherButton).toBeVisible();
+    const scrollBefore=await page.evaluate(()=>window.scrollY);
+    await weatherButton.click();
+    const panel=page.locator('#v37HomeDashboard .v46-sticky-head > #homeWeatherDetailPanel');
+    await expect(panel).toBeVisible();
+    await expect(panel).toContainText('釜山');
+    await expect(panel).toContainText('慶州');
+    const geometry=await page.evaluate(()=>{
+      const p=document.querySelector('#homeWeatherDetailPanel').getBoundingClientRect();
+      const head=document.querySelector('#v37HomeDashboard .v46-sticky-head').getBoundingClientRect();
+      return {top:p.top,headBottom:head.bottom,viewport:innerHeight,scrollY:window.scrollY,documentHeight:document.documentElement.scrollHeight};
+    });
+    expect(geometry.top).toBeGreaterThanOrEqual(geometry.headBottom-3);
+    expect(geometry.top).toBeLessThan(geometry.viewport*.55);
+    expect(Math.abs(geometry.scrollY-scrollBefore),'Weather must not jump to the bottom').toBeLessThan(8);
+    await expect(page.locator('#v37HomeDashboard .v46-mini-weather')).toHaveAttribute('aria-expanded','true');
+    await panel.getByRole('button',{name:'關閉天氣詳情'}).click();
+    await expect(panel).toHaveCount(0);
+  });
+
+  test(`V46 S25: bag scrolls independently without dragging the homepage at ${width}px`,async({page})=>{
+    await page.setViewportSize({width,height:844});
+    await bootApp(page);
+    await page.evaluate(()=>window.scrollTo(0,360));
+    const bag=page.locator('#v37HomeDashboard details.v46-inline-tools');
+    await bag.locator('summary').click();
+    await expect(bag).toHaveAttribute('open','');
+    await expect(bag.locator('button.v45-nine-card')).toHaveCount(11);
+    const state=await page.evaluate(()=>({
+      htmlOverflow:getComputedStyle(document.documentElement).overflowY,
+      bodyOverflow:getComputedStyle(document.body).overflowY,
+      scrollY:window.scrollY,
+      panelScrollable:(()=>{
+        const p=document.querySelector('#v37HomeDashboard .v46-inline-tools > .v46-tools-content');
+        return p.scrollHeight>p.clientHeight;
+      })()
+    }));
+    expect(state.htmlOverflow).toBe('hidden');
+    expect(state.bodyOverflow).toBe('hidden');
+    expect(state.panelScrollable).toBe(true);
+    const rect=await bag.locator('.v46-tools-content').boundingBox();
+    expect(rect).not.toBeNull();
+    await page.mouse.move(rect.x+Math.min(60,rect.width/2),rect.y+Math.min(60,rect.height/2));
+    await page.mouse.wheel(0,500);
+    await expect.poll(async()=>page.evaluate(()=>
+      document.querySelector('#v37HomeDashboard .v46-inline-tools > .v46-tools-content').scrollTop
+    )).toBeGreaterThan(0);
+    await page.mouse.wheel(0,1600);
+    const bgScroll=await page.evaluate(()=>window.scrollY);
+    expect(Math.abs(bgScroll-state.scrollY),'Background must not scroll with bag').toBeLessThan(8);
+    await bag.locator('summary').click();
+    await expect(bag).not.toHaveAttribute('open','');
+    await expect.poll(async()=>page.evaluate(()=>getComputedStyle(document.documentElement).overflowY)).not.toBe('hidden');
+  });
+}
