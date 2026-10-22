@@ -230,12 +230,41 @@
   // <details> element while it is receiving a click.
   target.v46OnBagToggle = function (bag) {
     if (!bag?.isConnected) return;
-    target.v46AllToolsExpanded = Boolean(bag.open);
-    if (bag.open && target.homeWeatherDetailExpanded) {
-      target.homeWeatherDetailExpanded = false;
-      document.getElementById('homeWeatherDetailPanel')?.remove();
-      document.querySelectorAll('#v37HomeDashboard [aria-controls="homeWeatherDetailPanel"]')
-        .forEach(button => button.setAttribute('aria-expanded', 'false'));
+    const isOpen = Boolean(bag.open);
+    target.v46AllToolsExpanded = isOpen;
+    const header = bag.closest('.v46-sticky-head');
+    if (isOpen) {
+      // Opening a details menu can make the browser scroll/resize its sticky
+      // ancestor. Keep the pre-open page position and header phase stable.
+      target.v46BagScrollAnchor = {
+        y: target.scrollY,
+        compact: header?.classList.contains('is-compact') ?? Boolean(target.v46StickyCompact)
+      };
+      if (target.homeWeatherDetailExpanded) {
+        target.homeWeatherDetailExpanded = false;
+        document.getElementById('homeWeatherDetailPanel')?.remove();
+        document.querySelectorAll('#v37HomeDashboard [aria-controls="homeWeatherDetailPanel"]')
+          .forEach(button => button.setAttribute('aria-expanded', 'false'));
+      }
+    } else {
+      const anchor = target.v46BagScrollAnchor;
+      target.v46BagScrollAnchor = null;
+      if (anchor) {
+        // Restore the header and the scroll offset after the DOM shrinks.
+        // Otherwise auto-scroll triggered by details collapsing can leave a
+        // compact phase-select unexpectedly invisible on S25/Firefox.
+        const restore = () => {
+          const active = document.querySelector('#guide.active #v37HomeDashboard .v46-sticky-head');
+          if (!active || active.querySelector('details.v46-inline-tools[open]')) return;
+          if (Math.abs(target.scrollY - anchor.y) > 1) {
+            target.scrollTo({ top: anchor.y, left: 0, behavior: 'instant' });
+          }
+          target.v46StickyCompact = anchor.compact;
+          active.classList.toggle('is-compact', anchor.compact);
+        };
+        restore();
+        target.requestAnimationFrame(restore);
+      }
     }
   };
   target.v46CloseBag = function () {
