@@ -1,0 +1,22 @@
+name: V46 Read-Only RTDB Backup Utility (Isolated)
+on:
+  push:
+    branches: [v46-ticket-crud-repair-20261021]
+    paths:
+      - 'scripts/backup-firebase-rtdb.mjs'
+      - 'tests/rtdb-backup.test.mjs'
+      - '.github/workflows/v46-rtdb-backup-tool.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-tool-tests:
+    name: Encrypted backup CLI / synthetic Firebase only
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: {node-version: '24'}
+      - name: Verify tool with synthetic mock; NEVER connect to live Firebase
+        run: node --test tests/rtdb-backup.test.mjs

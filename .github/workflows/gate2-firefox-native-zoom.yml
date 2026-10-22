@@ -1,0 +1,70 @@
+name: V46 GATE 2 Native Firefox Zoom
+
+on:
+  push:
+    branches: [v46-smart-home-development]
+    paths:
+      - 'scripts/qa/firefox-native-zoom.mjs'
+      - '.github/workflows/gate2-firefox-native-zoom.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v46-gate2-firefox-native-zoom
+  cancel-in-progress: false
+
+jobs:
+  firefox-native-zoom:
+    name: Firefox true browser 100-to-200 zoom (X11)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - name: Checkout isolated V46 QA branch
+        uses: actions/checkout@v5
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: 'npm'
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Check standalone script syntax
+        run: node --check scripts/qa/firefox-native-zoom.mjs
+      - name: Install headed Firefox and X11 keyboard tools
+        run: |
+          npx playwright install --with-deps firefox
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends xdotool openbox
+      - name: Start localhost-only APP server
+        run: |
+          ./node_modules/.bin/serve -s . -l 8080 >/tmp/busan-gate2-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8080/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/busan-gate2-server.log
+          exit 1
+      - name: Execute TRUE Firefox browser-native zoom and 11-entry QA
+        run: |
+          xvfb-run -a -s '-screen 0 1600x1000x24' bash -c '
+            openbox >/tmp/busan-gate2-openbox.log 2>&1 &
+            sleep 2
+            node scripts/qa/firefox-native-zoom.mjs
+          '
+        env:
+          CI: 'true'
+          BUSAN_CI_FIREBASE_ISOLATED: '1'
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
+      - name: Preserve native zoom measurement, screenshots, and X11 commands
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: gate2-firefox-true-native-zoom-evidence
+          path: |
+            gate2-native-firefox-evidence/
+            /tmp/busan-gate2-openbox.log
+            /tmp/busan-gate2-server.log
+          if-no-files-found: warn
+          retention-days: 30

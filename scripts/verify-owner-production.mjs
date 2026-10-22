@@ -43,7 +43,7 @@ try {
   );
   assert(releaseResponse.ok, `Production release metadata returned HTTP ${releaseResponse.status}`);
   const release = await releaseResponse.json();
-  assert(release.appVersion === 'V45', `Expected Production appVersion V45, found ${release.appVersion}`);
+  assert(release.appVersion === 'V46', `Expected Production appVersion V46, found ${release.appVersion}`);
   assert(release.gitCommit === EXPECTED_SHA, `Expected Production SHA ${EXPECTED_SHA}, found ${release.gitCommit}`);
   report.release = release;
 

@@ -57,9 +57,12 @@
         '超商': ['GS25', 'CU', '7-11']
     };
 
-    // ── Theme Init (ui.js owns toggleDarkMode; we only apply saved value here) ──
-    const savedTheme = StorageEngine.get('busan_v36_theme', 'light').data;
-    document.documentElement.setAttribute('data-theme', savedTheme);
+    // ── V46 Theme Init ────────────────────────────────────────────────────
+    // Use V46's own preference. Do not import legacy V36 dark mode: that makes
+    // an upgraded phone open to a black background without the owner choosing it.
+    // The previously stored V36 preference remains untouched for old versions.
+    const v46Theme = StorageEngine.get('busan_v46_theme', 'light').data;
+    document.documentElement.setAttribute('data-theme', v46Theme === 'dark' ? 'dark' : 'light');
 
     // ── PWA Service Worker ────────────────────────────────────────────────
     if ('serviceWorker' in navigator) {
@@ -367,6 +370,13 @@
         try {
             if (!options || options.haptic !== false) triggerHapticFeedback();
 
+            // Closing a route from the sticky eleven-function bag must also
+            // dismiss its dropdown. Leaving it open covers the train and
+            // intercepts subsequent real touch events on the Home dashboard.
+            const openBag = document.querySelector('#v37HomeDashboard details.v46-tools');
+            if (openBag?.open) openBag.open = false;
+            window.v46AllToolsExpanded = false;
+
             document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
             syncBottomNavState(id, btn);
 
@@ -625,7 +635,14 @@
                        day: getV37SelectedDate(), ts: Date.now() };
 
         if (type === '公費') {
-            await NetworkEngine.firebasePush(DB_BILLS, bill);
+            try {
+                const saved = await NetworkEngine.firebasePush(DB_BILLS, bill);
+                if (saved?.success !== true) throw new Error(saved?.error || 'Shared bill not acknowledged');
+            } catch (error) {
+                console.error('[Accounting] shared bill save failed:', error);
+                showToast('公費記帳儲存失敗；內容已保留，請確認連線後重試', 'error');
+                return;
+            }
         } else {
             if (!await ensurePrivateLedgerUnlocked()) return;
             const id = `${Date.now()}-${crypto.getRandomValues(new Uint32Array(1))[0]}`;
@@ -647,7 +664,13 @@
 
     window.deleteSharedBill = async function (key) {
         if (!confirm('確認刪除此筆公費記帳？')) return;
-        await NetworkEngine.firebaseRemove(`${DB_BILLS}/${key}`);
+        try {
+            const removed = await NetworkEngine.firebaseRemove(`${DB_BILLS}/${key}`);
+            if (removed?.success !== true) throw new Error(removed?.error || 'Shared bill delete not acknowledged');
+        } catch (error) {
+            console.error('[Accounting] shared bill delete failed:', error);
+            showToast('刪除公費記帳失敗；原紀錄仍保留', 'error');
+        }
     };
 
     window.deletePrivateBill = async function (id) {
@@ -698,6 +721,8 @@
                     window.shopList = loaded;
                     StorageEngine.set('busan_v36_shopList', window.shopList);
                     if (typeof renderShop === 'function') renderShop();
+                    // Refresh V46's read-only totals after the existing shopping sync.
+                    if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
                 } catch (e) { console.error('[FirebaseOn DB_SHOP]', e); }
             });
 
@@ -720,6 +745,8 @@
                         snap.forEach(ch => { window.photoList.push({ ...ch.val(), key: ch.key }); });
                     }
                     if (typeof renderMemoryAlbum === 'function') renderMemoryAlbum();
+                    // Do not change upload/delete flows; only update the home summary.
+                    if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
                 } catch (e) { console.error('[FirebaseOn DB_PHOTOS]', e); }
             });
 
@@ -729,7 +756,11 @@
                     if (snap && typeof snap.forEach === 'function') {
                         snap.forEach(ch => { loaded.push({ ...ch.val(), key: ch.key }); });
                     }
-                    const customRows = loaded.length > 0 ? loaded : (StorageEngine.get('busan_v36_itinerary', []).data || []);
+                    // Firebase is authoritative, INCLUDING its empty snapshot.
+                    // Falling back to stale localStorage after the last item is
+                    // deleted resurrected the owner's removed custom itinerary.
+                    // Offline startup still reads its cache before the listener.
+                    const customRows = loaded;
                     window.itineraryData = typeof window.mergeCanonicalItinerary === 'function'
                         ? window.mergeCanonicalItinerary(customRows)
                         : (window.RECOMMENDED_ITINERARY || []).concat(customRows);
@@ -758,11 +789,11 @@
                     if (snap && typeof snap.forEach === 'function') {
                         snap.forEach(ch => { loaded.push({ ...ch.val(), key: ch.key }); });
                     }
-                    if (loaded.length > 0) {
-                        window.ticketData = loaded;
-                        StorageEngine.set('busan_v36_tickets', window.ticketData);
-                    }
+                    // The empty authoritative snapshot must clear the last deleted ticket.
+                    window.ticketData = loaded;
+                    StorageEngine.set('busan_v36_tickets', window.ticketData);
                     if (typeof renderTickets_LogicOnly === 'function') renderTickets_LogicOnly();
+                    if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
                 } catch (e) { console.error('[FirebaseOn DB_TICKETS]', e); }
             });
 
@@ -849,7 +880,33 @@
     setInterval(() => { if (navigator.onLine) syncOfflineQueue(); }, 15000);
 
     // ── Bootstrap ─────────────────────────────────────────────────────────
+    // On small touch screens, enlarged text can push the layout viewport wider
+    // than the actual visible screen (e.g. 320px -> 618px on Chromium).
+    // Fixed navigation sized against that inflated layout viewport cannot be
+    // tapped reliably. Bound its width to the REAL visual viewport; preserve
+    // full-size nav and existing design on desktop and tablets.
+    function fitBottomNavToVisiblePhone() {
+        try {
+            if (!window.matchMedia?.('(pointer: coarse)').matches || screen.width > 600) return;
+            const nav = document.querySelector('#mainApp .bottom-nav');
+            if (!nav) return;
+            const visible = window.visualViewport;
+            const width = Math.min(screen.width, visible?.width || screen.width);
+            if (!Number.isFinite(width) || width < 240) return;
+            nav.style.setProperty('width', Math.floor(width) + 'px', 'important');
+            nav.style.setProperty('left', Math.max(0, visible?.offsetLeft || 0) + 'px', 'important');
+            nav.style.setProperty('min-width', '0', 'important');
+        } catch (error) {
+            console.warn('[V46] Unable to size visible phone nav:', error);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
+        fitBottomNavToVisiblePhone();
+        window.addEventListener('resize', fitBottomNavToVisiblePhone, {passive:true});
+        window.addEventListener('orientationchange', fitBottomNavToVisiblePhone, {passive:true});
+        window.visualViewport?.addEventListener('resize', fitBottomNavToVisiblePhone, {passive:true});
+        window.visualViewport?.addEventListener('scroll', fitBottomNavToVisiblePhone, {passive:true});
         setupPwaInstallUx();
 
         // Guarantee UI visibility regardless of network or API failure

@@ -275,7 +275,11 @@ test.describe('Wallet (Ticket / Hotel / Docs / Coupon / Memory)', () => {
     for (const id of fields) {
       await expect(page.locator(`#walletTicketSection ${id}`)).toBeVisible();
     }
-    await expect(page.locator('#walletTicketSection button[onclick="addTicket()"]')).toBeVisible();
+    const save = page.locator('#walletTicketSection #saveTicketBtn');
+    await expect(save).toBeVisible();
+    await expect(save).toBeEnabled();
+    await expect(save).toHaveAttribute('onclick', 'saveTicket()');
+    await expect(page.locator('#tkReservationState')).toBeVisible();
   });
 });
 
@@ -707,7 +711,7 @@ test.describe('PWA & Offline Infrastructure', () => {
     expect(response.status()).toBe(200);
     
     const body = await response.text();
-    expect(body).toMatch(/busan-trip-v45-production-v\d+/);
+    expect(body).toMatch(/busan-trip-v46-[a-z0-9-]+-v\d+/);
     expect(body).toContain('install');
     expect(body).toContain('activate');
     expect(body).toContain('fetch');

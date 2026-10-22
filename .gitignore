@@ -20,3 +20,8 @@ Thumbs.db
 
 # npm lock (keep package-lock.json for CI reproducibility)
 # package-lock.json
+
+# BUSAN.11 private local backup artifacts: NEVER commit sensitive database exports
+*.rtdb.enc
+*.rtdb.json
+private-backups/

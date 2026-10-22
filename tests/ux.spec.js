@@ -23,7 +23,7 @@ test.describe('UX Verification & Sanity Audit', () => {
     expect(elapsed, 'Homepage load took longer than 5 seconds').toBeLessThanOrEqual(5000);
 
     // Hero card or today card must be clearly visible
-    const heroCard = page.locator('#hero-card, .hero-card, .today-card').first();
+    const heroCard = page.locator('#liveTravelCard, #hero-card, .hero-card, .today-card').first();
     await expect(heroCard).toBeVisible();
 
     // Check visible text count on hero section to prevent overload

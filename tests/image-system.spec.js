@@ -187,7 +187,7 @@ test('Image Batch 2: shopping hooks keep photos optional and delete device blobs
   await page.addScriptTag({ content: `
     window.deviceOwner = 'user1'; window.shopList = []; let fakeNow = 0; Date.now = () => ++fakeNow;
     window.StorageEngine = { set() {} }; window.DB_SHOP = 'shop';
-    window.NetworkEngine = { firebasePush: async () => {}, firebaseRemove: async () => {} };
+    window.NetworkEngine = { firebasePush: async () => ({ success: true, data: { key: 'mock-remote-key' }, error: null }), firebaseRemove: async () => ({ success: true, data: null, error: null }) };
     window.renderShop = () => {}; window.showToast = () => {}; window.confirm = () => true;
     window.photoCalls = { attach: [], remove: [], clear: 0 };
     window.ShoppingPhotoEngine = {

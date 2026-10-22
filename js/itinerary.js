@@ -110,12 +110,16 @@
 
         try {
             if (editingItiKey) {
-                await NetworkEngine.firebaseUpdate(`${DB_ITI}/${editingItiKey}`, data);
+                const result = await NetworkEngine.firebaseUpdate(`${DB_ITI}/${editingItiKey}`, data);
+                if (!result || result.success !== true)
+                    throw new Error(result?.error || '行程更新未儲存');
                 editingItiKey = null;
                 if (saveBtn)   saveBtn.innerText          = '💾 儲存';
                 if (cancelBtn) cancelBtn.style.display    = 'none';
             } else {
-                await NetworkEngine.firebasePush(DB_ITI, data);
+                const result = await NetworkEngine.firebasePush(DB_ITI, data);
+                if (!result || result.success !== true)
+                    throw new Error(result?.error || '行程新增未儲存');
             }
         } catch (e) {
             console.error('[Itinerary] save failed:', e);
@@ -159,10 +163,17 @@
     window.deleteItinerary = async function (key) {
         if (!confirm('確認刪除此行程？')) return;
         try {
-            await NetworkEngine.firebaseRemove(`${DB_ITI}/${key}`);
+            // Canonical itinerary rows must never be removed from the source.
+            if (!key || String(key).startsWith('rec_')) {
+                showToast('官方行程不可刪除；可另外加入個人行程', 'warning');
+                return;
+            }
+            const result = await NetworkEngine.firebaseRemove(`${DB_ITI}/${key}`);
+            if (!result || result.success !== true)
+                throw new Error(result?.error || '刪除未成功');
         } catch (e) {
             console.error('[Itinerary] delete failed:', e);
-            showToast('刪除行程失敗', 'error');
+            showToast('刪除行程失敗；原紀錄仍保留', 'error');
         }
     };
 

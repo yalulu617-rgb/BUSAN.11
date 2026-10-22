@@ -1,0 +1,56 @@
+name: V46 Sticky And 200 Percent Touch Regression
+on:
+  push:
+    branches: [v46-ticket-crud-repair-20261021]
+    paths:
+      - '.github/workflows/v46-sticky-touch-regression.yml'
+      - 'components/v46-home.js'
+      - 'tests/v46-sticky-owner-preview.spec.js'
+      - 'tests/accessibility.spec.js'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-sticky-and-touch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {project: chromium, browser: chromium}
+          - {project: webkit, browser: webkit}
+          - {project: mobile-chrome, browser: chromium}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Isolated local app
+        run: |
+          npm install -g serve
+          serve -s . -l 8080 &
+          sleep 3
+          curl -fsS http://localhost:8080/ >/dev/null
+      - name: Verify sticky programmatic scroll, menu and genuine 200 percent taps
+        run: |
+          npx playwright test tests/v46-sticky-owner-preview.spec.js tests/accessibility.spec.js \
+            --project=${{ matrix.project }} --grep 'V46 sticky compact header|320px: three phases reflow' \
+            --workers=1 --retries=0 --reporter=html,list
+        env:
+          CI: 'true'
+          BUSAN_CI_FIREBASE_ISOLATED: '1'
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
+          PLAYWRIGHT_HTML_OPEN: never
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: v46-sticky-touch-${{ matrix.project }}
+          path: |
+            playwright-report/
+            test-results/
+            visual-sticky/
+          retention-days: 14
