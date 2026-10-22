@@ -998,11 +998,10 @@ window.renderCollections = function() {
 window.homeWeatherDetailExpanded = false;
 
 window.toggleHomeWeatherDetail = function() {
+    // Weather now opens just beneath the sticky summary instead of scrolling
+    // the whole homepage to its former footer position.
     window.homeWeatherDetailExpanded = !window.homeWeatherDetailExpanded;
     renderV37HomeDashboard();
-    if (window.homeWeatherDetailExpanded) {
-        setTimeout(() => document.getElementById('homeWeatherDetailPanel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 0);
-    }
 };
 
 window.refreshWeatherNow = async function() {
@@ -1045,8 +1044,8 @@ window.renderHomeWeatherDetail = function() {
         ? Object.entries(forecast.forecasts).map(([city, days]) => `<div><strong>${city === 'Busan' ? '釜山' : '慶州'}旅行日：</strong>${days.map(day => `${day.date.slice(5)} ${day.minTemp}–${day.maxTemp}°C／降雨 ${day.rainChance}%`).join('、')}</div>`).join('')
         : `<div class="home-weather-forecast-note">${forecast.message}</div>`;
     return `
-        <section id="homeWeatherDetailPanel" class="home-weather-detail-panel fade-scale-in" aria-label="釜山與慶州即時天氣">
-            <div class="home-weather-detail-heading"><strong>🌤️ 釜山＋慶州即時天氣與穿搭</strong><button type="button" id="refreshWeatherNowBtn" class="v38-mini-btn" onclick="refreshWeatherNow()">🔄 更新天氣</button></div>
+        <section id="homeWeatherDetailPanel" class="home-weather-detail-panel fade-scale-in" role="region" aria-label="釜山與慶州即時天氣" tabindex="-1">
+            <div class="home-weather-detail-heading"><strong>🌤️ 釜山＋慶州即時天氣與穿搭</strong><div class="v46-weather-panel-actions"><button type="button" id="refreshWeatherNowBtn" class="v38-mini-btn" onclick="refreshWeatherNow()">🔄 更新</button><button type="button" class="v46-weather-close" onclick="toggleHomeWeatherDetail()" aria-label="關閉天氣詳情">✕ 關閉</button></div></div>
             <div class="home-weather-city-grid">${cityCard('Busan', '釜山')}${cityCard('Gyeongju', '慶州')}</div>
             <div class="home-weather-trip-forecast">${forecastHtml}</div>
         </section>

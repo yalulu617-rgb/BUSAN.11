@@ -246,3 +246,38 @@ html:not([data-theme="dark"]),
 html:not([data-theme="dark"]) body {
   background-color: #fbf5e9 !important;
 }
+
+/* S25 UX: local weather drawer sits immediately below the sticky summary. */
+#v37HomeDashboard .v46-home .v46-sticky-head > .home-weather-detail-panel {
+  position:absolute!important;top:calc(100% + 6px)!important;
+  left:0!important;right:0!important;width:100%!important;
+  max-height:min(52dvh,440px)!important;overflow-y:auto!important;
+  margin:0!important;padding:12px!important;z-index:1300!important;
+  border:1.5px solid #b2cfd6!important;border-radius:16px!important;
+  background:#fffdf7!important;color:#28526a!important;
+  box-shadow:0 10px 28px rgba(40,78,100,.25)!important;
+  overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+}
+#v37HomeDashboard .v46-home .v46-sticky-head .v46-weather-panel-actions {
+  display:flex;align-items:center;gap:5px;flex:none;
+}
+#v37HomeDashboard .v46-home .v46-sticky-head .v46-weather-panel-actions button {
+  min-height:44px;min-width:44px;padding:7px!important;
+  font-size:12px;font-weight:850;white-space:nowrap;
+  color:#265b7a;background:#eaf5f7;border:1px solid #a9cbd8;border-radius:10px;
+}
+#v37HomeDashboard .v46-home .v46-sticky-head .home-weather-detail-heading {
+  align-items:flex-start;flex-wrap:wrap;gap:6px;
+}
+#v37HomeDashboard .v46-home .v46-sticky-head .home-weather-detail-heading strong {
+  flex:1 1 150px;font-size:.89rem;
+}
+/* Stop scroll chaining to the home page while its 11-function bag is open. */
+html:has(#guide.active #v37HomeDashboard details.v46-inline-tools[open]),
+body:has(#guide.active #v37HomeDashboard details.v46-inline-tools[open]) {
+  overflow-y:hidden!important;overscroll-behavior:none;
+}
+#v37HomeDashboard .v46-home .v46-inline-tools[open] > .v46-tools-content {
+  overflow-y:auto!important;touch-action:pan-y;overscroll-behavior:contain!important;
+  -webkit-overflow-scrolling:touch;
+}
