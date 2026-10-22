@@ -1,0 +1,45 @@
+name: V46 RTDB Encrypted Backup / Emulator Restore Gate
+on:
+  push:
+    branches: [v46-ticket-crud-repair-20261021]
+    paths:
+      - 'scripts/verify-firebase-emulator-restore.mjs'
+      - 'tests/rtdb-restore-emulator.test.mjs'
+      - 'tests/v46-firebase-restore-emulator.json'
+      - 'tests/v46-firebase-restore-rules.json'
+      - '.github/workflows/v46-rtdb-emulator-restore.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  synthetic-archive-safety:
+    name: Synthetic encrypted backup + local endpoint safety checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: {node-version: '24'}
+      - name: Run backup-restore safety tests (synthetic data only)
+        run: |
+          node --test tests/rtdb-backup.test.mjs
+          node --test tests/rtdb-restore-emulator.test.mjs
+  firebase-demo-emulator:
+    name: Real Firebase RTDB emulator, demo-* project, synthetic data ONLY
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    needs: synthetic-archive-safety
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: {node-version: '24'}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Run synthetic backup through genuine disposable RTDB emulator
+        env:
+          CI: 'true'
+          BUSAN11_TEST_REAL_EMULATOR: '1'
+        run: |
+          npx --yes firebase-tools@15.30.2 emulators:exec --only database --project demo-busan11-v46-restore --config tests/v46-firebase-restore-emulator.json "node --test tests/rtdb-restore-emulator.test.mjs"
