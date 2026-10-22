@@ -281,3 +281,23 @@ body:has(#guide.active #v37HomeDashboard details.v46-inline-tools[open]) {
   overflow-y:auto!important;touch-action:pan-y;overscroll-behavior:contain!important;
   -webkit-overflow-scrolling:touch;
 }
+
+/* S25 regression fix: scrolling the webpage must never change the scroll
+   container of the sticky header. Earlier html/body overflow lock broke
+   CSS position:sticky across Chromium and Firefox. */
+html:has(#guide.active #v37HomeDashboard details.v46-inline-tools[open]),
+body:has(#guide.active #v37HomeDashboard details.v46-inline-tools[open]) {
+  overflow-y:auto!important;
+  overscroll-behavior-y:auto;
+}
+#v37HomeDashboard .v46-home .v46-bag-backdrop {
+  display:none;
+}
+#v37HomeDashboard .v46-home:has(details.v46-inline-tools[open]) > .v46-bag-backdrop {
+  display:block;position:fixed;inset:0;z-index:1099;
+  background:rgba(20,44,59,.07);
+  touch-action:none;overscroll-behavior:none;
+}
+#v37HomeDashboard .v46-home details.v46-inline-tools[open] > .v46-tools-content {
+  touch-action:pan-y;overscroll-behavior:contain!important;
+}

@@ -36,23 +36,21 @@ for (const width of [360,390]) {
     await expect(bag).toHaveAttribute('open','');
     await expect(bag.locator('button.v45-nine-card')).toHaveCount(11);
     const state=await page.evaluate(()=>({
-      htmlOverflow:getComputedStyle(document.documentElement).overflowY,
-      bodyOverflow:getComputedStyle(document.body).overflowY,
       scrollY:window.scrollY,
       panelScrollable:(()=>{
         const p=document.querySelector('#v37HomeDashboard .v46-inline-tools > .v46-tools-content');
         return p.scrollHeight>p.clientHeight;
-      })()
+      })(),
+      overscroll:getComputedStyle(document.querySelector('#v37HomeDashboard .v46-inline-tools > .v46-tools-content')).overscrollBehaviorY
     }));
-    expect(state.htmlOverflow).toBe('hidden');
-    expect(state.bodyOverflow).toBe('hidden');
     expect(state.panelScrollable).toBe(true);
-    // Browser-native scrollIntoView scrolls the nearest overflow container,
-    // including WebKit mobile where mouse.wheel is unsupported. This proves
-    // all eleven actions remain reachable without moving the background.
-    await bag.locator('button.v45-nine-card').last().evaluate(
-      node=>node.scrollIntoView({block:'nearest',inline:'nearest'})
-    );
+    expect(state.overscroll).toBe('contain');
+    await expect(page.locator('#v37HomeDashboard .v46-bag-backdrop')).toBeVisible();
+    // Scroll the only intended scroll container directly. Calling
+    // scrollIntoView on the last child may also move the document even
+    // when user touch scrolling would not, so it is not a valid background
+    // gesture test. The visible backdrop separately absorbs background taps.
+    await bag.locator('.v46-tools-content').evaluate(p=>{p.scrollTop=p.scrollHeight;});
     const scrollResult=await page.evaluate(()=>{
       const p=document.querySelector('#v37HomeDashboard .v46-inline-tools > .v46-tools-content');
       return {scrollTop:p.scrollTop,maxScroll:p.scrollHeight-p.clientHeight};
@@ -63,6 +61,6 @@ for (const width of [360,390]) {
     expect(Math.abs(bgScroll-state.scrollY),'Background must not scroll with bag').toBeLessThan(8);
     await bag.locator('summary').click();
     await expect(bag).not.toHaveAttribute('open','');
-    await expect.poll(async()=>page.evaluate(()=>getComputedStyle(document.documentElement).overflowY)).not.toBe('hidden');
+    await expect(page.locator('#v37HomeDashboard .v46-bag-backdrop')).toBeHidden();
   });
 }

@@ -998,8 +998,10 @@ window.renderCollections = function() {
 window.homeWeatherDetailExpanded = false;
 
 window.toggleHomeWeatherDetail = function() {
-    // Weather now opens just beneath the sticky summary instead of scrolling
-    // the whole homepage to its former footer position.
+    // A weather drawer and an open eleven-function menu should never overlap.
+    const bag = document.querySelector('#guide.active #v37HomeDashboard details.v46-inline-tools[open]');
+    if (bag) bag.open = false;
+    window.v46AllToolsExpanded = false;
     window.homeWeatherDetailExpanded = !window.homeWeatherDetailExpanded;
     renderV37HomeDashboard();
 };

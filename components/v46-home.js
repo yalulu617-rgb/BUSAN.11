@@ -226,6 +226,54 @@
           '<option value="' + value + '"' + (model.mode === value ? ' selected' : '') +
           '>' + label + '</option>').join('') +
       '</select><span class="v46-phase-dropdown" aria-hidden="true">⌄</span></label>';
+  // Dismiss mutually exclusive overlay surfaces without replacing an open
+  // <details> element while it is receiving a click.
+  target.v46OnBagToggle = function (bag) {
+    if (!bag?.isConnected) return;
+    target.v46AllToolsExpanded = Boolean(bag.open);
+    if (bag.open && target.homeWeatherDetailExpanded) {
+      target.homeWeatherDetailExpanded = false;
+      document.getElementById('homeWeatherDetailPanel')?.remove();
+      document.querySelectorAll('#v37HomeDashboard [aria-controls="homeWeatherDetailPanel"]')
+        .forEach(button => button.setAttribute('aria-expanded', 'false'));
+    }
+  };
+  target.v46CloseBag = function () {
+    const bag = document.querySelector('#guide.active #v37HomeDashboard details.v46-inline-tools[open]');
+    if (bag) bag.open = false;
+    target.v46AllToolsExpanded = false;
+  };
+  // Do not let gestures chain from the end of the dropdown into the page.
+  // Unlike locking html/body overflow, this preserves sticky-header geometry.
+  if (!target.v46BagGestureGuardBound) {
+    target.v46BagGestureGuardBound = true;
+    let touchStartY = null;
+    document.addEventListener('touchstart', e => {
+      const el = e.target.closest?.('#guide.active #v37HomeDashboard details.v46-inline-tools[open] > .v46-tools-content');
+      touchStartY = el && e.touches[0] ? e.touches[0].clientY : null;
+    }, { passive: true });
+    document.addEventListener('touchmove', e => {
+      if (touchStartY == null || !e.touches[0]) return;
+      const el = e.target.closest?.('#guide.active #v37HomeDashboard details.v46-inline-tools[open] > .v46-tools-content');
+      if (!el) return;
+      const movement = e.touches[0].clientY - touchStartY;
+      if ((movement > 0 && el.scrollTop <= 0) ||
+          (movement < 0 && el.scrollTop + el.clientHeight >= el.scrollHeight - 1)) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+    document.addEventListener('touchend', () => { touchStartY = null; }, { passive: true });
+    document.addEventListener('wheel', e => {
+      const el = e.target.closest?.('#guide.active #v37HomeDashboard details.v46-inline-tools[open] > .v46-tools-content');
+      if (el && ((e.deltaY < 0 && el.scrollTop <= 0) ||
+                 (e.deltaY > 0 && el.scrollTop + el.clientHeight >= el.scrollHeight - 1))) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') target.v46CloseBag();
+    });
+  }
   // Keep only one scroll listener across rerenders. The expanded masthead collapses
   // after the user has scrolled; the same real data, menus and controls remain available.
   if (!target.v46StickyHeaderBound) {
@@ -266,6 +314,7 @@
       else if (target.scrollY < 24) target.v46StickyCompact = false;
     }
     return '<div class="v46-home" data-v46-mode="' + esc(model.mode) + '">' +
+      '<div class="v46-bag-backdrop" aria-hidden="true" onclick="v46CloseBag()"></div>' +
       '<div class="v46-sticky-head' + (target.v46StickyCompact ? ' is-compact' : '') + '">' +
       '<div class="v46-sticky-expanded"><div class="v46-masthead"><div class="v46-brand"><span aria-hidden="true">🔔</span>' +
       '<div><strong>BUSAN.11</strong><small>TRAVEL DIARY</small></div></div>' +
@@ -273,7 +322,7 @@
       phases(model) + '</div>' +
       '<div class="v46-top-quick-actions">' + condensedPhase(model) + compactWeather(model) + condensedWeather() +
       '<details class="v46-tools v46-inline-tools"' + (target.v46AllToolsExpanded ? ' open' : '') +
-      ' ontoggle="if(this.isConnected) window.v46AllToolsExpanded=this.open">' +
+      ' ontoggle="window.v46OnBagToggle(this)">' +
       '<summary class="v46-tools-summary v46-inline-bag-summary" aria-label="開啟或收起旅行百寶袋 11 項功能">' +
       '<span aria-hidden="true">🎒</span><span class="v46-bag-label">百寶袋</span></summary>' +
       '<div class="v46-tools-content">' + menu + '</div></details></div>' + weatherDetail + '</div>' +
