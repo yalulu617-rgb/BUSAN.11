@@ -282,7 +282,7 @@ window.addShopItem = async function () {
         StorageEngine.set('busan_v36_shopList', window.shopList);
         renderShop();
         try {
-            if (!editKey.startsWith('local_')) await NetworkEngine.firebaseUpdate(`${DB_SHOP}/${editKey}`, patch);
+            if (!editKey.startsWith('local_')) { const saved = await NetworkEngine.firebaseUpdate(`${DB_SHOP}/${editKey}`, patch); if (saved?.success !== true) throw new Error(saved?.error || 'Shop update not acknowledged'); }
         } catch (error) {
             console.error('[Renderers] editShop failed:', error);
             if (typeof addToOfflineQueue === 'function' && !editKey.startsWith('local_')) addToOfflineQueue('UPDATE', `${DB_SHOP}/${editKey}`, patch);
@@ -316,7 +316,8 @@ window.addShopItem = async function () {
         owner: newItem.owner, ts: newItem.ts
     };
     try {
-        await NetworkEngine.firebasePush(DB_SHOP, payload);
+        const saved = await NetworkEngine.firebasePush(DB_SHOP, payload);
+        if (saved?.success !== true) throw new Error(saved?.error || 'Shop create not acknowledged');
     } catch (e) {
         console.error('[Renderers] addShopItem failed:', e);
         showToast('已保存至本機，連線恢復時將同步至雲端', 'info');
@@ -336,7 +337,8 @@ window.toggleShop = async function (key, currentChecked) {
     if (typeof renderShop === 'function') renderShop();
     if (key.startsWith('local_')) return;
     try {
-        await NetworkEngine.firebaseUpdate(`${DB_SHOP}/${key}`, { checked: !currentChecked });
+        const saved = await NetworkEngine.firebaseUpdate(`${DB_SHOP}/${key}`, { checked: !currentChecked });
+        if (saved?.success !== true) throw new Error(saved?.error || 'Shop toggle not acknowledged');
     } catch (e) {
         console.error('[Renderers] toggleShop failed:', e);
         if (typeof addToOfflineQueue === 'function') addToOfflineQueue('UPDATE', `${DB_SHOP}/${key}`, { checked: !currentChecked });
@@ -352,7 +354,8 @@ window.deleteShop = async function (key) {
     if (typeof renderShop === 'function') renderShop();
     if (key.startsWith('local_')) return;
     try {
-        await NetworkEngine.firebaseRemove(`${DB_SHOP}/${key}`);
+        const saved = await NetworkEngine.firebaseRemove(`${DB_SHOP}/${key}`);
+        if (saved?.success !== true) throw new Error(saved?.error || 'Shop delete not acknowledged');
     } catch (e) {
         console.error('[Renderers] deleteShop failed:', e);
         showToast('刪除購物項目失敗', 'error');
@@ -624,8 +627,10 @@ window.savePrepItem = async function() {
     const existing = (window.prepData || []).find(row => row.key === editKey);
     const payload = { text, category, link, done: existing?.done || false, kind: 'packing', updatedAt: Date.now() };
     try {
-        if (editKey) await NetworkEngine.firebaseUpdate(`${DB_PREP}/${editKey}`, payload);
-        else await NetworkEngine.firebasePush(DB_PREP, { ...payload, ts: Date.now() });
+        const saved = editKey
+            ? await NetworkEngine.firebaseUpdate(`${DB_PREP}/${editKey}`, payload)
+            : await NetworkEngine.firebasePush(DB_PREP, { ...payload, ts: Date.now() });
+        if (saved?.success !== true) throw new Error(saved?.error || 'Packing save not acknowledged');
     } catch (e) {
         console.error('[Renderers] savePrepItem failed:', e);
         showToast('準備事項儲存失敗', 'error');
@@ -647,7 +652,8 @@ window.togglePrep = async function (key, currentDone) {
     window.prepData = (window.prepData || []).map(p => p.key === key ? { ...p, done: !currentDone } : p);
     StorageEngine.set('busan_v36_prepData', window.prepData);
     if (typeof renderPrepList === 'function') renderPrepList();
-    try { await NetworkEngine.firebaseUpdate(`${DB_PREP}/${key}`, { done: !currentDone }); }
+    try { const saved = await NetworkEngine.firebaseUpdate(`${DB_PREP}/${key}`, { done: !currentDone });
+        if (saved?.success !== true) throw new Error(saved?.error || 'Packing toggle not acknowledged'); }
     catch (e) {
         console.error('[Renderers] togglePrep failed:', e);
         if (typeof addToOfflineQueue === 'function') addToOfflineQueue('UPDATE', `${DB_PREP}/${key}`, { done: !currentDone });
@@ -669,7 +675,8 @@ window.deletePrep = async function (key) {
     window.prepData = (window.prepData || []).filter(p => p.key !== key);
     StorageEngine.set('busan_v36_prepData', window.prepData);
     if (typeof renderPrepList === 'function') renderPrepList();
-    try { await NetworkEngine.firebaseRemove(`${DB_PREP}/${key}`); }
+    try { const saved = await NetworkEngine.firebaseRemove(`${DB_PREP}/${key}`);
+        if (saved?.success !== true) throw new Error(saved?.error || 'Packing delete not acknowledged'); }
     catch (e) {
         console.error('[Renderers] deletePrep failed:', e);
         showToast('刪除準備事項失敗', 'error');
@@ -2421,7 +2428,8 @@ window.addRecShopToMyList = async function(id) {
         sourceRecommendationId: canonical.id
     };
     try {
-        await NetworkEngine.firebasePush(window.DB_SHOP, payload);
+        const saved = await NetworkEngine.firebasePush(window.DB_SHOP, payload);
+        if (saved?.success !== true) throw new Error(saved?.error || 'Recommended shopping item not acknowledged');
         showToast(`🛒 已加入清單: ${item.name}`, "success");
     } catch (e) {
         if (typeof addToOfflineQueue === 'function') addToOfflineQueue('PUSH', window.DB_SHOP, payload);

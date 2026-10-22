@@ -79,7 +79,7 @@ try {
     const cards = bag.locator('button.v45-nine-card');
     const count = await cards.count();
     if (count !== 11) throw new Error(`Expected 11 V46 travel tools, found ${count}`);
-    const homeText = (await cards.allInnerTexts()).join(' ').replace(/\\s+/g, ' ');
+    const homeText = (await cards.allInnerTexts()).join(' ').replace(/\s+/g, ' ');
     const requiredHomeEntries = [
       '今日行程', '天氣・楓況', '旅行記帳', '吃喝・景點',
       '超商・超市', '快樂購', '翻譯・SOS', '旅行回憶',

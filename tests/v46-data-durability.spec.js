@@ -164,3 +164,50 @@ test('V46 pending offline sync: unknown operations and failed local persistence 
   expect(result.failedSaveKept).toBe(1);
   expect(result.syncing).toBe(false);
 });
+
+test('V46 shopping failure envelopes: local item and Firebase retry survive rejected write', async ({page}) => {
+  const result = await page.evaluate(async () => {
+    if (!window.NetworkEngine?._db?.__testOnly) throw new Error('NOT ISOLATED');
+    const oldPush=window.NetworkEngine.firebasePush;
+    try {
+      window.StorageEngine.set('pendingSyncQueue', []);
+      document.querySelector('#newShop').value = 'QA 離線保留伴手禮';
+      window.NetworkEngine.firebasePush = async () => ({success:false,error:'CI simulated Firebase unavailable'});
+      await window.addShopItem();
+      return {
+        item:window.shopList.find(item=>item.text==='QA 離線保留伴手禮'),
+        queue:window.StorageEngine.get('pendingSyncQueue', []).data,
+        cache:window.StorageEngine.get('busan_v36_shopList', []).data
+      };
+    } finally {
+      window.NetworkEngine.firebasePush=oldPush;
+    }
+  });
+  expect(result.item?.text).toBe('QA 離線保留伴手禮');
+  expect(result.cache.some(x=>x.text==='QA 離線保留伴手禮')).toBe(true);
+  expect(result.queue).toHaveLength(1);
+  expect(result.queue[0].method).toBe('PUSH');
+  expect(result.queue[0].data.text).toBe('QA 離線保留伴手禮');
+});
+
+test('V46 shopping and packing UPDATE rejections enter the persisted offline queue', async ({page}) => {
+  const result = await page.evaluate(async () => {
+    if (!window.NetworkEngine?._db?.__testOnly) throw new Error('NOT ISOLATED');
+    const oldUpdate=window.NetworkEngine.firebaseUpdate;
+    try {
+      window.StorageEngine.set('pendingSyncQueue', []);
+      window.shopList=[{key:'qa-shop',text:'QA coffee',checked:false,owner:'user1'}];
+      window.prepData=[{key:'qa-prep',text:'QA passport',done:false}];
+      window.NetworkEngine.firebaseUpdate=async()=>({success:false,error:'CI simulated Firebase rejected update'});
+      await window.toggleShop('qa-shop',false);
+      await window.togglePrep('qa-prep',false);
+      return {queue:window.StorageEngine.get('pendingSyncQueue', []).data};
+    } finally {
+      window.NetworkEngine.firebaseUpdate=oldUpdate;
+    }
+  });
+  expect(result.queue).toHaveLength(2);
+  expect(result.queue.map(x=>x.method)).toEqual(['UPDATE','UPDATE']);
+  expect(result.queue[0].path).toContain('qa-shop');
+  expect(result.queue[1].path).toContain('qa-prep');
+});
