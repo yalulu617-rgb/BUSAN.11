@@ -4,6 +4,8 @@ on:
     branches: [v46-ticket-crud-repair-20261021]
     paths:
       - 'scripts/verify-firebase-emulator-restore.mjs'
+      - 'scripts/verify-local-export.mjs'
+      - 'tests/fixtures/v46-export-synthetic.json'
       - 'tests/rtdb-restore-emulator.test.mjs'
       - 'tests/v46-firebase-restore-emulator.json'
       - 'tests/v46-firebase-restore-rules.json'
@@ -41,5 +43,6 @@ jobs:
         env:
           CI: 'true'
           BUSAN11_TEST_REAL_EMULATOR: '1'
+          BUSAN11_LOCAL_EXPORT_PATH: ${{ github.workspace }}/tests/fixtures/v46-export-synthetic.json
         run: |
-          npx --yes firebase-tools@15.30.2 emulators:exec --only database --project demo-busan11-v46-restore --config tests/v46-firebase-restore-emulator.json "node --test tests/rtdb-restore-emulator.test.mjs"
+          npx --yes firebase-tools@15.30.2 emulators:exec --only database --project demo-busan11-v46-restore --config tests/v46-firebase-restore-emulator.json "node --test tests/rtdb-restore-emulator.test.mjs && node scripts/verify-local-export.mjs"
