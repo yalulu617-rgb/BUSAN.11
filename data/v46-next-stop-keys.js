@@ -5,7 +5,7 @@
   'use strict';
   target.V46_NEXT_STOP_MAP_KEYS = Object.freeze({
     '11/13': {3:'urban_groove',5:'emart_munhyeon',6:'urban_groove'},
-    '11/14': {2:'ops_haeundae',4:'mipo_station',5:'cheongsapo_station',
+    '11/14': {1:null,2:'ops_haeundae',4:'mipo_station',5:'cheongsapo_station',
       6:'suminine',7:'spaland_centum',8:'scentica_gwangan',
       9:'gwangalli_beach',10:'gwangalli_beach',11:'urban_groove'},
     '11/15': {2:'sugeongsa',3:'kkotgil_hanbok',4:'daereungwon',
