@@ -26,7 +26,7 @@ test('V46 owner fit: real app screenshots, full-size image, rightward rail, 11 e
      });
      expect(asset.width).toBe(1190);
      expect(asset.height).toBe(1322);
-     expect(asset.fit).toBe('contain');
+     expect(asset.fit).toBe('cover');
      const overflow=await page.evaluate(()=>({
        body:document.documentElement.scrollWidth,visible:document.documentElement.clientWidth
      }));
@@ -45,6 +45,7 @@ test('V46 owner fit: real app screenshots, full-size image, rightward rail, 11 e
    }
    await page.evaluate(()=>window.setV46HomePreview('during'));
    const visibleCard=page.locator('#v37HomeDashboard .v46-visible-rail-card');
+   await expect(page.locator('#v37HomeDashboard .v46-home')).toHaveAttribute('data-v46-mode','during');
    await expect(visibleCard,'train cannot require expanding an accordion').toBeVisible();
    await expect(page.locator('#v37HomeDashboard details.v46-rail-accordion')).toHaveCount(0);
    const mascot=page.locator('#v37HomeDashboard .v46-mascot-image svg');
