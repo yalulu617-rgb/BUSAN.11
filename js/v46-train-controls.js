@@ -17,12 +17,14 @@
     const value=raw===null?null:Number(raw);
     return {manualIndex:Number.isInteger(value)&&value>=0&&value<=200?value:null};
   };
+  const prefersReduced=()=>target.matchMedia?.('(prefers-reduced-motion: reduce)').matches===true;
   const motionEnabled=()=>{
+    // Honor OS accessibility preferences even if an older toggle says "on".
+    if(prefersReduced())return false;
     const stored=get(MOTION);
     if(stored==='off')return false;
     if(stored==='on')return true;
-    return !(target.matchMedia?.('(prefers-reduced-motion: reduce)').matches||
-      target.navigator?.connection?.saveData===true);
+    return target.navigator?.connection?.saveData!==true;
   };
   target.V46TrainControls=Object.freeze({stateFor,motionEnabled});
   target.setV46TrainStop=function(iso,next){
@@ -41,9 +43,17 @@
     return true;
   };
   target.toggleV46TrainMotion=function(){
+    if(prefersReduced())return false;
     put(MOTION,motionEnabled()?'off':'on');
     refresh();
+    return true;
   };
+  // CSS animations pause when the browser is in the background.
+  const syncVisibility=()=>target.document?.body?.classList.toggle('v46-page-hidden',target.document.hidden);
+  target.document?.addEventListener('visibilitychange',syncVisibility);
+  target.addEventListener('pagehide',()=>target.document?.body?.classList.add('v46-page-hidden'));
+  target.addEventListener('pageshow',syncVisibility);
+  syncVisibility();
   target.greetV46TrainMascot=function(button){
     if(!button)return;
     const caption=button.querySelector('.v46-mascot-message');
