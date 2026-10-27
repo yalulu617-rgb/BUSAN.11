@@ -16,6 +16,12 @@ on:
       - 'style.css'
       - '.github/workflows/quick-test.yml'
 
+# Superseded draft-PR commits must not queue multiple outdated failing emails.
+# Keep every current-run test; only cancel stale runs from this same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test-chromium-only:
     name: 🎭 Quick Verify (Chromium)
