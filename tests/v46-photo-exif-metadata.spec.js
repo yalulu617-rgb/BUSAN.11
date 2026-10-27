@@ -84,7 +84,10 @@ test('V46 memory: EXIF time survives compression; private GPS requires opt-in; m
  await expect(page.locator('.memory-meta-edit')).toHaveCount(2);
  await page.locator('.memory-meta-edit').first().click();
  await expect(page.locator('#photoMetadataDialog')).toBeVisible();
- await page.locator('#photoCapturedAt').fill('2026-11-15T14:55:00');
+ // Native datetime-local controls accept minute precision across browsers;
+ // savePhotoMetadataEditor normalizes missing seconds to :00.
+ await page.locator('#photoCapturedAt').fill('2026-11-15T14:55');
+ await expect(page.locator('#photoCapturedAt')).toHaveValue('2026-11-15T14:55');
  await page.locator('#photoLocationLabel').fill('慶州皇理團路');
  await page.locator('#photoMetadataSaveBtn').click();
  await expect(page.locator('#photoMetadataDialog')).not.toBeVisible();
