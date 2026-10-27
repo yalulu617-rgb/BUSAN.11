@@ -17,7 +17,7 @@ test('five real train stations open matching itinerary and return to Korea-local
     await page.locator('#v37HomeDashboard .v46-owner-days .v46-day').nth(n-1).click();
     await expect(page.locator('#itinerary.container')).toHaveClass(/active/);
     await expect.poll(()=>page.evaluate(()=>window.currentFilterDay)).toBe(day);
-    await expect(page.locator('#itinerary .day-tabs .day-tab.active')).toContainText(day);
+    await expect(page.locator('#itinerary .day-tabs .day-tab.active').first()).toContainText(day.slice(3)+'日');
     await expect(page.locator('#itiContent .iti-row').first()).toBeVisible();
     const state=await page.evaluate(()=>({mode:window.v46HomePreviewMode,day:window.v46HomePreviewDay}));
     expect(state).toEqual({mode:'auto',day:null});
