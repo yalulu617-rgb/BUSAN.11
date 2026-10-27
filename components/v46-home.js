@@ -126,9 +126,14 @@
   // Owner reference: the large illustrated yellow coast train is in the hero;
   // this miniature full-color scene tracks the selected day instead of a generic SVG icon.
   const renderTravelTrain = (model, dayIndex) =>
-    '<div class="v46-owner-train-track" aria-label="海岸膠囊列車沿 Day1 到 Day5 向右前進">' +
-    '<span class="v46-rail" aria-hidden="true"></span><div class="v46-owner-train-marker" style="--v46-owner-train-left:' + (25 + dayIndex * 12.5) +
-    '%"><img src="assets/images/v46-owner-fit-train.webp" alt="水彩黃色海岸列車"></div></div>' +
+    '<div class="v46-owner-train-track" data-v46-motion="' + (model.trainMotionEnabled ? 'on' : 'off') + '" aria-label="海岸膠囊列車沿 Day1 到 Day5 向右前進">' +
+    '<span class="v46-rail" aria-hidden="true"></span>' +
+    '<span class="v46-train-cloud one" aria-hidden="true">☁</span><span class="v46-train-cloud two" aria-hidden="true">☁</span>' +
+    '<div class="v46-owner-train-marker" style="--v46-owner-train-left:' + (25 + dayIndex * 12.5) +
+    '%"><span class="v46-smoke-stack" aria-hidden="true"></span>' +
+    '<span class="v46-train-puff one" aria-hidden="true"></span><span class="v46-train-puff two" aria-hidden="true"></span>' +
+    '<span class="v46-train-puff three" aria-hidden="true"></span>' +
+    '<img src="assets/images/v46-owner-fit-train.webp" alt="水彩黃色海岸列車"></div></div>' +
     '<div class="v46-days v46-owner-days" role="group" aria-label="Day 1 至 Day 5 日期選擇">' +
     model.tripDays.map((d,i) => '<button type="button" class="v46-day' +
     (d.selected ? ' is-current' : '') + (d.iso === model.today ? ' is-today' : '') + '" aria-pressed="' + String(d.selected) +
@@ -137,6 +142,48 @@
     '</span><strong>' + esc(d.label) + '</strong><small>' +
     esc(d.iso.slice(5).replace('-', '/')) + '</small>' +
     '<small class="v46-station-name">' + esc(d.short) + '</small></button>').join('') + '</div>';
+  // Always-visible, actionable travel companion (not dependent on expanding the rail).
+  const mascotMini = mascotArt('during')
+    .replace(/<defs><filter[\s\S]*?<\/defs>/, '')
+    .replace(' filter="url(#v46-watercolor)"', '');
+  const renderNextStop = model => {
+    const item = model.nextStop || {};
+    const iso = model.selectedDay;
+    const enabled = model.trainMotionEnabled !== false;
+    const count = Number.isInteger(item.count) ? item.count : 0;
+    const pos = Number.isInteger(item.index) ? item.index : 0;
+    const show = count > 0 && pos < count;
+    const title = show ? item.title : count > 0
+      ? '今天的站點已手動查看完畢' : '這天還沒有可顯示的行程';
+    const info = show ? (item.time ? '🕒 ' + esc(item.time) + ' · ' : '') +
+      esc(item.transport || '依行程安排交通') : '可以按上一站重新查看，或展開當日行程';
+    const nav = show && item.naver ?
+      '<a href="' + esc(item.naver) +
+      '" target="_blank" rel="noopener noreferrer" aria-label="用 NAVER Map 開啟下一站地點">📍 NAVER 地點／導航</a>' :
+      '<button type="button" onclick="openV46TrainDay(\'' + iso +
+      '\')">查看此站行程（NAVER 待核對）</button>';
+    return '<section class="v46-trip-companion" aria-label="旅行下一站指南">' +
+      '<div class="v46-companion-head"><strong>📍 下一站｜旅行小夥伴</strong>' +
+      '<button type="button" class="v46-motion-toggle" aria-pressed="' + String(enabled) +
+      '" onclick="toggleV46TrainMotion()">動畫：' + (enabled ? '開' : '關') + '</button></div>' +
+      '<div class="v46-stop-name">' + esc(title) + '</div>' +
+      '<div class="v46-stop-time">' + info + '</div>' +
+      '<div class="v46-stop-note">' + esc(item.note || '行程預覽，請以現場狀況為準') + '</div>' +
+      '<div class="v46-stop-links">' + nav +
+      '<button type="button" onclick="openV46TrainDay(\'' + iso + '\')">🗺️ 當天詳細行程</button></div>' +
+      '<div class="v46-stop-pager">' +
+      '<button type="button" ' + (pos <= 0 ? 'disabled ' : '') +
+      'onclick="setV46TrainStop(\'' + iso + '\',\'prev\')">← 上一站</button>' +
+      '<span class="v46-stop-count">' + (count ? Math.min(pos + 1, count) : 0) + '/' + count + '</span>' +
+      '<button type="button" ' + (pos >= count ? 'disabled ' : '') +
+      'onclick="setV46TrainStop(\'' + iso + '\',\'next\')">下一站 →</button>' +
+      '<button type="button" class="v46-time-reset" onclick="setV46TrainStop(\'' + iso +
+      '\',\'auto\')">依韓國時間建議</button></div>' +
+      '<button type="button" class="v46-mascot-hello" onclick="greetV46TrainMascot(this)" ' +
+      'aria-label="和旅行夥伴互動打招呼"><span class="v46-mascot-image" aria-hidden="true">' +
+      mascotMini + '</span><span class="v46-mascot-message">點一下，哆啦A夢打招呼 ♡</span></button>' +
+      '</section>';
+  };
   function during(model) {
     const selected = model.tripDays.find(d => d.selected);
     const dayTitle = selected ? selected.label + '｜' + selected.short : '今日行程';
@@ -154,7 +201,8 @@
       ' ontoggle="window.v46TrainExpanded=this.open">' +
       '<summary class="v46-rail-summary"><span class="v46-rail-summary-icon">🚞</span><span class="v46-rail-summary-text"><strong>我們的五天小火車</strong><small>' + esc(dayTitle) + '</small></span><span class="v46-rail-summary-action">展開路線 <span aria-hidden="true">⌄</span></span></summary>' +
       '<div class="v46-rail-reveal">' + renderTravelTrain(model, dayIndex) +
-      '<p class="v46-muted">' + (isPreview ? '目前是日期預覽；點選 Day 1～5 可直接開啟該日行程，返回首頁仍依韓國日期顯示。' : '點選 Day 1～5 直接開啟對應日期的行程與導航。') + '</p></div></details></section>' +
+      '<p class="v46-muted">' + (isPreview ? '目前是日期預覽；點選 Day 1～5 可直接開啟該日行程，返回首頁仍依韓國日期顯示。' : '點選 Day 1～5 直接開啟對應日期的行程與導航。') + '</p></div></details>' +
+      renderNextStop(model) + '</section>' +
       
       '<section class="v46-panel"><h3>旅途快捷百寶袋</h3><div class="v46-shortcuts">' +
       btn('今日行程', '🗺️', "showV37Tab('itinerary')", '路線・雨備') +
@@ -162,10 +210,7 @@
       btn('快樂購', '🛍️', "showV37Tab('shop'); setTimeout(()=>setShopTabMode('my'),50)", '想買・已買') +
       btn('超商・超市', '🏪', 'openConvenienceSupermarketHub()', '零食・水果') +
       btn('翻譯・SOS', '🗣️', "showV37Tab('more')", '韓語・救援') +
-      btn('旅行記帳', '💰', "showV37Tab('split')", '新增・分帳') + '</div></section>' +
-      '<section class="v46-panel card"><h3>📍 ' + (isPreview ? '行程日期預覽' : '下一站，出發吧！') +
-      '</h3><p class="v46-muted">' + (isPreview ? '點選今日行程查看指定日期的詳細安排。' : next) +
-      '</p><button type="button" class="v46-text-link" onclick="showV37Tab(\'itinerary\')">打開行程與導航 ›</button></section>';
+      btn('旅行記帳', '💰', "showV37Tab('split')", '新增・分帳') + '</div></section>' +      '';
   }
   function after(model) {
     const spent = model.spent === null ? '尚無記帳資料' : 'NT$ ' + model.spent.toLocaleString('zh-TW');
