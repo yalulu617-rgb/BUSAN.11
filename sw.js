@@ -8,7 +8,7 @@
 // - Cache-first with network fallback for static media (images, icons)
 // ─────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'busan-trip-v46-companion-candidate-v1';
+const CACHE_NAME = 'busan-v46-three-phase-preview-20261027';
 
 const LOCAL_ASSETS = [
     './',
@@ -22,6 +22,7 @@ const LOCAL_ASSETS = [
     './assets/css/item-images.css',
     './assets/css/v46-home.css',
     './assets/css/v46-trip-companion.css',
+    './assets/css/v46-phase-background-preview.css',
     './assets/images/v46-watercolor-hero-atlas.webp',
     './assets/images/v46-during-characters.webp',
     './assets/images/scentica-gwangan-thumb.webp',
