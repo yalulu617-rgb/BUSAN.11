@@ -289,3 +289,34 @@ html[data-theme="dark"] #v37HomeDashboard .v46-home .v46-trip-companion{
   right:6px!important;width:min(92vw,350px)!important;
  }
 }
+
+
+/* Repair from actual Chromium failures: override all older hero height selectors. */
+#v37HomeDashboard .v46-home[data-v46-mode="before"] > #liveTravelCard.v46-hero.v46-story-hero.card{
+  height:328px!important;min-height:328px!important;max-height:328px!important;
+  aspect-ratio:auto!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] #liveTravelCard .v46-story-intro{
+  top:7%!important;left:5%!important;right:30%!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] #liveTravelCard .v46-story-actions{
+  top:39%!important;bottom:auto!important;left:5%!important;
+  display:flex!important;flex-direction:column!important;gap:7px!important;
+  max-width:63%!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] #liveTravelCard .v46-countdown{
+  display:flex!important;flex-direction:column!important;gap:2px!important;
+  max-width:100%!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] #liveTravelCard .v46-countdown span{
+  font-size:32px!important;line-height:1.1!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] #liveTravelCard .v46-hero-link{
+  position:relative!important;min-height:39px!important;padding:8px 12px!important;
+}
+/* Always position the dropdown BELOW the active trigger, not over it. */
+#v37HomeDashboard .v46-home .v46-sticky-head details.v46-inline-tools[open] > .v46-tools-content {
+  top:var(--v46-bag-top,160px)!important;
+  max-height:min(46dvh,calc(100dvh - var(--v46-bag-top,160px) - 90px))!important;
+  overscroll-behavior:contain!important;
+}
