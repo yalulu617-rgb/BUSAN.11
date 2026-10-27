@@ -44,9 +44,14 @@ test('V46 owner fit: real app screenshots, full-size image, rightward rail, 11 e
      report.push({width,phase,image:asset,overflow,hero:hrect,cta:rect});
    }
    await page.evaluate(()=>window.setV46HomePreview('during'));
-   const accordion=page.locator('#v37HomeDashboard details.v46-rail-accordion');
-   if (!(await accordion.evaluate(node=>node.open))) await accordion.locator('summary').click();
-   await expect(accordion).toHaveAttribute('open','');
+   const visibleCard=page.locator('#v37HomeDashboard .v46-visible-rail-card');
+   await expect(visibleCard,'train cannot require expanding an accordion').toBeVisible();
+   await expect(page.locator('#v37HomeDashboard details.v46-rail-accordion')).toHaveCount(0);
+   const mascot=page.locator('#v37HomeDashboard .v46-mascot-image svg');
+   await expect(mascot).toBeVisible();
+   const mascotRect=await mascot.boundingBox();
+   expect(mascotRect?.width).toBeLessThanOrEqual(40);
+   expect(mascotRect?.height).toBeLessThanOrEqual(42);
    const rail=page.locator('#v37HomeDashboard .v46-owner-train-track');
    const train=rail.locator('.v46-owner-train-marker');
    const img=train.locator('img');
@@ -63,7 +68,7 @@ test('V46 owner fit: real app screenshots, full-size image, rightward rail, 11 e
       await page.evaluate(()=>window.showV37Tab('home'));
       await page.evaluate(()=>window.setV46HomePreview('during'));
       await page.evaluate(iso=>window.setV46HomeDay(iso),'2026-'+targetDay.replace('/','-'));
-      if(!(await accordion.evaluate(el=>el.open))) await accordion.locator('summary').click();
+      await expect(visibleCard).toBeVisible();
       await expect(days.nth(i)).toHaveAttribute('aria-pressed','true');
       const t=await train.boundingBox(),r=await rail.boundingBox();
       expect(t&&r).toBeTruthy();
