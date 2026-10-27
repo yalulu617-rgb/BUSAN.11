@@ -52,7 +52,7 @@ test('three travel phases: compact art banners, train only during journey, light
     await expect(page.locator('#v37HomeDashboard .v46-pretrip-rail-link')).toBeVisible();
     await expect(page.locator('#v37HomeDashboard .v46-preflight-strip')).toBeVisible();
     await expect(hero.locator('img')).toHaveAttribute('src','assets/images/v46-owner-fit-before.webp');
-    await expect.poll(()=>hero.evaluate(el=>Math.round(el.getBoundingClientRect().height))).toBeLessThan(285);
+    await expect.poll(()=>hero.evaluate(el=>Math.round(el.getBoundingClientRect().height))).toBeLessThan(350);
     const heroBox=await hero.boundingBox();
     const ctaBox=await hero.locator('.v46-hero-link').boundingBox();
     expect(ctaBox.y+ctaBox.height).toBeLessThanOrEqual(heroBox.y+heroBox.height+2);
@@ -95,7 +95,7 @@ test('S25: user-selected dark mode never makes the home black; scrolled bag stay
   }));
   expect(values.body).toBe('rgb(251, 246, 237)');
   expect(values.background).toBe('rgb(251, 246, 237)');
-  expect(values.hero).toBeGreaterThanOrEqual(260);
+  expect(values.hero).toBeGreaterThanOrEqual(320);
   await page.evaluate(()=>window.scrollTo(0,360));
   const bag=page.locator('#v37HomeDashboard details.v46-inline-tools');
   await bag.locator('summary').click();
