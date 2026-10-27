@@ -293,6 +293,16 @@
     target.v46AllToolsExpanded = isOpen;
     const header = bag.closest('.v46-sticky-head');
     if (isOpen) {
+      // Anchor the mobile menu to the *visible* bag trigger, rather than the
+      // scrollable page/card. Keep the panel inside the visual viewport.
+      const summary = bag.querySelector('summary');
+      const menu = bag.querySelector('.v46-tools-content');
+      if (summary && menu) {
+        const edge = summary.getBoundingClientRect().bottom;
+        const top = Math.max(8, Math.min(edge + 7, target.innerHeight - 180));
+        bag.style.setProperty('--v46-bag-top', top + 'px');
+        menu.scrollTop = 0;
+      }
       // Opening a details menu can make the browser scroll/resize its sticky
       // ancestor. Keep the pre-open page position and header phase stable.
       target.v46BagScrollAnchor = {
