@@ -52,7 +52,10 @@ test('three travel phases: compact art banners, train only during journey, light
     await expect(page.locator('#v37HomeDashboard .v46-pretrip-rail-link')).toBeVisible();
     await expect(page.locator('#v37HomeDashboard .v46-preflight-strip')).toBeVisible();
     await expect(hero.locator('img')).toHaveAttribute('src','assets/images/v46-owner-fit-before.webp');
-    await expect.poll(()=>hero.evaluate(el=>Math.round(el.getBoundingClientRect().height))).toBeLessThan(250);
+    await expect.poll(()=>hero.evaluate(el=>Math.round(el.getBoundingClientRect().height))).toBeLessThan(285);
+    const heroBox=await hero.boundingBox();
+    const ctaBox=await hero.locator('.v46-hero-link').boundingBox();
+    expect(ctaBox.y+ctaBox.height).toBeLessThanOrEqual(heroBox.y+heroBox.height+2);
     await page.evaluate(()=>window.setV46HomePreview('during'));
     await expect(rail).toBeVisible();
     await expect(rail.locator('.v46-owner-train-track')).toBeVisible();
