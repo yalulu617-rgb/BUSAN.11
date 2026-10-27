@@ -145,7 +145,8 @@
   // Always-visible, actionable travel companion (not dependent on expanding the rail).
   const mascotMini = mascotArt('during')
     .replace(/<defs><filter[\s\S]*?<\/defs>/, '')
-    .replace(' filter="url(#v46-watercolor)"', '');
+    .replace(' filter="url(#v46-watercolor)"', '')
+    .replace('class="v46-mascot-art"', 'class="v46-tiny-mascot-art"');
   const renderNextStop = model => {
     const item = model.nextStop || {};
     const iso = model.selectedDay;
@@ -184,6 +185,22 @@
       mascotMini + '</span><span class="v46-mascot-message">點一下，哆啦A夢打招呼 ♡</span></button>' +
       '</section>';
   };
+  // OWNER correction: the day rail is a first-class home control, never hidden
+  // behind an accordion, including the current pre-trip period.
+  const renderVisibleRail = model => {
+    const day = model.tripDays.find(d => d.selected);
+    const dayIndex = Math.max(0, model.tripDays.findIndex(d => d.selected));
+    const preview = model.mode === 'before' || model.today !== model.selectedDay;
+    return '<section class="v46-panel card v46-compact-rail-card v46-visible-rail-card" ' +
+      'aria-label="首頁五日小火車，直接顯示">' +
+      '<div class="v46-visible-rail-heading"><span>🚂 五日旅行小火車</span>' +
+      '<small>' + esc(day ? day.label + ' · ' + day.short : 'Day 1 · 釜山初日') + '</small></div>' +
+      renderTravelTrain(model, dayIndex) +
+      '<p class="v46-visible-rail-hint">' +
+      (preview ? '旅行日期預覽 · 點 Day 1～5 可開啟當天行程' :
+        '依韓國日期顯示今天 · 點 Day 1～5 可開啟當天行程') +
+      '</p>' + renderNextStop(model) + '</section>';
+  };
   function during(model) {
     const selected = model.tripDays.find(d => d.selected);
     const dayTitle = selected ? selected.label + '｜' + selected.short : '今日行程';
@@ -196,14 +213,6 @@
     return hero(model, 'HELLO, BUSAN!', dayTitle + (isPreview ? '（預覽）' : ''),
       "showV37Tab('itinerary')", '今日行程',
       '<p class="v46-hero-tag">🍁 秋日海線 × 城市漫遊</p>') +
-      '<section class="v46-panel card v46-compact-rail-card" aria-label="旅途五天日期軸">' +
-      '<details class="v46-rail-accordion"' + (target.v46TrainExpanded ? ' open' : '') +
-      ' ontoggle="window.v46TrainExpanded=this.open">' +
-      '<summary class="v46-rail-summary"><span class="v46-rail-summary-icon">🚞</span><span class="v46-rail-summary-text"><strong>我們的五天小火車</strong><small>' + esc(dayTitle) + '</small></span><span class="v46-rail-summary-action">展開路線 <span aria-hidden="true">⌄</span></span></summary>' +
-      '<div class="v46-rail-reveal">' + renderTravelTrain(model, dayIndex) +
-      '<p class="v46-muted">' + (isPreview ? '目前是日期預覽；點選 Day 1～5 可直接開啟該日行程，返回首頁仍依韓國日期顯示。' : '點選 Day 1～5 直接開啟對應日期的行程與導航。') + '</p></div></details>' +
-      renderNextStop(model) + '</section>' +
-      
       '<section class="v46-panel"><h3>旅途快捷百寶袋</h3><div class="v46-shortcuts">' +
       btn('今日行程', '🗺️', "showV37Tab('itinerary')", '路線・雨備') +
       btn('天氣・楓況', '🌤️', 'toggleHomeWeatherDetail()', '氣溫・穿搭') +
@@ -380,7 +389,8 @@
 
   target.renderV46Home = function (model, menu, weatherDetail, simulator, collections) {
     if (!model) return '';
-    const content = model.mode === 'before' ? before(model) : model.mode === 'after' ? after(model) : during(model);
+    const core = model.mode === 'before' ? before(model) : model.mode === 'after' ? after(model) : during(model);
+    const content = model.mode === 'after' ? core : renderVisibleRail(model) + core;
     // Preserve the open bag's geometry across weather/phase rerenders.
     const activeBag = document.querySelector('#guide.active #v37HomeDashboard details.v46-tools[open]');
     if (!activeBag && !target.v46AllToolsExpanded) {
