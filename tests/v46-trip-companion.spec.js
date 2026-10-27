@@ -39,30 +39,45 @@ test.beforeEach(async({page})=>{
     window.firebase?.__ciOnly)).toBe(true);
 });
 
-test('default pre-trip homepage displays the actual train, five days and a non-overlapping mascot',async({page})=>{
+test('three travel phases: compact art banners, train only during journey, light background',async({page})=>{
   const home=page.locator('#v37HomeDashboard .v46-home');
-  await expect(home).toHaveAttribute('data-v46-mode','before');
+  const hero=page.locator('#v37HomeDashboard .v46-story-hero');
   const rail=page.locator('#v37HomeDashboard .v46-visible-rail-card');
-  await expect(rail).toBeVisible();
-  await expect(rail.locator('.v46-owner-train-track')).toBeVisible();
-  await expect(rail.locator('.v46-owner-days button.v46-day')).toHaveCount(5);
-  await expect(rail.locator('.v46-trip-companion')).toBeVisible();
-  await expect(page.locator('#v37HomeDashboard details.v46-rail-accordion')).toHaveCount(0);
-  const ui=await page.evaluate(()=>{
-    const select=sel=>document.querySelector(sel)?.getBoundingClientRect();
-    const rail=select('#v37HomeDashboard .v46-visible-rail-card');
-    const hero=select('#v37HomeDashboard .v46-story-hero');
-    const mascot=select('#v37HomeDashboard .v46-mascot-image svg');
-    const action=select('#v37HomeDashboard .v46-stop-links button');
-    return {railTop:rail?.top,heroTop:hero?.top,
-      mascotW:mascot?.width,mascotH:mascot?.height,
-      buttonRight:action?.right,mascotLeft:mascot?.left,
-      viewport:document.documentElement.clientWidth,body:document.documentElement.scrollWidth};
-  });
-  expect(ui.railTop).toBeLessThan(ui.heroTop);
-  expect(ui.mascotW).toBeLessThanOrEqual(40);
-  expect(ui.mascotH).toBeLessThanOrEqual(42);
-  expect(ui.body).toBeLessThanOrEqual(ui.viewport+3);
+  const viewportWidths=[320,360,390,430];
+  for(const width of viewportWidths){
+    await page.setViewportSize({width,height:850});
+    await page.evaluate(()=>window.setV46HomePreview('before'));
+    await expect(home).toHaveAttribute('data-v46-mode','before');
+    await expect(rail).toHaveCount(0);
+    await expect(page.locator('#v37HomeDashboard .v46-pretrip-rail-link')).toBeVisible();
+    await expect(page.locator('#v37HomeDashboard .v46-preflight-strip')).toBeVisible();
+    await expect(hero.locator('img')).toHaveAttribute('src','assets/images/v46-owner-fit-before.webp');
+    await expect.poll(()=>hero.evaluate(el=>Math.round(el.getBoundingClientRect().height))).toBeLessThan(250);
+    await page.evaluate(()=>window.setV46HomePreview('during'));
+    await expect(rail).toBeVisible();
+    await expect(rail.locator('.v46-owner-train-track')).toBeVisible();
+    await expect(rail.locator('.v46-owner-days button.v46-day')).toHaveCount(5);
+    await expect(rail.locator('.v46-trip-companion')).toBeVisible();
+    await expect(hero.locator('img')).toHaveAttribute('src','assets/images/v46-owner-fit-during.webp');
+    const widths=await page.evaluate(()=>{
+      const select=s=>document.querySelector(s)?.getBoundingClientRect();
+      return {
+        hero:select('#v37HomeDashboard .v46-story-hero').height,
+        train:select('#v37HomeDashboard .v46-owner-train-track').height,
+        mascot:select('#v37HomeDashboard .v46-mascot-image svg').width,
+        page:document.documentElement.scrollWidth,viewport:document.documentElement.clientWidth
+      };
+    });
+    expect(widths.hero).toBeLessThan(200);
+    expect(widths.train).toBeLessThan(150);
+    expect(widths.mascot).toBeLessThanOrEqual(40);
+    expect(widths.page).toBeLessThanOrEqual(widths.viewport+3);
+    await page.evaluate(()=>window.setV46HomePreview('after'));
+    await expect(rail).toHaveCount(0);
+    await expect(hero.locator('img')).toHaveAttribute('src','assets/images/v46-owner-fit-after.webp');
+    const bg=await page.evaluate(()=>getComputedStyle(document.body).backgroundColor);
+    expect(bg).toMatch(/rgb\(251, 246, 237\)/);
+  }
 });
 
 test('five-day companion: manual station, exact NAVER, preview/reset and device persistence',async({page})=>{
