@@ -20,8 +20,11 @@
     if(typeof value!=='string')return null;
     try{
       const url=new URL(value);
-      return url.protocol==='https:' &&
-        ['naver.me','map.naver.com'].includes(url.hostname) ? url.href : null;
+      if(!['naver.me','map.naver.com'].includes(url.hostname))return null;
+      // Some authoritative registry records retain an older http://naver.me
+      // shortlink. Upgrade only that known trusted host to HTTPS.
+      if(url.protocol==='http:')url.protocol='https:';
+      return url.protocol==='https:'?url.href:null;
     }catch{return null;}
   };
   const dayFromIso=iso=>DAYS.includes(iso)?iso.slice(5).replace('-','/'):null;
@@ -54,7 +57,11 @@
     const index=manual===null?suggested:manual;
     const row=items[index]||null;
     const originalOrdinal=Number(String(row?.key||'').match(/^rec_d\d+_(\d+)$/)?.[1])||0;
-    const mapKey=(input.mapKeys?.[day]||{})[originalOrdinal]||row?.mapKey||'';
+    const curated=input.mapKeys?.[day]||{};
+    // Explicit null means the registry's original mapKey points to an origin
+    // rather than this stop. Never navigate to the wrong end of a transfer.
+    const mapKey=Object.prototype.hasOwnProperty.call(curated,originalOrdinal)
+      ? curated[originalOrdinal] : (row?.mapKey||'');
     const registry=input.registry||{};
     const naver=validNaver(registry[mapKey]?.naver)||validNaver(row?.map);
     const rawTitle=row?.desc||'';
