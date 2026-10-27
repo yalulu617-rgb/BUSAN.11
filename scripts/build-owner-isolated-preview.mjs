@@ -37,7 +37,7 @@ html=html.replace('<body>',`<body>
 </div>`);
 await writeFile(join(target,'index.html'),html);
 let sw=await readFile(join(target,'sw.js'),'utf8');
-sw=sw.replace(/const CACHE_NAME = '[^']+';/,"const CACHE_NAME = 'busan-v46-owner-sandbox-20261027-three-phase-v5';");
+sw=sw.replace(/const CACHE_NAME = '[^']+';/,"const CACHE_NAME = 'busan-v46-owner-sandbox-20261027-wallpaper-v6';");
 sw=sw.replace("    event.waitUntil(\n        caches.open(CACHE_NAME)", "    self.skipWaiting();\n    event.waitUntil(\n        caches.open(CACHE_NAME)");
 if (!sw.includes("self.skipWaiting();\n    event.waitUntil(")) throw Error('STOP: preview SW did not get immediate activation');
 

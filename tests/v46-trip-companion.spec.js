@@ -52,7 +52,8 @@ test('three travel phases: compact art banners, train only during journey, light
     await expect(page.locator('#v37HomeDashboard .v46-pretrip-rail-link')).toBeVisible();
     await expect(page.locator('#v37HomeDashboard .v46-preflight-strip')).toBeVisible();
     await expect(hero.locator('img')).toHaveAttribute('src','assets/images/v46-owner-fit-before.webp');
-    await expect.poll(()=>hero.evaluate(el=>Math.round(el.getBoundingClientRect().height))).toBeLessThan(350);
+    await expect(home).toHaveCSS('background-image',/v46-owner-fit-before\\.webp/);
+    await expect.poll(()=>hero.evaluate(el=>Math.round(el.getBoundingClientRect().height))).toBeLessThan(255);
     const heroBox=await hero.boundingBox();
     const ctaBox=await hero.locator('.v46-hero-link').boundingBox();
     expect(ctaBox.y+ctaBox.height).toBeLessThanOrEqual(heroBox.y+heroBox.height+2);
@@ -62,6 +63,7 @@ test('three travel phases: compact art banners, train only during journey, light
     await expect(rail.locator('.v46-owner-days button.v46-day')).toHaveCount(5);
     await expect(rail.locator('.v46-trip-companion')).toBeVisible();
     await expect(hero.locator('img')).toHaveAttribute('src','assets/images/v46-owner-fit-during.webp');
+    await expect(home).toHaveCSS('background-image',/v46-owner-fit-during\\.webp/);
     const widths=await page.evaluate(()=>{
       const select=s=>document.querySelector(s)?.getBoundingClientRect();
       return {
@@ -78,6 +80,7 @@ test('three travel phases: compact art banners, train only during journey, light
     await page.evaluate(()=>window.setV46HomePreview('after'));
     await expect(rail).toHaveCount(0);
     await expect(hero.locator('img')).toHaveAttribute('src','assets/images/v46-owner-fit-after.webp');
+    await expect(home).toHaveCSS('background-image',/v46-owner-fit-after\\.webp/);
     const bg=await page.evaluate(()=>getComputedStyle(document.body).backgroundColor);
     expect(bg).toMatch(/rgb\(251, 246, 237\)/);
   }
@@ -95,7 +98,7 @@ test('S25: user-selected dark mode never makes the home black; scrolled bag stay
   }));
   expect(values.body).toBe('rgb(251, 246, 237)');
   expect(values.background).toBe('rgb(251, 246, 237)');
-  expect(values.hero).toBeGreaterThanOrEqual(320);
+  expect(values.hero).toBeGreaterThanOrEqual(95);
   await page.evaluate(()=>window.scrollTo(0,360));
   const bag=page.locator('#v37HomeDashboard details.v46-inline-tools');
   await bag.locator('summary').click();

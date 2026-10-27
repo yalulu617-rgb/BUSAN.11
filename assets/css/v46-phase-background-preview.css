@@ -1,322 +1,147 @@
-/*
- * V46 phase-specific owner visual preview · 2026-10-27
- * Real APP UI — all three previously approved illustrations remain as contained
- * stage banners, but tasks, railway and album remain the visual/functional priority.
- * The preview is isolated. No change to production data, theme preferences or main.
- */
-:root:has(#guide.active #v37HomeDashboard .v46-home),
-html[data-theme="dark"]:has(#guide.active #v37HomeDashboard .v46-home){
-  --bg-color:#fbf6ed!important;
-  --card-bg:#fffdf7!important;
-  --text-color:#294e66!important;
-  --border-color:#e9dcc9!important;
-  --glass-bg:#fffcf5!important;
-  --glass-border:#e7d9c5!important;
-  color-scheme:only light!important;
-  background:#fbf6ed!important;
+/* Three original owner illustrations form the actual backdrop. No dark theme,
+   duplicated full-size hero, overlapping countdown or click-blocking bag. */
+:root,html,html[data-theme="dark"],body,#mainApp{
+ --bg-color:#fbf6ed!important;--card-bg:#fffdf8!important;
+ --text-color:#294e66!important;--border-color:#e6dac9!important;
+ --glass-bg:#fffdf8!important;color-scheme:only light!important;
 }
-html:has(#guide.active #v37HomeDashboard .v46-home) body,
-html[data-theme="dark"]:has(#guide.active #v37HomeDashboard .v46-home) body,
-html:has(#guide.active #v37HomeDashboard .v46-home) #mainApp,
-html:has(#guide.active #v37HomeDashboard .v46-home) #guide,
-html:has(#guide.active #v37HomeDashboard .v46-home) #v37HomeDashboard {
-  background:#fbf6ed!important;
-  background-image:none!important;
-  color:#294e66!important;
-  color-scheme:only light!important;
+html,body,#mainApp,#guide,#v37HomeDashboard{
+ background-color:#fbf6ed!important;color-scheme:only light!important;
 }
-html:has(#guide.active #v37HomeDashboard .v46-home) .bottom-nav,
-html[data-theme="dark"]:has(#guide.active #v37HomeDashboard .v46-home) .bottom-nav {
-  background:rgba(255,253,246,.98)!important;
-  border-top:1px solid #e8dcc9!important;
-  color:#527287!important;
-}
-html:has(#guide.active #v37HomeDashboard .v46-home) .bottom-nav .nav-item {
-  color:#627c8a!important;
-}
-html:has(#guide.active #v37HomeDashboard .v46-home) .bottom-nav .nav-item.active{
-  color:#1876a4!important;
-}
-html:has(#guide.active #v37HomeDashboard .v46-home) .bottom-nav .nav-center{
-  color:#fff!important;
-  border-color:#fbf6ed!important;
+#guide.active,#guide.active #v37HomeDashboard{
+ background:#fbf6ed!important;color:#294e66!important;
 }
 #v37HomeDashboard .v46-home{
-  --v46-ink:#294e66!important;
-  --v46-paper:#fbf6ed!important;
-  color:#294e66!important;
-  color-scheme:only light!important;
-  gap:11px!important;
-  background:linear-gradient(180deg,#f7f2e8 0%,#fbf6ed 280px,#fbf6ed 100%)!important;
+ position:relative!important;isolation:isolate!important;display:grid!important;
+ width:100%!important;min-width:0!important;gap:12px!important;
+ padding:4px 0 35px!important;color:#294e66!important;
+ --v46-ink:#294e66!important;--v46-paper:#fbf6ed!important;
+ --v46-border:#dbcebc!important;color-scheme:only light!important;
+ background-color:#fbf6ed!important;background-repeat:no-repeat!important;
+ background-size:100% 100%,100% auto!important;background-position:center top!important;
+ background-attachment:scroll!important;
 }
+#v37HomeDashboard .v46-home[data-v46-mode="before"]{
+ background-image:linear-gradient(to bottom,rgba(251,246,237,.24) 0,rgba(251,246,237,.43) 335px,rgba(251,246,237,.86) 670px,#fbf6ed 980px),url('../images/v46-owner-fit-before.webp')!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="during"]{
+ background-image:linear-gradient(to bottom,rgba(251,246,237,.23) 0,rgba(251,246,237,.46) 280px,rgba(251,246,237,.88) 670px,#fbf6ed 970px),url('../images/v46-owner-fit-during.webp')!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="after"]{
+ background-image:linear-gradient(to bottom,rgba(251,246,237,.22) 0,rgba(251,246,237,.46) 330px,rgba(251,246,237,.85) 700px,#fbf6ed 1000px),url('../images/v46-owner-fit-after.webp')!important;
+}
+#v37HomeDashboard .v46-home > .v46-wallpaper-window{
+ order:0!important;display:block!important;height:clamp(120px,32vw,165px)!important;
+ width:100%!important;pointer-events:none!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="during"] > .v46-wallpaper-window{height:clamp(70px,20vw,110px)!important}
+#v37HomeDashboard .v46-home[data-v46-mode="after"] > .v46-wallpaper-window{height:clamp(115px,30vw,158px)!important}
+#v37HomeDashboard .v46-home > .v46-sticky-head{
+ order:-1!important;z-index:1200!important;position:sticky!important;
+ top:env(safe-area-inset-top,0px)!important;isolation:auto!important;
+ overflow:visible!important;transform:none!important;
+ -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+ background:rgba(255,252,244,.985)!important;color:#294e66!important;
+ border:1px solid #e7d8c4!important;border-radius:14px!important;
+ box-shadow:0 3px 11px rgba(53,91,110,.12)!important;
+}
+#v37HomeDashboard .v46-home .v46-phase{color:#294e66!important}
+#v37HomeDashboard .v46-home .v46-phase.is-current{background:#d7ecf2!important;color:#1d5a7d!important}
+#v37HomeDashboard .v46-home > #liveTravelCard.v46-hero.v46-story-hero.card{
+ order:1!important;position:relative!important;display:block!important;
+ aspect-ratio:auto!important;height:auto!important;min-height:0!important;max-height:none!important;
+ margin:0!important;padding:0!important;width:100%!important;
+ border-radius:16px!important;overflow:visible!important;
+ contain:none!important;isolation:auto!important;
+ background:rgba(255,253,247,.95)!important;border:1px solid #e4d5c2!important;
+ box-shadow:0 4px 14px rgba(53,75,81,.12)!important;
+}
+#v37HomeDashboard .v46-home #liveTravelCard > img.v46-story-img{
+ display:none!important;object-fit:cover!important;
+}
+#v37HomeDashboard .v46-home #liveTravelCard .v46-hero-copy.v46-story-copy{
+ position:relative!important;inset:auto!important;display:flex!important;
+ flex-direction:column!important;gap:10px!important;
+ width:100%!important;height:auto!important;min-height:0!important;
+ padding:14px!important;margin:0!important;background:transparent!important;
+ pointer-events:auto!important;
+}
+#v37HomeDashboard .v46-home #liveTravelCard .v46-story-intro,
+#v37HomeDashboard .v46-home #liveTravelCard .v46-story-actions{
+ position:relative!important;inset:auto!important;top:auto!important;left:auto!important;
+ bottom:auto!important;right:auto!important;
+ width:100%!important;max-width:100%!important;height:auto!important;
+ padding:0!important;margin:0!important;display:flex!important;
+ flex-direction:column!important;align-items:flex-start!important;gap:7px!important;
+ pointer-events:auto!important;
+}
+#v37HomeDashboard .v46-home #liveTravelCard .v46-story-intro .v46-eyebrow{
+ font-size:10px!important;color:#54788b!important;margin:0!important;
+}
+#v37HomeDashboard .v46-home #liveTravelCard .v46-story-intro h2{
+ font-size:clamp(19px,5.1vw,23px)!important;line-height:1.22!important;
+ color:#215575!important;margin:0!important;text-shadow:none!important;
+}
+#v37HomeDashboard .v46-home #liveTravelCard .v46-hero-subtitle{
+ font-size:12px!important;line-height:1.4!important;color:#4d6e81!important;margin:0!important;
+}
+#v37HomeDashboard .v46-home #liveTravelCard .v46-countdown{
+ display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;
+ align-items:center!important;justify-content:flex-start!important;
+ gap:6px 12px!important;width:100%!important;max-width:100%!important;
+ background:#fff3df!important;border:1px solid #eed8b7!important;border-radius:12px!important;
+ padding:9px 12px!important;margin:0!important;
+}
+#v37HomeDashboard .v46-home #liveTravelCard .v46-countdown span{
+ font-size:30px!important;line-height:1!important;color:#cf7652!important;
+}
+#v37HomeDashboard .v46-home #liveTravelCard .v46-countdown small{
+ color:#655a4a!important;font-size:11px!important;line-height:1.5!important;
+}
+#v37HomeDashboard .v46-home #liveTravelCard .v46-hero-link{
+ position:relative!important;inset:auto!important;display:inline-flex!important;
+ align-items:center!important;min-height:44px!important;max-width:100%!important;
+ padding:9px 13px!important;margin:0!important;font-size:12px!important;line-height:1.3!important;
+ background:#e8f4f8!important;color:#23627f!important;border:1px solid #aed2e0!important;
+}
+#v37HomeDashboard .v46-home .v46-preflight-strip,
+#v37HomeDashboard .v46-home .v46-pretrip-rail-link,
 #v37HomeDashboard .v46-home .v46-panel.card,
-[data-theme="dark"] #v37HomeDashboard .v46-home .v46-panel.card{
-  background:#fffdf8!important;color:#2c5268!important;
-  border-color:#e5d9c6!important;
+#v37HomeDashboard .v46-home .v46-visible-rail-card,
+#v37HomeDashboard .v46-home .v46-memory-panel,
+#v37HomeDashboard .v46-home .v46-trip-companion{
+ background:rgba(255,253,247,.96)!important;color:#294e66!important;border-color:#e5d9c6!important;
 }
-#v37HomeDashboard .v46-home > .v46-story-hero{
-  order:1!important;
-}
-#v37HomeDashboard .v46-home .v46-hero.v46-story-hero.card{
-  aspect-ratio:auto!important;height:165px!important;max-height:none!important;
-  min-height:0!important;border-radius:19px!important;overflow:hidden!important;
-  box-shadow:0 4px 13px rgba(56,77,83,.11)!important;
-  border:1.5px solid #dfd4c2!important;
-  background:#bdddeb!important;
-}
-#v37HomeDashboard .v46-home .v46-story-img{
-  object-fit:cover!important;
-  object-position:center 54%!important;
-}
-#v37HomeDashboard .v46-home .v46-hero-copy.v46-story-copy {
-  background:linear-gradient(90deg,rgba(253,250,240,.93) 0%,rgba(253,250,240,.84) 47%,rgba(255,255,255,.06) 100%)!important;
-  pointer-events:none!important;
-}
-#v37HomeDashboard .v46-home .v46-story-intro{
-  left:5%!important;right:30%!important;top:11%!important;
-  max-width:68%!important;
-}
-#v37HomeDashboard .v46-home .v46-story-intro .v46-eyebrow{
-  font-size:9px!important;line-height:1.2!important;
-  color:#4b7795!important;margin:0 0 7px!important;
-}
-#v37HomeDashboard .v46-home .v46-story-intro h2{
-  color:#195276!important;font-size:clamp(18px,5.3vw,25px)!important;
-  line-height:1.2!important;margin-bottom:5px!important;text-shadow:none!important;
-}
-#v37HomeDashboard .v46-home .v46-hero-subtitle{
-  color:#4b7188!important;font-size:11px!important;font-weight:800!important;
-  line-height:1.4!important;margin:0!important;
-}
-#v37HomeDashboard .v46-home .v46-story-hero .v46-story-actions{
-  top:57%!important;left:5%!important;right:auto!important;
-  width:auto!important;max-width:60%!important;
-  gap:5px!important;
-}
-#v37HomeDashboard .v46-home .v46-story-hero .v46-hero-link{
-  min-height:43px!important;border-radius:11px!important;
-  background:#fffdf9f2!important;
-  font-size:12px!important;
-}
-#v37HomeDashboard .v46-home .v46-story-hero .v46-hero-tag{
-  display:none!important;
-}
-/* Before: preparation is the priority; do not display the five-day train itself. */
-#v37HomeDashboard .v46-home[data-v46-mode="before"] > .v46-story-hero{
-  height:222px!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-story-img{
-  object-position:center 47%!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-story-intro{
-  top:9%!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-story-actions{
-  top:40%!important;max-width:62%!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-countdown{
-  padding:6px 11px!important;gap:0!important;
-  border:1px dashed #e4ba95!important;
-  background:rgba(255,249,236,.94)!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-countdown span{
-  font-size:32px!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-countdown small{
-  font-size:10px!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-hero-link{
-  min-height:39px!important;
-}
-#v37HomeDashboard .v46-preflight-strip{
-  order:2!important;display:flex!important;align-items:center;justify-content:space-between;
-  gap:8px;min-width:0;
-  background:#e8f3f8!important;color:#2e5a78!important;
-  border:1px solid #bedae9;border-radius:13px;
-  padding:10px 12px;font-size:11px;
-}
-#v37HomeDashboard .v46-preflight-strip span{white-space:nowrap;font-weight:900;color:#165c83}
-#v37HomeDashboard .v46-preflight-strip strong{font-size:11px;line-height:1.35;text-align:right}
-#v37HomeDashboard .v46-pretrip-rail-link{
-  order:4!important;display:flex;justify-content:space-between;align-items:center;
-  gap:8px;padding:11px 12px;
-  border:1px dashed #cfc2ad;border-radius:13px;
-  background:#fff9ed;color:#516d7d;font-size:12px;font-weight:800;
-}
-#v37HomeDashboard .v46-pretrip-rail-link button{
-  border:1px solid #c9d6d9;background:#fff;border-radius:10px;
-  color:#216d92;font-weight:900;padding:8px 10px;min-height:41px;
-  font-size:11px;
-}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-preflight-strip{order:2!important}
 #v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-panel[aria-label="出發前必做"]{order:3!important}
-#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-panel[aria-labelledby="v46-reminder-title"]{order:5!important}
-#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-panel[aria-label="入境申報狀態"]{order:6!important}
-/* During: short illustrated banner, followed immediately by the live train. */
-#v37HomeDashboard .v46-home[data-v46-mode="during"] > .v46-visible-rail-card{
-  order:2!important;
-  background:#fffdf8!important;
-  padding:12px 11px 13px!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="during"] .v46-visible-rail-card .v46-owner-train-track{
-  height:113px!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="during"] .v46-visible-rail-heading{
-  font-size:14px!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="during"] .v46-trip-companion{
-  background:#f4f9f8!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="during"] .v46-hero.card{
-  height:160px!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="during"] .v46-story-img{
-  object-position:center 61%!important;
-}
-/* Memories: illustration becomes a slim header; uploaded actual photos are the focus. */
-#v37HomeDashboard .v46-home[data-v46-mode="after"] .v46-hero.card{
-  height:180px!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="after"] .v46-story-img{
-  object-position:center 55%!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="after"] > .v46-memory-panel{
-  order:2!important;
-  background:#fffdf8!important;
-  border:1px solid #e5d9c6!important;
-  border-radius:17px;padding:15px 12px;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="after"] .v46-memory-empty{
-  background:#eef5f5!important;color:#3f6578!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="after"] > .v46-panel.card{order:3!important}
-@media(max-width:350px){
-  #v37HomeDashboard .v46-home .v46-story-intro h2{font-size:18px!important}
-  #v37HomeDashboard .v46-home[data-v46-mode="before"] > .v46-story-hero{height:230px!important}
-  #v37HomeDashboard .v46-preflight-strip{flex-wrap:wrap}
-}
-@media(prefers-reduced-motion:reduce){
-  #v37HomeDashboard .v46-home .v46-story-hero{animation:none!important}
-}
-
-
-/* OWNER FIX / 2026-10-27: never let a retained dark preference or Android
-   browser darkening override the cream-page presentation. Scoped to the
-   experimental V46 preview branch, independent of permanent app settings. */
-html:has(#v37HomeDashboard .v46-home),
-html:has(#v37HomeDashboard .v46-home) body,
-html:has(#v37HomeDashboard .v46-home) #mainApp,
-html:has(#v37HomeDashboard .v46-home) #guide,
-html:has(#v37HomeDashboard .v46-home) #v37HomeDashboard {
-  color-scheme:only light!important;
-  background-color:#fbf6ed!important;
-  background-image:none!important;
-}
-html:has(#v37HomeDashboard .v46-home) .bottom-nav{
-  background:#fffdf7!important;
-  border-top:1px solid #eadfcc!important;
-}
-html[data-theme="dark"]:has(#v37HomeDashboard .v46-home){
-  --bg-color:#fbf6ed!important;--card-bg:#fffdf8!important;
-  --text-color:#274d65!important;--glass-bg:#fffdf8!important;
-  --border-color:#e7d9c5!important;color-scheme:only light!important;
-}
-html[data-theme="dark"] #v37HomeDashboard .v46-home .v46-story-intro h2,
-html[data-theme="dark"] #v37HomeDashboard .v46-home .v46-hero-subtitle,
-html[data-theme="dark"] #v37HomeDashboard .v46-home .v46-panel,
-html[data-theme="dark"] #v37HomeDashboard .v46-home .v46-trip-companion{
- color:#274d65!important;
-}
-#v37HomeDashboard .v46-home .v46-story-hero{
-  contain:layout paint!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="before"] > .v46-story-hero{
-  height:270px!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-story-actions{
-  top:38%!important;max-width:63%!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-story-intro{
-  top:7%!important;right:32%!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-countdown{
-  padding:6px 9px!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-hero-link{
-  min-height:39px!important;max-width:100%!important;
-}
-/* Bag remains readable and separate after the header condenses on scroll.
-   Disable sticky backdrop-filter because it turns position:fixed descendants
-   into a differently positioned containing block on mobile browsers. */
-#v37HomeDashboard .v46-home .v46-sticky-head{
-  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
-  background:#fbf6ed!important;
-  isolation:isolate!important;
-}
-#v37HomeDashboard .v46-home details.v46-inline-tools[open]{
-  z-index:1300!important;
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-pretrip-rail-link{order:4!important}
+#v37HomeDashboard .v46-home[data-v46-mode="during"] > .v46-visible-rail-card{order:2!important}
+#v37HomeDashboard .v46-home[data-v46-mode="after"] > .v46-memory-panel{order:2!important}
+/* Menu is anchored to summary, not viewport coordinates. */
+#v37HomeDashboard .v46-home details.v46-inline-tools{
+ position:relative!important;isolation:auto!important;overflow:visible!important;z-index:1250!important;
 }
 #v37HomeDashboard .v46-home details.v46-inline-tools[open] > .v46-tools-content{
-  position:fixed!important;
-  top:var(--v46-bag-top,158px)!important;
-  left:auto!important;
-  right:max(11px,env(safe-area-inset-right))!important;
-  bottom:auto!important;
-  width:min(88vw,360px)!important;
-  max-height:min(62dvh,calc(100dvh - var(--v46-bag-top,158px) - 94px))!important;
-  min-height:0!important;
-  overflow-y:auto!important;overscroll-behavior:contain!important;
-  -webkit-overflow-scrolling:touch!important;
-  padding:10px!important;
-  border:1.5px solid #bbd5d9!important;
-  border-radius:16px!important;
-  background:#fffdf7!important;
-  color:#284d66!important;
-  box-shadow:0 15px 36px rgba(27,53,70,.28)!important;
-  z-index:1450!important;
+ position:absolute!important;inset:auto!important;top:calc(100% + 9px)!important;
+ right:0!important;left:auto!important;bottom:auto!important;
+ width:min(90vw,355px)!important;max-height:min(62dvh,480px)!important;min-height:0!important;
+ overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;
+ -webkit-overflow-scrolling:touch!important;
+ margin:0!important;padding:10px!important;
+ background:#fffdf7!important;color:#294e66!important;border:1.5px solid #bdd5da!important;
+ border-radius:15px!important;box-shadow:0 14px 30px rgba(33,63,78,.24)!important;
+ z-index:1500!important;
 }
-#v37HomeDashboard .v46-home details.v46-inline-tools[open] > .v46-tools-content .v45-home-nine-grid{
-  background:#fffdf7!important;
+#v37HomeDashboard .v46-home details.v46-inline-tools[open] > .v46-tools-content button{color:#294e66!important}
+#v37HomeDashboard .v46-home .v46-bag-backdrop{background:rgba(44,67,76,.13)!important}
+html:has(#guide.active #v37HomeDashboard .v46-home) .bottom-nav{
+ background:#fffdf8!important;border-top:1px solid #e8d9c6!important;
 }
-#v37HomeDashboard .v46-home details.v46-inline-tools[open] > .v46-tools-content button{
-  color:#294c67!important;
-}
-#v37HomeDashboard .v46-home .v46-bag-backdrop{
-  background:rgba(36,65,81,.18)!important;
-}
-@media(max-width:355px){
- #v37HomeDashboard .v46-home[data-v46-mode="before"] > .v46-story-hero{height:278px!important}
- #v37HomeDashboard .v46-home details.v46-inline-tools[open] > .v46-tools-content{
-  right:6px!important;width:min(92vw,350px)!important;
- }
-}
-
-
-/* Repair from actual Chromium failures: override all older hero height selectors. */
-#v37HomeDashboard .v46-home[data-v46-mode="before"] > #liveTravelCard.v46-hero.v46-story-hero.card{
-  height:328px!important;min-height:328px!important;max-height:328px!important;
-  aspect-ratio:auto!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="before"] #liveTravelCard .v46-story-intro{
-  top:7%!important;left:5%!important;right:30%!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="before"] #liveTravelCard .v46-story-actions{
-  top:39%!important;bottom:auto!important;left:5%!important;
-  display:flex!important;flex-direction:column!important;gap:7px!important;
-  max-width:63%!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="before"] #liveTravelCard .v46-countdown{
-  display:flex!important;flex-direction:column!important;gap:2px!important;
-  max-width:100%!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="before"] #liveTravelCard .v46-countdown span{
-  font-size:32px!important;line-height:1.1!important;
-}
-#v37HomeDashboard .v46-home[data-v46-mode="before"] #liveTravelCard .v46-hero-link{
-  position:relative!important;min-height:39px!important;padding:8px 12px!important;
-}
-/* Always position the dropdown BELOW the active trigger, not over it. */
-#v37HomeDashboard .v46-home .v46-sticky-head details.v46-inline-tools[open] > .v46-tools-content {
-  top:var(--v46-bag-top,160px)!important;
-  max-height:min(46dvh,calc(100dvh - var(--v46-bag-top,160px) - 90px))!important;
-  overscroll-behavior:contain!important;
+html:has(#guide.active #v37HomeDashboard .v46-home) .bottom-nav .nav-item{color:#668398!important}
+html:has(#guide.active #v37HomeDashboard .v46-home) .bottom-nav .nav-item.active{color:#1a79a9!important}
+@media(max-width:350px){
+ #v37HomeDashboard .v46-home > .v46-wallpaper-window{height:105px!important}
+ #v37HomeDashboard .v46-home[data-v46-mode="during"] > .v46-wallpaper-window{height:65px!important}
+ #v37HomeDashboard .v46-home #liveTravelCard .v46-hero-copy.v46-story-copy{padding:11px!important}
+ #v37HomeDashboard .v46-home details.v46-inline-tools[open] > .v46-tools-content{width:min(92vw,315px)!important}
 }
