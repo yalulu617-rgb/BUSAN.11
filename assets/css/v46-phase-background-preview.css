@@ -197,3 +197,95 @@ html:has(#guide.active #v37HomeDashboard .v46-home) .bottom-nav .nav-center{
 @media(prefers-reduced-motion:reduce){
   #v37HomeDashboard .v46-home .v46-story-hero{animation:none!important}
 }
+
+
+/* OWNER FIX / 2026-10-27: never let a retained dark preference or Android
+   browser darkening override the cream-page presentation. Scoped to the
+   experimental V46 preview branch, independent of permanent app settings. */
+html:has(#v37HomeDashboard .v46-home),
+html:has(#v37HomeDashboard .v46-home) body,
+html:has(#v37HomeDashboard .v46-home) #mainApp,
+html:has(#v37HomeDashboard .v46-home) #guide,
+html:has(#v37HomeDashboard .v46-home) #v37HomeDashboard {
+  color-scheme:only light!important;
+  background-color:#fbf6ed!important;
+  background-image:none!important;
+}
+html:has(#v37HomeDashboard .v46-home) .bottom-nav{
+  background:#fffdf7!important;
+  border-top:1px solid #eadfcc!important;
+}
+html[data-theme="dark"]:has(#v37HomeDashboard .v46-home){
+  --bg-color:#fbf6ed!important;--card-bg:#fffdf8!important;
+  --text-color:#274d65!important;--glass-bg:#fffdf8!important;
+  --border-color:#e7d9c5!important;color-scheme:only light!important;
+}
+html[data-theme="dark"] #v37HomeDashboard .v46-home .v46-story-intro h2,
+html[data-theme="dark"] #v37HomeDashboard .v46-home .v46-hero-subtitle,
+html[data-theme="dark"] #v37HomeDashboard .v46-home .v46-panel,
+html[data-theme="dark"] #v37HomeDashboard .v46-home .v46-trip-companion{
+ color:#274d65!important;
+}
+#v37HomeDashboard .v46-home .v46-story-hero{
+  contain:layout paint!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] > .v46-story-hero{
+  height:270px!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-story-actions{
+  top:38%!important;max-width:63%!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-story-intro{
+  top:7%!important;right:32%!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-countdown{
+  padding:6px 9px!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-hero-link{
+  min-height:39px!important;max-width:100%!important;
+}
+/* Bag remains readable and separate after the header condenses on scroll.
+   Disable sticky backdrop-filter because it turns position:fixed descendants
+   into a differently positioned containing block on mobile browsers. */
+#v37HomeDashboard .v46-home .v46-sticky-head{
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+  background:#fbf6ed!important;
+  isolation:isolate!important;
+}
+#v37HomeDashboard .v46-home details.v46-inline-tools[open]{
+  z-index:1300!important;
+}
+#v37HomeDashboard .v46-home details.v46-inline-tools[open] > .v46-tools-content{
+  position:fixed!important;
+  top:var(--v46-bag-top,158px)!important;
+  left:auto!important;
+  right:max(11px,env(safe-area-inset-right))!important;
+  bottom:auto!important;
+  width:min(88vw,360px)!important;
+  max-height:min(62dvh,calc(100dvh - var(--v46-bag-top,158px) - 94px))!important;
+  min-height:0!important;
+  overflow-y:auto!important;overscroll-behavior:contain!important;
+  -webkit-overflow-scrolling:touch!important;
+  padding:10px!important;
+  border:1.5px solid #bbd5d9!important;
+  border-radius:16px!important;
+  background:#fffdf7!important;
+  color:#284d66!important;
+  box-shadow:0 15px 36px rgba(27,53,70,.28)!important;
+  z-index:1450!important;
+}
+#v37HomeDashboard .v46-home details.v46-inline-tools[open] > .v46-tools-content .v45-home-nine-grid{
+  background:#fffdf7!important;
+}
+#v37HomeDashboard .v46-home details.v46-inline-tools[open] > .v46-tools-content button{
+  color:#294c67!important;
+}
+#v37HomeDashboard .v46-home .v46-bag-backdrop{
+  background:rgba(36,65,81,.18)!important;
+}
+@media(max-width:355px){
+ #v37HomeDashboard .v46-home[data-v46-mode="before"] > .v46-story-hero{height:278px!important}
+ #v37HomeDashboard .v46-home details.v46-inline-tools[open] > .v46-tools-content{
+  right:6px!important;width:min(92vw,350px)!important;
+ }
+}
