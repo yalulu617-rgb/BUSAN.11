@@ -1,6 +1,15 @@
 // @ts-check
 import { test, expect } from '@playwright/test';
 import { bootApp } from './helpers/boot.js';
+// In V46 the eleven canonical navigation entries are intentionally collapsed.
+// Open the bag before testing interaction; the dedicated V46 suite checks default state.
+async function openTravelBag(page) {
+  const bag=page.locator('#v37HomeDashboard details.v46-tools');
+  if (await bag.count() && !(await bag.evaluate(el => el.open))) {
+    await bag.locator('summary').click();
+  }
+}
+
 
 test.describe('BUSAN.11 V45 — Batch B Owner Editable Experience', () => {
   test.beforeEach(async ({ page }) => {
@@ -144,6 +153,7 @@ test.describe('BUSAN.11 V45 — Batch B Owner Editable Experience', () => {
     await page.evaluate(() => window.showV37Tab('home'));
     await expect(page.locator('.v38-quick-actions')).toHaveCount(0);
     await expect(page.locator('#v37HomeDashboard')).not.toContainText('快速入口');
+    await openTravelBag(page);
     await expect(page.locator('.v45-home-nine-grid')).toBeVisible();
     await expect(page.locator('.bottom-nav')).toBeVisible();
   });

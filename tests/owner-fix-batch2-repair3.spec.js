@@ -31,7 +31,11 @@ test.describe('Owner Fix Batch 2 Repair 3 — truthful reservations and credenti
       await expect(card).toBeVisible();
       await expect(card.locator('.reservation-status')).toHaveText(state);
       await expect(card.locator('.reservation-credential')).toHaveText('憑證尚未上傳');
-      await expect(card.locator('a, button, canvas, [data-qr], [data-barcode]')).toHaveCount(0);
+      // An editor is permitted, but an unverified booking must never render
+      // a fabricated link, QR/barcode, or a working "view voucher" action.
+      await expect(card.getByRole('button', { name: '編輯預約' })).toHaveCount(1);
+      await expect(card.locator('a, canvas, [data-qr], [data-barcode]')).toHaveCount(0);
+      await expect(card.getByRole('button', { name: /檢視憑證|開啟憑證|看憑證/ })).toHaveCount(0);
     }
 
     await expect(page.locator('[data-reservation-id="bx572"]')).toContainText('2026/11/13 · TPE 13:25 → PUS 17:00');

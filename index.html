@@ -2,14 +2,17 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#FFF9F2">
+    <!-- Android Chrome Auto Dark Theme must not recolor illustrations or surfaces. -->
+    <meta name="color-scheme" content="only light">
+    <meta name="supported-color-schemes" content="light">
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="icon" href="icon.png" type="image/png">
     <link rel="manifest" href="manifest.json">
-    <title>釜山慶州秋之旅 V45 旗艦版</title>
+    <title>釜山慶州秋之旅 V46 旗艦版</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -18,6 +21,9 @@
 
     <link rel="stylesheet" href="style.css?v=45.6-owner-b">
     <link rel="stylesheet" href="assets/css/item-images.css?v=45.4-image1">
+    <link rel="stylesheet" href="assets/css/v46-home.css?v=46.0-dev">
+    <link rel="stylesheet" href="assets/css/v46-owner-rebuild.css?v=owner-rebuild-1">
+    <link rel="stylesheet" href="assets/css/v46-compact-layout.css?v=v46-forcelight-20261020c">
     <script src="ute/ute_pwa_install.js?v=45.7-pwa"></script>
     
 </head>
@@ -383,8 +389,10 @@
         <div id="walletTicketSection">
             <div id="walletTicketsList"></div>
             <!-- Original Add Ticket Card -->
-            <div class="card" style="margin-top:15px; background: #ffffff; border-radius: 24px;">
-                <h4 style="margin:0 0 10px 0; color:var(--primary); font-weight: 900;"><i class="fa-solid fa-plus"></i> 新增票券/憑證</h4>
+            <div class="card" id="ticketForm" style="margin-top:15px; background: #ffffff; border-radius: 24px;">
+                <h4 style="margin:0 0 10px 0; color:var(--primary); font-weight: 900;"><i class="fa-solid fa-plus"></i> 新增／編輯票券與預約</h4>
+                <input type="hidden" id="tkEditKey" value="">
+                <input type="hidden" id="tkReservationId" value="">
                 <div class="flex-row" style="margin-bottom:10px;">
                     <select id="tkType" class="input-box" style="width:100px; margin-bottom:0;">
                         <option value="✈️ 機票">✈️ 機票</option>
@@ -395,6 +403,13 @@
                     <input type="text" id="tkTitle" class="input-box flex-1" placeholder="機票班次、門票名稱" style="margin-bottom:0;">
                 </div>
                 <input type="text" id="tkDesc" class="input-box" placeholder="說明 (時間、使用期限)">
+                <label for="tkReservationState" style="display:block;font-weight:800;margin:5px 0;">預約狀態（手動設定，不會自動視為已預訂）</label>
+                <select id="tkReservationState" class="input-box" style="width:100%;min-height:44px;">
+                    <option value="資訊不足">資訊不足</option>
+                    <option value="已預訂">已預訂</option>
+                    <option value="尚未預訂">尚未預訂</option>
+                    <option value="不需要">不需要</option>
+                </select>
                 <input type="text" id="tkLink" class="input-box" placeholder="🔗 官網或預約網址">
                 <div class="flex-row">
                     <label for="tkVoucherUpload" style="background:#fff; padding:12px 18px; border-radius:14px; cursor:pointer; font-weight:900; box-shadow:0 2px 10px rgba(0,0,0,0.05); flex:1; text-align:center; border: 1px solid #eee;"><i class="fa-solid fa-file-image" style="color:var(--dora);"></i> 上傳憑證圖檔</label>
@@ -402,7 +417,8 @@
                 </div>
                 <div id="voucherStatus" style="font-size: 0.85rem; color: var(--primary); text-align: center; margin-top:8px; font-weight:bold;"></div>
                 <input type="hidden" id="tempVoucher" value="">
-                <button class="btn-action" onclick="addTicket()" style="width:100%; margin-top:12px;">💾 儲存票券</button>
+                <button class="btn-action" id="saveTicketBtn" type="button" onclick="saveTicket()" style="width:100%; margin-top:12px;">💾 儲存票券</button>
+                <button id="cancelTicketEditBtn" type="button" class="v38-mini-btn" style="display:none;min-height:44px;margin-top:9px;" onclick="cancelTicketEdit()">取消編輯</button>
             </div>
         </div>
         
@@ -641,7 +657,8 @@
 <script src="ute/ute_budget.js?v=45.4"></script>
 <script src="ute/ute_ai.js?v=45.4"></script>
 <script src="ute/ute_context.js?v=45.4"></script>
-<script src="ute/ute_main.js?v=45.4"></script>
+<script src="ute/ute_home_v46.js?v=46.0-dev"></script>
+<script src="ute/ute_main.js?v=46.0-dev"></script>
 <script src="ute/ute_shopping_photo.js?v=45.5-image2"></script>
 <script src="ute/ute_private_ledger.js?v=45.6-private-ledger"></script>
 <script src="services/nearby.js?v=45.4"></script>
@@ -655,7 +672,8 @@
 <script src="js/wallet.js?v=45.6-owner-b"></script>
 <script src="js/memory.js?v=45.4"></script>
 <script src="js/itinerary.js?v=45.4"></script>
-<script src="components/renderers.js?v=45.7-owner-ux-final"></script>
+<script src="components/v46-home.js?v=46.0-dev"></script>
+<script src="components/renderers.js?v=46.0-dev"></script>
 <script src="js/app.js?v=45.6-owner-b"></script>
 </body>
 </html>

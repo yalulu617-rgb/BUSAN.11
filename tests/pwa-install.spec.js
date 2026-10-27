@@ -15,8 +15,8 @@ test('Revision 7 manifest and install icons are subpath-safe and valid', async (
   const manifest = await response.json();
 
   expect(manifest).toMatchObject({
-    name: '釜山慶州秋之旅 V45',
-    short_name: '釜山V45',
+    name: '釜山慶州秋之旅 V46',
+    short_name: '釜山V46',
     id: './',
     start_url: './',
     scope: './',
@@ -141,10 +141,13 @@ test('iOS offers dismissible Traditional Chinese Add to Home Screen guidance', a
   await expect(bar).toBeHidden();
 });
 
-test('service worker preserves controlled updates and caches the Revision 7 shell', async ({ page }) => {
+test('service worker preserves controlled updates and caches the V46 development shell', async ({ page }) => {
   const source = await (await page.request.get('/sw.js')).text();
   const installHandler = source.match(/self\.addEventListener\('install',[\s\S]*?\n}\);/)[0];
-  expect(source).toContain("busan-trip-v45-production-v7-final-pwa");
+  expect(source).toMatch(/busan-trip-v46-[a-z0-9-]+-v\d+/);
+  expect(source).toContain("'./ute/ute_home_v46.js'");
+  expect(source).toContain("'./components/v46-home.js'");
+  expect(source).toContain("'./assets/css/v46-home.css'");
   expect(installHandler).not.toContain('self.skipWaiting()');
   expect(source).toContain("event.data.action === 'skipWaiting'");
   expect(source).toContain('self.skipWaiting()');

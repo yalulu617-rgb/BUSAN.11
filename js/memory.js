@@ -8,10 +8,15 @@ window.deleteCurrentPhoto = async function () {
     if (!window.currentLightboxKey) { showToast('無法識別照片', 'warning'); return; }
     if (!confirm('確認刪除此照片？此操作不可還原。')) return;
     try {
-        await NetworkEngine.firebaseRemove(`${DB_PHOTOS}/${window.currentLightboxKey}`);
+        const result = await NetworkEngine.firebaseRemove(`${DB_PHOTOS}/${window.currentLightboxKey}`);
+        // NetworkEngine returns {success:false} rather than throwing on
+        // Firebase failures. Keep the lightbox and record until confirmed.
+        if (!result || result.success !== true) {
+            throw new Error(result?.error || '照片刪除未完成');
+        }
     } catch (e) {
         console.error('[Memory] deleteCurrentPhoto failed:', e);
-        showToast('刪除照片失敗', 'error');
+        showToast('刪除照片失敗；原照片仍保留，請檢查連線後重試', 'error');
         return;
     }
     closeLightbox();
@@ -41,7 +46,7 @@ window.downloadImage = function () {
         const searchInput = document.getElementById('memorySearchInput');
         if (searchInput && searchInput.value.trim() !== '') {
             const query = searchInput.value.trim().toLowerCase();
-            filtered = filtered.filter(p => p.date.includes(query) || (p.city && p.city.toLowerCase().includes(query)));
+            filtered = filtered.filter(p => String(p.date || '').toLowerCase().includes(query) || String(p.city || '').toLowerCase().includes(query));
         }
         
         if (filtered.length === 0) {
