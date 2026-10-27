@@ -8,7 +8,7 @@
 // - Cache-first with network fallback for static media (images, icons)
 // ─────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'busan-trip-v46-release-candidate-v2';
+const CACHE_NAME = 'busan-trip-v46-companion-candidate-v1';
 
 const LOCAL_ASSETS = [
     './',
@@ -21,6 +21,7 @@ const LOCAL_ASSETS = [
     './style.css',
     './assets/css/item-images.css',
     './assets/css/v46-home.css',
+    './assets/css/v46-trip-companion.css',
     './assets/images/v46-watercolor-hero-atlas.webp',
     './assets/images/v46-during-characters.webp',
     './assets/images/scentica-gwangan-thumb.webp',
@@ -29,6 +30,7 @@ const LOCAL_ASSETS = [
     './assets/images/olive-young-nampo.webp',
     './data/release.json',
     './data/map-registry.js',
+    './data/v46-next-stop-keys.js',
     './data/recommended.js',
     './data/travel-content.js',
     './data/places.json',
@@ -46,6 +48,7 @@ const LOCAL_ASSETS = [
     './ute/ute_ai.js',
     './ute/ute_context.js',
     './ute/ute_home_v46.js',
+    './ute/ute_trip_companion.js',
     './ute/ute_main.js',
     './ute/ute_shopping_photo.js',
     './ute/ute_private_ledger.js',
@@ -59,6 +62,7 @@ const LOCAL_ASSETS = [
     './js/wallet.js',
     './js/memory.js',
     './js/itinerary.js',
+    './js/v46-train-controls.js',
     './components/v46-home.js',
     './components/renderers.js',
     './js/app.js'
