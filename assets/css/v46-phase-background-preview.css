@@ -122,9 +122,13 @@ html,body,#mainApp,#guide,#v37HomeDashboard{
  position:relative!important;isolation:auto!important;overflow:visible!important;z-index:1250!important;
 }
 #v37HomeDashboard .v46-home details.v46-inline-tools[open] > .v46-tools-content{
- position:absolute!important;inset:auto!important;top:calc(100% + 9px)!important;
- right:0!important;left:auto!important;bottom:auto!important;
- width:min(90vw,355px)!important;max-height:min(62dvh,480px)!important;min-height:0!important;
+ /* Fixed placement ignores the scrolling coordinate space of the sticky
+    header; its trigger and the bottom navigation remain unobstructed. */
+ position:fixed!important;inset:auto!important;top:var(--v46-bag-top,80px)!important;
+ right:max(9px,env(safe-area-inset-right))!important;left:auto!important;bottom:auto!important;
+ width:min(90vw,355px)!important;
+ max-height:min(62dvh,calc(100dvh - var(--v46-bag-top,80px) - 88px),480px)!important;
+ min-height:0!important;
  overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;
  -webkit-overflow-scrolling:touch!important;
  margin:0!important;padding:10px!important;

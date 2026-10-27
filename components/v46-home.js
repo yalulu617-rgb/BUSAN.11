@@ -293,15 +293,23 @@
     target.v46AllToolsExpanded = isOpen;
     const header = bag.closest('.v46-sticky-head');
     if (isOpen) {
-      // Anchor the mobile menu to the *visible* bag trigger, rather than the
-      // scrollable page/card. Keep the panel inside the visual viewport.
+      // Fix the dropdown to the viewport, not to the scroll coordinate of
+      // the sticky header: position:absolute once placed its top at -103px
+      // after an S25 page scroll. Only the small menu scrolls.
       const summary = bag.querySelector('summary');
       const menu = bag.querySelector('.v46-tools-content');
       if (summary && menu) {
-        const edge = summary.getBoundingClientRect().bottom;
-        const top = Math.max(8, Math.min(edge + 7, target.innerHeight - 180));
-        bag.style.setProperty('--v46-bag-top', top + 'px');
+        const place = () => {
+          if (!bag.isConnected || !bag.open) return;
+          const viewport = target.visualViewport?.height || target.innerHeight;
+          const edge = summary.getBoundingClientRect().bottom;
+          const top = Math.max(8, Math.min(edge + 8, viewport - 185));
+          bag.style.setProperty('--v46-bag-top', top + 'px');
+          menu.style.maxHeight = Math.max(110, Math.min(480, viewport - top - 88)) + 'px';
+        };
         menu.scrollTop = 0;
+        place();
+        target.requestAnimationFrame(place);
       }
       // Opening a details menu can make the browser scroll/resize its sticky
       // ancestor. Keep the pre-open page position and header phase stable.
@@ -384,6 +392,13 @@
     // change the header underneath the tap. The <24px exit threshold provides
     // hysteresis so the header cannot oscillate around a single boundary.
     target.addEventListener('scroll', () => {
+      // WebKit can coalesce the top-scroll event with the previous compact
+      // request. Clear stale state immediately even while an RAF is pending.
+      if (target.scrollY < 24 && !target.v46AllToolsExpanded) {
+        target.v46StickyCompact = false;
+        document.querySelector('#guide.active #v37HomeDashboard .v46-sticky-head')
+          ?.classList.remove('is-compact');
+      }
       if (pending) return;
       pending = true;
       target.requestAnimationFrame(() => {

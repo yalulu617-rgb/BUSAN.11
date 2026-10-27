@@ -109,7 +109,7 @@ test('S25: user-selected dark mode never makes the home black; scrolled bag stay
     return {top:r.top,bottom:r.bottom,right:r.right,width:r.width,height:r.height,viewport:innerHeight,
       bg:getComputedStyle(el).backgroundColor,position:getComputedStyle(el).position,scroll:el.scrollHeight};
   });
-  expect(pos.position).toBe('absolute');
+  expect(pos.position).toBe('fixed');
   expect(pos.top).toBeGreaterThanOrEqual(0);
   expect(pos.bottom).toBeLessThanOrEqual(pos.viewport-50);
   expect(pos.right).toBeLessThanOrEqual(393);
