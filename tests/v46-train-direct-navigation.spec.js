@@ -10,9 +10,8 @@ test.beforeEach(async({page})=>{
 
 test('five real train stations open matching itinerary and return to Korea-local auto',async({page})=>{
   await page.evaluate(()=>window.setV46HomePreview('during'));
-  const accordion=page.locator('#v37HomeDashboard details.v46-rail-accordion');
-  if(!(await accordion.evaluate(el=>el.open))) await accordion.locator('summary').click();
-  await expect(accordion).toHaveAttribute('open','');
+  await expect(page.locator('#v37HomeDashboard .v46-owner-train-track')).toBeVisible();
+  await expect(page.locator('#v37HomeDashboard .v46-visible-rail-card')).toBeVisible();
   for(const [n,iso,day] of [[1,'2026-11-13','11/13'],[3,'2026-11-15','11/15'],[5,'2026-11-17','11/17']]){
     await page.locator('#v37HomeDashboard .v46-owner-days .v46-day').nth(n-1).click();
     await expect(page.locator('#itinerary.container')).toHaveClass(/active/);
@@ -24,7 +23,7 @@ test('five real train stations open matching itinerary and return to Korea-local
     await page.evaluate(()=>window.showV37Tab('home'));
     if(n!==5){
       await page.evaluate(()=>window.setV46HomePreview('during'));
-      if(!(await accordion.evaluate(el=>el.open))) await accordion.locator('summary').click();
+      await expect(page.locator('#v37HomeDashboard .v46-owner-train-track')).toBeVisible();
     }
   }
   const model=await page.evaluate(()=>window.getTripContext()?.v46Home);
