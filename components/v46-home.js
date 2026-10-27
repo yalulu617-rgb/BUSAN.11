@@ -93,7 +93,7 @@
       '已完成 ' + model.packing.done + '/' + model.packing.total + ' 項' : '還沒有建立打包項目';
     const heroPart = '<div class="v46-countdown"><small>距離出發還有</small><span>D-' + model.countdown +
       '</span><small>2026.11.13（五）出發 ✈</small></div>' +
-      '<p class="v46-flight">✈ 11/13 · BX572 · 13:25 桃園 → 17:00 釜山</p>';
+      '';
     const weather = model.weather;
     const weatherLabel = weather ?
       esc(weather.city) + '目前｜' + weather.temp + '°C｜' + esc(weather.condition) :
@@ -104,6 +104,10 @@
       }).format(new Date(weather.updatedAt)) : '';
     return hero(model, '釜山 × 慶州', '我們的秋日旅行｜2026.11.13 – 11.17',
       'openPreTripPrep()', '行前準備', heroPart) +
+      '<section class="v46-preflight-strip" aria-label="去程航班"><span>✈ BX572</span>' +
+      '<strong>11/13 · 13:25 桃園 → 17:00 金海</strong></section>' +
+      '<section class="v46-pretrip-rail-link"><span>🚂 偷看五天路線</span>' +
+      '<button type="button" onclick="setV46HomePreview(\'during\')">五日行程預覽 ›</button></section>' +
       '<section class="v46-panel card v46-entry-status" aria-label="入境申報狀態">' +
       '<p>🪪 K-ETA：' + esc(model.entryKeta) + '</p>' +
       '<p>📝 e-Arrival Card：依適用資格與抵達前 3 天窗口辦理</p>' +
@@ -213,6 +217,7 @@
     return hero(model, 'HELLO, BUSAN!', dayTitle + (isPreview ? '（預覽）' : ''),
       "showV37Tab('itinerary')", '今日行程',
       '<p class="v46-hero-tag">🍁 秋日海線 × 城市漫遊</p>') +
+      renderVisibleRail(model) +
       '<section class="v46-panel"><h3>旅途快捷百寶袋</h3><div class="v46-shortcuts">' +
       btn('今日行程', '🗺️', "showV37Tab('itinerary')", '路線・雨備') +
       btn('天氣・楓況', '🌤️', 'toggleHomeWeatherDetail()', '氣溫・穿搭') +
@@ -389,8 +394,7 @@
 
   target.renderV46Home = function (model, menu, weatherDetail, simulator, collections) {
     if (!model) return '';
-    const core = model.mode === 'before' ? before(model) : model.mode === 'after' ? after(model) : during(model);
-    const content = model.mode === 'after' ? core : renderVisibleRail(model) + core;
+    const content = model.mode === 'before' ? before(model) : model.mode === 'after' ? after(model) : during(model);
     // Preserve the open bag's geometry across weather/phase rerenders.
     const activeBag = document.querySelector('#guide.active #v37HomeDashboard details.v46-tools[open]');
     if (!activeBag && !target.v46AllToolsExpanded) {
