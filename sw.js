@@ -8,7 +8,7 @@
 // - Cache-first with network fallback for static media (images, icons)
 // ─────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'busan-v46-three-phase-preview-20261027';
+const CACHE_NAME = 'busan-trip-v46-release-candidate-v2';
 
 const LOCAL_ASSETS = [
     './',
