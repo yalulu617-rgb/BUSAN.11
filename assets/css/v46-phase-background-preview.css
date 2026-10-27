@@ -1,0 +1,199 @@
+/*
+ * V46 phase-specific owner visual preview · 2026-10-27
+ * Real APP UI — all three previously approved illustrations remain as contained
+ * stage banners, but tasks, railway and album remain the visual/functional priority.
+ * The preview is isolated. No change to production data, theme preferences or main.
+ */
+:root:has(#guide.active #v37HomeDashboard .v46-home),
+html[data-theme="dark"]:has(#guide.active #v37HomeDashboard .v46-home){
+  --bg-color:#fbf6ed!important;
+  --card-bg:#fffdf7!important;
+  --text-color:#294e66!important;
+  --border-color:#e9dcc9!important;
+  --glass-bg:#fffcf5!important;
+  --glass-border:#e7d9c5!important;
+  color-scheme:only light!important;
+  background:#fbf6ed!important;
+}
+html:has(#guide.active #v37HomeDashboard .v46-home) body,
+html[data-theme="dark"]:has(#guide.active #v37HomeDashboard .v46-home) body,
+html:has(#guide.active #v37HomeDashboard .v46-home) #mainApp,
+html:has(#guide.active #v37HomeDashboard .v46-home) #guide,
+html:has(#guide.active #v37HomeDashboard .v46-home) #v37HomeDashboard {
+  background:#fbf6ed!important;
+  background-image:none!important;
+  color:#294e66!important;
+  color-scheme:only light!important;
+}
+html:has(#guide.active #v37HomeDashboard .v46-home) .bottom-nav,
+html[data-theme="dark"]:has(#guide.active #v37HomeDashboard .v46-home) .bottom-nav {
+  background:rgba(255,253,246,.98)!important;
+  border-top:1px solid #e8dcc9!important;
+  color:#527287!important;
+}
+html:has(#guide.active #v37HomeDashboard .v46-home) .bottom-nav .nav-item {
+  color:#627c8a!important;
+}
+html:has(#guide.active #v37HomeDashboard .v46-home) .bottom-nav .nav-item.active{
+  color:#1876a4!important;
+}
+html:has(#guide.active #v37HomeDashboard .v46-home) .bottom-nav .nav-center{
+  color:#fff!important;
+  border-color:#fbf6ed!important;
+}
+#v37HomeDashboard .v46-home{
+  --v46-ink:#294e66!important;
+  --v46-paper:#fbf6ed!important;
+  color:#294e66!important;
+  color-scheme:only light!important;
+  gap:11px!important;
+  background:linear-gradient(180deg,#f7f2e8 0%,#fbf6ed 280px,#fbf6ed 100%)!important;
+}
+#v37HomeDashboard .v46-home .v46-panel.card,
+[data-theme="dark"] #v37HomeDashboard .v46-home .v46-panel.card{
+  background:#fffdf8!important;color:#2c5268!important;
+  border-color:#e5d9c6!important;
+}
+#v37HomeDashboard .v46-home > .v46-story-hero{
+  order:1!important;
+}
+#v37HomeDashboard .v46-home .v46-hero.v46-story-hero.card{
+  aspect-ratio:auto!important;height:165px!important;max-height:none!important;
+  min-height:0!important;border-radius:19px!important;overflow:hidden!important;
+  box-shadow:0 4px 13px rgba(56,77,83,.11)!important;
+  border:1.5px solid #dfd4c2!important;
+  background:#bdddeb!important;
+}
+#v37HomeDashboard .v46-home .v46-story-img{
+  object-fit:cover!important;
+  object-position:center 54%!important;
+}
+#v37HomeDashboard .v46-home .v46-hero-copy.v46-story-copy {
+  background:linear-gradient(90deg,rgba(253,250,240,.93) 0%,rgba(253,250,240,.84) 47%,rgba(255,255,255,.06) 100%)!important;
+  pointer-events:none!important;
+}
+#v37HomeDashboard .v46-home .v46-story-intro{
+  left:5%!important;right:30%!important;top:11%!important;
+  max-width:68%!important;
+}
+#v37HomeDashboard .v46-home .v46-story-intro .v46-eyebrow{
+  font-size:9px!important;line-height:1.2!important;
+  color:#4b7795!important;margin:0 0 7px!important;
+}
+#v37HomeDashboard .v46-home .v46-story-intro h2{
+  color:#195276!important;font-size:clamp(18px,5.3vw,25px)!important;
+  line-height:1.2!important;margin-bottom:5px!important;text-shadow:none!important;
+}
+#v37HomeDashboard .v46-home .v46-hero-subtitle{
+  color:#4b7188!important;font-size:11px!important;font-weight:800!important;
+  line-height:1.4!important;margin:0!important;
+}
+#v37HomeDashboard .v46-home .v46-story-hero .v46-story-actions{
+  top:57%!important;left:5%!important;right:auto!important;
+  width:auto!important;max-width:60%!important;
+  gap:5px!important;
+}
+#v37HomeDashboard .v46-home .v46-story-hero .v46-hero-link{
+  min-height:43px!important;border-radius:11px!important;
+  background:#fffdf9f2!important;
+  font-size:12px!important;
+}
+#v37HomeDashboard .v46-home .v46-story-hero .v46-hero-tag{
+  display:none!important;
+}
+/* Before: preparation is the priority; do not display the five-day train itself. */
+#v37HomeDashboard .v46-home[data-v46-mode="before"] > .v46-story-hero{
+  height:222px!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-story-img{
+  object-position:center 47%!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-story-intro{
+  top:9%!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-story-actions{
+  top:40%!important;max-width:62%!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-countdown{
+  padding:6px 11px!important;gap:0!important;
+  border:1px dashed #e4ba95!important;
+  background:rgba(255,249,236,.94)!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-countdown span{
+  font-size:32px!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-countdown small{
+  font-size:10px!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-hero-link{
+  min-height:39px!important;
+}
+#v37HomeDashboard .v46-preflight-strip{
+  order:2!important;display:flex!important;align-items:center;justify-content:space-between;
+  gap:8px;min-width:0;
+  background:#e8f3f8!important;color:#2e5a78!important;
+  border:1px solid #bedae9;border-radius:13px;
+  padding:10px 12px;font-size:11px;
+}
+#v37HomeDashboard .v46-preflight-strip span{white-space:nowrap;font-weight:900;color:#165c83}
+#v37HomeDashboard .v46-preflight-strip strong{font-size:11px;line-height:1.35;text-align:right}
+#v37HomeDashboard .v46-pretrip-rail-link{
+  order:4!important;display:flex;justify-content:space-between;align-items:center;
+  gap:8px;padding:11px 12px;
+  border:1px dashed #cfc2ad;border-radius:13px;
+  background:#fff9ed;color:#516d7d;font-size:12px;font-weight:800;
+}
+#v37HomeDashboard .v46-pretrip-rail-link button{
+  border:1px solid #c9d6d9;background:#fff;border-radius:10px;
+  color:#216d92;font-weight:900;padding:8px 10px;min-height:41px;
+  font-size:11px;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-panel[aria-label="出發前必做"]{order:3!important}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-panel[aria-labelledby="v46-reminder-title"]{order:5!important}
+#v37HomeDashboard .v46-home[data-v46-mode="before"] .v46-panel[aria-label="入境申報狀態"]{order:6!important}
+/* During: short illustrated banner, followed immediately by the live train. */
+#v37HomeDashboard .v46-home[data-v46-mode="during"] > .v46-visible-rail-card{
+  order:2!important;
+  background:#fffdf8!important;
+  padding:12px 11px 13px!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="during"] .v46-visible-rail-card .v46-owner-train-track{
+  height:113px!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="during"] .v46-visible-rail-heading{
+  font-size:14px!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="during"] .v46-trip-companion{
+  background:#f4f9f8!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="during"] .v46-hero.card{
+  height:160px!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="during"] .v46-story-img{
+  object-position:center 61%!important;
+}
+/* Memories: illustration becomes a slim header; uploaded actual photos are the focus. */
+#v37HomeDashboard .v46-home[data-v46-mode="after"] .v46-hero.card{
+  height:180px!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="after"] .v46-story-img{
+  object-position:center 55%!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="after"] > .v46-memory-panel{
+  order:2!important;
+  background:#fffdf8!important;
+  border:1px solid #e5d9c6!important;
+  border-radius:17px;padding:15px 12px;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="after"] .v46-memory-empty{
+  background:#eef5f5!important;color:#3f6578!important;
+}
+#v37HomeDashboard .v46-home[data-v46-mode="after"] > .v46-panel.card{order:3!important}
+@media(max-width:350px){
+  #v37HomeDashboard .v46-home .v46-story-intro h2{font-size:18px!important}
+  #v37HomeDashboard .v46-home[data-v46-mode="before"] > .v46-story-hero{height:230px!important}
+  #v37HomeDashboard .v46-preflight-strip{flex-wrap:wrap}
+}
+@media(prefers-reduced-motion:reduce){
+  #v37HomeDashboard .v46-home .v46-story-hero{animation:none!important}
+}
