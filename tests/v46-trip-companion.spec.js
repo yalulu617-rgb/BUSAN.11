@@ -39,6 +39,32 @@ test.beforeEach(async({page})=>{
     window.firebase?.__ciOnly)).toBe(true);
 });
 
+test('default pre-trip homepage displays the actual train, five days and a non-overlapping mascot',async({page})=>{
+  const home=page.locator('#v37HomeDashboard .v46-home');
+  await expect(home).toHaveAttribute('data-v46-mode','before');
+  const rail=page.locator('#v37HomeDashboard .v46-visible-rail-card');
+  await expect(rail).toBeVisible();
+  await expect(rail.locator('.v46-owner-train-track')).toBeVisible();
+  await expect(rail.locator('.v46-owner-days button.v46-day')).toHaveCount(5);
+  await expect(rail.locator('.v46-trip-companion')).toBeVisible();
+  await expect(page.locator('#v37HomeDashboard details.v46-rail-accordion')).toHaveCount(0);
+  const ui=await page.evaluate(()=>{
+    const select=sel=>document.querySelector(sel)?.getBoundingClientRect();
+    const rail=select('#v37HomeDashboard .v46-visible-rail-card');
+    const hero=select('#v37HomeDashboard .v46-story-hero');
+    const mascot=select('#v37HomeDashboard .v46-mascot-image svg');
+    const action=select('#v37HomeDashboard .v46-stop-links button');
+    return {railTop:rail?.top,heroTop:hero?.top,
+      mascotW:mascot?.width,mascotH:mascot?.height,
+      buttonRight:action?.right,mascotLeft:mascot?.left,
+      viewport:document.documentElement.clientWidth,body:document.documentElement.scrollWidth};
+  });
+  expect(ui.railTop).toBeLessThan(ui.heroTop);
+  expect(ui.mascotW).toBeLessThanOrEqual(40);
+  expect(ui.mascotH).toBeLessThanOrEqual(42);
+  expect(ui.body).toBeLessThanOrEqual(ui.viewport+3);
+});
+
 test('five-day companion: manual station, exact NAVER, preview/reset and device persistence',async({page})=>{
   await page.evaluate(()=>window.setV46HomePreview('during'));
   const card=page.locator('#v37HomeDashboard .v46-trip-companion');
