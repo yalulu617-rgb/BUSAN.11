@@ -210,7 +210,7 @@
       btn('快樂購', '🛍️', "showV37Tab('shop'); setTimeout(()=>setShopTabMode('my'),50)", '想買・已買') +
       btn('超商・超市', '🏪', 'openConvenienceSupermarketHub()', '零食・水果') +
       btn('翻譯・SOS', '🗣️', "showV37Tab('more')", '韓語・救援') +
-      btn('旅行記帳', '💰', "showV37Tab('split')", '新增・分帳') + '</div></section>' +      '';
+      btn('旅行記帳', '💰', "showV37Tab('split')", '新增・分帳') + '</div></section>';
   }
   function after(model) {
     const spent = model.spent === null ? '尚無記帳資料' : 'NT$ ' + model.spent.toLocaleString('zh-TW');
