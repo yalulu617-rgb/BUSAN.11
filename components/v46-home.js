@@ -131,8 +131,8 @@
     '%"><img src="assets/images/v46-owner-fit-train.webp" alt="水彩黃色海岸列車"></div></div>' +
     '<div class="v46-days v46-owner-days" role="group" aria-label="Day 1 至 Day 5 日期選擇">' +
     model.tripDays.map((d,i) => '<button type="button" class="v46-day' +
-    (d.selected ? ' is-current' : '') + '" aria-pressed="' + String(d.selected) +
-    '" data-iso="' + esc(d.iso) + '" onclick="setV46HomeDay(this.dataset.iso)">' +
+    (d.selected ? ' is-current' : '') + (d.iso === model.today ? ' is-today' : '') + '" aria-pressed="' + String(d.selected) +
+    '" data-iso="' + esc(d.iso) + '" aria-label="開啟 ' + esc(d.label + ' ' + d.short) + ' 詳細行程" onclick="openV46TrainDay(this.dataset.iso)">' +
     '<span class="v46-station-mark" aria-hidden="true">' + ['🧳','🌊','🏯','🚠','✈️'][i] +
     '</span><strong>' + esc(d.label) + '</strong><small>' +
     esc(d.iso.slice(5).replace('-', '/')) + '</small>' +
@@ -154,7 +154,7 @@
       ' ontoggle="window.v46TrainExpanded=this.open">' +
       '<summary class="v46-rail-summary"><span class="v46-rail-summary-icon">🚞</span><span class="v46-rail-summary-text"><strong>我們的五天小火車</strong><small>' + esc(dayTitle) + '</small></span><span class="v46-rail-summary-action">展開路線 <span aria-hidden="true">⌄</span></span></summary>' +
       '<div class="v46-rail-reveal">' + renderTravelTrain(model, dayIndex) +
-      '<p class="v46-muted">' + (isPreview ? '目前正在預覽其他日期；不會改變真實日期或提醒。' : '點選日期可預覽當天主題。') + '</p></div></details></section>' +
+      '<p class="v46-muted">' + (isPreview ? '目前是日期預覽；點選 Day 1～5 可直接開啟該日行程，返回首頁仍依韓國日期顯示。' : '點選 Day 1～5 直接開啟對應日期的行程與導航。') + '</p></div></details></section>' +
       
       '<section class="v46-panel"><h3>旅途快捷百寶袋</h3><div class="v46-shortcuts">' +
       btn('今日行程', '🗺️', "showV37Tab('itinerary')", '路線・雨備') +

@@ -93,4 +93,46 @@ if (typeof window !== "undefined") {
     }
   };
 
+  // One tap on any train station always opens that specific canonical itinerary.
+  // It does not change the phone clock, official itinerary data or legacy date
+  // simulator. Returning home restores automatic Korea-local date selection.
+  window.openV46TrainDay = function (dateISO) {
+    const index = window.V46HomeEngine?.labels?.findIndex(d => d.iso === dateISO) ?? -1;
+    if (index < 0 || typeof window.showV37Tab !== 'function' ||
+        typeof window.filterItineraryDay !== 'function') return false;
+    const marker = document.querySelector('#v37HomeDashboard .v46-owner-train-marker');
+    marker?.style.setProperty('--v46-owner-train-left', (25 + index * 12.5) + '%');
+    document.querySelectorAll('#v37HomeDashboard .v46-owner-days .v46-day').forEach(day => {
+      const selected = day.dataset.iso === dateISO;
+      day.classList.toggle('is-current', selected);
+      day.setAttribute('aria-pressed', String(selected));
+    });
+    // The preview is temporary: homepage resumes real Korea time after navigation.
+    window.v46HomePreviewMode = 'auto';
+    window.v46HomePreviewDay = null;
+    const navigate = () => {
+      window.showV37Tab('itinerary');
+      window.filterItineraryDay(dateISO.slice(5).replace('-', '/'), null);
+      triggerContextUpdateImmediate();
+    };
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) navigate();
+    else window.setTimeout(navigate, 240);
+    return true;
+  };
+
+  // If the PWA stays open across Korea midnight, update its train only when the
+  // actual Korean calendar date changes. Also correct the model on tab resume.
+  let lastKoreaDate = window.V46HomeEngine?.toDay(new Date()) || '';
+  const checkKoreaDay = () => {
+    if (document.hidden || window.v46HomePreviewMode && window.v46HomePreviewMode !== 'auto') return;
+    const actual = window.V46HomeEngine?.toDay(new Date());
+    if (actual && actual !== lastKoreaDate) {
+      lastKoreaDate = actual;
+      triggerContextUpdateImmediate();
+    }
+  };
+  document.addEventListener('visibilitychange', checkKoreaDay);
+  window.addEventListener('focus', checkKoreaDay);
+  window.setInterval(checkKoreaDay, 60 * 1000);
+
 }
