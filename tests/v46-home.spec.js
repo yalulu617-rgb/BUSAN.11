@@ -225,9 +225,7 @@ test('V46: illustrated rail only during travel with five real day buttons', asyn
     const train=page.locator('#v37HomeDashboard .v46-owner-train-track');
     await expect(train).toHaveCount(mode==='during'?1:0);
     if (mode==='during') {
-      const accordion=page.locator('#v37HomeDashboard details.v46-rail-accordion');
-      await accordion.locator('summary').click();
-      await expect(accordion).toHaveAttribute('open', '');
+      await expect(page.locator('#v37HomeDashboard .v46-visible-rail-card')).toBeVisible();
       await expect(train).toBeVisible();
       const days=page.locator('#v37HomeDashboard button.v46-day');
       await expect(days).toHaveCount(5);
@@ -249,16 +247,14 @@ test('V46: the three approved mobile-fit hero assets decode at full source resol
     await node.decode();
     return {width:node.naturalWidth,height:node.naturalHeight,fit:getComputedStyle(node).objectFit};
   });
-  expect(result).toEqual({width:1190,height:1322,fit:'contain'});
+  expect(result).toEqual({width:1190,height:1322,fit:'cover'});
  }
 });
 
 test('V46: capsule car faces Day5 and remains inside rail at 390px after real taps',async({page})=>{
  await page.setViewportSize({width:390,height:844});await bootApp(page);
  await page.evaluate(()=>window.setV46HomePreview('during'));
- const accordion=page.locator('#v37HomeDashboard details.v46-rail-accordion');
- if (!(await accordion.evaluate(node=>node.open))) await accordion.locator('summary').click();
- await expect(accordion).toHaveAttribute('open','');
+ await expect(page.locator('#v37HomeDashboard .v46-visible-rail-card')).toBeVisible();
  const rail=page.locator('#v37HomeDashboard .v46-owner-train-track');
  const car=rail.locator('.v46-owner-train-marker');
  const art=car.locator('img');
@@ -277,7 +273,7 @@ test('V46: capsule car faces Day5 and remains inside rail at 390px after real ta
    await page.evaluate(()=>window.showV37Tab('home'));
    await page.evaluate(()=>window.setV46HomePreview('during'));
    await page.evaluate(iso=>window.setV46HomeDay(iso), '2026-'+targetDay.replace('/','-'));
-   if(!(await accordion.evaluate(node=>node.open))) await accordion.locator('summary').click();
+   await expect(page.locator('#v37HomeDashboard .v46-visible-rail-card')).toBeVisible();
    await expect(days.nth(i)).toHaveAttribute('aria-pressed','true');
    const m=await car.boundingBox(),p=await rail.boundingBox();
    expect(m&&p).toBeTruthy();
