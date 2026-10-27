@@ -83,6 +83,41 @@ test('three travel phases: compact art banners, train only during journey, light
   }
 });
 
+test('S25: user-selected dark mode never makes the home black; scrolled bag stays fully on screen',async({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await page.emulateMedia({colorScheme:'dark'});
+  await page.evaluate(()=>document.documentElement.setAttribute('data-theme','dark'));
+  await page.evaluate(()=>window.setV46HomePreview('before'));
+  const values=await page.evaluate(()=>({
+    body:getComputedStyle(document.body).backgroundColor,
+    background:getComputedStyle(document.getElementById('v37HomeDashboard')).backgroundColor,
+    hero:document.querySelector('#v37HomeDashboard .v46-hero')?.getBoundingClientRect().height
+  }));
+  expect(values.body).toBe('rgb(251, 246, 237)');
+  expect(values.background).toBe('rgb(251, 246, 237)');
+  expect(values.hero).toBeGreaterThanOrEqual(260);
+  await page.evaluate(()=>window.scrollTo(0,360));
+  const bag=page.locator('#v37HomeDashboard details.v46-inline-tools');
+  await bag.locator('summary').click();
+  await expect(bag).toHaveAttribute('open','');
+  const panel=bag.locator('.v46-tools-content');
+  const pos=await panel.evaluate(el=>{
+    const r=el.getBoundingClientRect();
+    return {top:r.top,bottom:r.bottom,right:r.right,width:r.width,height:r.height,viewport:innerHeight,
+      bg:getComputedStyle(el).backgroundColor,position:getComputedStyle(el).position,scroll:el.scrollHeight};
+  });
+  expect(pos.position).toBe('fixed');
+  expect(pos.top).toBeGreaterThanOrEqual(0);
+  expect(pos.bottom).toBeLessThanOrEqual(pos.viewport-50);
+  expect(pos.right).toBeLessThanOrEqual(393);
+  expect(pos.bg).toBe('rgb(255, 253, 247)');
+  await expect(panel.locator('button.v45-nine-card')).toHaveCount(11);
+  await panel.evaluate(el=>{el.scrollTop=el.scrollHeight});
+  expect(await panel.evaluate(el=>el.scrollTop)).toBeGreaterThan(0);
+  await page.locator('#v37HomeDashboard .v46-bag-backdrop').click({position:{x:10,y:300}});
+  await expect(bag).not.toHaveAttribute('open','');
+});
+
 test('five-day companion: manual station, exact NAVER, preview/reset and device persistence',async({page})=>{
   await page.evaluate(()=>window.setV46HomePreview('during'));
   const card=page.locator('#v37HomeDashboard .v46-trip-companion');
