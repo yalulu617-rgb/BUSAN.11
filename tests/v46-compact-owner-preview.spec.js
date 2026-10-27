@@ -61,6 +61,11 @@ test('compact V46 owner interactive screenshots 360 and 390', async ({page})=>{
    await expect(rail).toHaveAttribute('open','');
    await expect(rail.locator('.v46-day')).toHaveCount(5);
    await rail.locator('.v46-day').nth(2).click();
+   await expect(page.locator('#itinerary.container')).toHaveClass(/active/);
+   await expect.poll(()=>page.evaluate(()=>window.currentFilterDay)).toBe('11/15');
+   await page.evaluate(()=>window.showV37Tab('home'));
+   await page.evaluate(()=>{window.setV46HomePreview('during');window.setV46HomeDay('2026-11-15');});
+   if(!(await rail.evaluate(el=>el.open))) await rail.locator('summary').click();
    await expect(home.locator('.v46-rail-accordion')).toHaveAttribute('open','');
    await expect(home.locator('.v46-day').nth(2)).toHaveAttribute('aria-pressed','true');
    await page.locator('#v37HomeDashboard .v46-rail-summary').scrollIntoViewIfNeeded();

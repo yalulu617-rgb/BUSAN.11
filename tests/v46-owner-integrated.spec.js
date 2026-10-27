@@ -57,6 +57,13 @@ test('V46 owner fit: real app screenshots, full-size image, rightward rail, 11 e
    const xs=[];
    for(const i of [0,2,4]){
       await days.nth(i).click();
+      const targetDay=['11/13','11/14','11/15','11/16','11/17'][i];
+      await expect(page.locator('#itinerary.container')).toHaveClass(/active/);
+      await expect.poll(()=>page.evaluate(()=>window.currentFilterDay)).toBe(targetDay);
+      await page.evaluate(()=>window.showV37Tab('home'));
+      await page.evaluate(()=>window.setV46HomePreview('during'));
+      await page.evaluate(iso=>window.setV46HomeDay(iso),'2026-'+targetDay.replace('/','-'));
+      if(!(await accordion.evaluate(el=>el.open))) await accordion.locator('summary').click();
       await expect(days.nth(i)).toHaveAttribute('aria-pressed','true');
       const t=await train.boundingBox(),r=await rail.boundingBox();
       expect(t&&r).toBeTruthy();

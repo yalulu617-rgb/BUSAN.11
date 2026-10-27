@@ -270,7 +270,15 @@ test('V46: capsule car faces Day5 and remains inside rail at 390px after real ta
  await expect(days).toHaveCount(5);
  const positions=[];
  for(const i of [0,2,4]){
-   await days.nth(i).click();await expect(days.nth(i)).toHaveAttribute('aria-pressed','true');
+   await days.nth(i).click();
+   const targetDay=['11/13','11/14','11/15','11/16','11/17'][i];
+   await expect(page.locator('#itinerary.container')).toHaveClass(/active/);
+   await expect.poll(()=>page.evaluate(()=>window.currentFilterDay)).toBe(targetDay);
+   await page.evaluate(()=>window.showV37Tab('home'));
+   await page.evaluate(()=>window.setV46HomePreview('during'));
+   await page.evaluate(iso=>window.setV46HomeDay(iso), '2026-'+targetDay.replace('/','-'));
+   if(!(await accordion.evaluate(node=>node.open))) await accordion.locator('summary').click();
+   await expect(days.nth(i)).toHaveAttribute('aria-pressed','true');
    const m=await car.boundingBox(),p=await rail.boundingBox();
    expect(m&&p).toBeTruthy();
    expect(m.x).toBeGreaterThanOrEqual(p.x-2);
