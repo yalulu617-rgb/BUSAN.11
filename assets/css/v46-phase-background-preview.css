@@ -145,3 +145,15 @@ html:has(#guide.active #v37HomeDashboard .v46-home) .bottom-nav .nav-item.active
  #v37HomeDashboard .v46-home #liveTravelCard .v46-hero-copy.v46-story-copy{padding:11px!important}
  #v37HomeDashboard .v46-home details.v46-inline-tools[open] > .v46-tools-content{width:min(92vw,315px)!important}
 }
+
+/* Lock readable paper across old high-specificity body/theme rules in V46. */
+html:has(#guide.active #v37HomeDashboard .v46-home) body,
+html[data-theme="dark"]:has(#guide.active #v37HomeDashboard .v46-home) body,
+html:has(#v37HomeDashboard .v46-home) body {
+  background:#fbf6ed!important;
+  background-color:#fbf6ed!important;
+  color-scheme:only light!important;
+}
+html:has(#guide.active #v37HomeDashboard .v46-home) #v37HomeDashboard{
+  background-color:#fbf6ed!important;
+}

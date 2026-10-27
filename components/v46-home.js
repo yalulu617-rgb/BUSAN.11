@@ -392,11 +392,18 @@
         // WebKit scrolls the page while moving through the long 11-item bag.
         // Never resize its containing sticky header during that interaction:
         // changing the target's geometry would make real taps fail.
+        // A return to the very top must clear stale compact state,
+        // including after mode-switch and restored dropdown scroll anchors.
+        // Avoid resizing an OPEN bag during ordinary scrolling.
+        if (target.scrollY < 24 && !target.v46AllToolsExpanded) {
+          target.v46StickyCompact = false;
+          el?.classList.remove('is-compact');
+          return;
+        }
         if (el?.querySelector('details.v46-tools[open]')) return;
         // Hysteresis avoids scroll/height oscillation when expanded header
         // collapses at the same position that the page is scrolling.
         if (target.scrollY > 256) target.v46StickyCompact = true;
-        else if (target.scrollY < 24) target.v46StickyCompact = false;
         if (el) el.classList.toggle('is-compact', Boolean(target.v46StickyCompact));
       });
     }, { passive: true });

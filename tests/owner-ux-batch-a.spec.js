@@ -35,7 +35,13 @@ test.describe('BUSAN.11 V45 — Owner UX Batch A', () => {
     await page.evaluate(() => window.showV37Tab('home'));
 
     await expect(page.locator('#liveTravelCard')).toBeVisible();
-    await expect(page.locator('#v37HomeDashboard .v46-story-img')).toBeVisible();
+    const home=page.locator('#v37HomeDashboard .v46-home');
+    // Three owner-approved illustrations now fill their respective mode
+    // backgrounds; no separate image card should cover the diary controls.
+    await expect(home).toHaveCSS('background-image',/v46-owner-fit-before\.webp/);
+    const art=page.locator('#v37HomeDashboard .v46-story-img');
+    await expect(art).toHaveAttribute('src','assets/images/v46-owner-fit-before.webp');
+    await expect(art.evaluate(async img=>{await img.decode();return img.naturalWidth>0;})).resolves.toBe(true);
     await expect(page.locator('#v37HomeDashboard .v46-weather-current')).toBeVisible();
     await expect(page.locator('#v37HomeDashboard')).toContainText('楓況');
     await openTravelBag(page);
