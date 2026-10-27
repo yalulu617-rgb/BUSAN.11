@@ -143,8 +143,10 @@ window.savePhotoMetadataEditor = async function() {
     if(raw){
         const check = raw.match(/^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d)(?::(\d\d))?$/);
         if(!check){showToast('日期格式有誤，照片資訊未更改','error');return;}
-        const values = check.slice(1).map(Number);
-        const [year,month,day,hour,minute,second=0] = values;
+        // datetime-local omits :00 in many browsers. Number(undefined) is NaN;
+        // parse the optional seconds separately before calendar validation.
+        const [year,month,day,hour,minute] = check.slice(1,6).map(Number);
+        const second = check[6] === undefined ? 0 : Number(check[6]);
         const parsed=new Date(Date.UTC(year,month-1,day,hour,minute,second));
         if(parsed.getUTCFullYear()!==year||parsed.getUTCMonth()!==month-1||
            parsed.getUTCDate()!==day||parsed.getUTCHours()!==hour||
