@@ -542,9 +542,29 @@
                 <p style="font-size:0.85rem; color:#888; font-weight:900;">支援多張批次上傳。點擊放大照片可點擊左上角刪除。</p>
                 <label for="photoImgUpload" class="btn-action" style="text-align:center; display:block;"><i class="fa-solid fa-wand-magic-sparkles"></i> 批次上傳美照 / GIF</label>
                 <input type="file" id="photoImgUpload" multiple style="display:none;" accept="image/*" onchange="uploadMultipleToImgBB(this.files, 'photo')">
+                <label class="photo-gps-consent" style="display:flex;gap:8px;align-items:flex-start;padding:8px;font-size:.77rem;color:#385d75;"><input type="checkbox" id="photoGPSConsent" style="width:18px;height:18px;flex:none;"><span>照片有 GPS 時，另外儲存地理座標（選擇性；預設不儲存）。</span></label>
+                <p style="font-size:.72rem;color:#688497;margin:4px 0 9px;">JPG 原檔有 EXIF 才會自動帶入拍攝時間；其他照片可上傳後手動填寫。不會把上傳時間當成拍攝時間。</p>
                 <div id="photoUploadStatus" style="font-size: 0.85rem; color: var(--primary); margin-top: 10px; text-align: center; font-weight:900;"></div>
                 <input type="text" id="memorySearchInput" class="input-box" placeholder="🔍 搜尋日期或城市 (例: 11/13、釜山)" style="margin-bottom:10px;" oninput="renderMemoryAlbum()">
                 <div id="albumContainer" style="margin-top: 15px;"></div>
+                <dialog id="photoMetadataDialog" aria-labelledby="photoMetadataTitle" style="width:min(92vw,380px);border:1px solid #d9c9ad;border-radius:16px;padding:18px;box-shadow:0 10px 25px #3459;">
+                  <h3 id="photoMetadataTitle">📸 編輯照片資訊</h3>
+                  <input type="hidden" id="photoMetadataKey">
+                  <label style="display:block;margin:10px 0;font-size:.85rem;">原始拍攝日期、時間（不確定可留空）
+                    <input type="datetime-local" step="1" id="photoCapturedAt" class="input-box" style="width:100%;box-sizing:border-box;">
+                  </label>
+                  <label style="display:block;margin:10px 0;font-size:.85rem;">拍攝地點（自行填寫，例如：海雲台）
+                    <input type="text" maxlength="100" id="photoLocationLabel" class="input-box" style="width:100%;box-sizing:border-box;" placeholder="未提供">
+                  </label>
+                  <label style="display:flex;align-items:center;gap:8px;font-size:.78rem;">
+                    <input type="checkbox" id="photoKeepStoredGPS"> 保留已儲存的 GPS 座標
+                  </label>
+                  <div id="photoStoredGPSInfo" style="font-size:.72rem;color:#61798b;margin:8px 0;"></div>
+                  <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px;">
+                    <button type="button" class="btn-action" onclick="closePhotoMetadataEditor()">取消</button>
+                    <button type="button" class="btn-action" id="photoMetadataSaveBtn" onclick="savePhotoMetadataEditor()">儲存資訊</button>
+                  </div>
+                </dialog>
             </div>
 
             <!-- 精選回憶 Section -->
@@ -662,7 +682,8 @@
 <script src="ute/ute_shopping_photo.js?v=45.5-image2"></script>
 <script src="ute/ute_private_ledger.js?v=45.6-private-ledger"></script>
 <script src="services/nearby.js?v=45.4"></script>
-<script src="services/utils.js?v=45.6-owner-b"></script>
+<script src="services/photo-metadata.js?v=46.1-meta"></script>
+    <script src="services/utils.js?v=45.6-owner-b"></script>
 <script src="services/item-images.js?v=45.4-image1"></script>
 <script src="data/travel-content.js?v=45.4"></script>
 <script src="data/recommended.js?v=45.4"></script>

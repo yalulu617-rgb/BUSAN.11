@@ -43,7 +43,7 @@ jobs:
             'ute/ute_navigation.js','ute/ute_budget.js','ute/ute_ai.js',
             'ute/ute_context.js','ute/ute_main.js','ute/ute_home_v46.js',
             'ute/ute_shopping_photo.js','ute/ute_private_ledger.js','ute/ute_pwa_install.js',
-            'services/nearby.js','services/utils.js','services/item-images.js',
+            'services/nearby.js','services/photo-metadata.js','services/utils.js','services/item-images.js',
             'data/recommended.js',
             'js/firebase.js','js/ui.js','js/wallet.js',
             'js/memory.js','js/itinerary.js','js/app.js',
