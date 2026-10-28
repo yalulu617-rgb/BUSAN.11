@@ -39,6 +39,14 @@ test('V46 sticky compact header: scroll, phase switch, weather, bag, restore',as
    await expect(bag).toHaveAttribute('open','');
    await expect(bag.locator('.v45-nine-card')).toHaveCount(11);
    await expect(bag.locator('.v45-nine-card').first()).toBeVisible();
+   const stacking=await bag.evaluate(el=>{
+     const toggle=el.querySelector('summary').getBoundingClientRect();
+     const menu=el.querySelector('.v46-tools-content').getBoundingClientRect();
+     const at=document.elementFromPoint(toggle.left+toggle.width/2,toggle.top+toggle.height/2);
+     return {clear:menu.top>=toggle.bottom+3,tappable:at===el.querySelector('summary')||el.querySelector('summary').contains(at)};
+   });
+   expect(stacking.clear,'Menu must start after the bag button').toBe(true);
+   expect(stacking.tappable,'Bag must close on a genuine second tap').toBe(true);
    const box=await bag.locator('summary').boundingBox();
    expect(box.x).toBeGreaterThanOrEqual(-2);
    expect(box.x+box.width).toBeLessThanOrEqual(width+2);

@@ -50,6 +50,15 @@ for (const width of [360,390]) {
     // scrollIntoView on the last child may also move the document even
     // when user touch scrolling would not, so it is not a valid background
     // gesture test. The visible backdrop separately absorbs background taps.
+    const triggerBox=await bag.locator('summary').boundingBox();
+    const menuBox=await bag.locator('.v46-tools-content').boundingBox();
+    expect(menuBox.y,'Menu cannot cover its own toggle').toBeGreaterThanOrEqual(triggerBox.y+triggerBox.height+4);
+    const triggerHit=await bag.locator('summary').evaluate(el=>{
+      const r=el.getBoundingClientRect();
+      return Boolean(el===document.elementFromPoint(r.left+r.width/2,r.top+r.height/2) ||
+        el.contains(document.elementFromPoint(r.left+r.width/2,r.top+r.height/2)));
+    });
+    expect(triggerHit,'Bag trigger must remain a real tappable target').toBe(true);
     await bag.locator('.v46-tools-content').evaluate(p=>{p.scrollTop=p.scrollHeight;});
     const scrollResult=await page.evaluate(()=>{
       const p=document.querySelector('#v37HomeDashboard .v46-inline-tools > .v46-tools-content');

@@ -302,10 +302,20 @@
         const place = () => {
           if (!bag.isConnected || !bag.open) return;
           const viewport = target.visualViewport?.height || target.innerHeight;
-          const edge = summary.getBoundingClientRect().bottom;
-          const top = Math.max(8, Math.min(edge + 8, viewport - 185));
+          // Position relative to the visible sticky header, never over the
+          // physical trigger. A CSS containing block can offset a fixed panel
+          // on Android/WebKit, so also verify its *rendered* bounds.
+          const trigger = summary.getBoundingClientRect();
+          const sticky = header?.getBoundingClientRect();
+          let top = Math.max(8, (Math.max(trigger.bottom,sticky?.bottom||0))+8);
+          top = Math.min(top, Math.max(8,viewport-145));
           bag.style.setProperty('--v46-bag-top', top + 'px');
-          menu.style.maxHeight = Math.max(110, Math.min(480, viewport - top - 88)) + 'px';
+          const visible = menu.getBoundingClientRect();
+          if (visible.top < trigger.bottom + 7) {
+            top += trigger.bottom + 7 - visible.top;
+            bag.style.setProperty('--v46-bag-top', top + 'px');
+          }
+          menu.style.maxHeight = Math.max(96,Math.min(480,viewport - top - 88)) + 'px';
         };
         menu.scrollTop = 0;
         place();

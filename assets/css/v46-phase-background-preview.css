@@ -161,3 +161,15 @@ html:has(#v37HomeDashboard .v46-home) body {
 html:has(#guide.active #v37HomeDashboard .v46-home) #v37HomeDashboard{
   background-color:#fbf6ed!important;
 }
+
+/* The open menu must NEVER intercept taps intended for its own trigger.
+   This is intentionally the same stacking context as the fixed panel. */
+#v37HomeDashboard .v46-home details.v46-inline-tools > summary.v46-inline-bag-summary{
+  position:relative!important;
+  z-index:1702!important;
+  isolation:isolate!important;
+}
+#v37HomeDashboard .v46-home details.v46-inline-tools[open] > .v46-tools-content{
+  z-index:1400!important;
+  margin-top:0!important;
+}
