@@ -173,3 +173,32 @@ html:has(#guide.active #v37HomeDashboard .v46-home) #v37HomeDashboard{
   z-index:1400!important;
   margin-top:0!important;
 }
+
+/* Regression 2026-10-28: during an expanded bag, the sticky header can scroll
+   outside the S25 viewport. Pin its EXISTING toggle in view until the menu
+   closes, so the same physical target remains clickable on the second tap. */
+#v37HomeDashboard .v46-home details.v46-inline-tools[open] > summary.v46-inline-bag-summary{
+  position:fixed!important;
+  top:max(8px,env(safe-area-inset-top))!important;
+  right:max(9px,env(safe-area-inset-right))!important;
+  bottom:auto!important;left:auto!important;
+  box-sizing:border-box!important;
+  width:65px!important;min-width:65px!important;max-width:65px!important;
+  height:58px!important;min-height:58px!important;
+  border-radius:14px!important;
+  background:#e9f2f6!important;
+  color:#235978!important;
+  z-index:2000!important;
+  pointer-events:auto!important;
+}
+#v37HomeDashboard .v46-home details.v46-inline-tools[open] > .v46-tools-content{
+  top:var(--v46-bag-top,76px)!important;
+  right:max(9px,env(safe-area-inset-right))!important;
+  z-index:1450!important;
+}
+@media(max-width:350px){
+ #v37HomeDashboard .v46-home details.v46-inline-tools[open] > summary.v46-inline-bag-summary{
+  width:55px!important;min-width:55px!important;max-width:55px!important;
+  height:50px!important;min-height:50px!important;
+ }
+}
