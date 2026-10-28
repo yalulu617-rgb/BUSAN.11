@@ -93,7 +93,7 @@
       '已完成 ' + model.packing.done + '/' + model.packing.total + ' 項' : '還沒有建立打包項目';
     const heroPart = '<div class="v46-countdown"><small>距離出發還有</small><span>D-' + model.countdown +
       '</span><small>2026.11.13（五）出發 ✈</small></div>' +
-      '<p class="v46-flight">✈ 11/13 · BX572 · 13:25 桃園 → 17:00 釜山</p>';
+      '';
     const weather = model.weather;
     const weatherLabel = weather ?
       esc(weather.city) + '目前｜' + weather.temp + '°C｜' + esc(weather.condition) :
@@ -104,6 +104,10 @@
       }).format(new Date(weather.updatedAt)) : '';
     return hero(model, '釜山 × 慶州', '我們的秋日旅行｜2026.11.13 – 11.17',
       'openPreTripPrep()', '行前準備', heroPart) +
+      '<section class="v46-preflight-strip" aria-label="去程航班"><span>✈ BX572</span>' +
+      '<strong>11/13 · 13:25 桃園 → 17:00 金海</strong></section>' +
+      '<section class="v46-pretrip-rail-link"><span>🚂 偷看五天路線</span>' +
+      '<button type="button" onclick="setV46HomePreview(\'during\')">五日行程預覽 ›</button></section>' +
       '<section class="v46-panel card v46-entry-status" aria-label="入境申報狀態">' +
       '<p>🪪 K-ETA：' + esc(model.entryKeta) + '</p>' +
       '<p>📝 e-Arrival Card：依適用資格與抵達前 3 天窗口辦理</p>' +
@@ -126,17 +130,81 @@
   // Owner reference: the large illustrated yellow coast train is in the hero;
   // this miniature full-color scene tracks the selected day instead of a generic SVG icon.
   const renderTravelTrain = (model, dayIndex) =>
-    '<div class="v46-owner-train-track" aria-label="海岸膠囊列車沿 Day1 到 Day5 向右前進">' +
-    '<span class="v46-rail" aria-hidden="true"></span><div class="v46-owner-train-marker" style="--v46-owner-train-left:' + (25 + dayIndex * 12.5) +
-    '%"><img src="assets/images/v46-owner-fit-train.webp" alt="水彩黃色海岸列車"></div></div>' +
+    '<div class="v46-owner-train-track" data-v46-motion="' + (model.trainMotionEnabled ? 'on' : 'off') + '" aria-label="海岸膠囊列車沿 Day1 到 Day5 向右前進">' +
+    '<span class="v46-rail" aria-hidden="true"></span>' +
+    '<span class="v46-train-cloud one" aria-hidden="true">☁</span><span class="v46-train-cloud two" aria-hidden="true">☁</span>' +
+    '<div class="v46-owner-train-marker" style="--v46-owner-train-left:' + (25 + dayIndex * 12.5) +
+    '%"><span class="v46-smoke-stack" aria-hidden="true"></span>' +
+    '<span class="v46-train-puff one" aria-hidden="true"></span><span class="v46-train-puff two" aria-hidden="true"></span>' +
+    '<span class="v46-train-puff three" aria-hidden="true"></span>' +
+    '<img src="assets/images/v46-owner-fit-train.webp" alt="水彩黃色海岸列車"></div></div>' +
     '<div class="v46-days v46-owner-days" role="group" aria-label="Day 1 至 Day 5 日期選擇">' +
     model.tripDays.map((d,i) => '<button type="button" class="v46-day' +
-    (d.selected ? ' is-current' : '') + '" aria-pressed="' + String(d.selected) +
-    '" data-iso="' + esc(d.iso) + '" onclick="setV46HomeDay(this.dataset.iso)">' +
+    (d.selected ? ' is-current' : '') + (d.iso === model.today ? ' is-today' : '') + '" aria-pressed="' + String(d.selected) +
+    '" data-iso="' + esc(d.iso) + '" aria-label="開啟 ' + esc(d.label + ' ' + d.short) + ' 詳細行程" onclick="openV46TrainDay(this.dataset.iso)">' +
     '<span class="v46-station-mark" aria-hidden="true">' + ['🧳','🌊','🏯','🚠','✈️'][i] +
     '</span><strong>' + esc(d.label) + '</strong><small>' +
     esc(d.iso.slice(5).replace('-', '/')) + '</small>' +
     '<small class="v46-station-name">' + esc(d.short) + '</small></button>').join('') + '</div>';
+  // Always-visible, actionable travel companion (not dependent on expanding the rail).
+  const mascotMini = mascotArt('during')
+    .replace(/<defs><filter[\s\S]*?<\/defs>/, '')
+    .replace(' filter="url(#v46-watercolor)"', '')
+    .replace('class="v46-mascot-art"', 'class="v46-tiny-mascot-art"');
+  const renderNextStop = model => {
+    const item = model.nextStop || {};
+    const iso = model.selectedDay;
+    const enabled = model.trainMotionEnabled !== false;
+    const count = Number.isInteger(item.count) ? item.count : 0;
+    const pos = Number.isInteger(item.index) ? item.index : 0;
+    const show = count > 0 && pos < count;
+    const title = show ? item.title : count > 0
+      ? '今天的站點已手動查看完畢' : '這天還沒有可顯示的行程';
+    const info = show ? (item.time ? '🕒 ' + esc(item.time) + ' · ' : '') +
+      esc(item.transport || '依行程安排交通') : '可以按上一站重新查看，或展開當日行程';
+    const nav = show && item.naver ?
+      '<a href="' + esc(item.naver) +
+      '" target="_blank" rel="noopener noreferrer" aria-label="用 NAVER Map 開啟下一站地點">📍 NAVER 地點／導航</a>' :
+      '<button type="button" onclick="openV46TrainDay(\'' + iso +
+      '\')">查看此站行程（NAVER 待核對）</button>';
+    return '<section class="v46-trip-companion" aria-label="旅行下一站指南">' +
+      '<div class="v46-companion-head"><strong>📍 下一站｜旅行小夥伴</strong>' +
+      '<button type="button" class="v46-motion-toggle" aria-pressed="' + String(enabled) +
+      '" onclick="toggleV46TrainMotion()">動畫：' + (enabled ? '開' : '關') + '</button></div>' +
+      '<div class="v46-stop-name">' + esc(title) + '</div>' +
+      '<div class="v46-stop-time">' + info + '</div>' +
+      '<div class="v46-stop-note">' + esc(item.note || '行程預覽，請以現場狀況為準') + '</div>' +
+      '<div class="v46-stop-links">' + nav +
+      '<button type="button" onclick="openV46TrainDay(\'' + iso + '\')">🗺️ 當天詳細行程</button></div>' +
+      '<div class="v46-stop-pager">' +
+      '<button type="button" ' + (pos <= 0 ? 'disabled ' : '') +
+      'onclick="setV46TrainStop(\'' + iso + '\',\'prev\')">← 上一站</button>' +
+      '<span class="v46-stop-count">' + (count ? Math.min(pos + 1, count) : 0) + '/' + count + '</span>' +
+      '<button type="button" ' + (pos >= count ? 'disabled ' : '') +
+      'onclick="setV46TrainStop(\'' + iso + '\',\'next\')">下一站 →</button>' +
+      '<button type="button" class="v46-time-reset" onclick="setV46TrainStop(\'' + iso +
+      '\',\'auto\')">依韓國時間建議</button></div>' +
+      '<button type="button" class="v46-mascot-hello" onclick="greetV46TrainMascot(this)" ' +
+      'aria-label="和旅行夥伴互動打招呼"><span class="v46-mascot-image" aria-hidden="true">' +
+      mascotMini + '</span><span class="v46-mascot-message">點一下，哆啦A夢打招呼 ♡</span></button>' +
+      '</section>';
+  };
+  // OWNER correction: the day rail is a first-class home control, never hidden
+  // behind an accordion, including the current pre-trip period.
+  const renderVisibleRail = model => {
+    const day = model.tripDays.find(d => d.selected);
+    const dayIndex = Math.max(0, model.tripDays.findIndex(d => d.selected));
+    const preview = model.mode === 'before' || model.today !== model.selectedDay;
+    return '<section class="v46-panel card v46-compact-rail-card v46-visible-rail-card" ' +
+      'aria-label="首頁五日小火車，直接顯示">' +
+      '<div class="v46-visible-rail-heading"><span>🚂 五日旅行小火車</span>' +
+      '<small>' + esc(day ? day.label + ' · ' + day.short : 'Day 1 · 釜山初日') + '</small></div>' +
+      renderTravelTrain(model, dayIndex) +
+      '<p class="v46-visible-rail-hint">' +
+      (preview ? '旅行日期預覽 · 點 Day 1～5 可開啟當天行程' :
+        '依韓國日期顯示今天 · 點 Day 1～5 可開啟當天行程') +
+      '</p>' + renderNextStop(model) + '</section>';
+  };
   function during(model) {
     const selected = model.tripDays.find(d => d.selected);
     const dayTitle = selected ? selected.label + '｜' + selected.short : '今日行程';
@@ -149,23 +217,14 @@
     return hero(model, 'HELLO, BUSAN!', dayTitle + (isPreview ? '（預覽）' : ''),
       "showV37Tab('itinerary')", '今日行程',
       '<p class="v46-hero-tag">🍁 秋日海線 × 城市漫遊</p>') +
-      '<section class="v46-panel card v46-compact-rail-card" aria-label="旅途五天日期軸">' +
-      '<details class="v46-rail-accordion"' + (target.v46TrainExpanded ? ' open' : '') +
-      ' ontoggle="window.v46TrainExpanded=this.open">' +
-      '<summary class="v46-rail-summary"><span class="v46-rail-summary-icon">🚞</span><span class="v46-rail-summary-text"><strong>我們的五天小火車</strong><small>' + esc(dayTitle) + '</small></span><span class="v46-rail-summary-action">展開路線 <span aria-hidden="true">⌄</span></span></summary>' +
-      '<div class="v46-rail-reveal">' + renderTravelTrain(model, dayIndex) +
-      '<p class="v46-muted">' + (isPreview ? '目前正在預覽其他日期；不會改變真實日期或提醒。' : '點選日期可預覽當天主題。') + '</p></div></details></section>' +
-      
+      renderVisibleRail(model) +
       '<section class="v46-panel"><h3>旅途快捷百寶袋</h3><div class="v46-shortcuts">' +
       btn('今日行程', '🗺️', "showV37Tab('itinerary')", '路線・雨備') +
       btn('天氣・楓況', '🌤️', 'toggleHomeWeatherDetail()', '氣溫・穿搭') +
       btn('快樂購', '🛍️', "showV37Tab('shop'); setTimeout(()=>setShopTabMode('my'),50)", '想買・已買') +
       btn('超商・超市', '🏪', 'openConvenienceSupermarketHub()', '零食・水果') +
       btn('翻譯・SOS', '🗣️', "showV37Tab('more')", '韓語・救援') +
-      btn('旅行記帳', '💰', "showV37Tab('split')", '新增・分帳') + '</div></section>' +
-      '<section class="v46-panel card"><h3>📍 ' + (isPreview ? '行程日期預覽' : '下一站，出發吧！') +
-      '</h3><p class="v46-muted">' + (isPreview ? '點選今日行程查看指定日期的詳細安排。' : next) +
-      '</p><button type="button" class="v46-text-link" onclick="showV37Tab(\'itinerary\')">打開行程與導航 ›</button></section>';
+      btn('旅行記帳', '💰', "showV37Tab('split')", '新增・分帳') + '</div></section>';
   }
   function after(model) {
     const spent = model.spent === null ? '尚無記帳資料' : 'NT$ ' + model.spent.toLocaleString('zh-TW');
@@ -234,6 +293,34 @@
     target.v46AllToolsExpanded = isOpen;
     const header = bag.closest('.v46-sticky-head');
     if (isOpen) {
+      // Fix the dropdown to the viewport, not to the scroll coordinate of
+      // the sticky header: position:absolute once placed its top at -103px
+      // after an S25 page scroll. Only the small menu scrolls.
+      const summary = bag.querySelector('summary');
+      const menu = bag.querySelector('.v46-tools-content');
+      if (summary && menu) {
+        const place = () => {
+          if (!bag.isConnected || !bag.open) return;
+          const viewport = target.visualViewport?.height || target.innerHeight;
+          // Position relative to the visible sticky header, never over the
+          // physical trigger. A CSS containing block can offset a fixed panel
+          // on Android/WebKit, so also verify its *rendered* bounds.
+          const trigger = summary.getBoundingClientRect();
+          const sticky = header?.getBoundingClientRect();
+          let top = Math.max(8, (Math.max(trigger.bottom,sticky?.bottom||0))+8);
+          top = Math.min(top, Math.max(8,viewport-145));
+          bag.style.setProperty('--v46-bag-top', top + 'px');
+          const visible = menu.getBoundingClientRect();
+          if (visible.top < trigger.bottom + 7) {
+            top += trigger.bottom + 7 - visible.top;
+            bag.style.setProperty('--v46-bag-top', top + 'px');
+          }
+          menu.style.maxHeight = Math.max(96,Math.min(480,viewport - top - 88)) + 'px';
+        };
+        menu.scrollTop = 0;
+        place();
+        target.requestAnimationFrame(place);
+      }
       // Opening a details menu can make the browser scroll/resize its sticky
       // ancestor. Keep the pre-open page position and header phase stable.
       target.v46BagScrollAnchor = {
@@ -315,6 +402,13 @@
     // change the header underneath the tap. The <24px exit threshold provides
     // hysteresis so the header cannot oscillate around a single boundary.
     target.addEventListener('scroll', () => {
+      // WebKit can coalesce the top-scroll event with the previous compact
+      // request. Clear stale state immediately even while an RAF is pending.
+      if (target.scrollY < 24 && !target.v46AllToolsExpanded) {
+        target.v46StickyCompact = false;
+        document.querySelector('#guide.active #v37HomeDashboard .v46-sticky-head')
+          ?.classList.remove('is-compact');
+      }
       if (pending) return;
       pending = true;
       target.requestAnimationFrame(() => {
@@ -323,11 +417,18 @@
         // WebKit scrolls the page while moving through the long 11-item bag.
         // Never resize its containing sticky header during that interaction:
         // changing the target's geometry would make real taps fail.
+        // A return to the very top must clear stale compact state,
+        // including after mode-switch and restored dropdown scroll anchors.
+        // Avoid resizing an OPEN bag during ordinary scrolling.
+        if (target.scrollY < 24 && !target.v46AllToolsExpanded) {
+          target.v46StickyCompact = false;
+          el?.classList.remove('is-compact');
+          return;
+        }
         if (el?.querySelector('details.v46-tools[open]')) return;
         // Hysteresis avoids scroll/height oscillation when expanded header
         // collapses at the same position that the page is scrolling.
         if (target.scrollY > 256) target.v46StickyCompact = true;
-        else if (target.scrollY < 24) target.v46StickyCompact = false;
         if (el) el.classList.toggle('is-compact', Boolean(target.v46StickyCompact));
       });
     }, { passive: true });
@@ -355,6 +456,7 @@
       '<summary class="v46-tools-summary v46-inline-bag-summary" aria-label="開啟或收起旅行百寶袋 11 項功能">' +
       '<span aria-hidden="true">🎒</span><span class="v46-bag-label">百寶袋</span></summary>' +
       '<div class="v46-tools-content">' + menu + '</div></details></div>' + weatherDetail + '</div>' +
+      '<div class="v46-wallpaper-window" aria-hidden="true"></div>' +
       content + '<div class="v38-widget-row">' + (collections || '') + '</div>' +
       '<details class="v46-legacy-tool"><summary>舊版日期測試工具</summary>' + simulator + '</details>' +
       '</div>';

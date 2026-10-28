@@ -1,0 +1,208 @@
+/* V46 Trip Companion: animation only while the home page is visible.
+   No GIF, canvas, video, location polling or scroll-triggered animation. */
+#v37HomeDashboard .v46-owner-train-track .v46-train-cloud{
+  position:absolute;z-index:1;pointer-events:none;opacity:.70;line-height:1;
+  font-size:29px;filter:drop-shadow(0 2px 1px #ffffff99);
+}
+#v37HomeDashboard .v46-owner-train-track .v46-train-cloud.one{top:7%;left:8%}
+#v37HomeDashboard .v46-owner-train-track .v46-train-cloud.two{top:29%;right:9%;font-size:24px;opacity:.55}
+#v37HomeDashboard .v46-owner-train-track .v46-smoke-stack{
+  position:absolute;z-index:3;left:41%;top:8%;width:13px;height:18px;
+  border-radius:4px 4px 2px 2px;background:#658da2;border:2px solid #fdf9df;
+  transform:rotate(-3deg);pointer-events:none
+}
+#v37HomeDashboard .v46-owner-train-track .v46-train-puff{
+  position:absolute;z-index:4;width:13px;height:13px;border-radius:50%;
+  background:radial-gradient(circle at 28% 29%,#fff 12%,#f4fbf9c9 45%,#b9dce070 80%);
+  opacity:0;pointer-events:none;left:40%;top:0%
+}
+#v37HomeDashboard .v46-owner-train-track .v46-train-puff.two{left:45%;top:-4%;width:11px;height:11px}
+#v37HomeDashboard .v46-owner-train-track .v46-train-puff.three{left:38%;top:-9%;width:16px;height:16px}
+#v37HomeDashboard .v46-owner-train-track[data-v46-motion="on"] .v46-train-cloud.one{
+  animation:v46-cloud-drift-a 15s ease-in-out infinite alternate
+}
+#v37HomeDashboard .v46-owner-train-track[data-v46-motion="on"] .v46-train-cloud.two{
+  animation:v46-cloud-drift-b 19s ease-in-out infinite alternate
+}
+#v37HomeDashboard .v46-owner-train-track[data-v46-motion="on"] .v46-train-puff.one{animation:v46-steam 10s ease-out infinite}
+#v37HomeDashboard .v46-owner-train-track[data-v46-motion="on"] .v46-train-puff.two{animation:v46-steam 10s ease-out 2.8s infinite}
+#v37HomeDashboard .v46-owner-train-track[data-v46-motion="on"] .v46-train-puff.three{animation:v46-steam 10s ease-out 5.8s infinite}
+@keyframes v46-cloud-drift-a{to{transform:translate3d(22px,1px,0);opacity:.85}}
+@keyframes v46-cloud-drift-b{to{transform:translate3d(-19px,-1px,0);opacity:.68}}
+@keyframes v46-steam{
+  0%,9%,85%,100%{opacity:0;transform:translate3d(0,4px,0) scale(.55)}
+  17%{opacity:.82} 42%{opacity:.05;transform:translate3d(-15px,-23px,0) scale(1.5)}
+  50%,84%{opacity:0}
+}
+#v37HomeDashboard .v46-trip-companion{
+  display:grid;gap:9px;padding:12px;margin-top:9px;border-radius:15px;
+  border:1px solid #d5e1dc;background:linear-gradient(145deg,#f9f9ef,#ecf6f6);
+  color:#254c60;box-sizing:border-box
+}
+#v37HomeDashboard .v46-companion-head{display:flex;gap:8px;align-items:center;justify-content:space-between}
+#v37HomeDashboard .v46-companion-head strong{font-size:13px;color:#234c61}
+#v37HomeDashboard .v46-motion-toggle{
+  font-size:11px;border:1px solid #9cbcc8;color:#275d75;background:#fffdf6;
+  border-radius:9px;padding:7px 9px;min-height:36px;cursor:pointer;flex:none
+}
+#v37HomeDashboard .v46-stop-name{font-weight:900;color:#254962;font-size:16px;line-height:1.45;overflow-wrap:anywhere}
+#v37HomeDashboard .v46-stop-time{font-size:12px;color:#3d647b;line-height:1.45}
+#v37HomeDashboard .v46-stop-note{font-size:11px;color:#486478;line-height:1.45}
+#v37HomeDashboard .v46-stop-links{display:flex;flex-wrap:wrap;gap:7px}
+#v37HomeDashboard .v46-stop-links a,
+#v37HomeDashboard .v46-stop-links button{
+  text-decoration:none;display:inline-flex;align-items:center;justify-content:center;
+  border-radius:11px;border:1px solid #96c4af;background:#e5f7e9;
+  color:#14673e;font-size:12px;font-weight:900;min-height:43px;
+  padding:8px 11px;box-sizing:border-box;cursor:pointer
+}
+#v37HomeDashboard .v46-stop-links button{background:#fff9e9;color:#426174;border-color:#d4d7c7}
+#v37HomeDashboard .v46-stop-pager{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+#v37HomeDashboard .v46-stop-pager button{
+  background:#fff;border:1px solid #c2d1d0;color:#275875;font-size:12px;
+  font-weight:800;border-radius:10px;padding:8px 10px;min-height:40px;cursor:pointer
+}
+#v37HomeDashboard .v46-stop-pager button:disabled{opacity:.42;cursor:default}
+#v37HomeDashboard .v46-stop-pager .v46-stop-count{font-size:12px;font-weight:800;color:#536c7a}
+#v37HomeDashboard .v46-stop-pager .v46-time-reset{margin-left:auto;font-size:11px}
+#v37HomeDashboard .v46-mascot-hello{
+  display:flex;gap:8px;align-items:center;justify-self:start;
+  background:#fffdf5;color:#356176;border:1px solid #d7d9c5;
+  border-radius:24px;padding:3px 13px 3px 4px;min-height:44px;cursor:pointer;font-size:11px;font-weight:800
+}
+#v37HomeDashboard .v46-mascot-image{display:inline-block;width:38px;height:40px;transform-origin:50% 75%}
+#v37HomeDashboard .v46-mascot-image svg{display:block;width:38px;height:40px}
+#v37HomeDashboard .v46-mascot-image.is-greeting{animation:v46-mascot-greet .75s ease-in-out 2}
+@keyframes v46-mascot-greet{0%,100%{transform:rotate(0)}35%{transform:rotate(-11deg)}70%{transform:rotate(8deg)}}
+#v37HomeDashboard .v46-trip-companion button:focus-visible,
+#v37HomeDashboard .v46-trip-companion a:focus-visible{outline:3px solid #ef9d4a;outline-offset:2px}
+@media(max-width:350px){
+  #v37HomeDashboard .v46-trip-companion{padding:9px;gap:7px}
+  #v37HomeDashboard .v46-stop-name{font-size:14px}
+  #v37HomeDashboard .v46-stop-pager{gap:4px}
+  #v37HomeDashboard .v46-stop-pager button{padding:7px}
+}
+@media(prefers-reduced-motion:reduce){
+  #v37HomeDashboard .v46-train-cloud,
+  #v37HomeDashboard .v46-train-puff,
+  #v37HomeDashboard .v46-mascot-image,
+  #v37HomeDashboard .v46-owner-train-marker{animation:none!important;transition:none!important}
+}
+body.v46-page-hidden #v37HomeDashboard .v46-train-cloud,
+body.v46-page-hidden #v37HomeDashboard .v46-train-puff,
+body.v46-page-hidden #v37HomeDashboard .v46-mascot-image,
+#guide:not(.active) #v37HomeDashboard .v46-train-cloud,
+#guide:not(.active) #v37HomeDashboard .v46-train-puff,
+#guide:not(.active) #v37HomeDashboard .v46-mascot-image{animation-play-state:paused!important}
+
+
+/* OWNER 2026-10-27: highly legible, visible-first mobile train control */
+#v37HomeDashboard .v46-home > .v46-visible-rail-card{
+  order:0!important;display:block!important;position:relative!important;
+  padding:13px 11px 14px!important;margin:0!important;
+  min-width:0!important;width:100%!important;box-sizing:border-box!important;
+  background:#fffaf1!important;color:#24485c!important;
+  border:1px solid #e0d4bf!important;border-radius:19px!important;
+  box-shadow:0 3px 10px rgba(42,75,92,.075)!important;
+}
+#v37HomeDashboard .v46-home > .v46-sticky-head{order:-1!important}
+#v37HomeDashboard .v46-visible-rail-heading{
+  display:flex;align-items:baseline;justify-content:space-between;gap:7px;
+  font-size:15px;font-weight:900;color:#244d67;padding:1px 3px 0;
+}
+#v37HomeDashboard .v46-visible-rail-heading small{font-size:11px;font-weight:750;color:#6c8390}
+#v37HomeDashboard .v46-visible-rail-hint{
+  font-size:11px;line-height:1.5;color:#536f81;
+  margin:0 3px 9px;padding:0
+}
+#v37HomeDashboard .v46-visible-rail-card .v46-owner-train-track{
+  margin:10px 0 12px!important;height:125px!important;
+  border-radius:17px!important;overflow:hidden!important
+}
+#v37HomeDashboard .v46-visible-rail-card .v46-owner-train-marker{
+  width:clamp(104px,32vw,128px)!important;
+}
+#v37HomeDashboard .v46-visible-rail-card .v46-owner-days{
+  display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  gap:4px!important;margin:0 0 6px!important;overflow:visible!important
+}
+#v37HomeDashboard .v46-visible-rail-card .v46-owner-days .v46-day{
+  min-height:74px!important;border-radius:10px!important;
+  padding:4px 1px!important;background:#fffdf7!important;color:#31566f!important;
+}
+#v37HomeDashboard .v46-visible-rail-card .v46-owner-days .v46-day.is-current{
+  background:#fff0ce!important;color:#6b4c27!important;
+}
+#v37HomeDashboard .v46-visible-rail-card .v46-trip-companion{
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+  position:relative!important;overflow:hidden!important;min-width:0!important;
+  padding:12px!important;margin:7px 0 0!important;
+  background:#f6f9f8!important;color:#24485c!important;
+  border:1px solid #dce8e5!important;border-radius:14px!important;
+  box-shadow:none!important;
+}
+#v37HomeDashboard .v46-visible-rail-card .v46-companion-head{min-width:0}
+#v37HomeDashboard .v46-visible-rail-card .v46-companion-head strong{
+  font-size:13px!important;color:#1f516c!important
+}
+#v37HomeDashboard .v46-visible-rail-card .v46-stop-name{
+  font-size:17px!important;font-weight:900!important;
+  color:#1c4562!important;line-height:1.35!important
+}
+#v37HomeDashboard .v46-visible-rail-card .v46-stop-links{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important
+}
+#v37HomeDashboard .v46-visible-rail-card .v46-stop-links>*{
+  min-width:0!important;width:100%!important;min-height:46px!important;
+  border-radius:12px!important;line-height:1.35!important;
+  box-sizing:border-box!important;text-align:center!important;
+  padding:9px 7px!important;font-size:12px!important
+}
+#v37HomeDashboard .v46-visible-rail-card .v46-stop-links a{
+  background:#087c62!important;border-color:#087c62!important;color:#fff!important
+}
+#v37HomeDashboard .v46-visible-rail-card .v46-stop-links button{
+  background:#fff!important;color:#2a6480!important;border-color:#b9d3da!important
+}
+#v37HomeDashboard .v46-visible-rail-card .v46-stop-pager{
+  display:grid!important;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;gap:7px!important;
+  align-items:center!important
+}
+#v37HomeDashboard .v46-visible-rail-card .v46-stop-pager button{
+  background:#fff!important;color:#315d7a!important;border-color:#d2dfdf!important;
+  width:auto!important;white-space:normal!important;min-height:44px!important;font-size:11px!important
+}
+#v37HomeDashboard .v46-visible-rail-card .v46-stop-pager .v46-stop-count{
+  font-size:13px!important;white-space:nowrap!important;color:#23465d!important
+}
+#v37HomeDashboard .v46-visible-rail-card .v46-stop-pager .v46-time-reset{
+  grid-column:1/-1!important;justify-self:end!important;min-height:35px!important;
+  padding:5px 11px!important;border-radius:30px!important;
+  background:#f8ecdb!important;color:#805a36!important;border-color:#ead4b2!important
+}
+#v37HomeDashboard .v46-visible-rail-card .v46-mascot-hello{
+  justify-self:start!important;position:relative!important;min-width:0!important;
+  max-width:100%!important;font-size:11px!important;
+  margin:0!important;padding:3px 12px 3px 4px!important;
+  background:#fffdf8!important;border-color:#d9e3da!important;
+}
+#v37HomeDashboard .v46-visible-rail-card .v46-mascot-image{
+  display:block!important;position:relative!important;flex:0 0 34px!important;
+  width:34px!important;height:36px!important;max-width:34px!important;max-height:36px!important;
+  min-width:0!important;overflow:hidden!important
+}
+#v37HomeDashboard .v46-visible-rail-card svg.v46-tiny-mascot-art{
+  position:static!important;display:block!important;inset:auto!important;
+  width:34px!important;height:36px!important;max-width:34px!important;max-height:36px!important;
+  min-width:0!important;min-height:0!important;
+  right:auto!important;bottom:auto!important;filter:none!important;transform:none!important;
+  overflow:hidden!important;opacity:1!important;pointer-events:none!important
+}
+#v37HomeDashboard .v46-visible-rail-card .v46-mascot-message{
+  font-size:11px!important;white-space:normal!important;line-height:1.3!important
+}
+@media(max-width:355px){
+  #v37HomeDashboard .v46-visible-rail-card .v46-stop-name{font-size:15px!important}
+  #v37HomeDashboard .v46-visible-rail-card .v46-stop-links>*{font-size:11px!important}
+  #v37HomeDashboard .v46-visible-rail-card .v46-owner-train-track{height:118px!important}
+}

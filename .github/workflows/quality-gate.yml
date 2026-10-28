@@ -41,12 +41,12 @@ jobs:
             'ute/ute_storage.js','ute/ute_network.js','ute/ute_knowledge.js',
             'ute/ute_place.js','ute/ute_city.js','ute/ute_weather.js',
             'ute/ute_navigation.js','ute/ute_budget.js','ute/ute_ai.js',
-            'ute/ute_context.js','ute/ute_main.js','ute/ute_home_v46.js',
+            'ute/ute_context.js','ute/ute_main.js','ute/ute_home_v46.js','ute/ute_trip_companion.js',
             'ute/ute_shopping_photo.js','ute/ute_private_ledger.js','ute/ute_pwa_install.js',
-            'services/nearby.js','services/utils.js','services/item-images.js',
-            'data/recommended.js',
+            'services/nearby.js','services/photo-metadata.js','services/utils.js','services/item-images.js',
+            'data/recommended.js','data/v46-next-stop-keys.js',
             'js/firebase.js','js/ui.js','js/wallet.js',
-            'js/memory.js','js/itinerary.js','js/app.js',
+            'js/memory.js','js/itinerary.js','js/v46-train-controls.js','js/app.js',
             'components/v46-home.js','components/renderers.js'
           ];
           let pass = 0; let fail = 0;

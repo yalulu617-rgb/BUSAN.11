@@ -30,9 +30,9 @@ test('compact V46 owner interactive screenshots 360 and 390', async ({page})=>{
       const weatherBox=await weather.boundingBox(),heroBox=await hero.boundingBox();
       expect(weatherBox&&heroBox).toBeTruthy();
       expect(weatherBox.y + weatherBox.height).toBeLessThan(heroBox.y+1);
-      const rail=home.locator('.v46-rail-accordion');
+      const rail=home.locator('.v46-visible-rail-card');
       await expect(rail).toHaveCount(mode==='during'?1:0);
-      if(mode==='during')await expect(rail).not.toHaveAttribute('open','');
+      if(mode==='during')await expect(rail.locator('.v46-owner-train-track')).toBeVisible();
       const fab=home.locator('.v46-inline-tools');
       await expect(fab.locator('.v46-inline-bag-summary')).toBeVisible();
       await expect(fab.locator('.v45-nine-card')).toHaveCount(11);
@@ -56,16 +56,18 @@ test('compact V46 owner interactive screenshots 360 and 390', async ({page})=>{
    await fab.locator('summary').click();
    await expect(fab).not.toHaveAttribute('open','');
    await page.evaluate(()=>window.setV46HomePreview('during'));
-   await home.locator('.v46-rail-summary').click();
-   const rail=home.locator('.v46-rail-accordion');
-   await expect(rail).toHaveAttribute('open','');
+   const rail=home.locator('.v46-visible-rail-card');
+   await expect(rail).toBeVisible();
    await expect(rail.locator('.v46-day')).toHaveCount(5);
    await rail.locator('.v46-day').nth(2).click();
-   await expect(home.locator('.v46-rail-accordion')).toHaveAttribute('open','');
-   await expect(home.locator('.v46-day').nth(2)).toHaveAttribute('aria-pressed','true');
-   await page.locator('#v37HomeDashboard .v46-rail-summary').scrollIntoViewIfNeeded();
-   await page.screenshot({path:'visual-compact/'+width+'-rail-open-Day3.png',animations:'disabled'});
-   report.push({width,phase:'during',fabOpened:true,accordionOpened:true,day3Clicked:true});
+   await expect(page.locator('#itinerary.container')).toHaveClass(/active/);
+   await expect.poll(()=>page.evaluate(()=>window.currentFilterDay)).toBe('11/15');
+   await page.evaluate(()=>window.showV37Tab('home'));
+   await page.evaluate(()=>{window.setV46HomePreview('during');window.setV46HomeDay('2026-11-15');});
+   await expect(rail.locator('.v46-day').nth(2)).toHaveAttribute('aria-pressed','true');
+   await rail.locator('.v46-owner-train-track').scrollIntoViewIfNeeded();
+   await page.screenshot({path:'visual-compact/'+width+'-rail-visible-Day3.png',animations:'disabled'});
+   report.push({width,phase:'during',fabOpened:true,railVisible:true,day3Clicked:true});
  }
  await fs.writeFile('visual-compact/results.json',JSON.stringify(report,null,2));
 });

@@ -202,16 +202,31 @@ window.uploadMultipleToImgBB = async function(files, type) {
     for (let i = 0; i < files.length; i++) {
         if (status) status.innerText = `⏳ 正在上傳第 ${i + 1}/${files.length} 張...`;
         try {
+            // Read capture EXIF from the ORIGINAL image before canvas conversion strips it.
+            // GPS is private and saved to Firebase only with explicit opt-in.
+            const metadata = await window.PhotoMetadataEngine?.readOriginal(files[i]) || {};
+            const allowGPS = document.getElementById('photoGPSConsent')?.checked === true;
             const compressed = await compressImage(files[i]);
             const res = await NetworkEngine.uploadImage(compressed);
             if (!res || res.success !== true || !res.data?.url) {
                 throw new Error(res?.error || '圖片上傳未完成');
             }
-            const saved = await NetworkEngine.firebasePush(DB_PHOTOS, {
-                url: res.data.url,
-                date: getV37SelectedDate(),
-                timestamp: Date.now()
-            });
+            const capturedAt = typeof metadata.capturedAt === 'string' ? metadata.capturedAt : null;
+            const travelISO = capturedAt?.slice(0, 10);
+            const day = travelISO && travelISO >= '2026-11-13' && travelISO <= '2026-11-17'
+                ? travelISO.slice(5).replace('-', '/') : getV37SelectedDate();
+            const payload = { url: res.data.url, date: day, timestamp: Date.now() };
+            if (capturedAt) {
+                payload.capturedAt = capturedAt;
+                payload.captureTimeSource = 'exif';
+                if (metadata.offsetTime) payload.captureUtcOffset = metadata.offsetTime;
+            }
+            if (allowGPS && Number.isFinite(metadata.latitude) && Number.isFinite(metadata.longitude)) {
+                payload.latitude = metadata.latitude;
+                payload.longitude = metadata.longitude;
+                payload.locationSource = 'exif';
+            }
+            const saved = await NetworkEngine.firebasePush(DB_PHOTOS, payload);
             // A successful ImgBB upload is NOT proof that the photo record
             // was saved. The Firebase write must succeed too.
             if (!saved || saved.success !== true) {

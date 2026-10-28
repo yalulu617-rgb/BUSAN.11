@@ -26,7 +26,7 @@ test('V46 owner fit: real app screenshots, full-size image, rightward rail, 11 e
      });
      expect(asset.width).toBe(1190);
      expect(asset.height).toBe(1322);
-     expect(asset.fit).toBe('contain');
+     expect(asset.fit).toBe('cover');
      const overflow=await page.evaluate(()=>({
        body:document.documentElement.scrollWidth,visible:document.documentElement.clientWidth
      }));
@@ -44,9 +44,15 @@ test('V46 owner fit: real app screenshots, full-size image, rightward rail, 11 e
      report.push({width,phase,image:asset,overflow,hero:hrect,cta:rect});
    }
    await page.evaluate(()=>window.setV46HomePreview('during'));
-   const accordion=page.locator('#v37HomeDashboard details.v46-rail-accordion');
-   if (!(await accordion.evaluate(node=>node.open))) await accordion.locator('summary').click();
-   await expect(accordion).toHaveAttribute('open','');
+   const visibleCard=page.locator('#v37HomeDashboard .v46-visible-rail-card');
+   await expect(page.locator('#v37HomeDashboard .v46-home')).toHaveAttribute('data-v46-mode','during');
+   await expect(visibleCard,'train cannot require expanding an accordion').toBeVisible();
+   await expect(page.locator('#v37HomeDashboard details.v46-rail-accordion')).toHaveCount(0);
+   const mascot=page.locator('#v37HomeDashboard .v46-mascot-image svg');
+   await expect(mascot).toBeVisible();
+   const mascotRect=await mascot.boundingBox();
+   expect(mascotRect?.width).toBeLessThanOrEqual(40);
+   expect(mascotRect?.height).toBeLessThanOrEqual(42);
    const rail=page.locator('#v37HomeDashboard .v46-owner-train-track');
    const train=rail.locator('.v46-owner-train-marker');
    const img=train.locator('img');
@@ -57,6 +63,13 @@ test('V46 owner fit: real app screenshots, full-size image, rightward rail, 11 e
    const xs=[];
    for(const i of [0,2,4]){
       await days.nth(i).click();
+      const targetDay=['11/13','11/14','11/15','11/16','11/17'][i];
+      await expect(page.locator('#itinerary.container')).toHaveClass(/active/);
+      await expect.poll(()=>page.evaluate(()=>window.currentFilterDay)).toBe(targetDay);
+      await page.evaluate(()=>window.showV37Tab('home'));
+      await page.evaluate(()=>window.setV46HomePreview('during'));
+      await page.evaluate(iso=>window.setV46HomeDay(iso),'2026-'+targetDay.replace('/','-'));
+      await expect(visibleCard).toBeVisible();
       await expect(days.nth(i)).toHaveAttribute('aria-pressed','true');
       const t=await train.boundingBox(),r=await rail.boundingBox();
       expect(t&&r).toBeTruthy();
