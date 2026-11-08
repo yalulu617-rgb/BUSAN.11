@@ -190,6 +190,9 @@ test.describe('BUSAN.11 V45 — Batch B Owner Editable Experience', () => {
   });
 
   test('Open-Meteo weather panel normalizes both cities and keeps distant trip dates honest', async ({ page }) => {
+    // Render against the same historical date as the fixture. The actual trip
+    // is now near; using wall-clock time here makes the assertion expire.
+    await page.clock.setFixedTime(new Date('2026-09-24T00:00:00+09:00'));
     const normalized = await page.evaluate(() => {
       const sample = {
         current: { time: '2026-09-24T12:00', temperature_2m: 18, apparent_temperature: 16, relative_humidity_2m: 72, precipitation: 0.2, weather_code: 61, wind_speed_10m: 22 },

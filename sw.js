@@ -8,7 +8,7 @@
 // - Cache-first with network fallback for static media (images, icons)
 // ─────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'busan-trip-v46-pages-restored-20261109';
+const CACHE_NAME = 'busan-trip-v46-release-candidate-v2';
 
 const LOCAL_ASSETS = [
     './',
@@ -83,9 +83,6 @@ function isNetworkOnly(url) {
 
 // ── Install: precache local assets; updates wait for explicit user consent ──
 self.addEventListener('install', event => {
-    // Replace the previous encrypted-only loader on this same GitHub Pages origin.
-    // No IndexedDB, localStorage or user records are cleared.
-    self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NAME).then(async cache => {
             const results = await Promise.allSettled(
