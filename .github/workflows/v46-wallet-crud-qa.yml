@@ -1,0 +1,51 @@
+name: V46 Wallet CRUD Regression (Isolated)
+
+on:
+  push:
+    branches: [v46-ticket-crud-repair-20261021]
+    paths:
+      - '.github/workflows/v46-wallet-crud-qa.yml'
+      - 'js/wallet.js'
+      - 'js/app.js'
+      - 'ute/ute_context.js'
+      - 'tests/v46-ticket-crud.spec.js'
+      - 'index.html'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ticket-crud:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: 'npm'
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Start isolated localhost UI server
+        run: |
+          npm install -g serve
+          serve -s . -l 8080 &
+          sleep 3
+          curl -fsS http://localhost:8080/ >/dev/null
+      - name: Real ticket editing, deletion and reservation state tests
+        run: npx playwright test tests/v46-ticket-crud.spec.js --project=chromium --workers=1 --reporter=html,list
+        env:
+          CI: 'true'
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
+          BUSAN_CI_FIREBASE_ISOLATED: '1'
+          PLAYWRIGHT_HTML_OPEN: never
+      - name: Keep evidence for ticket tests
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: v46-ticket-crud-test-evidence
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14

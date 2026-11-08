@@ -1,0 +1,44 @@
+name: V46 Five-Day Real Itinerary Mobile Data Gate
+on:
+  push:
+    branches: [v46-ticket-crud-repair-20261021]
+    paths:
+      - '.github/workflows/v46-five-day-mobile-qa.yml'
+      - 'tests/final-content-sync-mobile.spec.js'
+      - 'js/itinerary.js'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  five-day-content:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Start isolated server
+        run: |
+          npm install -g serve
+          serve -s . -l 8080 &
+          sleep 3
+          curl -fsS http://localhost:8080/ >/dev/null
+      - name: Verify Day1-Day5 and confirmed owner travel content on Android browser emulation
+        run: npx playwright test tests/final-content-sync-mobile.spec.js --project=mobile-chrome --workers=1 --retries=0 --reporter=html,list
+        env:
+          CI: 'true'
+          BUSAN_CI_FIREBASE_ISOLATED: '1'
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
+          PLAYWRIGHT_HTML_OPEN: never
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: v46-five-day-mobile-itinerary-evidence
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14

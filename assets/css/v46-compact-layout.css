@@ -1,0 +1,303 @@
+/* BUSAN.11 independent layout experiment: preserve approved visual assets. */
+#v37HomeDashboard .v46-home{padding-bottom:116px!important;position:relative}
+#v37HomeDashboard .v46-quick-weather{
+ width:100%;min-height:55px;padding:7px 11px;display:flex;align-items:center;gap:9px;
+ background:linear-gradient(110deg,#e5f3fb,#fff8e9)!important;border:1px solid #b7d5e1;
+ box-shadow:0 2px 6px #4f789314;border-radius:14px;color:#285670;text-align:left;
+ cursor:pointer;box-sizing:border-box;
+}
+#v37HomeDashboard .v46-weather-symbol{font-size:22px;line-height:1}
+#v37HomeDashboard .v46-weather-word{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+#v37HomeDashboard .v46-weather-word strong{font-size:12px;font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#v37HomeDashboard .v46-weather-word small{font-size:10px;color:#657e8c;font-weight:700}
+#v37HomeDashboard .v46-weather-open{font-size:12px;font-weight:900;white-space:nowrap;color:#286e96}
+#v37HomeDashboard .v46-home .v46-compact-rail-card{padding:0!important;border:1px solid #e3d6bf!important;background:#fffdf6!important}
+#v37HomeDashboard .v46-rail-accordion{padding:0!important;margin:0}
+#v37HomeDashboard .v46-rail-summary{display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;padding:10px 12px;min-height:56px;box-sizing:border-box;scroll-margin-top:260px}
+#v37HomeDashboard .v46-rail-summary::-webkit-details-marker{display:none}
+#v37HomeDashboard .v46-rail-summary-icon{width:40px;height:40px;flex:none;display:grid;place-items:center;font-size:25px;border-radius:11px;background:#e1f1f5}
+#v37HomeDashboard .v46-rail-summary-text{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+#v37HomeDashboard .v46-rail-summary-text strong{color:#214e6c;font-size:13px;font-weight:900}
+#v37HomeDashboard .v46-rail-summary-text small{color:#657e8e;font-size:11px}
+#v37HomeDashboard .v46-rail-summary-action{color:#35759b;font-size:11px;white-space:nowrap;font-weight:900}
+#v37HomeDashboard .v46-rail-summary-action span{display:inline-block;transition:transform .22s}
+#v37HomeDashboard .v46-rail-accordion[open] .v46-rail-summary-action span{transform:rotate(180deg)}
+#v37HomeDashboard .v46-rail-reveal{padding:0 9px 12px}
+#v37HomeDashboard .v46-rail-accordion:not([open]) .v46-rail-reveal{display:none}
+#v37HomeDashboard .v46-floating-tools{position:fixed!important;right:12px!important;bottom:calc(92px + env(safe-area-inset-bottom,0px))!important;
+ padding:0!important;margin:0!important;border:0!important;background:none!important;
+ box-shadow:none!important;z-index:1400!important;width:auto!important;max-width:min(94vw,380px)}
+#v37HomeDashboard .v46-floating-tools >.v46-fab-summary{display:flex!important;align-items:center!important;justify-content:center!important;gap:4px!important;
+ width:64px!important;height:64px!important;min-width:64px!important;min-height:64px!important;flex-direction:column!important;
+ border-radius:50%!important;border:2px solid #fffdf3!important;background:linear-gradient(145deg,#55a5d4,#1e7fb5)!important;
+ color:#fff!important;box-shadow:0 5px 15px #23546b66!important;cursor:pointer;list-style:none!important;font-weight:900!important}
+#v37HomeDashboard .v46-fab-summary::-webkit-details-marker{display:none}
+#v37HomeDashboard .v46-fab-summary >span:first-child{font-size:24px;line-height:1}
+#v37HomeDashboard .v46-fab-text{font-size:10px;line-height:1.1}
+#v37HomeDashboard .v46-floating-tools[open] >.v46-fab-summary{box-shadow:0 0 0 4px #baddeb!important}
+#v37HomeDashboard .v46-floating-tools >.v46-tools-content{position:absolute!important;right:0;bottom:73px;
+ width:min(89vw,362px)!important;max-height:min(65vh,520px)!important;overflow:auto!important;
+ background:#fffdf7!important;border-radius:19px!important;border:1px solid #e4d4bd!important;
+ box-shadow:0 9px 28px #234f6580!important;padding:12px!important;box-sizing:border-box!important}
+#v37HomeDashboard .v46-floating-tools:not([open]) >.v46-tools-content{display:none!important}
+#v37HomeDashboard .v46-floating-tools .v45-home-nine-grid{margin:0!important}
+#v37HomeDashboard .v46-floating-tools .v45-nine-card{min-height:63px!important}
+#v37HomeDashboard .v46-home .home-weather-detail-panel{position:relative;margin:7px 0 0!important}
+#v37HomeDashboard .v46-quick-weather:focus-visible,
+#v37HomeDashboard .v46-rail-summary:focus-visible,
+#v37HomeDashboard .v46-fab-summary:focus-visible{outline:3px solid #e5a052!important;outline-offset:2px}
+@media(min-width:650px){#v37HomeDashboard .v46-floating-tools{right:max(12px,calc((100vw - 500px)/2))!important}}
+@media(prefers-reduced-motion:reduce){#v37HomeDashboard .v46-rail-summary-action span{transition:none!important}}
+
+/* V46 October 20 phone corrections: no iPhone AssistiveTouch collision. */
+#v37HomeDashboard .v46-home{color-scheme:light!important;--v46-ink:#234b67!important;--v46-paper:#fbf5e9!important;background-color:#fbf5e9!important;color:#234b67!important}
+body:has(#guide.active #v37HomeDashboard .v46-home){
+  --bg-color:#fbf5e9!important;--card-bg:rgba(255,253,248,.96)!important;
+  --text-color:#294c65!important;--border-color:#ebdcc5!important;
+  background:#fbf5e9!important;color:#294c65!important;color-scheme:light!important;
+}
+[data-theme="dark"] #guide.active #v37HomeDashboard .v46-home .v46-panel.card{
+  background:#fffcf5!important;border-color:#e8d7c0!important;color:#294c65!important
+}
+[data-theme="dark"] #guide.active #v37HomeDashboard .v46-home .v46-panel h3,
+[data-theme="dark"] #guide.active #v37HomeDashboard .v46-home .v46-panel strong{
+  color:#234e6d!important
+}
+[data-theme="dark"] #guide.active #v37HomeDashboard .v46-home .v46-hero h2{color:#15547f!important}
+[data-theme="dark"] #guide.active #v37HomeDashboard .v46-home .v46-hero-subtitle{color:#3a6682!important}
+[data-theme="dark"] #guide.active #v37HomeDashboard .v46-home .v46-phase{
+  background:transparent!important;color:#55748b!important
+}
+[data-theme="dark"] #guide.active #v37HomeDashboard .v46-home .v46-phase.is-current{
+  background:#daedf9!important;color:#245a80!important
+}
+#v37HomeDashboard .v46-top-quick-actions{
+  display:flex!important;align-items:stretch!important;gap:7px!important;position:relative!important;z-index:6!important
+}
+#v37HomeDashboard .v46-weather-current{
+  flex:1 1 auto;min-width:0;min-height:58px;display:flex;align-items:center;gap:6px;
+  box-sizing:border-box;background:linear-gradient(100deg,#e6f4fb,#fff6e7)!important;
+  border:1px solid #bdd7e2;border-radius:14px;padding:6px 7px;color:#244e6d;
+}
+#v37HomeDashboard .v46-weather-city{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+#v37HomeDashboard .v46-weather-city strong{
+  font-size:clamp(10px,2.8vw,12px)!important;white-space:nowrap;line-height:1.2;
+  color:#1e5375!important
+}
+#v37HomeDashboard .v46-weather-city small{font-size:9px;color:#627f91;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#v37HomeDashboard .v46-weather-separator{width:1px;height:30px;background:#c2d6db;flex:none}
+#v37HomeDashboard .v46-weather-symbol{font-size:17px!important;flex:none}
+#v37HomeDashboard .v46-weather-detail-button{
+  min-width:39px;min-height:44px;align-self:center;flex:none;
+  background:transparent;border:0;color:#236a94;font-weight:900;font-size:11px;padding:5px 2px;cursor:pointer
+}
+#v37HomeDashboard .v46-home .v46-inline-tools{
+  flex:0 0 75px;display:block;position:relative!important;right:auto!important;bottom:auto!important;top:auto!important;
+  padding:0!important;margin:0!important;width:75px!important;min-width:75px!important;max-width:75px!important;
+  z-index:7!important;background:transparent!important;border:0!important;box-shadow:none!important
+}
+#v37HomeDashboard .v46-home .v46-inline-bag-summary{
+  min-width:75px!important;min-height:58px!important;height:100%!important;
+  display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;
+  gap:3px!important;padding:6px!important;margin:0!important;
+  background:#e9f2f6!important;border:1px solid #b4d2e0!important;border-radius:14px!important;
+  color:#235978!important;box-shadow:none!important;cursor:pointer;list-style:none!important;
+}
+#v37HomeDashboard .v46-inline-bag-summary::-webkit-details-marker{display:none}
+#v37HomeDashboard .v46-inline-bag-summary span:first-child{font-size:22px;line-height:1}
+#v37HomeDashboard .v46-inline-bag-summary .v46-bag-label{font-size:11px;font-weight:950;color:#235978}
+#v37HomeDashboard .v46-inline-tools[open] >.v46-inline-bag-summary{background:#d5edf8!important;border-color:#79b5d3!important}
+#v37HomeDashboard .v46-home .v46-inline-tools > .v46-tools-content{
+  position:absolute!important;right:0!important;top:calc(100% + 8px)!important;bottom:auto!important;
+  width:min(87vw,356px)!important;
+  /* Keep the scrollable 11-function list clear of the fixed bottom navigation,
+     including at 200% font size; the content itself remains fully accessible. */
+  max-height:min(46vh,calc(100dvh - 300px),480px)!important;
+  overflow-y:auto!important;
+  padding:10px!important;border-radius:18px!important;border:1px solid #e4d5c0!important;
+  background:#fffdf7!important;box-shadow:0 10px 25px #3b566f55!important;
+  color:#234b67!important;box-sizing:border-box!important;
+}
+/* QA: old details overflow:hidden clipped the sticky 11-function dropdown.
+   Fix physical hit targets; never force-click obscured controls. */
+#v37HomeDashboard .v46-home details.v46-tools.v46-inline-tools{overflow:visible!important}
+#v37HomeDashboard .v46-home details.v46-tools.v46-inline-tools[open]{z-index:1201!important}
+#v37HomeDashboard .v46-home .v46-inline-tools > .v46-tools-content{z-index:1202!important;overscroll-behavior:contain}
+#v37HomeDashboard .v46-home .v46-inline-tools:not([open]) > .v46-tools-content{display:none!important}
+#v37HomeDashboard .v46-home .v46-inline-tools[open] > .v46-tools-content{display:block!important}
+#v37HomeDashboard .v46-inline-tools .v45-home-nine-grid{margin:0!important}
+#v37HomeDashboard .v46-inline-tools .v45-nine-card{min-height:62px!important}
+#v37HomeDashboard .v46-inline-bag-summary:focus-visible,
+#v37HomeDashboard .v46-weather-detail-button:focus-visible{outline:3px solid #e49c5a!important;outline-offset:2px}
+@media(max-width:350px){
+  #v37HomeDashboard .v46-top-quick-actions{gap:5px!important}
+  #v37HomeDashboard .v46-home .v46-inline-tools{flex-basis:66px!important;min-width:66px!important;max-width:66px!important;width:66px!important}
+  #v37HomeDashboard .v46-home .v46-inline-bag-summary{min-width:66px!important}
+  #v37HomeDashboard .v46-weather-current{gap:4px;padding:5px 5px}
+  #v37HomeDashboard .v46-weather-city strong{font-size:10px!important}
+  #v37HomeDashboard .v46-weather-city small{font-size:8px!important}
+  #v37HomeDashboard .v46-weather-symbol{display:none}
+}
+
+/* Decorative leaf must not steal taps from the adjacent sticky tool menu.
+   No change to owner-approved artwork, theme or layout. */
+#v37HomeDashboard .v46-headleaf{pointer-events:none!important}
+
+/* Clip accidental page-wide overflow at the root, without creating a
+   new scrolling ancestor that would break the owner-approved sticky header.
+   Scrollable day tabs retain their own horizontal scrollbar. */
+html:has(#mainApp){max-width:100%;overflow-x:clip!important}
+html:has(#mainApp) body{max-width:100%;overflow-x:clip!important}
+#mainApp{max-width:100%;min-width:0}
+
+/* 200% mobile type: the five horizontal day pills must scroll INSIDE their
+   rail, never inflate Chromium's layout viewport from 320px to 618px.
+   Keep the owner's existing swipeable day-selector appearance. */
+#itinerary .day-tabs{
+  min-width:0!important;
+  max-width:100%!important;
+  width:100%!important;
+  box-sizing:border-box!important;
+  contain:inline-size;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* Owner-approved condensed sticky masthead. Full design returns near page top. */
+#v37HomeDashboard .v46-sticky-head{
+  position:sticky!important;top:env(safe-area-inset-top,0px)!important;z-index:1100!important;
+  display:flex!important;flex-direction:column!important;gap:10px!important;
+  padding:1px 0 8px!important;margin:0!important;
+  border-radius:0 0 15px 15px!important;
+  background:rgba(251,245,233,.98)!important;
+  -webkit-backdrop-filter:blur(15px)!important;backdrop-filter:blur(15px)!important;
+}
+#v37HomeDashboard .v46-sticky-expanded{
+  display:flex!important;flex-direction:column!important;gap:10px!important;
+}
+#v37HomeDashboard .v46-sticky-head .v46-masthead{padding:2px 2px 4px!important}
+#v37HomeDashboard .v46-sticky-head .v46-phase-nav{margin:0!important}
+#v37HomeDashboard .v46-phase-minibar{display:none!important}
+#v37HomeDashboard .v46-mini-weather{display:none!important}
+#v37HomeDashboard .v46-sticky-head.is-compact{
+  gap:0!important;padding:4px 1px 6px!important;border-bottom:1px solid #e5d7bf!important;
+  box-shadow:0 6px 12px rgba(43,81,111,.09)!important
+}
+#v37HomeDashboard .v46-sticky-head.is-compact .v46-sticky-expanded{display:none!important}
+#v37HomeDashboard .v46-sticky-head.is-compact .v46-weather-current{display:none!important}
+#v37HomeDashboard .v46-sticky-head.is-compact .v46-phase-minibar{
+  position:relative;display:flex!important;align-items:center!important;
+  min-width:0;flex:0 1 45%;min-height:50px;
+}
+#v37HomeDashboard .v46-phase-minibar .v46-mini-phase-select{
+  width:100%;height:50px;min-height:50px;padding:8px 19px 8px 9px;
+  font-weight:900;font-size:clamp(11px,3.3vw,14px);
+  color:#265571;background:#fffdf7!important;border:1px solid #c9d8dc!important;
+  border-radius:13px;appearance:none;-webkit-appearance:none;cursor:pointer;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+#v37HomeDashboard .v46-phase-minibar .v46-phase-dropdown{
+  position:absolute;right:7px;top:50%;transform:translateY(-50%);
+  pointer-events:none;color:#34617b;font-size:14px
+}
+#v37HomeDashboard .v46-sticky-head.is-compact .v46-mini-weather{
+  display:flex!important;align-items:center;justify-content:center;gap:3px;
+  min-width:0;flex:1 1 auto;height:50px;min-height:50px;padding:5px 2px;
+  border-radius:13px;border:1px solid #c7dee4!important;
+  background:#e8f4f9!important;color:#225775!important;font-size:clamp(10px,2.7vw,12px)!important;
+  font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer
+}
+#v37HomeDashboard .v46-mini-weather span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#v37HomeDashboard .v46-sticky-head.is-compact .v46-top-quick-actions{gap:5px!important}
+#v37HomeDashboard .v46-sticky-head.is-compact .v46-inline-tools{
+  width:55px!important;min-width:55px!important;max-width:55px!important;flex:0 0 55px!important
+}
+#v37HomeDashboard .v46-sticky-head.is-compact .v46-inline-bag-summary{
+  min-width:55px!important;min-height:50px!important;width:55px!important;height:50px!important;
+  padding:3px!important
+}
+#v37HomeDashboard .v46-sticky-head.is-compact .v46-inline-bag-summary span:first-child{font-size:19px!important}
+#v37HomeDashboard .v46-sticky-head.is-compact .v46-bag-label{font-size:9px!important}
+#v37HomeDashboard .v46-phase-minibar select:focus-visible,
+#v37HomeDashboard .v46-mini-weather:focus-visible{outline:3px solid #efa86e!important;outline-offset:1px!important}
+#v37HomeDashboard .v46-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:350px){
+  #v37HomeDashboard .v46-sticky-head.is-compact .v46-phase-minibar{flex-basis:43%!important}
+  #v37HomeDashboard .v46-sticky-head.is-compact .v46-top-quick-actions{gap:3px!important}
+  #v37HomeDashboard .v46-sticky-head.is-compact .v46-inline-tools{flex-basis:50px!important;width:50px!important;min-width:50px!important;max-width:50px!important}
+  #v37HomeDashboard .v46-sticky-head.is-compact .v46-inline-bag-summary{min-width:50px!important;width:50px!important}
+}
+
+/*
+ * V46 Android / mobile web view forced-dark opt-out:
+ * "color-scheme: only light" opts out of UA auto-darkening, including images.
+ * This is independent of the app's opt-in V46 theme selector.
+ */
+:root, html, body, #mainApp {
+  color-scheme: only light !important;
+}
+#guide.active, #guide.active #v37HomeDashboard,
+#guide.active #v37HomeDashboard .v46-home {
+  color-scheme: only light !important;
+}
+/* Keep both viewport scroll background and cards on the approved cream paper. */
+html:not([data-theme="dark"]),
+html:not([data-theme="dark"]) body {
+  background-color: #fbf5e9 !important;
+}
+
+/* S25 UX: local weather drawer sits immediately below the sticky summary. */
+#v37HomeDashboard .v46-home .v46-sticky-head > .home-weather-detail-panel {
+  position:absolute!important;top:calc(100% + 6px)!important;
+  left:0!important;right:0!important;width:100%!important;
+  max-height:min(52dvh,440px)!important;overflow-y:auto!important;
+  margin:0!important;padding:12px!important;z-index:1300!important;
+  border:1.5px solid #b2cfd6!important;border-radius:16px!important;
+  background:#fffdf7!important;color:#28526a!important;
+  box-shadow:0 10px 28px rgba(40,78,100,.25)!important;
+  overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+}
+#v37HomeDashboard .v46-home .v46-sticky-head .v46-weather-panel-actions {
+  display:flex;align-items:center;gap:5px;flex:none;
+}
+#v37HomeDashboard .v46-home .v46-sticky-head .v46-weather-panel-actions button {
+  min-height:44px;min-width:44px;padding:7px!important;
+  font-size:12px;font-weight:850;white-space:nowrap;
+  color:#265b7a;background:#eaf5f7;border:1px solid #a9cbd8;border-radius:10px;
+}
+#v37HomeDashboard .v46-home .v46-sticky-head .home-weather-detail-heading {
+  align-items:flex-start;flex-wrap:wrap;gap:6px;
+}
+#v37HomeDashboard .v46-home .v46-sticky-head .home-weather-detail-heading strong {
+  flex:1 1 150px;font-size:.89rem;
+}
+/* Stop scroll chaining to the home page while its 11-function bag is open. */
+html:has(#guide.active #v37HomeDashboard details.v46-inline-tools[open]),
+body:has(#guide.active #v37HomeDashboard details.v46-inline-tools[open]) {
+  overflow-y:hidden!important;overscroll-behavior:none;
+}
+#v37HomeDashboard .v46-home .v46-inline-tools[open] > .v46-tools-content {
+  overflow-y:auto!important;touch-action:pan-y;overscroll-behavior:contain!important;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* S25 regression fix: scrolling the webpage must never change the scroll
+   container of the sticky header. Earlier html/body overflow lock broke
+   CSS position:sticky across Chromium and Firefox. */
+html:has(#guide.active #v37HomeDashboard details.v46-inline-tools[open]),
+body:has(#guide.active #v37HomeDashboard details.v46-inline-tools[open]) {
+  overflow-y:auto!important;
+  overscroll-behavior-y:auto;
+}
+#v37HomeDashboard .v46-home .v46-bag-backdrop {
+  display:none;
+}
+#v37HomeDashboard .v46-home:has(details.v46-inline-tools[open]) > .v46-bag-backdrop {
+  display:block;position:fixed;inset:0;z-index:1099;
+  background:rgba(20,44,59,.07);
+  touch-action:none;overscroll-behavior:none;
+}
+#v37HomeDashboard .v46-home details.v46-inline-tools[open] > .v46-tools-content {
+  touch-action:pan-y;overscroll-behavior:contain!important;
+}

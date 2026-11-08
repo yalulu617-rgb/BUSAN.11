@@ -1,0 +1,75 @@
+name: V46 Owner-Isolated Mobile Preview Artifact
+on:
+  push:
+    branches: [v46-ticket-crud-repair-20261021]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  owner-isolated-mobile-preview:
+    name: Offline-artifact build and isolated mobile QA
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: 'npm'
+      - name: Install locked development dependencies
+        run: npm ci
+      - name: Build disposable preview with production Firebase removed
+        run: node scripts/build-owner-isolated-preview.mjs
+      - name: Assert generated Firebase isolation
+        run: |
+          node --input-type=module -e "
+          import fs from 'node:fs';
+          const html=fs.readFileSync('public/index.html','utf8');
+          const firebase=fs.readFileSync('public/js/firebase.js','utf8');
+          if(!html.includes('v46-sandbox-notice')||!firebase.includes('__testOnly:true')||
+             /busan-trip-2026-4148f|AIzaSy|8a4c0f3b5d2e7a9b1c6f/.test(firebase)||
+             fs.existsSync('public/services/network.js'))process.exit(1);
+          console.log('Synthetic preview, no original Firebase config, legacy network adapter excluded');
+          "
+      - name: Install only browsers used in owner preview
+        run: npx playwright install --with-deps chromium webkit
+      - name: Start synthetic preview HTTP server
+        run: |
+          npx serve -s public -l 8080 > /tmp/v46-owner-preview-server.log 2>&1 &
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            if curl -fsS http://localhost:8080/ > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          echo 'STOP: isolated preview did not start'
+          exit 1
+      - name: Test Firebase isolation and capture both mobile sizes
+        run: |
+          npx playwright test tests/v46-owner-sandbox.spec.js tests/v46-owner-preview-mobile.spec.js tests/v46-home-touch-polish.spec.js \
+            --project=chromium --project=mobile-chrome --project=mobile-safari \
+            --workers=1 --retries=0 --reporter=html,list
+        env:
+          CI: 'true'
+          V46_SANDBOX_BUILD: '1'
+          BUSAN_CI_FIREBASE_ISOLATED: '1'
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
+          PLAYWRIGHT_HTML_OPEN: never
+      - name: Upload synthetic preview and mobile screenshots (NOT production)
+        if: success()
+        uses: actions/upload-artifact@v6
+        with:
+          name: v46-owner-isolated-preview-${{ github.sha }}
+          path: |
+            public/
+            test-results/
+            playwright-report/
+          retention-days: 14
+          if-no-files-found: error
+      - name: Preserve diagnostic reports if preview QA fails
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: v46-owner-preview-failure-${{ github.sha }}
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14

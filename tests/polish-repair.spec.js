@@ -1,0 +1,236 @@
+// @ts-check
+import { test, expect } from '@playwright/test';
+import { bootApp } from './helpers/boot.js';
+// In V46 the eleven canonical navigation entries are intentionally collapsed.
+// Open the bag before testing interaction; the dedicated V46 suite checks default state.
+async function openTravelBag(page) {
+  const bag=page.locator('#v37HomeDashboard details.v46-tools');
+  if (await bag.count() && !(await bag.evaluate(el => el.open))) {
+    await bag.locator('summary').click();
+  }
+}
+
+
+test('pre-trip assistant avoids misleading few-days countdown copy', async ({ page }) => {
+  await bootApp(page);
+
+  const suggestion = await page.evaluate(() => AIAssistantEngine.generateSuggestions({
+    currentDate: '11/10',
+    currentCity: { nameTW: '釜山', aiTips: [] },
+    currentWeather: null,
+    currentPlace: null,
+    uncompletedPreps: [{ text: '護照' }],
+    budget: null,
+    nextDestination: null
+  }));
+
+  expect(suggestion).toContain('目前還有');
+  expect(suggestion).not.toContain('離出發僅剩幾天');
+});
+
+test('Home navigation uses native, keyboard-operable controls', async ({ page }) => {
+  await bootApp(page);
+
+  await openTravelBag(page);
+  const cards = page.locator('.v45-nine-card');
+  await expect(cards).toHaveCount(11);
+  for (let index = 0; index < 11; index += 1) {
+    const card = cards.nth(index);
+    await expect(card).toHaveJSProperty('tagName', 'BUTTON');
+    await expect(card).toHaveAttribute('type', 'button');
+    expect((await card.getAttribute('aria-label')) || (await card.innerText()).trim()).toBeTruthy();
+  }
+
+  const hero = page.locator('.home-nav-button');
+  await expect(hero).toHaveCount(1);
+  await expect(hero).toHaveJSProperty('tagName', 'BUTTON');
+  await expect(hero).toHaveAttribute('aria-label', /開啟/);
+
+  const collections = page.locator('.home-collection-button');
+  await expect(collections).toHaveCount(2);
+  for (let index = 0; index < 2; index += 1) {
+    await expect(collections.nth(index)).toHaveJSProperty('tagName', 'BUTTON');
+    await expect(collections.nth(index)).toHaveAttribute('aria-label', /開啟.+收藏/);
+  }
+
+  await cards.first().focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#itinerary')).toHaveClass(/active/);
+
+  await page.locator('#tab-home').click();
+  await openTravelBag(page);
+  await cards.first().focus();
+  await page.keyboard.press('Space');
+  await expect(page.locator('#itinerary')).toHaveClass(/active/);
+});
+
+test('icon-only controls expose descriptive accessible names', async ({ page }) => {
+  await bootApp(page);
+
+  await openTravelBag(page);
+  const shoppingCard = page.locator('.v45-nine-card').filter({ hasText: '快樂購' });
+  await shoppingCard.click();
+  await page.waitForSelector('#shop.active');
+  const addShopItem = page.locator('#addShopItemBtn');
+  await expect(addShopItem).toBeVisible();
+  await expect(addShopItem).toHaveAccessibleName('新增購物項目');
+  await addShopItem.focus();
+  await expect(addShopItem).toBeFocused();
+
+  const quickAddBill = page.locator('#shop.active button[onclick="quickAddBill()"]:visible');
+  await expect(quickAddBill).toHaveCount(1);
+  await expect(quickAddBill).toBeVisible();
+  await expect(quickAddBill).toHaveAccessibleName('加入快速記帳');
+  await quickAddBill.focus();
+  await expect(quickAddBill).toBeFocused();
+
+  await page.locator('#tab-itinerary').click();
+  await page.waitForSelector('#itinerary.active');
+  await page.locator('#tab-wallet').click();
+  await page.waitForSelector('#wallet.active');
+  await page.locator('#btnWalletHotel').click();
+  await page.waitForSelector('#walletHotelSection', { state: 'visible' });
+  await page.locator('#btnWalletDoc').click();
+  await page.waitForSelector('#walletDocSection', { state: 'visible' });
+  await page.locator('#tab-more').click();
+  await page.waitForSelector('#more.active');
+
+  const visibleNamedControls = page.locator('#more .v38-mini-btn:visible');
+  for (let index = 0; index < await visibleNamedControls.count(); index += 1) {
+    await expect(visibleNamedControls.nth(index)).toHaveAccessibleName(/.+/);
+  }
+
+  const unnamed = await page.evaluate(() => {
+    const targetSelectors = [
+      '.btn-edit',
+      '.btn-delete',
+      '.prep-link',
+      '#addShopItemBtn',
+      'button[onclick="quickAddBill()"]',
+      '#more .v38-mini-btn'
+    ];
+    return [...document.querySelectorAll(targetSelectors.join(','))]
+      .filter(element => {
+        const text = (element.textContent || '').trim();
+        const label = element.getAttribute('aria-label') || element.getAttribute('title') || text;
+        return !label || /^[+✎🗑🔊]$/.test(label);
+      })
+      .map(element => element.outerHTML);
+  });
+  expect(unnamed).toEqual([]);
+  await expect(page.locator('#addShopItemBtn')).toHaveAttribute('aria-label', '新增購物項目');
+});
+
+for (const viewport of [
+  { width: 390, height: 844 },
+  { width: 430, height: 932 }
+]) {
+  test(`mobile touch targets and page width remain safe at ${viewport.width}x${viewport.height}`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await bootApp(page);
+    await page.addStyleTag({ content: `
+      *, *::before, *::after { transition: none !important; }
+      .fade-scale-in { animation: none !important; opacity: 1 !important; transform: none !important; }
+    ` });
+
+    const assertNoPageOverflow = async () => {
+      const dimensions = await page.evaluate(() => ({
+        viewport: window.innerWidth,
+        document: document.documentElement.scrollWidth,
+        body: document.body.scrollWidth
+      }));
+      expect(dimensions.document).toBeLessThanOrEqual(dimensions.viewport + 1);
+      expect(dimensions.body).toBeLessThanOrEqual(dimensions.viewport + 1);
+    };
+
+    const assertTouchTargets = async (selector) => {
+      const targets = page.locator(selector).filter({ visible: true });
+      const count = await targets.count();
+      expect(count).toBeGreaterThan(0);
+      for (let index = 0; index < count; index += 1) {
+        const box = await targets.nth(index).boundingBox();
+        expect(box, `${selector} #${index} has no box`).toBeTruthy();
+        expect(box.height, `${selector} #${index} height`).toBeGreaterThanOrEqual(43.5);
+      }
+    };
+
+    await assertNoPageOverflow();
+
+    await page.locator('#tab-wallet').click();
+    await assertTouchTargets('.wallet-tabs .day-tab');
+
+    await page.locator('#btnWalletHotel').click();
+    await page.waitForSelector('#walletHotelSection', { state: 'visible' });
+    await assertTouchTargets('#walletHotelSection .map-tag, #walletHotelSection .v38-mini-btn');
+    await assertNoPageOverflow();
+
+    await page.locator('#btnWalletDoc').click();
+    await page.waitForSelector('#walletDocSection', { state: 'visible' });
+    await assertTouchTargets('#walletDocSection .mobile-touch-link, #walletDocSection .v38-mini-btn');
+    await assertNoPageOverflow();
+
+    await page.locator('#tab-itinerary').click();
+    await page.waitForSelector('#itinerary.active');
+    const itineraryModeButtons = page.locator('#btnItiSun, #btnItiRain');
+    await expect(itineraryModeButtons).toHaveCount(2);
+    await expect(page.locator('#btnItiSun')).toBeVisible();
+    await expect(page.locator('#btnItiRain')).toBeVisible();
+    await assertTouchTargets('#btnItiSun, #btnItiRain');
+
+    const modeLayout = await page.evaluate(() => {
+      const sun = document.getElementById('btnItiSun');
+      const rain = document.getElementById('btnItiRain');
+      const sunBox = sun.getBoundingClientRect();
+      const rainBox = rain.getBoundingClientRect();
+      return {
+        overlap: !(sunBox.right <= rainBox.left || rainBox.right <= sunBox.left || sunBox.bottom <= rainBox.top || rainBox.bottom <= sunBox.top),
+        clipped: [sun, rain].some(button => button.scrollHeight > button.clientHeight || button.scrollWidth > button.clientWidth)
+      };
+    });
+    expect(modeLayout.overlap).toBe(false);
+    expect(modeLayout.clipped).toBe(false);
+
+    const sunnyDayOne = await page.locator('#itiContent').innerText();
+    await page.locator('#btnItiRain').click();
+    await expect(page.locator('#btnItiRain')).toHaveClass(/active/);
+    await expect(page.locator('#btnItiSun')).not.toHaveClass(/active/);
+    await expect(page.locator('#itiContent')).not.toHaveText(sunnyDayOne);
+    await page.locator('#btnItiSun').click();
+    await expect(page.locator('#btnItiSun')).toHaveClass(/active/);
+    await expect(page.locator('#btnItiRain')).not.toHaveClass(/active/);
+
+    await page.locator('#itinerary .day-tabs').first().locator('.day-tab').nth(2).click();
+    await page.locator('#btnItiRain').click();
+    await expect(page.locator('#itiContent')).toContainText('11/15 雨天應變備案');
+    await page.locator('#btnItiSun').click();
+
+    await page.locator('#itinerary .day-tabs').first().locator('.day-tab').nth(4).click();
+    const dayFiveTimes = await page.locator('#itiContent .iti-time').allTextContents();
+    const expectedDayFiveOrder = ['08:45 出發／09:00～09:50', '10:00～10:40', '10:40～11:05', '約 11:05', '約 11:30～11:45', '14:50', '16:30'];
+    const expectedIndexes = expectedDayFiveOrder.map(time => dayFiveTimes.indexOf(time));
+    expect(expectedIndexes.every(index => index >= 0)).toBe(true);
+    expect(expectedIndexes).toEqual([...expectedIndexes].sort((a, b) => a - b));
+
+    await page.evaluate(() => window.filterIti('11/14'));
+    const verifiedNaverRow = page.locator('#itiContent .iti-row').filter({ hasText: 'OPS Haeundae 麵包店' });
+    const verifiedNaverAction = verifiedNaverRow.locator('.iti-map-actions a');
+    await expect(verifiedNaverAction).toHaveCount(1);
+    await expect(verifiedNaverAction).toBeVisible();
+    await expect(verifiedNaverAction).toContainText('NAVER');
+    await expect(verifiedNaverAction).toHaveAttribute('href', 'https://naver.me/5EQ3khJY');
+    await expect(verifiedNaverRow.locator('.iti-map-actions')).not.toContainText(/Google|Kakao/);
+    const verifiedNaverBox = await verifiedNaverAction.boundingBox();
+    expect(verifiedNaverBox, 'verified OPS NAVER action has no box').toBeTruthy();
+    expect(verifiedNaverBox.height, 'verified OPS NAVER action height').toBeGreaterThanOrEqual(43.5);
+    await assertNoPageOverflow();
+
+    await page.locator('#tab-more').click();
+    await page.waitForSelector('#more.active');
+    await assertTouchTargets('#more .v38-mini-btn');
+    await assertNoPageOverflow();
+
+    const navBox = await page.locator('.bottom-nav').boundingBox();
+    expect(navBox).toBeTruthy();
+    expect(Math.abs(navBox.y + navBox.height - viewport.height)).toBeLessThanOrEqual(1);
+  });
+}

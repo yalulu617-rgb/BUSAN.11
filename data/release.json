@@ -1,0 +1,9 @@
+{
+  "appVersion": "V46",
+  "releaseName": "BUSAN.11 V46 Autumn Travel Release",
+  "buildDate": "generated-at-deploy",
+  "gitCommit": "development",
+  "cacheVersion": "generated-from-sw.js",
+  "travelDates": "2026/11/13 - 2026/11/17",
+  "destination": "Busan & Gyeongju, South Korea"
+}
