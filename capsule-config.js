@@ -1,0 +1,1 @@
+globalThis.CAPSULE_CONFIG=Object.freeze({"origin":"https://yalulu617-rgb.github.io","basePath":"/BUSAN.11/","sequence":13,"sourceSha":"27009a7cc0d1644dd9d4d4926bf4c31b8ebb1273","manifestSha256":"7ecf1c9a2c4a3d11278c298db26f7f4a5746ead8d086e2b0f9e074d0e2a5c531"});
