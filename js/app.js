@@ -323,6 +323,7 @@
                 throw new Error('Profile changed during unlock');
             }
             window.privateBills = PrivateLedgerEngine.getBills(profile);
+            refreshAccountingNow();
             document.getElementById('pinModal').style.display = 'none';
             pin.value = '';
             if (confirmation) confirmation.value = '';

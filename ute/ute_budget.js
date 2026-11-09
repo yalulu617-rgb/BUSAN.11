@@ -66,10 +66,13 @@ const BudgetEngine = {
     const totalPrivateTWD = listPrivate.reduce((acc, b) => acc + getTwd(b), 0);
     const overallSpent = Math.round(totalSharedTWD + totalPrivateTWD);
     
-    // 4. Budget bar calculations
-    const targetBudget = 50000;
-    const currentExpense = currentBillTab === '公費' ? totalSharedTWD : listPrivate.reduce((acc, b) => acc + getTwd(b), 0);
-    const target = currentBillTab === '公費' ? targetBudget : 20000;
+    // 4. Owner's per-person travel budget is NT$35,000. Shared payments are
+    // allocated 50/50, while private expenses are counted only for this device.
+    // The 50/50 settlement above continues to use shared bills exclusively.
+    const targetBudget = 35000;
+    const ownerSharedShareTWD = totalSharedTWD / 2;
+    const currentExpense = ownerSharedShareTWD + totalPrivateTWD;
+    const target = targetBudget;
     const pct = Math.min((currentExpense / target) * 100, 100).toFixed(1);
     
     let budgetBarColor = "linear-gradient(90deg, #F39C12, #E74C3C)";
@@ -79,10 +82,11 @@ const BudgetEngine = {
       budgetBarShadow = "0 0 20px rgba(192, 57, 43, 0.8)";
     }
     
-    const budgetText = `已花費 $${Math.round(currentExpense).toLocaleString()} / 設定預算 $${target.toLocaleString()}`;
+    const budgetText = `個人已記錄 ${Math.round(currentExpense).toLocaleString()} / 預算 ${target.toLocaleString()}（公費分攤一半＋本人私帳）`;
     
     // 5. Category Summary
-    const filtered = listShared.concat(listPrivate).filter(b => currentBillTab === '公費' ? b.type === '公費' : b.type === '私帳' && b.payer === deviceOwner);
+    const filtered = [...listShared.map(b => ({ ...b, __personalWeight: 0.5 })),
+      ...listPrivate.map(b => ({ ...b, __personalWeight: 1 }))];
     const categoryTotals = {
       "餐飲": { value: 0, color: "#FF6B6B" },
       "交通": { value: 0, color: "#4D96FF" },
@@ -94,7 +98,7 @@ const BudgetEngine = {
     filtered.forEach(b => {
       // Rule 8: Normalize schema — Firebase stores 'name' (new), legacy may have 'item'
       const cat = this.getCategory(b.name || b.item || '');
-      categoryTotals[cat].value += getTwd(b);
+      categoryTotals[cat].value += getTwd(b) * b.__personalWeight;
     });
 
     
@@ -172,6 +176,9 @@ const BudgetEngine = {
       totalSharedTWD,
       totalPrivateTWD,
       overallSpent,
+      ownerSharedShareTWD,
+      personalSpendTWD: currentExpense,
+      targetBudgetTWD: targetBudget,
       u1Balance,
       settleText,
       budgetBarPct: pct,

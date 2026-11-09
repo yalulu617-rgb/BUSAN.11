@@ -136,6 +136,22 @@ test.describe('BUSAN.11 V45 — Batch B Owner Editable Experience', () => {
     expect(result.successShown).toBe(true);
   });
 
+  test('OWNER budget counts half shared and unlocked private but never settles private', async ({ page }) => {
+    const calc = await page.evaluate(() => {
+      const shared = [{ name: '交通車票', amt: 1200, currency: 'TWD', type: '公費', payer: 'user1' }];
+      const priv = [{ name: '咖啡', amt: 300, currency: 'TWD', type: '私帳', payer: 'user2' }];
+      return BudgetEngine.calculateBudget(shared, priv, 0.024, '11/13',
+        {name:'溫', avatar:'👩'}, {name:'鴨', avatar:'🦆'}, 'user2', '公費');
+    });
+    expect(calc.totalSharedTWD).toBe(1200);
+    expect(calc.ownerSharedShareTWD).toBe(600);
+    expect(calc.totalPrivateTWD).toBe(300);
+    expect(calc.personalSpendTWD).toBe(900);
+    expect(calc.targetBudgetTWD).toBe(35000);
+    expect(calc.u1Balance).toBe(600);
+    expect(calc.categories.reduce((s,c)=>s+c.value,0)).toBe(900);
+  });
+
   test('coupon workspace supports CRUD fields, image, and truthful Code 128 rendering', async ({ page }) => {
     await page.evaluate(() => {
       window.showV37Tab('wallet');
