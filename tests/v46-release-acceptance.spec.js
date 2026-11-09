@@ -186,6 +186,33 @@ test('V46 existing album: two images upload as distinct records without replacin
   await page.waitForFunction(()=>window.photoList?.length===3);
 });
 
+test('Owner photo fallback preserves a failed cloud upload locally without leaking GPS', async ({ page }) => {
+  const result = await page.evaluate(async()=>{
+    const prevUpload=NetworkEngine.uploadImage,prevPush=NetworkEngine.firebasePush;
+    NetworkEngine.uploadImage=async()=>({success:false,error:'test provider unavailable'});
+    try{
+      const bytes=Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGP8vy2RgYGBiYGBgYGBAQAZ0AIaFSfNtAAAAABJRU5ErkJggg=='),c=>c.charCodeAt(0));
+      const file=new File([bytes],'test-memory.png',{type:'image/png'});
+      await window.uploadMultipleToImgBB([file],'photo');
+      return {local:(window.localPhotoList||[]).some(p=>p.name==='test-memory.png'),
+        status:document.getElementById('photoUploadStatus').textContent,
+        imageCount:document.querySelectorAll('#albumContainer .polaroid').length};
+    }finally{NetworkEngine.uploadImage=prevUpload;NetworkEngine.firebasePush=prevPush;}
+  });
+  expect(result.local).toBe(true);
+  expect(result.status).toContain('僅本機保存 1 張');
+  expect(result.imageCount).toBeGreaterThan(0);
+});
+
+test('EXIF check does not require upload or mislabel file date as GPS', async ({ page }) => {
+  const info=await page.evaluate(async()=>{
+    const b=new Uint8Array([0xff,0xd8,0xff,0xd9]);
+    return PhotoExif.inspect(new File([b],'noexif.jpg',{type:'image/jpeg',lastModified:1700000000000}));
+  });
+  expect(info.gps).toBe(null);
+  expect(info.dateTime).toBe(null);
+});
+
 test('V46 offline: cache includes new artwork, travel shell, and remains usable without network', async ({ page, context, browserName }) => {
   await page.evaluate(async()=>{await navigator.serviceWorker.ready;});
   await page.waitForFunction(()=>Boolean(navigator.serviceWorker.controller),null,{timeout:15000});

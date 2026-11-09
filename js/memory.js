@@ -8,6 +8,12 @@ window.deleteCurrentPhoto = async function () {
     if (!window.currentLightboxKey) { showToast('無法識別照片', 'warning'); return; }
     if (!confirm('確認刪除此照片？此操作不可還原。')) return;
     try {
+        if (String(window.currentLightboxKey).startsWith('local_')) {
+            await PhotoExif.removeLocal(window.currentLightboxKey);
+            closeLightbox();
+            showToast('本機照片已刪除', 'success');
+            return;
+        }
         const result = await NetworkEngine.firebaseRemove(`${DB_PHOTOS}/${window.currentLightboxKey}`);
         // NetworkEngine returns {success:false} rather than throwing on
         // Firebase failures. Keep the lightbox and record until confirmed.
@@ -42,7 +48,7 @@ window.downloadImage = function () {
         
         grid.innerHTML = '';
         
-        let filtered = [...window.photoList || []];
+        let filtered = [...(window.photoList || []), ...(window.localPhotoList || [])];
         const searchInput = document.getElementById('memorySearchInput');
         if (searchInput && searchInput.value.trim() !== '') {
             const query = searchInput.value.trim().toLowerCase();
@@ -54,14 +60,23 @@ window.downloadImage = function () {
             return;
         }
         
+        const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
         filtered.forEach(p => {
+            const meta = p.localOnly ? p : (window.photoCaptureMeta || {})[p.key] || {};
+            const captureDate = meta.captureDate || meta.dateTime || '';
+            const gps = meta.gps;
+            const location = gps && Number.isFinite(gps.lat) && Number.isFinite(gps.lon)
+                ? '📍 ' + gps.lat.toFixed(5) + ', ' + gps.lon.toFixed(5)
+                : '📍 原檔無可讀 GPS 或尚未檢查';
+            const badge = p.localOnly ? '🔒 僅在本機（未同步）' : '☁️ 共享相簿';
             grid.innerHTML += `
                 <div class="polaroid fade-scale-in" onclick="openLightbox('${p.url}', '${p.key}')">
                     <img src="${p.url}" loading="lazy">
                     <div style="font-size:0.65rem; color:#7f8c8d; font-weight:900; margin-top:6px; display:flex; justify-content:space-between; align-items:center;">
-                        <span>📅 ${p.date}</span>
-                        <span>📸 ${p.city || '釜山'}</span>
+                        <span>📅 ${esc(captureDate || p.date || '日期未知')}</span>
+                        <span>${esc(badge)}</span>
                     </div>
+                    <div style="font-size:.62rem;color:#607783;margin-top:5px;font-weight:800;">${esc(location)}</div>
                 </div>
             `;
         });

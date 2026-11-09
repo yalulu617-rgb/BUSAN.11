@@ -196,38 +196,58 @@ window.uploadSingleToImgBB = async function(file, type) {
 window.uploadMultipleToImgBB = async function(files, type) {
     const status = document.getElementById('photoUploadStatus');
     if (!files || files.length === 0) return;
-    if (status) status.innerText = `準備上傳 ${files.length} 張照片...`;
-    let success = 0;
-    let failures = 0;
-    for (let i = 0; i < files.length; i++) {
-        if (status) status.innerText = `⏳ 正在上傳第 ${i + 1}/${files.length} 張...`;
+    const choices = Array.from(files);
+    if (status) status.textContent = '準備上傳 ' + choices.length + ' 張照片…';
+    let cloudSaved = 0, deviceSaved = 0, failed = 0;
+    const issues = [];
+    for (let i = 0; i < choices.length; i++) {
+        const original = choices[i];
+        if (status) status.textContent = '⏳ 正在處理第 ' + (i+1) + '/' + choices.length + ' 張…';
+        let metadata = null;
+        try { metadata = await PhotoExif.inspect(original); }
+        catch (e) { console.warn('[PhotoExif] could not read metadata', e); }
         try {
-            const compressed = await compressImage(files[i]);
+            const compressed = await compressImage(original);
+            if (!compressed?.size) throw new Error('照片格式無法在此瀏覽器轉換');
             const res = await NetworkEngine.uploadImage(compressed);
-            if (!res || res.success !== true || !res.data?.url) {
-                throw new Error(res?.error || '圖片上傳未完成');
+            if (res?.success !== true || !res.data?.url) {
+                throw new Error(res?.error || '圖片服務未接受上傳');
             }
             const saved = await NetworkEngine.firebasePush(DB_PHOTOS, {
                 url: res.data.url,
-                date: getV37SelectedDate(),
+                date: typeof getV37SelectedDate === 'function' ? getV37SelectedDate() : '',
                 timestamp: Date.now()
             });
-            // A successful ImgBB upload is NOT proof that the photo record
-            // was saved. The Firebase write must succeed too.
-            if (!saved || saved.success !== true) {
-                throw new Error(saved?.error || '照片紀錄未儲存');
+            if (saved?.success !== true || !saved.data?.key) {
+                throw new Error(saved?.error || '照片索引未獲 Firebase 儲存確認');
             }
-            success++;
-        } catch (err) {
-            failures++;
-            console.error('[Memory] photo upload/save failed:', err);
+            cloudSaved++;
+            // Precise coordinates remain on this device, never in public image URLs.
+            if (metadata) {
+                try { await PhotoExif.remember(saved.data.key, metadata); }
+                catch (error) { issues.push('已雲端儲存，但本機 GPS 無法保留'); }
+            }
+        } catch (error) {
+            // Local-only fallback means the user can still see and test the
+            // photograph without ImgBB, Codex or a new backend account.
+            try {
+                await PhotoExif.saveLocal(original, metadata);
+                deviceSaved++;
+                issues.push((original.name || '照片') + ' 雲端未同步：' + (error?.message || '無法連線'));
+            } catch (localError) {
+                failed++;
+                issues.push((original.name || '照片') + ' 儲存失敗：' + (localError?.message || '手機空間不足'));
+                console.error('[Memory] photo upload and device fallback failed',error,localError);
+            }
         }
     }
-    if (status) {
-        status.innerText = failures
-            ? `⚠️ 已儲存 ${success}/${files.length} 張；失敗 ${failures} 張，請重試未完成的照片。`
-            : `✅ 上傳完成，成功 ${success}/${files.length} 張！`;
-    }
-    if (success === files.length) showToast(`📸 成功批次上傳了 ${success} 張回憶！`, 'success');
-    else showToast(`照片僅儲存 ${success}/${files.length} 張；失敗的照片沒有成功儲存。`, 'error');
+    if (status) status.textContent = '雲端成功 ' + cloudSaved + '/' + choices.length
+        + ' 張；僅本機保存 ' + deviceSaved + ' 張；完全失敗 ' + failed + ' 張。'
+        + (issues.length ? '\n' + issues.join('；').slice(0,650) : '')
+        + (deviceSaved ? '\n本機照片不會出現在其他手機，請勿清除網站儲存資料。' : '');
+    if (failed) showToast('有照片未保存，請查看錯誤原因', 'error');
+    else if (deviceSaved) showToast('📸 已保存在這台手機；目前尚未跨裝置同步', 'info');
+    else showToast('✅ 照片已上傳並儲存', 'success');
+    if (typeof renderMemoryAlbum === 'function') renderMemoryAlbum();
+    if (typeof triggerContextUpdate === 'function') triggerContextUpdate();
 };

@@ -46,7 +46,7 @@ function triggerContextUpdateImmediate() {
       context.v46Home = window.V46HomeEngine.createModel({
         context,
         packing,
-        photos: Array.isArray(window.photoList) ? window.photoList : [],
+        photos: [...(Array.isArray(window.photoList) ? window.photoList : []), ...(Array.isArray(window.localPhotoList) ? window.localPhotoList : [])],
         shopping: Array.isArray(window.shopList) ? window.shopList : [],
         hasExpenseRecords: globals.sharedBills.length > 0 || globals.privateBills.length > 0,
         previewMode: window.v46HomePreviewMode || 'auto',
