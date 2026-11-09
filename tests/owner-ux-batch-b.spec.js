@@ -89,6 +89,53 @@ test.describe('BUSAN.11 V45 — Batch B Owner Editable Experience', () => {
     expect(result.canonicalShopCount).toBeGreaterThanOrEqual(9);
   });
 
+  test('OWNER light mode ignores stale dark preference after reload', async ({ page }) => {
+    await page.evaluate(() => StorageEngine.set('busan_v46_theme', 'dark'));
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+    const state = await page.evaluate(() => {
+      toggleDarkMode();
+      return { theme: document.documentElement.getAttribute('data-theme'),
+        saved: StorageEngine.get('busan_v46_theme', null).data };
+    });
+    expect(state).toEqual({ theme: 'light', saved: 'light' });
+  });
+
+  test('OWNER can add a restaurant; failed save retains draft and never reports success', async ({ page }) => {
+    await page.evaluate(() => { showV37Tab('home'); openGuideFolder('美食景點'); filterGuideContent('必吃美食'); });
+    await page.locator('#btnFoodAdd').click();
+    await expect(page.locator('#gdType')).toHaveValue('必吃美食');
+    const result = await page.evaluate(async () => {
+      const oldPush = NetworkEngine.firebasePush, oldToast = window.showToast;
+      const toasts = [];
+      window.showToast = (message, kind) => toasts.push({ message, kind });
+      try {
+        const title = document.getElementById('gdTitle');
+        title.value = 'OWNER 測試餐廳';
+        document.getElementById('gdLink').value = 'https://naver.me/test-only';
+        NetworkEngine.firebasePush = async () => ({ success: false, error: 'permission denied' });
+        await addGuideItem();
+        const failed = { retained: title.value === 'OWNER 測試餐廳',
+          noFalseSuccess: !toasts.some(x => x.kind === 'success'), errorShown: toasts.some(x => x.kind === 'error') };
+        NetworkEngine.firebasePush = async () => ({ success: true, data: { key: 'owner-test-food' } });
+        await addGuideItem();
+        const savedRow = window.guideData.find(x => x.key === 'owner-test-food');
+        return { failed, saved: Boolean(savedRow), type: savedRow?.type,
+          title: savedRow?.title, draftCleared: title.value === '', 
+          successShown: toasts.some(x => x.kind === 'success') };
+      } finally {
+        NetworkEngine.firebasePush = oldPush;
+        window.showToast = oldToast;
+      }
+    });
+    expect(result.failed).toEqual({ retained: true, noFalseSuccess: true, errorShown: true });
+    expect(result.saved).toBe(true);
+    expect(result.type).toBe('必吃美食');
+    expect(result.title).toBe('OWNER 測試餐廳');
+    expect(result.draftCleared).toBe(true);
+    expect(result.successShown).toBe(true);
+  });
+
   test('coupon workspace supports CRUD fields, image, and truthful Code 128 rendering', async ({ page }) => {
     await page.evaluate(() => {
       window.showV37Tab('wallet');

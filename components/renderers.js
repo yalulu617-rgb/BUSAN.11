@@ -380,6 +380,22 @@ function resetGuideForm() {
 
 window.cancelGuideEdit = resetGuideForm;
 
+// A single visible restaurant-add entry, even when the recommendation tab
+// is shown because there are no saved custom restaurants yet.
+window.openAddRestaurantForm = function() {
+    window.currentGuideTab = '必吃美食';
+    if (typeof setFoodTabMode === 'function') setFoodTabMode('my');
+    resetGuideForm();
+    const type = document.getElementById('gdType');
+    if (type) type.value = '必吃美食';
+    const card = document.getElementById('addGuideCard');
+    if (card) {
+        card.style.display = 'block';
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    document.getElementById('gdTitle')?.focus({ preventScroll: true });
+};
+
 window.editGuide = function(key) {
     const item = (window.guideData || []).find(row => row.key === key);
     if (!item) return;
@@ -414,14 +430,33 @@ window.addGuideItem = async function () {
         desc: descEl?.value?.trim() || '', link: linkEl?.value?.trim() || '',
         img: imgEl?.value || '', ownerCreated: true, updatedAt: Date.now()
     };
+    let saved;
+    const postedAt = Date.now();
     try {
-        if (editKey) await NetworkEngine.firebaseUpdate(`${DB_GUIDE}/${editKey}`, payload);
-        else await NetworkEngine.firebasePush(DB_GUIDE, { ...payload, ts: Date.now() });
+        saved = editKey
+            ? await NetworkEngine.firebaseUpdate(`${DB_GUIDE}/${editKey}`, payload)
+            : await NetworkEngine.firebasePush(DB_GUIDE, { ...payload, ts: postedAt });
+        // NetworkEngine returns {success:false} without throwing on connection
+        // or Firebase permission errors. Never tell the owner "saved" in that case.
+        if (saved?.success !== true) throw new Error(saved?.error || 'Firebase did not confirm save');
+        if (!editKey && !saved?.data?.key) throw new Error('Firebase did not return a record key');
     } catch (e) {
         console.error('[Renderers] saveGuideItem failed:', e);
-        showToast('景點／美食儲存失敗', 'error');
+        showToast('餐廳／景點尚未儲存，表單已保留，請重試', 'error');
         return;
     }
+    // Update the visible owner list immediately after server acknowledgement;
+    // the Firebase listener remains authoritative and uses the same record key.
+    const savedKey = editKey || saved.data.key;
+    const row = { ...payload, ...(editKey ? {} : {ts: postedAt}), key: savedKey };
+    window.guideData = Array.isArray(window.guideData) ? window.guideData : [];
+    const existing = window.guideData.findIndex(item => item.key === savedKey);
+    if (existing >= 0) window.guideData[existing] = { ...window.guideData[existing], ...row };
+    else window.guideData.push(row);
+    StorageEngine.set('busan_v36_guide', window.guideData);
+    window.currentGuideTab = payload.type;
+    if (payload.type === '必吃美食' && typeof setFoodTabMode === 'function') setFoodTabMode('my');
+    if (typeof renderGuideContent === 'function') renderGuideContent();
     resetGuideForm();
     showToast(editKey ? '✅ 已更新我的景點／美食' : '✅ 已新增到我的收藏', 'success');
 };

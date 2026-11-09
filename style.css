@@ -732,3 +732,19 @@ body {
   .owner-row-actions { flex-direction:column; }
   .coupon-card-head .owner-row-actions { flex-direction:row; }
 }
+
+/* OWNER 2026-11-09: Never render the travel application as a black page.
+   Also protects Android forced-dark browser / stale theme attributes. */
+html, html[data-theme="dark"], body, #mainApp {
+    color-scheme: only light !important;
+    --bg-color: #fbf5e9 !important;
+    --text-color: #294c65 !important;
+    --card-bg: rgba(255,253,248,0.97) !important;
+    --border-color: #ebdcc5 !important;
+}
+html, body, body[data-theme="dark"] { background-color: #fbf5e9 !important; }
+body, #mainApp { color: #294c65 !important; }
+.bottom-nav, [data-theme="dark"] .bottom-nav {
+    background: rgba(255,251,242,0.97) !important;
+    border-color: #e8dccb !important;
+}

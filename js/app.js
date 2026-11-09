@@ -61,8 +61,10 @@
     // Use V46's own preference. Do not import legacy V36 dark mode: that makes
     // an upgraded phone open to a black background without the owner choosing it.
     // The previously stored V36 preference remains untouched for old versions.
-    const v46Theme = StorageEngine.get('busan_v46_theme', 'light').data;
-    document.documentElement.setAttribute('data-theme', v46Theme === 'dark' ? 'dark' : 'light');
+    // OWNER 2026-11-09: Travel edition is permanently cream/light, even on
+    // devices whose older preference was dark. Preserve every other data key.
+    document.documentElement.setAttribute('data-theme', 'light');
+    StorageEngine.set('busan_v46_theme', 'light');
 
     // ── PWA Service Worker ────────────────────────────────────────────────
     if ('serviceWorker' in navigator) {
