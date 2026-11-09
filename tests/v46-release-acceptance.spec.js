@@ -215,7 +215,7 @@ test('EXIF parser reads original JPEG camera time and exact GPS locally', async 
     w16(34,0x8825);w16(36,4);w32(38,1);w32(42,100);
     // Exif IFD DateTimeOriginal -> TIFF+180.
     w16(72,1);w16(74,0x9003);w16(76,2);w32(78,20);w32(82,180);
-    b.set(new TextEncoder().encode('2026:11:09 08:30:00\\0'.replace('\\0','\\u0000')),192);
+    b.set(new TextEncoder().encode('2026:11:09 08:30:00'),192); b[211]=0;
     // GPS IFD reference N/E and degrees/minutes/seconds rationals.
     w16(112,4);
     w16(114,1);w16(116,2);w32(118,2);b[122]=78;
