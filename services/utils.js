@@ -148,25 +148,40 @@ window.syncOfflineQueue = async function() {
 };
 
 window.compressImage = function(file) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
+        if (!file || !file.size) { reject(new Error('照片檔案為空')); return; }
         const reader = new FileReader();
-        reader.onload = (e) => {
+        const timer = setTimeout(() => reject(new Error('照片處理逾時，請改用原始 JPG 或 PNG')), 15000);
+        let settled = false;
+        const done = (error, value) => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timer);
+            if (error) reject(error); else resolve(value);
+        };
+        reader.onerror = () => done(new Error('無法讀取照片'));
+        reader.onload = (event) => {
             const img = new Image();
+            img.onerror = () => done(new Error('此瀏覽器不支援照片格式，請改用 JPG 或 PNG'));
             img.onload = () => {
-                let { width, height } = img;
-                const maxDim = 1200;
-                if (width > maxDim || height > maxDim) {
-                    if (width > height) { height = Math.round((height * maxDim) / width); width = maxDim; }
-                    else { width = Math.round((width * maxDim) / height); height = maxDim; }
-                }
-                const canvas = document.createElement('canvas');
-                canvas.width = width; canvas.height = height;
-                canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-                canvas.toBlob((blob) => {
-                    resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
-                }, 'image/jpeg', 0.85);
+                try {
+                    let { width, height } = img;
+                    const maxDim = 1200;
+                    if (!width || !height) throw new Error('圖片尺寸無效');
+                    if (width > maxDim || height > maxDim) {
+                        if (width > height) { height = Math.round(height * maxDim / width); width = maxDim; }
+                        else { width = Math.round(width * maxDim / height); height = maxDim; }
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width; canvas.height = height;
+                    canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+                    canvas.toBlob(blob => {
+                        if (!blob) done(new Error('照片轉換失敗'));
+                        else done(null, new File([blob], file.name, {type:'image/jpeg', lastModified:file.lastModified || Date.now()}));
+                    }, 'image/jpeg', 0.85);
+                } catch(error) { done(error); }
             };
-            img.src = e.target.result;
+            img.src = event.target.result;
         };
         reader.readAsDataURL(file);
     });
