@@ -54,20 +54,19 @@ function triggerContextUpdateImmediate() {
       });
     }
 
-    // Render the actual per-person budget and category chart. These widgets
-    // previously stayed at hard-coded 0% regardless of existing records.
-    const summary = TripContextEngine?.getTripContext?.()?.budget;
+    // Render the budget with explicit private-PIN disclosure. Shared expenses
+    // belong to the public 50/50 ledger; private records never enter settlement.
+    const summary = window.TripContextEngine?.getTripContext?.()?.budget;
     if (summary) {
       const pct = document.getElementById('budgetPct');
       const bar = document.getElementById('budgetBar');
       const caption = document.getElementById('budgetText');
       const chart = document.getElementById('v37SplitChartContainer');
-      const profile = globals.deviceOwner;
       let vaultExists = false, vaultUnlocked = true;
       if (window.PrivateLedgerEngine) {
         try {
-          vaultExists = PrivateLedgerEngine.hasVault(profile);
-          vaultUnlocked = !vaultExists || PrivateLedgerEngine.isUnlocked(profile);
+          vaultExists = PrivateLedgerEngine.hasVault(globals.deviceOwner);
+          vaultUnlocked = !vaultExists || PrivateLedgerEngine.isUnlocked(globals.deviceOwner);
         } catch (_) { vaultExists = true; vaultUnlocked = false; }
       }
       if (pct) pct.textContent = vaultExists && !vaultUnlocked ? '部分' : summary.budgetBarPct + '%';
@@ -76,46 +75,7 @@ function triggerContextUpdateImmediate() {
         bar.style.background = summary.budgetBarColor;
       }
       if (caption) caption.textContent = vaultExists && !vaultUnlocked
-        ? '目前公費分攤約 
-      window.renderV37HomeDashboard();
-    }
-    if (typeof window.renderBills === "function") {
-      window.renderBills();
-    }
-    if (typeof window.renderTickets_LogicOnly === "function") {
-      window.renderTickets_LogicOnly();
-    }
-    if (typeof window.renderPrepList === "function") {
-      window.renderPrepList();
-    }
-  } catch (err) {
-    console.error("[UTE] triggerContextUpdateImmediate error:", err);
-  }
-}
-
-if (typeof window !== "undefined") {
-  window.triggerContextUpdate = triggerContextUpdate;
-  window.triggerContextUpdateImmediate = triggerContextUpdateImmediate;
-  window.setV46HomePreview = function (mode) {
-    // A phase change must never resurrect an open dropdown from the DOM being
-    // replaced, because its hidden overlay blocks the rail's real touch target.
-    window.v46AllToolsExpanded = false;
-    const bag = document.querySelector('#v37HomeDashboard details.v46-tools');
-    if (bag?.open) bag.open = false;
-    window.v46HomePreviewMode = ['auto', 'before', 'during', 'after'].includes(mode) ? mode : 'auto';
-    // Returning to live mode must also clear the old manually selected day.
-    if (window.v46HomePreviewMode === 'auto') window.v46HomePreviewDay = null;
-    triggerContextUpdateImmediate();
-  };
-  window.setV46HomeDay = function (dateISO) {
-    if (window.V46HomeEngine?.labels?.some(d => d.iso === dateISO)) {
-      window.v46HomePreviewDay = dateISO;
-      triggerContextUpdateImmediate();
-    }
-  };
-
-}
- + Math.round(summary.ownerSharedShareTWD).toLocaleString()
+        ? '目前公費分攤約 $' + Math.round(summary.ownerSharedShareTWD).toLocaleString()
           + '；私人帳本尚未解鎖，預算未完整計算（目標 $35,000）'
         : summary.budgetText;
       if (chart) {
