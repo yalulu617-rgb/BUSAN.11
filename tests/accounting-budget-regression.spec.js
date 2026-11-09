@@ -65,7 +65,7 @@ test('OWNER shared TWD string amounts, category and 50/50 settlement exclude pri
 test('OWNER manually selecting private expense type requires PIN and aligns the ledger', async ({ page }) => {
   await page.locator('#billType').selectOption('私帳');
   await expect(page.locator('#pinModal')).toBeVisible();
-  await page.locator('#pinCancelBtn').click();
+  await page.locator('#pinModal button').first().click();
   await expect(page.locator('#billType')).toHaveValue('公費');
   await expect(page.locator('#tabShared')).toHaveClass(/active/);
 });
