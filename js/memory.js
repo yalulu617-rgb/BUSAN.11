@@ -54,14 +54,25 @@ window.downloadImage = function () {
             return;
         }
         
+        // Original capture time / GPS only; never substitute upload time or a default city.
+        const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const timeOf = p => {
+            const m = /T(\d{2}:\d{2})/.exec(String(p.capturedAt || ''));
+            return m ? m[1] : '';
+        };
+        const fmtPt = (a, b) => (Number.isFinite(Number(a)) && Number.isFinite(Number(b)) && a !== null && b !== null && a !== '' && b !== '')
+            ? `${Number(a).toFixed(5)}, ${Number(b).toFixed(5)}` : '';
+        const placeOf = p => p.city || fmtPt(p.location?.latitude, p.location?.longitude) || fmtPt(p.latitude, p.longitude) || '無定位';
         filtered.forEach(p => {
+            const time = timeOf(p);
             grid.innerHTML += `
                 <div class="polaroid fade-scale-in" onclick="openLightbox('${p.url}', '${p.key}')">
                     <img src="${p.url}" loading="lazy">
-                    <div style="font-size:0.65rem; color:#7f8c8d; font-weight:900; margin-top:6px; display:flex; justify-content:space-between; align-items:center;">
-                        <span>📅 ${p.date}</span>
-                        <span>📸 ${p.city || '釜山'}</span>
+                    <div style="font-size:0.65rem; color:#7f8c8d; font-weight:900; margin-top:6px; display:flex; justify-content:space-between; align-items:center; gap:4px; flex-wrap:wrap;">
+                        <span>📅 ${esc(p.date || '日期待補')}${time ? ' ' + esc(time) : ''}</span>
+                        <span>📸 ${esc(placeOf(p))}</span>
                     </div>
+                    ${p.pendingSync ? '<div style="font-size:0.62rem;color:#a0522d;font-weight:900;margin-top:3px;">📱 僅此裝置，待同步</div>' : ''}
                 </div>
             `;
         });

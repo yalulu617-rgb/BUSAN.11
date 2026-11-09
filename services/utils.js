@@ -148,8 +148,13 @@ window.syncOfflineQueue = async function() {
 };
 
 window.compressImage = function(file) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
+        // A corrupt/undecodable image must reject instead of hanging the whole upload batch.
+        const timer = setTimeout(() => reject(new Error('圖片處理逾時')), 20000);
+        const done = fn => v => { clearTimeout(timer); fn(v); };
+        resolve = done(resolve); reject = done(reject);
         const reader = new FileReader();
+        reader.onerror = () => reject(new Error('圖片讀取失敗'));
         reader.onload = (e) => {
             const img = new Image();
             img.onload = () => {
@@ -166,6 +171,7 @@ window.compressImage = function(file) {
                     resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
                 }, 'image/jpeg', 0.85);
             };
+            img.onerror = () => reject(new Error('圖片無法解碼'));
             img.src = e.target.result;
         };
         reader.readAsDataURL(file);

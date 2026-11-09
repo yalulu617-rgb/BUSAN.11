@@ -8,7 +8,7 @@
 // - Cache-first with network fallback for static media (images, icons)
 // ─────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'busan-trip-v46-release-candidate-v2';
+const CACHE_NAME = 'busan-trip-v46-budget-photo-restaurant-v3';
 
 const LOCAL_ASSETS = [
     './',
@@ -60,7 +60,10 @@ const LOCAL_ASSETS = [
     './js/itinerary.js',
     './components/v46-home.js',
     './components/renderers.js',
-    './js/app.js'
+    './js/app.js',
+    './restaurant-save-guard.js',
+    './photo-local-safe.js',
+    './owner-budget-settings.js'
 ];
 
 // Domains that must ALWAYS go to network (never cache)
