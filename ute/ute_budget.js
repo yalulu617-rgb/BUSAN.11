@@ -29,11 +29,20 @@ const BudgetEngine = {
   },
   
   calculateBudget(sharedBills, privateBills, liveKrwToTwd, selectedDate, u1, u2, deviceOwner, currentBillTab) {
-    const listShared = sharedBills || [];
-    const listPrivate = (privateBills || []).filter(b => b.payer === deviceOwner);
-    const rate = liveKrwToTwd || 0.0240;
-    
-    const getTwd = (b) => b.currency === 'KRW' ? b.amt * rate : b.amt;
+    // Firebase records may have string amounts; coerce before addition or
+    // TWD string concatenation corrupts totals and 50/50 settlement.
+    const listShared = (Array.isArray(sharedBills) ? sharedBills : [])
+      .filter(b => b && b.type !== '私帳');
+    const listPrivate = (Array.isArray(privateBills) ? privateBills : [])
+      .filter(b => b && b.payer === deviceOwner && b.type !== '公費');
+    const parsedRate = Number(liveKrwToTwd);
+    const rate = Number.isFinite(parsedRate) && parsedRate > 0 ? parsedRate : 0.0240;
+
+    const getTwd = b => {
+      const amount = Number(b?.amt);
+      if (!Number.isFinite(amount) || amount <= 0) return 0;
+      return b.currency === 'KRW' ? amount * rate : amount;
+    };
     
     // 1. Daily spend
     const dailySpend = listShared.concat(listPrivate)
@@ -68,9 +77,9 @@ const BudgetEngine = {
     
     // 4. Budget bar calculations
     const targetBudget = 50000;
-    const currentExpense = currentBillTab === '公費' ? totalSharedTWD : listPrivate.reduce((acc, b) => acc + getTwd(b), 0);
+    const currentExpense = currentBillTab === '公費' ? totalSharedTWD : totalPrivateTWD;
     const target = currentBillTab === '公費' ? targetBudget : 20000;
-    const pct = Math.min((currentExpense / target) * 100, 100).toFixed(1);
+    const pct = Math.min(Math.max((currentExpense / target) * 100, 0), 100).toFixed(1);
     
     let budgetBarColor = "linear-gradient(90deg, #F39C12, #E74C3C)";
     let budgetBarShadow = "0 0 15px rgba(231, 76, 60, 0.6)";
@@ -82,7 +91,7 @@ const BudgetEngine = {
     const budgetText = `已花費 $${Math.round(currentExpense).toLocaleString()} / 設定預算 $${target.toLocaleString()}`;
     
     // 5. Category Summary
-    const filtered = listShared.concat(listPrivate).filter(b => currentBillTab === '公費' ? b.type === '公費' : b.type === '私帳' && b.payer === deviceOwner);
+    const filtered = currentBillTab === '公費' ? listShared : listPrivate;
     const categoryTotals = {
       "餐飲": { value: 0, color: "#FF6B6B" },
       "交通": { value: 0, color: "#4D96FF" },

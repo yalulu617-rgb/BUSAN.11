@@ -2266,6 +2266,8 @@ window.renderBills = function() {
     const list = document.getElementById('billList');
     if (!list) return;
     list.innerHTML = '';
+    const isPrivateView = window.currentBillTab === '私帳';
+    list.style.display = isPrivateView ? 'none' : 'block';
     
     const ctx = typeof getTripContext === 'function' ? getTripContext() : {};
     const totalShared = (ctx.budget && ctx.budget.totalSharedTWD) ? ctx.budget.totalSharedTWD : 0;
@@ -2303,13 +2305,55 @@ window.renderBills = function() {
     }
     
     const settlementEl = document.getElementById('settlement');
-    if (settlementEl) settlementEl.innerHTML = filtered.length > 0 && ctx.budget?.settleText ? ctx.budget.settleText : '<div style="text-align:center;color:#7f8c8d;">尚無公費紀錄，新增後會顯示兩人 50/50 結算。</div>';
+    if (settlementEl) {
+        settlementEl.style.display = isPrivateView ? 'none' : 'block';
+        settlementEl.innerHTML = filtered.length > 0 && ctx.budget?.settleText ? ctx.budget.settleText : '<div style="text-align:center;color:#7f8c8d;">尚無公費紀錄，新增後會顯示兩人 50/50 結算。</div>';
+    }
 
     const sharedSumEl = document.getElementById('sharedBillsSum');
     if (sharedSumEl) sharedSumEl.innerText = `$${Math.round(totalShared).toLocaleString()} TWD`;
     
     // Auto settle logic outputs
     if (typeof renderPrivateBill === 'function') renderPrivateBill();
+    if (typeof renderAccountingBudget === 'function') renderAccountingBudget(ctx.budget);
+};
+
+// Both the public 50/50 and unlocked private views use BudgetEngine, but no
+// private values appear on the public tab. This renderer was missing entirely:
+// the old static 0%/$0 and empty category chart never received calculated data.
+window.renderAccountingBudget = function(budget) {
+    const label = document.getElementById('budgetScopeLabel');
+    const pct = document.getElementById('budgetPct');
+    const bar = document.getElementById('budgetBar');
+    const text = document.getElementById('budgetText');
+    const chart = document.getElementById('v37SplitChartContainer');
+    const isPrivate = window.currentBillTab === '私帳';
+    const authorized = !isPrivate || Boolean(window.PrivateLedgerEngine?.isUnlocked(window.deviceOwner));
+    if (label) label.textContent = isPrivate ? '個人私帳預算水位' : '公費預算水位';
+    if (!budget || !authorized) {
+        if (pct) pct.textContent = '—';
+        if (bar) { bar.style.width = '0%'; bar.setAttribute('aria-valuenow', '0'); }
+        if (text) text.textContent = isPrivate ? '請先解鎖個人私帳' : '帳本載入中';
+        if (chart) chart.textContent = isPrivate ? '請先解鎖個人私帳' : '帳本載入中';
+        return;
+    }
+    const value = Number(budget.budgetBarPct);
+    const safePct = Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 0;
+    if (pct) pct.textContent = safePct.toFixed(1) + '%';
+    if (bar) {
+        bar.style.width = safePct + '%';
+        bar.style.background = budget.budgetBarColor || '';
+        bar.style.boxShadow = budget.budgetBarShadow || '';
+        bar.setAttribute('role', 'progressbar');
+        bar.setAttribute('aria-valuemin', '0');
+        bar.setAttribute('aria-valuemax', '100');
+        bar.setAttribute('aria-valuenow', String(safePct));
+    }
+    if (text) text.textContent = budget.budgetText || '尚無花費';
+    if (chart) {
+        chart.innerHTML = '<div class="v37-budget-chart" style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:14px;">' +
+            (budget.donutSvg || '') + (budget.donutLegend || '') + '</div>';
+    }
 };
 
 window.renderPrivateBill = function() {
@@ -2320,7 +2364,16 @@ window.renderPrivateBill = function() {
     const ctx = typeof getTripContext === 'function' ? getTripContext() : {};
     const totalPrivate = (ctx.budget && ctx.budget.totalPrivateTWD) ? ctx.budget.totalPrivateTWD : 0;
     const privateBills = (window.privateBills || []).filter(b => b.payer === window.deviceOwner);
-    
+    const showingPrivate = window.currentBillTab === '私帳' &&
+        Boolean(window.PrivateLedgerEngine?.isUnlocked(window.deviceOwner));
+    list.style.display = showingPrivate ? 'block' : 'none';
+    if (!showingPrivate) {
+        // Do not leave decrypted rows in the hidden DOM of the public screen.
+        const hiddenSum = document.getElementById('privateBillsSum');
+        if (hiddenSum) hiddenSum.innerText = '$0 TWD';
+        return;
+    }
+
     if (privateBills.length === 0) {
         list.innerHTML = '<p style="text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:15px 0;">尚無個人私帳記帳紀錄</p>';
     } else {

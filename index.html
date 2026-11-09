@@ -233,7 +233,7 @@
             <div class="flex-row">
                 <input type="number" id="billAmt" class="input-box flex-1" placeholder="金額">
                 <select id="billCurrency" class="input-box" style="width:85px;"><option value="KRW">₩ 韓元</option><option value="TWD">$ 台幣</option></select>
-                <select id="billType" class="input-box" style="width:85px;" onchange="togglePayerSelect()"><option value="公費">公費</option><option value="私帳">私帳</option></select>
+                <select id="billType" class="input-box" style="width:85px;" onchange="filterBillsWithPin(this.value)"><option value="公費">公費</option><option value="私帳">私帳</option></select>
             </div>
             <div class="flex-row" style="margin-top:-5px;">
                 <select id="payMethod" class="input-box flex-1"><option value="現金">💵 現金</option><option value="信用卡">💳 信用卡</option><option value="WOWPASS">🪪 WOWPASS</option></select>
@@ -257,7 +257,7 @@
             <!-- 預算進度條 -->
             <div style="margin-top: 20px; padding: 15px 20px; background: rgba(255,255,255,0.9); border-radius: 20px; box-shadow: var(--shadow);">
                 <div style="display: flex; justify-content: space-between; font-weight: 900; font-size: 0.95rem;">
-                    <span style="color: var(--text-dark);"><i class="fa-solid fa-chart-pie"></i> 預算水位</span>
+                    <span style="color: var(--text-dark);"><i class="fa-solid fa-chart-pie"></i> <span id="budgetScopeLabel">公費預算水位</span></span>
                     <span id="budgetPct" style="color: var(--primary);">0%</span>
                 </div>
                 <div class="budget-bar-container"><div id="budgetBar" class="budget-pulse-bar"></div></div>

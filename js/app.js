@@ -247,6 +247,11 @@
         const priv = document.getElementById('tabPrivate');
         if (shared) shared.classList.toggle('active', type === '公費');
         if (priv) priv.classList.toggle('active', type === '私帳');
+        // Keep the expense form aligned with the selected ledger. Previously
+        // switching to private left billType as 公費, misrouting new entries.
+        const typeField = document.getElementById('billType');
+        if (typeField) typeField.value = type;
+        if (typeof window.togglePayerSelect === 'function') window.togglePayerSelect(true);
     }
 
     function refreshAccountingNow() {
@@ -578,10 +583,16 @@
     };
 
     window.filterBillsWithPin = async function (type) {
-        if (type === '私帳' && !await ensurePrivateLedgerUnlocked()) return;
+        if (type !== '公費' && type !== '私帳') return;
+        if (type === '私帳' && !await ensurePrivateLedgerUnlocked()) {
+            // The private PIN was cancelled or rejected. Do not submit a bill
+            // whose dropdown says 私帳 while the active ledger is 公費.
+            setBillTab(window.currentBillTab === '私帳' ? '公費' : window.currentBillTab);
+            refreshAccountingNow();
+            return;
+        }
         setBillTab(type);
-        if (typeof renderBills === 'function') renderBills();
-        triggerContextUpdate();
+        refreshAccountingNow();
     };
 
     window.calcQuickExchange = function () {
