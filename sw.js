@@ -52,6 +52,7 @@ const LOCAL_ASSETS = [
     './ute/ute_pwa_install.js',
     './services/nearby.js',
     './services/utils.js',
+    './services/photo-exif.js',
     './services/item-images.js',
     './js/firebase.js',
     './js/ui.js',

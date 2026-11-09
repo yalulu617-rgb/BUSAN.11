@@ -50,7 +50,7 @@ test('V46 opens cream light on phones despite legacy dark setting, after restart
   await fs.writeFile('visual-theme/results.json',JSON.stringify(results,null,2));
 });
 
-test('V46 explicit manual theme choice uses new key without overwriting old V36 preference',async({page})=>{
+test('V46 OWNER locked cream travel theme remains light even after old theme control',async({page})=>{
   await page.addInitScript(()=>{
     if(sessionStorage.getItem('v46-toggled')!=='1'){
       localStorage.setItem('busan_v36_theme','dark');
@@ -62,8 +62,8 @@ test('V46 explicit manual theme choice uses new key without overwriting old V36 
   await bootApp(page);
   await expect(page.locator('html')).toHaveAttribute('data-theme','light');
   await page.evaluate(()=>window.toggleDarkMode());
-  await expect(page.locator('html')).toHaveAttribute('data-theme','dark');
-  await expect.poll(()=>page.evaluate(()=>localStorage.getItem('busan_v46_theme'))).toBe('dark');
+  await expect(page.locator('html')).toHaveAttribute('data-theme','light');
+  await expect.poll(()=>page.evaluate(()=>localStorage.getItem('busan_v46_theme'))).toBe('light');
   await page.evaluate(()=>window.toggleDarkMode());
   await expect(page.locator('html')).toHaveAttribute('data-theme','light');
   await page.reload({waitUntil:'domcontentloaded'});

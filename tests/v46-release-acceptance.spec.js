@@ -204,6 +204,32 @@ test('Owner photo fallback preserves a failed cloud upload locally without leaki
   expect(result.imageCount).toBeGreaterThan(0);
 });
 
+test('EXIF parser reads original JPEG camera time and exact GPS locally', async ({ page }) => {
+  const result=await page.evaluate(async()=>{
+    const b=new Uint8Array(350),v=new DataView(b.buffer);
+    const w16=(n,x)=>v.setUint16(n,x,true),w32=(n,x)=>v.setUint32(n,x,true);
+    b.set([0xff,0xd8,0xff,0xe1,0x01,0x5a,69,120,105,102,0,0,73,73]);
+    w16(14,42);w32(16,8);
+    // Root IFD has ExifIFD pointer and GPSIFD pointer.
+    w16(20,2);w16(22,0x8769);w16(24,4);w32(26,1);w32(30,60);
+    w16(34,0x8825);w16(36,4);w32(38,1);w32(42,100);
+    // Exif IFD DateTimeOriginal -> TIFF+180.
+    w16(72,1);w16(74,0x9003);w16(76,2);w32(78,20);w32(82,180);
+    b.set(new TextEncoder().encode('2026:11:09 08:30:00\\0'.replace('\\0','\\u0000')),192);
+    // GPS IFD reference N/E and degrees/minutes/seconds rationals.
+    w16(112,4);
+    w16(114,1);w16(116,2);w32(118,2);b[122]=78;
+    w16(126,2);w16(128,5);w32(130,3);w32(134,210);
+    w16(138,3);w16(140,2);w32(142,2);b[146]=69;
+    w16(150,4);w16(152,5);w32(154,3);w32(158,240);
+    for (const [at,num,den] of [[222,35,1],[230,10,1],[238,0,1],[252,129,1],[260,8,1],[268,0,1]]){w32(at,num);w32(at+4,den);}
+    return PhotoExif.inspect(new File([b],'camera-original.jpg',{type:'image/jpeg'}));
+  });
+  expect(result.dateTime).toBe('2026:11:09 08:30:00');
+  expect(result.gps.lat).toBeCloseTo(35.1666667,4);
+  expect(result.gps.lon).toBeCloseTo(129.1333333,4);
+});
+
 test('EXIF check does not require upload or mislabel file date as GPS', async ({ page }) => {
   const info=await page.evaluate(async()=>{
     const b=new Uint8Array([0xff,0xd8,0xff,0xd9]);
