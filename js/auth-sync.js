@@ -133,11 +133,10 @@
         return;
       }
 
-      // If already signed in as someone else, sign out cleanly first
-      if (firebase.auth().currentUser) {
-        try { await firebase.auth().signOut(); } catch (_) {}
-      }
-
+      // CRITICAL: Open the Google popup while this click still has user activation.
+      // Awaiting signOut() first can make mobile browsers block the popup.
+      // Firebase signInWithPopup replaces the existing auth user after a successful
+      // sign-in, so a cancelled popup must leave the prior account intact.
       try {
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
