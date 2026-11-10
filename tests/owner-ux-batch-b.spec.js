@@ -101,39 +101,49 @@ test.describe('BUSAN.11 V45 — Batch B Owner Editable Experience', () => {
     expect(state).toEqual({ theme: 'light', saved: 'light' });
   });
 
-  test('OWNER can add a restaurant; failed save retains draft and never reports success', async ({ page }) => {
+  test('OWNER restaurant: rejected cloud write remains in local outbox until ack', async ({ page }) => {
     await page.evaluate(() => { showV37Tab('home'); openGuideFolder('美食景點'); filterGuideContent('必吃美食'); });
     await page.locator('#btnFoodAdd').click();
     await expect(page.locator('#gdType')).toHaveValue('必吃美食');
-    const result = await page.evaluate(async () => {
-      const oldPush = NetworkEngine.firebasePush, oldToast = window.showToast;
-      const toasts = [];
+    const state = await page.evaluate(async () => {
+      const previousWrite = NetworkEngine.firebaseWrite, previousToast = window.showToast;
+      const toasts = [], paths = [];
       window.showToast = (message, kind) => toasts.push({ message, kind });
+      const pending = () => StorageEngine.get('busan_v46_guide_pending_v1', []).data || [];
       try {
-        const title = document.getElementById('gdTitle');
-        title.value = 'OWNER 測試餐廳';
+        document.getElementById('gdTitle').value = 'OWNER 測試餐廳';
         document.getElementById('gdLink').value = 'https://naver.me/test-only';
-        NetworkEngine.firebasePush = async () => ({ success: false, error: 'permission denied' });
+        NetworkEngine.firebaseWrite = async (path) => {
+          paths.push(path); return { success: false, error: 'PERMISSION_DENIED' };
+        };
         await addGuideItem();
-        const failed = { retained: title.value === 'OWNER 測試餐廳',
-          noFalseSuccess: !toasts.some(x => x.kind === 'success'), errorShown: toasts.some(x => x.kind === 'error') };
-        NetworkEngine.firebasePush = async () => ({ success: true, data: { key: 'owner-test-food' } });
-        await addGuideItem();
-        const savedRow = window.guideData.find(x => x.key === 'owner-test-food');
-        return { failed, saved: Boolean(savedRow), type: savedRow?.type,
-          title: savedRow?.title, draftCleared: title.value === '', 
-          successShown: toasts.some(x => x.kind === 'success') };
+        const entry = pending().find(x => x.payload?.title === 'OWNER 測試餐廳');
+        const rejected = {
+          retained: Boolean(entry), pendingMarked: !!entry?.lastError,
+          noFalseSuccess: !toasts.some(x => x.kind === 'success'),
+          warning: toasts.some(x => x.kind === 'warning' && String(x.message).includes('尚未同步'))
+        };
+        NetworkEngine.firebaseWrite = async (path) => {
+          paths.push(path); return { success: true, error: null };
+        };
+        await retryPendingGuideSync();
+        const row = window.guideData.find(x => x.key === entry?.key);
+        return {
+          rejected, sameStableKey: !!entry && paths.length === 2 &&
+            paths.every(path => path === window.DB_GUIDE + '/' + entry.key),
+          acknowledged: !!entry && !pending().some(x => x.key === entry.key),
+          row, syncedToast: toasts.some(x => x.kind === 'success')
+        };
       } finally {
-        NetworkEngine.firebasePush = oldPush;
-        window.showToast = oldToast;
+        NetworkEngine.firebaseWrite = previousWrite;
+        window.showToast = previousToast;
       }
     });
-    expect(result.failed).toEqual({ retained: true, noFalseSuccess: true, errorShown: true });
-    expect(result.saved).toBe(true);
-    expect(result.type).toBe('必吃美食');
-    expect(result.title).toBe('OWNER 測試餐廳');
-    expect(result.draftCleared).toBe(true);
-    expect(result.successShown).toBe(true);
+    expect(state.rejected).toEqual({ retained: true, pendingMarked: true, noFalseSuccess: true, warning: true });
+    expect(state.sameStableKey).toBe(true);
+    expect(state.acknowledged).toBe(true);
+    expect(state.row).toMatchObject({ type: '必吃美食', title: 'OWNER 測試餐廳' });
+    expect(state.syncedToast).toBe(true);
   });
 
   test('coupon workspace supports CRUD fields, image, and truthful Code 128 rendering', async ({ page }) => {

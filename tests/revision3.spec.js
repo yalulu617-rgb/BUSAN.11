@@ -26,9 +26,10 @@ test('Revision 3: private rows and totals follow payer while shared accounting s
     { id: 'p3', name: 'Unassigned private', amt: 1000, currency: 'TWD', owner: 'user1', type: '私帳', day: '11/13' }
   ];
   const original = JSON.stringify({ sharedBills, privateBills });
-  const elements = Object.fromEntries(['billList', 'pbList', 'sharedBillsSum', 'privateBillsSum'].map(id => [id, {}]));
+  const elements = Object.fromEntries(['billList', 'pbList', 'sharedBillsSum', 'privateBillsSum'].map(id => [id, { style: {}, innerHTML: '', innerText: '' }]));
   const ctx = sandbox({ sharedBills, privateBills, liveKrwToTwd: 0.025,
-    document: { getElementById: id => elements[id] }, safePrice: amt => String(amt) });
+    document: { getElementById: id => elements[id] }, safePrice: amt => String(amt),
+    currentBillTab: '私帳', PrivateLedgerEngine: { isUnlocked: () => true } });
   vm.runInContext(source('ute/ute_budget.js'), ctx);
   loadFunction(ctx, 'components/renderers.js', 'renderBills');
   loadFunction(ctx, 'components/renderers.js', 'renderPrivateBill');

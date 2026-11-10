@@ -179,7 +179,7 @@ test('V46 existing album: two images upload as distinct records without replacin
     };
   });
   expect(state.calls).toBe(2);
-  expect(state.uploadStatus).toContain('成功 2/2');
+  expect(state.uploadStatus).toContain('2/2 張已同步雙人相簿');
   expect(state.records).toHaveLength(3);
   expect(state.records.some(x=>x.desc==='原有相簿紀錄')).toBe(true);
   expect(state.records.filter(x=>/^https:\/\/example\.org\/ci-image-[12]\.webp$/.test(x.url))).toHaveLength(2);
@@ -259,7 +259,7 @@ test('V46 release label: manifest, page title, and release metadata agree withou
   expect(manifest.name).toContain('V46');
   expect(manifest.short_name).toContain('V46');
   expect(manifest.id).toBe('./'); // must not create a second home-screen app identity
-  expect(release.appVersion).toBe('V46');
+  expect(release.appVersion).toMatch(/^V46(?:\.\d+)?$/);
   expect(release.releaseName).toContain('V46');
   expect(await page.title()).toContain('V46');
 });

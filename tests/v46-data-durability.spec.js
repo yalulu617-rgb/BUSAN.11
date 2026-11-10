@@ -90,25 +90,29 @@ test('V46 image upload with failed Firebase write never reports a stored photo',
       old:{url:'https://example.org/old.jpg',date:'11/13',city:'釜山',desc:'舊照片'}
     });
     window.__originalImgUpload=window.NetworkEngine.uploadImage;
-    window.__originalPhotoPush=window.NetworkEngine.firebasePush;
+    window.__originalPhotoWrite=window.NetworkEngine.firebaseWrite;
     window.__originalCompress=window.compressImage;
     window.compressImage=async file=>file;
     window.NetworkEngine.uploadImage=async()=>({success:true,data:{url:'https://example.org/unsaved.jpg'}});
-    window.NetworkEngine.firebasePush=async()=>({success:false,error:'CI simulated Firebase rejection'});
+    window.NetworkEngine.firebaseWrite=async()=>({success:false,error:'CI simulated Firebase rejection'});
     const f=new File(['disposable-image'],'failed.jpg',{type:'image/jpeg'});
     await window.uploadMultipleToImgBB([f],'photo');
   });
-  await expect(page.locator('#photoUploadStatus')).toContainText('已儲存 0/1');
-  await expect(page.locator('#photoUploadStatus')).toContainText('失敗 1 張');
+  await expect(page.locator('#photoUploadStatus')).toContainText('已保存 1/1');
+  await expect(page.locator('#photoUploadStatus')).toContainText('僅在此裝置');
   const result=await page.evaluate(async()=>({
     remote:(await window.NetworkEngine._db.ref(window.DB_PHOTOS).once('value')).val(),
-    local:(window.photoList||[]).map(x=>x.desc)
+    local:(window.photoList||[]).map(x=>x.desc),
+    pending:await window.PhotoLocalSafety.getPending()
   }));
   expect(Object.keys(result.remote||{})).toEqual(['old']);
   expect(result.local).toContain('舊照片');
+  expect(result.pending).toHaveLength(1);
+  expect(result.pending[0].blob).toBeTruthy();
+  expect(result.pending[0].hostedUrl).toBe('https://example.org/unsaved.jpg');
   await page.evaluate(()=>{
     window.NetworkEngine.uploadImage=window.__originalImgUpload;
-    window.NetworkEngine.firebasePush=window.__originalPhotoPush;
+    window.NetworkEngine.firebaseWrite=window.__originalPhotoWrite;
     window.compressImage=window.__originalCompress;
   });
 });

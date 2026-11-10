@@ -250,7 +250,8 @@ for (const vp of [{ width: 390, height: 844 }, { width: 360, height: 780 }]) {
 
 test('E. PWA: new modules are precached and app boots offline', async ({ page, context }) => {
   await page.evaluate(async () => { await navigator.serviceWorker.ready; });
-  await expect.poll(() => page.evaluate(async () => (await caches.keys()).some(k => k.includes('budget-photo-restaurant-v3')))).toBe(true);
+  const release=await (await page.request.get('/data/release.json')).json();
+  await expect.poll(() => page.evaluate(async version => (await caches.keys()).includes(version), release.cacheVersion)).toBe(true);
   for (const f of ['restaurant-save-guard.js', 'photo-local-safe.js', 'owner-budget-settings.js']) {
     expect(await page.evaluate(async n => Boolean(await caches.match('./' + n)), f), f).toBe(true);
   }

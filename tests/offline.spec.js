@@ -235,22 +235,24 @@ test('V46 PWA: both watercolor art files and all home modules are precached for 
     const response = await page.request.get('/' + url.slice(2));
     expect(response.status(), 'Unavailable local asset '+url).toBe(200);
   }
-  expect(body).toContain('busan-trip-v46-release-candidate-v2');
+  const release=await (await page.request.get('/data/release.json')).json();
+  expect(body).toContain(`const CACHE_NAME = '${release.cacheVersion}'`);
   expect(body).toContain('NETWORK_ONLY_DOMAINS');
 });
 
 test('V46 PWA: home returns from a warmed service worker cache when offline', async ({ page, context }, testInfo) => {
   if (testInfo.project.name !== 'chromium') test.skip();
   await bootApp(page);
+  const release=await (await page.request.get('/data/release.json')).json();
   await page.evaluate(async () => { await navigator.serviceWorker.ready; });
-  await page.waitForFunction(async () => {
+  await page.waitForFunction(async version => {
     const names = await caches.keys();
-    const cacheName = names.find(x => x.includes('busan-trip-v46-release-candidate-v2'));
+    const cacheName = names.find(x => x === version);
     if (!cacheName) return false;
     const cache = await caches.open(cacheName);
     return Boolean(await cache.match('./index.html')) &&
       Boolean(await cache.match('./assets/css/v46-home.css'));
-  }, null, { timeout: 12000 });
+  }, release.cacheVersion, { timeout: 12000 });
   await context.setOffline(true);
   try {
     await page.reload({ waitUntil: 'domcontentloaded' });
