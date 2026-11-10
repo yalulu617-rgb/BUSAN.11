@@ -69,6 +69,12 @@
   function listenSharedBudget() {
     if (budgetListenerAttached) return;
     if (!w.NetworkEngine || !w.NetworkEngine._db || typeof w.NetworkEngine.firebaseOn !== 'function') return;
+    if (w.firebase && typeof firebase.auth === 'function' && !w.firebase.__ciOnly) {
+      if (!firebase.auth().currentUser) {
+        console.log('[BudgetSettings] Auth-gated: Shared budget listener deferred until authentication');
+        return;
+      }
+    }
     budgetListenerAttached = true;
     w.NetworkEngine.firebaseOn(w.DB_BUDGET || 'busan_v46_budget_shared', snap => {
       try {
