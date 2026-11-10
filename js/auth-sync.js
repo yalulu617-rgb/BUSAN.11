@@ -15,6 +15,18 @@
 
   let activeRoleKey = 'wen';
   let duckManualEmailMode = false;
+  // Release guard: the visual Wen/Duck selector is NOT an authenticated identity.
+  function matchesRole(user) {
+    if (!user) return false;
+    const viaGoogle = !!(user.providerData || []).some(p => p && p.providerId === 'google.com');
+    return (w.deviceOwner === 'user2') ? viaGoogle : !viaGoogle;
+  }
+  function globalStatus(message) {
+    const node = d.getElementById('globalSyncStatus');
+    if (node) node.textContent = message;
+  }
+  let authVerificationEpoch = 0;
+
 
   const AuthSyncEngine = {
     currentUser: null,
@@ -92,6 +104,12 @@
         ownerSel.value = roleConfig.owner;
         if (typeof w.updateOwner === 'function') w.updateOwner();
       }
+      const signedIn = (w.firebase && typeof firebase.auth === 'function') ? firebase.auth().currentUser : null;
+      if (signedIn && !matchesRole(signedIn)) {
+        authVerificationEpoch++;
+        void firebase.auth().signOut().catch(error => console.warn('[AuthSync] Role change sign-out:', error.code));
+      }
+      this.updateUI(signedIn && matchesRole(signedIn) ? signedIn : null);
     },
 
     toggleEmailInputs() {
@@ -130,12 +148,9 @@
         try {
           userCred = await firebase.auth().signInWithPopup(provider);
         } catch (popupErr) {
-          if (popupErr.code === 'auth/popup-blocked' || popupErr.code === 'auth/popup-closed-by-user') {
-            console.warn('[AuthSync] Popup blocked or closed, falling back to redirect:', popupErr);
-            if (errEl) errEl.textContent = '正在跳轉至 Google 登入頁面...';
-            await firebase.auth().signInWithRedirect(provider);
-            return;
-          }
+          // Do not silently redirect from a third-party GitHub Pages PWA:
+          // Chrome's cross-origin storage restrictions can break Firebase redirect auth.
+          // Show an actionable error instead of looping back to an apparent logged-in state.
           throw popupErr;
         }
         const user = userCred.user;
@@ -158,7 +173,10 @@
         } else if (error.code === 'auth/unauthorized-domain') {
           msg = '此網域尚未在 Firebase Console 授權網域清單中 (Authorized Domains)';
         }
-        if (errEl) errEl.textContent = msg;
+        if (error.code === 'auth/operation-not-allowed') msg = 'Firebase 尚未啟用 Google 登入提供者';
+        if (error.code === 'auth/operation-not-supported-in-this-environment') msg = '目前瀏覽器不支援 Google 登入，請使用手機 Chrome 正式瀏覽器';
+        if (error.code === 'auth/internal-error') msg = 'Google 登入發生內部錯誤，請確認 Firebase 授權網域';
+        if (errEl) errEl.textContent = `${msg} [${error.code || 'unknown'}]`;
       }
     },
 
@@ -230,13 +248,21 @@
       const btnEl = d.getElementById('openAuthModalBtn');
       const logoutWrap = d.getElementById('authLogoutWrap');
 
+      if (user && !matchesRole(user)) {
+        if (statusEl) { statusEl.textContent = '⚠️ 登入帳號和本機使用者不一致，請切換登入'; statusEl.style.color = '#b45309'; }
+        globalStatus('⚠️ 帳號身分不一致');
+        if (btnEl) btnEl.textContent = '切換帳號';
+        if (logoutWrap) logoutWrap.style.display = 'block';
+        return;
+      }
       if (user) {
         const isGoogle = user.providerData && user.providerData.some(p => p && p.providerId === 'google.com');
         const providerName = isGoogle ? 'Google' : 'Email';
         const roleLabel = (w.deviceOwner === 'user2') ? '🦆 鴨' : '👩 溫';
         const displayAccount = user.email || user.displayName || (user.uid ? `UID: ${user.uid.slice(0, 8)}...` : '');
         if (statusEl) {
-          statusEl.innerHTML = `🟢 雙人同步：已連線 (${roleLabel} / ${providerName}: ${displayAccount})`;
+          statusEl.textContent = `🟠 帳號已登入、雲端權限待確認 (${roleLabel} / ${providerName}: ${displayAccount})`;
+          globalStatus(`🟠 ${roleLabel}已登入｜雲端待確認`);
           statusEl.style.color = '#1e824c';
           statusEl.title = `真實 UID: ${user.uid}\n帳號: ${user.email || user.displayName || '未知'}`;
         }
@@ -244,7 +270,8 @@
         if (logoutWrap) logoutWrap.style.display = 'block';
       } else {
         if (statusEl) {
-          statusEl.innerHTML = '☁️ 雙人同步：未登入 (資料僅保存在此裝置)';
+          statusEl.textContent = '☁️ 雙人同步：未登入 (資料僅保存在此裝置)';
+          globalStatus('☁️ 雙人同步：未登入');
           statusEl.style.color = '#a8432a';
           statusEl.title = '未登入真實 Firebase 帳號，資料保存在裝置本機';
         }
@@ -275,9 +302,28 @@
         });
       }
 
-      firebase.auth().onAuthStateChanged(user => {
+      firebase.auth().onAuthStateChanged(async user => {
+        const epoch = ++authVerificationEpoch;
         this.updateUI(user);
+        if (user && !matchesRole(user)) return;
         if (user) {
+          try {
+            if (!w.NetworkEngine?._db || !w.DB_GUIDE) throw new Error('Firebase Database 尚未初始化');
+            await w.NetworkEngine._db.ref(w.DB_GUIDE).once('value');
+            if (epoch !== authVerificationEpoch || firebase.auth().currentUser?.uid !== user.uid || !matchesRole(user)) return;
+          } catch (e) {
+            if (epoch !== authVerificationEpoch) return;
+            const msg = '⚠️ 帳號已登入，Firebase 資料庫尚未授權（本機照片和餐廳保留）';
+            globalStatus('⚠️ 已登入・雲端未授權');
+            const line = d.getElementById('authSyncStatus');
+            if (line) { line.textContent = msg; line.style.color = '#b45309'; }
+            console.warn('[AuthSync] RTDB permission check failed:', e.code || e.message);
+            return;
+          }
+          globalStatus('🟢 雲端可讀｜寫入待實測');
+          const line = d.getElementById('authSyncStatus');
+          if (line) { line.textContent = '🟢 已驗證雲端讀取；寫入和跨手機互見仍需實測'; line.style.color = '#24734a'; }
+
           console.log('[AuthSync] Authenticated genuine UID:', user.uid, user.email);
           // 1. Start or resume RTDB listeners
           if (typeof w.initFirebaseListeners === 'function') {

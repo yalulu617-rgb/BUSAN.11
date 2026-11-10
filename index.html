@@ -168,6 +168,11 @@
 </div>
 
 <div id="mainApp">
+    <!-- Account status and login: global entry for all tabs, not only the ledger -->
+    <div id="globalSyncAccess" role="status" aria-live="polite" style="position:sticky;top:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;padding:6px 12px;background:#fff8ed;border-bottom:1px solid #e8d8c4;color:#734c36;box-sizing:border-box;font-size:0.78rem;font-weight:800;">
+      <span id="globalSyncStatus" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">☁️ 雙人同步：確認帳號中</span>
+      <button type="button" aria-label="開啟雙人帳號與同步登入" onclick="window.AuthSyncEngine?.openModal()" style="flex-shrink:0;border:1px solid #c88d60;background:white;border-radius:10px;min-height:40px;padding:8px 12px;color:#99552e;font-weight:900;">帳號／同步</button>
+    </div>
 
     <aside id="pwaInstallBar" class="pwa-install-bar" aria-label="安裝 BUSAN.11 應用程式" hidden>
         <span id="pwaInstallText">把 BUSAN.11 加到主畫面，旅途中可更快開啟。</span>
