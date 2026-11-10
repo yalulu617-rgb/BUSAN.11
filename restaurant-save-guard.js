@@ -1,16 +1,23 @@
 /* BUSAN.11 owner restaurant persistence hotfix. Revision 2026-11-09.
- * Prepared for local review only. NOT deployed, not an authorization bypass.
  * Load after components/renderers.js and js/app.js in index.html.
  * Leaves all existing Firebase and encrypted private-ledger data unchanged.
+ * Ensures local outbox retention, idempotent writes, and detailed sync error display.
  */
 (function (w, d) {
   'use strict';
   const OUTBOX_KEY = 'busan_v46_guide_pending_v1';
   const DRAFT_KEY = 'busan_v46_guide_draft_v1';
-  const MESSAGE = '此裝置已保留餐廳，尚未同步到雙人資料庫';
   const PHOTO_FIELDS = ['gdType', 'gdTitle', 'gdDesc', 'gdLink', 'tempGuideImg', 'gdEditKey'];
   const isValidKey = s => typeof s === 'string' && /^[A-Za-z0-9_-]{1,120}$/.test(s);
   const toast = (msg, status) => typeof w.showToast === 'function' && w.showToast(msg, status);
+
+  function formatErrorDetail(err) {
+    if (!navigator.onLine) return '離線無網路';
+    const s = String(err || '');
+    if (s.includes('PERMISSION_DENIED') || s.includes('401')) return '未登入或權限不足';
+    if (s.includes('403')) return '資料庫拒絕寫入 (403)';
+    return s ? `連線問題: ${s}` : '待連線同步';
+  }
 
   function storageGet(key, fallback) {
     const response = w.StorageEngine.get(key, fallback);
@@ -40,7 +47,6 @@
     try {
       const draft = storageGet(DRAFT_KEY, null);
       if (!draft || typeof draft !== 'object') return;
-      // Never replace data the user is already typing into the form.
       if (d.getElementById('gdTitle')?.value?.trim()) return;
       for (const id of PHOTO_FIELDS) {
         const el = d.getElementById(id);
@@ -76,10 +82,17 @@
     if (!bar) return;
     const button = d.getElementById('retryGuideSync');
     try {
-      const count = readPending().length;
+      const pendingList = readPending();
+      const count = pendingList.length;
       bar.hidden = count === 0;
       if (button) button.hidden = count === 0;
-      bar.textContent = count ? `📌 ${count} 筆餐廳／景點已保存在此裝置，尚未同步到雙人帳本。` : '';
+      if (count) {
+        const lastErr = pendingList.find(p => p.lastError)?.lastError;
+        const errText = lastErr ? ` (${lastErr})` : '';
+        bar.textContent = `📌 ${count} 筆餐廳／景點已保存在此裝置，尚未同步到雙人帳本${errText}。`;
+      } else {
+        bar.textContent = '';
+      }
     } catch (_) {
       bar.hidden = false;
       if (button) button.hidden = true;
@@ -149,7 +162,6 @@
       mode = key ? 'update' : 'create';
       if (!key) key = uniqueKey();
       if (!isValidKey(key)) throw new Error('Invalid record identifier');
-      // Write-ahead local outbox: do not request Firebase unless this succeeds.
       const entry = { key, mode, payload, queuedAt: Date.now() };
       pending = pending.filter(x => x.key !== key);
       pending.push(entry);
@@ -160,8 +172,6 @@
       return;
     }
 
-    // Protect the user's entry even if server denies writes. An explicit,
-    // deterministic path makes retries idempotent instead of duplicating rows.
     let saved = { success: false, error: 'offline' };
     try {
       if (w.NetworkEngine?._db && navigator.onLine !== false) {
@@ -188,11 +198,13 @@
         toast('已寫入雙人收藏，本機同步標記待更新', 'info');
       }
     } else {
+      const errDetail = formatErrorDetail(saved?.error);
+      const pendingNow = readPending();
+      const found = pendingNow.find(x => x.key === key);
+      if (found) { found.lastError = errDetail; writePending(pendingNow); }
       console.warn('[GuideHotfix] Firebase write declined; local record retained', saved?.error);
-      toast(MESSAGE, 'warning');
+      toast(`此裝置已保留餐廳，尚未同步 (${errDetail})`, 'warning');
     }
-    // The outbox guarantees the restaurant stays visible even if a subsequent
-    // Firebase subscription reports an empty collection and resets guideData.
     renderSafe();
     if (typeof w.setFoodTabMode === 'function' && payload.type === '必吃美食') {
       w.currentGuideTab = '必吃美食';
@@ -207,9 +219,10 @@
     let pending;
     try { pending = readPending(); }
     catch (e) { toast('本機資料讀取失敗，請勿清除網站資料', 'error'); return; }
-    if (!pending.length) { toast('沒有待同步收藏', 'info'); return; }
+    if (!pending.length) { return; }
     if (!w.NetworkEngine?._db || navigator.onLine === false) {
-      toast(MESSAGE, 'warning'); return;
+      updateSyncStatus();
+      return;
     }
     let ok = 0;
     for (const entry of pending) {
@@ -219,14 +232,19 @@
         response = entry.mode === 'update'
           ? await w.NetworkEngine.firebaseUpdate(path, entry.payload)
           : await w.NetworkEngine.firebaseWrite(path, entry.payload);
-      } catch (e) { response = { success: false }; }
-      if (response?.success !== true) continue;
+      } catch (e) { response = { success: false, error: e.message }; }
+      if (response?.success !== true) {
+        entry.lastError = formatErrorDetail(response?.error);
+        continue;
+      }
       try { writePending(readPending().filter(x => x.key !== entry.key)); ok++; }
       catch (e) { console.warn('[GuideHotfix] Sync ack received, local cleanup deferred', e); }
     }
     renderSafe();
     const left = readPending().length;
-    toast(left ? `已同步 ${ok} 筆，仍有 ${left} 筆只保存在此裝置` : `✅ 已同步 ${ok} 筆餐廳／景點`, left ? 'warning' : 'success');
+    if (ok > 0) {
+      toast(left ? `已同步 ${ok} 筆，仍有 ${left} 筆待同步` : `✅ 已同步 ${ok} 筆餐廳／景點`, left ? 'warning' : 'success');
+    }
   };
 
   const oldDelete = w.deleteGuide;
@@ -236,8 +254,6 @@
       try { pending = readPending(); }
       catch (_) { toast('本機資料暫時無法讀取', 'error'); return; }
       const entry = pending.find(x => x.key === key);
-      // Deleting an unsynced UPDATE only discards the draft and restores the
-      // existing canonical/cloud record; it must not silently delete cloud data.
       if (entry) {
         if (!confirm(entry.mode === 'update' ? '放棄這筆尚未同步的修改？' : '刪除這筆僅保存在本機的收藏？')) return;
         try { writePending(pending.filter(x => x.key !== key)); }

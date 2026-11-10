@@ -1,8 +1,9 @@
-/* BUSAN.11 Photo-local-safety patch. Local review only, NOT deployed.
+/* BUSAN.11 Photo-local-safety patch. Revision 2026-11-09.
  * Purpose: preserve selected original photo before any remote upload;
  * extract EXIF capture time/GPS (when supplied), show pending photos locally,
  * distinguish device storage from remote sync. Never clears user data.
- * Load after js/app.js and services/utils.js, in addition to restaurant-save-guard.js.
+ * Guarantees idempotent stable Firebase path to prevent duplicate photos on retry.
+ * Protects GPS privacy by stripping metadata before public image host upload.
  */
 (function (w, d) {
   'use strict';
@@ -46,7 +47,7 @@
   // Minimal bounded JPEG EXIF/TIFF reader; no library, network, or geocoder.
   // Capture date and GPS come from original photo, BEFORE Canvas removes EXIF.
   async function readExif(file) {
-    const out = {capturedAt:null, latitude:null, longitude:null, locationStatus:'missing'};
+    const out = {capturedAt:null, latitude:null, longitude:null, locationStatus:'missing', shareGps:true};
     if (!file || !(/image\/jpeg/i.test(file.type) || /\.jpe?g$/i.test(file.name || ''))) return out;
     const buf = await file.slice(0, BYTES_LIMIT).arrayBuffer();
     const view = new DataView(buf); const n = view.byteLength;
@@ -141,7 +142,9 @@
     const localCount=stored.length;
     const label=d.getElementById('photoLocalCount');
     if(label){
-      label.textContent=localCount?`📱 ${localCount} 張照片只保存在此裝置；尚未同步雙人相簿。`:' ';
+      const lastErr = stored.find(x => x.lastError)?.lastError;
+      const errNotice = lastErr ? ` (${lastErr})` : '';
+      label.textContent=localCount?`📱 ${localCount} 張照片只保存在此裝置；尚未同步雙人相簿${errNotice}。`:' ';
       if(localCount){
         const retry=d.createElement('button');retry.type='button';retry.id='photoRetrySync';retry.textContent='重試同步';
         retry.style.cssText='margin-left:8px;min-height:36px;padding:4px 12px;border-radius:10px;border:1px solid #c9a26b;background:#fff4de;color:#7a4a1c;font-weight:800;';
@@ -162,46 +165,91 @@
   };
 
   // Upload one locally stored original. Local bytes are removed ONLY after the remote record is confirmed.
-  // `syncing` guards against a double tap creating duplicate remote rows for the same local id.
+  // Uses stable Firebase path (photo_<id>) so retries are strictly idempotent.
   const syncing=new Set();
   async function syncEntry(entry){
     if(syncing.has(entry.id))return false;
     syncing.add(entry.id);
     try{
       if(w.navigator.onLine===false || !w.NetworkEngine?._db)return false;
-      // Send a compressed image to ImgBB without exposing original EXIF payload.
-      const compressed=await w.compressImage(entry.blob);
-      const uploaded=await w.NetworkEngine.uploadImage(compressed);
-      if(uploaded?.success!==true || !uploaded?.data?.url)return false;
-      const result=await w.NetworkEngine.firebasePush(w.DB_PHOTOS,{
-        url:uploaded.data.url,date:entry.metadata.capturedAt?.slice(0,10)||'',
-        capturedAt:entry.metadata.capturedAt||null,location:entry.metadata.locationStatus==='gps' ?
-          {latitude:entry.metadata.latitude,longitude:entry.metadata.longitude}:null,
-        timestamp:Date.now()
-      });
-      if(result?.success===true && typeof result.data?.key==='string' && result.data.key){
-        w.photoList=Array.isArray(w.photoList)?w.photoList:[];
-        if(!w.photoList.some(x=>x.key===result.data.key))w.photoList.push({key:result.data.key,url:uploaded.data.url,
-          date:entry.metadata.capturedAt?.slice(0,10)||'拍攝日期待補',
-          capturedAt:entry.metadata.capturedAt,latitude:entry.metadata.latitude,longitude:entry.metadata.longitude,
-          city:entry.metadata.locationStatus==='gps' ? entry.metadata.latitude+', '+entry.metadata.longitude : '無定位'});
-        await remove(entry.id);const url=urlById.get(entry.id);if(url)w.URL.revokeObjectURL(url);
+      const stableKey = entry.cloudKey || ('photo_' + entry.id.replace(/[^a-zA-Z0-9_-]/g, '_'));
+      entry.cloudKey = stableKey;
+
+      // 1. Image hosting: Reuse existing hostedUrl if previously uploaded
+      let hostedUrl = entry.hostedUrl;
+      if (!hostedUrl) {
+        // Send a compressed image to ImgBB without exposing original EXIF payload.
+        const compressed = await w.compressImage(entry.blob);
+        const uploaded = await w.NetworkEngine.uploadImage(compressed);
+        if (uploaded?.success !== true || !uploaded?.data?.url) {
+          entry.lastError = uploaded?.error || '圖片上傳至相簿主機失敗';
+          await put(entry);
+          return false;
+        }
+        hostedUrl = uploaded.data.url;
+        entry.hostedUrl = hostedUrl;
+        await put(entry); // persist hosted URL so retries never re-upload image bytes
+      }
+
+      // 2. Synchronize record to Firebase with deterministic stable key
+      const photoPayload = {
+        url: hostedUrl,
+        date: entry.metadata.capturedAt?.slice(0,10) || '',
+        capturedAt: entry.metadata.capturedAt || null,
+        location: (entry.metadata.locationStatus === 'gps' && entry.metadata.shareGps !== false) ?
+          { latitude: entry.metadata.latitude, longitude: entry.metadata.longitude } : null,
+        timestamp: Date.now()
+      };
+
+      const result = await w.NetworkEngine.firebaseWrite(`${w.DB_PHOTOS}/${stableKey}`, photoPayload);
+      if (result?.success === true || (result === undefined && !result?.error)) {
+        w.photoList = Array.isArray(w.photoList) ? w.photoList : [];
+        if (!w.photoList.some(x => x.key === stableKey)) {
+          w.photoList.push({
+            key: stableKey,
+            url: hostedUrl,
+            date: entry.metadata.capturedAt?.slice(0,10) || '拍攝日期待補',
+            capturedAt: entry.metadata.capturedAt,
+            latitude: entry.metadata.latitude,
+            longitude: entry.metadata.longitude,
+            city: entry.metadata.locationStatus === 'gps' ? `${entry.metadata.latitude}, ${entry.metadata.longitude}` : '無定位'
+          });
+        }
+        await remove(entry.id);
+        const url = urlById.get(entry.id);
+        if (url) w.URL.revokeObjectURL(url);
         urlById.delete(entry.id);
         return true;
+      } else {
+        const errText = String(result?.error || '');
+        if (errText.includes('PERMISSION_DENIED') || errText.includes('401')) {
+          entry.lastError = '資料庫未授權 (請先登入同步帳號)';
+        } else {
+          entry.lastError = result?.error || '雲端資料庫寫入被拒';
+        }
+        await put(entry);
+        return false;
       }
-    }catch(e){console.warn('[PhotoLocal] Upload failed; original still locally stored',e);}
-    finally{syncing.delete(entry.id);}
+    } catch(e) {
+      console.warn('[PhotoLocal] Upload failed; original still locally stored', e);
+      entry.lastError = e.message || '連線錯誤';
+      try { await put(entry); } catch (_) {}
+    }
+    finally { syncing.delete(entry.id); }
     return false;
   }
+
   w.retryPendingPhotos=async function(){
     let stored;
     try{stored=await all();}catch(e){message('本機照片讀取失敗；原資料保留','error');return;}
-    if(!stored.length){message('沒有待同步照片','info');return;}
+    if(!stored.length){return;}
     let ok=0;
     for(const entry of stored){if(await syncEntry(entry))ok++;}
     await refreshAlbum();
     const left=stored.length-ok;
-    message(left?`已同步 ${ok} 張；仍有 ${left} 張只保存在此裝置`:`✅ ${ok} 張已同步雙人相簿`,left?'warning':'success');
+    if (ok > 0) {
+      message(left?`已同步 ${ok} 張；仍有 ${left} 張待同步`:`✅ ${ok} 張已同步雙人相簿`,left?'warning':'success');
+    }
   };
 
   w.uploadMultipleToImgBB=async function(files){
@@ -216,7 +264,6 @@
         if(!metadata.capturedAt && Number.isFinite(file.lastModified))metadata.fileModifiedAt=new Date(file.lastModified).toISOString();
         const id='local_photo_'+w.crypto.randomUUID().replace(/-/g,'');
         entry={id,blob:file,filename:file.name,metadata,createdAt:Date.now()};
-        // First guarantee the original bytes survive reload while ImgBB/Firebase may fail.
         await put(entry);localSaved++;
       }catch(e){failed++;console.error('[PhotoLocal] Local save failed',e);continue;}
       if(await syncEntry(entry))cloudSaved++;

@@ -54,6 +54,7 @@ const LOCAL_ASSETS = [
     './services/utils.js',
     './services/item-images.js',
     './js/firebase.js',
+    './js/auth-sync.js',
     './js/ui.js',
     './js/wallet.js',
     './js/memory.js',

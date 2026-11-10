@@ -101,6 +101,7 @@ test.describe('A. Budget editing + ledger isolation', () => {
     await page.locator('#pinInput').fill(PIN);
     await page.locator('#pinConfirmInput').fill(PIN);
     await page.locator('#pinSubmitBtn').click();
+    await expect(page.locator('#pinModal')).toBeHidden();
     await page.locator('#billName').fill('衣服購物');
     await page.locator('#billAmt').fill('640');
     await page.locator('#billCurrency').selectOption('TWD');

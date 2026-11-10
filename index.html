@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 
     <link rel="stylesheet" href="style.css?v=v46-owner-light-restaurant-20261109">
     <link rel="stylesheet" href="assets/css/item-images.css?v=45.4-image1">
@@ -88,6 +89,53 @@
         <div style="display:flex; gap:12px;">
             <button onclick="document.getElementById('profileModal').style.display='none'" style="flex:1; padding:15px; border-radius:16px; border:none; background:#ecf0f1; color:#7f8c8d; font-weight:900; font-size:1.05rem;">取消</button>
             <button onclick="saveProfiles()" style="flex:1; padding:15px; border-radius:16px; border:none; background:var(--dora); color:white; font-weight:900; font-size:1.05rem;">💾 儲存並同步</button>
+        </div>
+    </div>
+</div>
+
+<div id="authModal" role="dialog" aria-modal="true" aria-labelledby="authTitle" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10002; justify-content:center; align-items:center; backdrop-filter:blur(10px);">
+    <div class="pin-box" style="max-width:340px; width:90%; background:#fffaf2; border:1px solid #ebd3b6; border-radius:20px; padding:20px; box-sizing:border-box;">
+        <h3 id="authTitle" style="color:#a8432a; margin:0 0 8px 0; font-size:1.1rem; text-align:center;"><i class="fa-solid fa-cloud-arrow-up"></i> 雙人雲端同步登入</h3>
+        <p style="font-size:0.8rem; color:#7a6d5d; margin:0 0 14px 0; text-align:center; line-height:1.4;">登入專屬帳號後，餐廳、相簿與雙人公費即時跨裝置同步。</p>
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+            <button type="button" id="authSelectWen" onclick="window.AuthSyncEngine?.selectRole('wen')" style="flex:1; padding:10px; border-radius:12px; border:1.5px solid #d35400; background:#d35400; color:#fff; font-weight:900; font-size:0.9rem; cursor:pointer;">👩 溫</button>
+            <button type="button" id="authSelectDuck" onclick="window.AuthSyncEngine?.selectRole('duck')" style="flex:1; padding:10px; border-radius:12px; border:1.5px solid #27ae60; background:#fff; color:#1e824c; font-weight:900; font-size:0.9rem; cursor:pointer;">🦆 鴨</button>
+        </div>
+
+        <!-- Google Sign-In Block (Duck default) -->
+        <div id="authGoogleSection" style="display:none; margin-bottom:12px;">
+            <button type="button" id="authGoogleBtn" onclick="window.AuthSyncEngine?.loginWithGoogle()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:10px; padding:12px; border-radius:12px; border:1.5px solid #dadce0; background:#fff; color:#3c4043; font-weight:800; font-size:0.92rem; cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+                <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.616z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.173 0 7.547 0 9s.347 2.827.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
+                <span>以 Google 帳號登入 (鴨)</span>
+            </button>
+            <div style="font-size:0.72rem; color:#7f8c8d; text-align:center; margin-top:6px;">使用已註冊於 Firebase 的 Google 帳號</div>
+            <div style="text-align:center; margin-top:8px;">
+                <button type="button" onclick="window.AuthSyncEngine?.toggleEmailInputs()" style="border:none; background:none; color:#7f6b5b; font-size:0.75rem; text-decoration:underline; cursor:pointer;">或改用 Email/密碼登入</button>
+            </div>
+        </div>
+
+        <!-- Email & Password Block (Wen default) -->
+        <div id="authEmailSection">
+            <label style="display:block; font-size:0.78rem; font-weight:800; color:#5a4a3a; margin-bottom:4px;">帳號 Email</label>
+            <input type="email" id="authEmailInput" class="input-box" style="width:100%; box-sizing:border-box; padding:10px; border-radius:10px; border:1px solid #d8c2aa; margin-bottom:10px; font-size:0.9rem;" placeholder="請輸入真實 Email (如 name@gmail.com)" value="">
+            <label style="display:block; font-size:0.78rem; font-weight:800; color:#5a4a3a; margin-bottom:4px;">密碼</label>
+            <input type="password" id="authPasswordInput" class="input-box" style="width:100%; box-sizing:border-box; padding:10px; border-radius:10px; border:1px solid #d8c2aa; margin-bottom:12px; font-size:0.9rem;" placeholder="輸入同步密碼">
+            <div id="authEmailSwitchToGoogle" style="text-align:center; margin-bottom:10px;">
+                <button type="button" onclick="window.AuthSyncEngine?.loginWithGoogle()" style="border:none; background:none; color:#7f6b5b; font-size:0.75rem; text-decoration:underline; cursor:pointer;">或使用 Google 帳號登入</button>
+            </div>
+        </div>
+
+        <div id="authErrorMsg" style="color:#c0392b; font-size:0.78rem; font-weight:700; margin-bottom:10px; min-height:1.2em; text-align:center;"></div>
+        <div style="display:flex; gap:10px;">
+            <button type="button" onclick="window.AuthSyncEngine?.closeModal()" style="flex:1; padding:12px; border-radius:12px; border:1px solid #ccc; background:#fff; color:#777; font-weight:800; cursor:pointer;">取消</button>
+            <button type="button" id="authLoginBtn" onclick="window.AuthSyncEngine?.submitLogin()" style="flex:1; padding:12px; border-radius:12px; border:none; background:#d35400; color:#fff; font-weight:900; cursor:pointer;">登入同步 (溫)</button>
+        </div>
+
+        <div style="margin-top:12px; font-size:0.72rem; color:#7f6b5b; line-height:1.4; background:#fbf2e6; padding:8px 10px; border-radius:8px; border-left:3px solid #d35400;">
+            ℹ️ <strong>相簿隱私說明</strong>：目前圖片檔案託管於免費圖床（網址具公開特性）；系統於上傳前已自動抹除相機序號與 EXIF GPS 敏感資訊，拍攝地點僅保存在雙人資料庫。
+        </div>
+        <div id="authLogoutWrap" style="display:none; margin-top:10px; text-align:center;">
+            <button type="button" onclick="window.AuthSyncEngine?.logout()" style="border:none; background:none; color:#95a5a6; font-size:0.8rem; text-decoration:underline; cursor:pointer;">登出此裝置</button>
         </div>
     </div>
 </div>
@@ -220,6 +268,10 @@
                 <button class="btn-edit" style="background:none; border:1px solid #C0392B; color:#C0392B; padding:6px 12px; font-weight:900;" onclick="document.getElementById('profileModal').style.display='flex'"><i class="fa-solid fa-gear"></i> 設定</button>
             </div>
             <div class="flex-row"><span style="font-weight:900; color:#E74C3C;">我是：</span><select id="deviceOwner" class="input-box flex-1" style="margin-bottom:0;" onchange="updateOwner()"><option value="">請選擇我是誰</option></select></div>
+            <div id="authSyncCard" style="margin-top:10px; padding:10px 12px; background:#fff; border-radius:12px; border:1px solid #f1cfc0; display:flex; justify-content:space-between; align-items:center; font-size:0.83rem;">
+                <div id="authSyncStatus" style="font-weight:700; color:#a8432a;">☁️ 雙人同步：未登入 (資料僅保存在此裝置)</div>
+                <button id="openAuthModalBtn" type="button" onclick="window.AuthSyncEngine?.openModal()" style="border:none; background:#d35400; color:#fff; font-weight:800; padding:6px 14px; border-radius:8px; cursor:pointer;">登入同步</button>
+            </div>
         </div>
 
         <div class="card">
@@ -669,6 +721,7 @@
 <script src="data/recommended.js?v=45.4"></script>
 
 <script src="js/firebase.js?v=45.6-owner-b"></script>
+<script src="js/auth-sync.js?v=20261109-auth1"></script>
 <script src="js/ui.js?v=v46-owner-light-restaurant-20261109"></script>
 <script src="js/wallet.js?v=45.6-owner-b"></script>
 <script src="js/memory.js?v=45.4"></script>

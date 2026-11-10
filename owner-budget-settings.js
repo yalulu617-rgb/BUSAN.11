@@ -1,6 +1,6 @@
 /* BUSAN.11 owner-editable budget — isolated plugin, 2026-11-09.
- * Add after js/app.js, without modifying public or encrypted ledger records.
- * Scope: per-device preferences only. It does NOT synchronize budgets to another phone.
+ * Scope: Supports local persistence for private ledgers and real-time bidirectional
+ * cloud sync for the shared public budget (busan_v46_budget_shared).
  */
 (function (w, d) {
   'use strict';
@@ -65,6 +65,31 @@
     return recalculate(calculated, tab, owner);
   };
 
+  let budgetListenerAttached = false;
+  function listenSharedBudget() {
+    if (budgetListenerAttached) return;
+    if (!w.NetworkEngine || !w.NetworkEngine._db || typeof w.NetworkEngine.firebaseOn !== 'function') return;
+    budgetListenerAttached = true;
+    w.NetworkEngine.firebaseOn(w.DB_BUDGET || 'busan_v46_budget_shared', snap => {
+      try {
+        if (!snap || typeof snap.val !== 'function') return;
+        const data = snap.val();
+        if (data && Number.isSafeInteger(Number(data.shared))) {
+          const cloudVal = Number(data.shared);
+          const current = read();
+          if (current.shared !== cloudVal) {
+            const next = { ...current, shared: cloudVal };
+            w.StorageEngine.set(KEY, next);
+            if (typeof w.triggerContextUpdateImmediate === 'function') w.triggerContextUpdateImmediate();
+            else if (typeof w.triggerContextUpdate === 'function') w.triggerContextUpdate();
+          }
+        }
+      } catch (err) {
+        console.warn('[BudgetSettings] Failed to process shared budget snapshot', err);
+      }
+    });
+  }
+
   function initUI() {
     const scopeLabel = d.getElementById('budgetScopeLabel');
     const budgetText = d.getElementById('budgetText');
@@ -92,7 +117,7 @@
     input.min = String(LIMIT_MIN); input.max = String(LIMIT_MAX); input.step = '1';
     input.style.cssText = 'width:100%;box-sizing:border-box;border:1px solid #b8c8cc;border-radius:10px;padding:12px;font-size:1rem;background:white;color:#173d54;';
     const note = d.createElement('p');
-    note.textContent = '僅更改此裝置的預算上限；不更動原有花費或兩人分帳紀錄。';
+    note.textContent = '公費預算將自動同步至雙人手機；個人私帳預算僅在此裝置儲存。';
     note.style.cssText = 'font-size:.73rem;color:#63767c;margin:6px 0;line-height:1.4;';
     const message = d.createElement('p'); message.id = 'ownerBudgetError';
     message.setAttribute('role', 'alert');
@@ -119,22 +144,45 @@
       } catch(e) { message.textContent=e.message;form.hidden=false; }
     });
     cancel.addEventListener('click',()=>{form.hidden=true;message.textContent='';});
-    const commit = () => {
+    const commit = async () => {
       message.textContent='';
       try {
         const active = currentScope();
         if (form.dataset.scope !== active) throw new Error('帳本已切換，請重新開啟預算編輯');
-        update(active, input.value);
+        const nextVal = update(active, input.value);
+        if (active === 'shared') {
+          if (w.NetworkEngine?._db && navigator.onLine) {
+            try {
+              const res = await w.NetworkEngine.firebaseWrite(w.DB_BUDGET || 'busan_v46_budget_shared', {
+                shared: nextVal.shared,
+                updatedAt: Date.now(),
+                updatedBy: w.deviceOwner || 'user'
+              });
+              if (res?.success === true || (res === undefined && !res?.error)) {
+                if (typeof w.showToast === 'function') w.showToast('✅ 雙人公費預算已同步至雲端', 'success');
+              } else {
+                if (typeof w.showToast === 'function') w.showToast('預算已儲存在此裝置，雲端待同步: ' + (res?.error || ''), 'warning');
+              }
+            } catch (err) {
+              if (typeof w.showToast === 'function') w.showToast('預算已儲存在此裝置，雲端待同步: ' + err.message, 'warning');
+            }
+          } else {
+            if (typeof w.showToast === 'function') w.showToast('✅ 預算已保存在此裝置（離線）', 'info');
+          }
+        } else {
+          if (typeof w.showToast === 'function') w.showToast('✅ 個人私帳預算已保存在此裝置', 'success');
+        }
         form.hidden=true;
         if(typeof w.triggerContextUpdateImmediate==='function') w.triggerContextUpdateImmediate();
         else if(typeof w.triggerContextUpdate==='function') w.triggerContextUpdate();
-        if(typeof w.showToast==='function') w.showToast('✅ 預算已保存在此裝置','success');
       } catch(e) {message.textContent=e.message;}
     };
     save.addEventListener('click',commit);
     input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();commit();}});
+
+    listenSharedBudget();
   }
-  w.OwnerBudgetSettings = Object.freeze({read, update, getLimit, recalculate, initUI});
+  w.OwnerBudgetSettings = Object.freeze({read, update, getLimit, recalculate, initUI, listenSharedBudget});
   if(d.readyState==='loading') d.addEventListener('DOMContentLoaded',initUI,{once:true});
   else initUI();
 })(window,document);

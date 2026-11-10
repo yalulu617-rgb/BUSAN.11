@@ -1,0 +1,62 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "busan_v46_budget_shared": {
+      ".read": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')",
+      ".write": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')"
+    },
+    "busan_v36_guide": {
+      ".read": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')",
+      ".write": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')"
+    },
+    "busan_v36_photos": {
+      ".read": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')",
+      ".write": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')"
+    },
+    "busan_v36_bills": {
+      ".read": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')",
+      ".write": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')"
+    },
+    "busan_v36_shop": {
+      ".read": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')",
+      ".write": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')"
+    },
+    "busan_v36_prep": {
+      ".read": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')",
+      ".write": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')"
+    },
+    "busan_v36_voice": {
+      ".read": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')",
+      ".write": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')"
+    },
+    "busan_v36_profiles": {
+      ".read": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')",
+      ".write": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')"
+    },
+    "busan_v45_owner_custom": {
+      ".read": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')",
+      ".write": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')"
+    },
+    "busan_v36_iti": {
+      ".read": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')",
+      ".write": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')"
+    },
+    "busan_v36_tickets": {
+      ".read": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')",
+      ".write": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')"
+    },
+    "busan_v36_hotel": {
+      ".read": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')",
+      ".write": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')"
+    },
+    "busan_v45_coupons": {
+      ".read": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')",
+      ".write": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')"
+    },
+    "busan_v37_review": {
+      ".read": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')",
+      ".write": "auth != null && (auth.uid === '<UID_WEN>' || auth.uid === '<UID_DUCK>')"
+    }
+  }
+}

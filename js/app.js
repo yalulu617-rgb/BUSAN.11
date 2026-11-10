@@ -888,6 +888,7 @@
             console.error('[App] initFirebaseListeners failed:', err);
         }
     }
+    window.initFirebaseListeners = initFirebaseListeners;
 
     // ── Offline Sync (15-second interval — runs in app.js because it owns the queue) ──
     setInterval(() => { if (navigator.onLine) syncOfflineQueue(); }, 15000);
@@ -933,7 +934,11 @@
 
         // Firebase is initialised by firebase.js which loads before app.js
         try {
-            initFirebaseListeners();
+            if (!window.firebase || typeof firebase.auth !== 'function' || window.firebase.__ciOnly) {
+                initFirebaseListeners();
+            } else {
+                console.log('[App] Auth-gated: RTDB listeners deferred until authentication');
+            }
             if (typeof renderProfileSelector === 'function') {
                 renderProfileSelector();
             }
