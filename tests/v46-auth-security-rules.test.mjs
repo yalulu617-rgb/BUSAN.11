@@ -26,12 +26,11 @@ function evaluateRuleExpression(exprStr, context) {
 }
 
 class RTDBSecurityEngine {
-  constructor(rulesJson, uidWen, uidDuck1, uidDuck2) {
-    // Substitute real UIDs into rules template
+  constructor(rulesJson, uidWen, uidDuck) {
+    // Substitute TEST FIXTURES into the template (not Firebase user IDs).
     const jsonStr = JSON.stringify(rulesJson)
       .replace(/<UID_WEN>/g, uidWen)
-      .replace(/<UID_DUCK_1>/g, uidDuck1)
-      .replace(/<UID_DUCK_2>/g, uidDuck2 || uidDuck1);
+      .replace(/<UID_DUCK>/g, uidDuck);
     this.rules = JSON.parse(jsonStr).rules || {};
   }
 
@@ -54,21 +53,19 @@ test('Firebase Security Rules Genuine UID Authorization Validation', async (t) =
   const rulesPath = resolve(import.meta.dirname, '../database.rules.json');
   const rawRules = JSON.parse(await readFile(rulesPath, 'utf8'));
 
-  // Concrete Firebase Auth UIDs:
-  // Wen (溫): ovo2813699@gmail.com (Email/Password)
-  const REAL_UID_WEN = 'uid_wen_ovo2813699_emailpwd';
-  // Duck (鴨): candidate 1 = yalulu617@gmail.com (Google)
-  const REAL_UID_DUCK_1 = 'uid_duck_yalulu617_google';
-  // Duck (鴨): candidate 2 = sunny5200820@gmail.com (Google)
-  const REAL_UID_DUCK_2 = 'uid_duck_sunny5200820_google';
-  const STRANGER_UID = 'stranger_uid_unauthorized999';
+  // Illustrative test fixture UIDs ONLY. These are NOT real Firebase Auth UIDs.
+  // The production Rules publisher must retrieve the UID for the actual selected
+  // Google identity from Firebase Authentication; allow only that one Duck UID.
+  const FIXTURE_UID_WEN = 'test_wen_email_password';
+  const FIXTURE_UID_DUCK_SELECTED = 'test_duck_chosen_google';
+  const FIXTURE_UID_DUCK_OTHER = 'test_duck_other_google';
+  const FIXTURE_UID_STRANGER = 'test_stranger_unauthorized';
 
-  const engine = new RTDBSecurityEngine(rawRules, REAL_UID_WEN, REAL_UID_DUCK_1, REAL_UID_DUCK_2);
-
-  const authWen = { uid: REAL_UID_WEN, token: { email: 'ovo2813699@gmail.com' } };
-  const authDuck1 = { uid: REAL_UID_DUCK_1, token: { email: 'yalulu617@gmail.com', firebase: { sign_in_provider: 'google.com' } } };
-  const authDuck2 = { uid: REAL_UID_DUCK_2, token: { email: 'sunny5200820@gmail.com', firebase: { sign_in_provider: 'google.com' } } };
-  const authStranger = { uid: STRANGER_UID, token: { email: 'unauthorized-user@other.com' } };
+  const engine = new RTDBSecurityEngine(rawRules, FIXTURE_UID_WEN, FIXTURE_UID_DUCK_SELECTED);
+  const authWen = { uid: FIXTURE_UID_WEN, token: { email: 'wen@example.invalid' } };
+  const authDuckSelected = { uid: FIXTURE_UID_DUCK_SELECTED, token: { email: 'duck-selected@example.invalid', firebase: { sign_in_provider: 'google.com' } } };
+  const authDuckOther = { uid: FIXTURE_UID_DUCK_OTHER, token: { email: 'duck-other@example.invalid', firebase: { sign_in_provider: 'google.com' } } };
+  const authStranger = { uid: FIXTURE_UID_STRANGER, token: { email: 'stranger@example.invalid' } };
   const authUnauthenticated = null;
 
   const appNodes = [
@@ -88,24 +85,24 @@ test('Firebase Security Rules Genuine UID Authorization Validation', async (t) =
     'busan_v37_review'
   ];
 
-  await t.test('1. Wen (溫: ovo2813699@gmail.com) with genuine Email/Password UID can read and write all 14 trip nodes', () => {
+  await t.test('1. Selected Wen UID can read and write all 14 trip nodes', () => {
     for (const node of appNodes) {
       assert.equal(engine.canAccess(node, 'read', authWen), true, `Wen should read ${node}`);
       assert.equal(engine.canAccess(node, 'write', authWen), true, `Wen should write ${node}`);
     }
   });
 
-  await t.test('2. Duck (鴨: yalulu617@gmail.com) with Google UID can read and write all 14 trip nodes', () => {
+  await t.test('2. Only the selected Duck Google UID can read and write all 14 trip nodes', () => {
     for (const node of appNodes) {
-      assert.equal(engine.canAccess(node, 'read', authDuck1), true, `Duck1 should read ${node}`);
-      assert.equal(engine.canAccess(node, 'write', authDuck1), true, `Duck1 should write ${node}`);
+      assert.equal(engine.canAccess(node, 'read', authDuckSelected), true, `Selected Duck should read ${node}`);
+      assert.equal(engine.canAccess(node, 'write', authDuckSelected), true, `Selected Duck should write ${node}`);
     }
   });
 
-  await t.test('3. Duck (鴨: sunny5200820@gmail.com) with Google UID can read and write all 14 trip nodes', () => {
+  await t.test('3. Other Duck Google identity must be denied until explicitly selected', () => {
     for (const node of appNodes) {
-      assert.equal(engine.canAccess(node, 'read', authDuck2), true, `Duck2 should read ${node}`);
-      assert.equal(engine.canAccess(node, 'write', authDuck2), true, `Duck2 should write ${node}`);
+      assert.equal(engine.canAccess(node, 'read', authDuckOther), false, `Other Duck read on ${node} must be blocked`);
+      assert.equal(engine.canAccess(node, 'write', authDuckOther), false, `Other Duck write on ${node} must be blocked`);
     }
   });
 
