@@ -47,6 +47,10 @@ test.beforeEach(async ({ page }) => {
 test.describe('V46 Dual-User Sync & Cross-Device Repair', () => {
 
   test('1. Auth Modal: real email input, role selection, privacy notice, and state toggling', async ({ page }) => {
+    // Global sync entry at top of mainApp
+    await expect(page.locator('#globalSyncAccess')).toBeVisible();
+    await expect(page.locator('#globalSyncStatus')).toContainText('雙人同步');
+
     await page.evaluate(() => showV37Tab('split'));
     await expect(page.locator('#authSyncCard')).toBeVisible();
     await page.locator('#openAuthModalBtn').click();
@@ -61,6 +65,7 @@ test.describe('V46 Dual-User Sync & Cross-Device Repair', () => {
     await expect(page.locator('#authGoogleSection')).toBeVisible();
     await expect(page.locator('#authGoogleBtn')).toBeVisible();
     await expect(page.locator('#authGoogleBtn')).toContainText('以 Google 帳號登入 (鴨)');
+    await expect(page.locator('#authGoogleRedirectBtn')).toBeVisible();
 
     // Duck can toggle to Email/password if desired
     await page.getByRole('button', { name: '或改用 Email/密碼登入' }).click();

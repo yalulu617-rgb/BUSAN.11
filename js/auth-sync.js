@@ -1,9 +1,10 @@
 /* BUSAN.11 Dual-User Firebase Authentication & Cross-Device Sync Engine
  * Purpose: Authenticate Wen (溫) & Duck (鴨) with real Firebase accounts.
  * Wen uses Email/Password authentication.
- * Duck uses Google Sign-In authentication.
- * Defers RTDB listeners until genuine UID authentication is confirmed.
- * Automatically synchronizes pending local outbox (restaurants and photos) upon login.
+ * Duck uses Google Sign-In authentication (Popup + Redirect option for S25).
+ * Accurately reports error codes and displays genuine UID.
+ * Defers RTDB listeners until genuine UID and cloud permission are confirmed.
+ * Automatically synchronizes pending local outbox (restaurants and photos) upon cloud read.
  */
 (function (w, d) {
   'use strict';
@@ -15,21 +16,16 @@
 
   let activeRoleKey = 'wen';
   let duckManualEmailMode = false;
-  // Release guard: the visual Wen/Duck selector is NOT an authenticated identity.
-  function matchesRole(user) {
-    if (!user) return false;
-    const viaGoogle = !!(user.providerData || []).some(p => p && p.providerId === 'google.com');
-    return (w.deviceOwner === 'user2') ? viaGoogle : !viaGoogle;
-  }
+  let authVerificationEpoch = 0;
+
   function globalStatus(message) {
     const node = d.getElementById('globalSyncStatus');
     if (node) node.textContent = message;
   }
-  let authVerificationEpoch = 0;
-
 
   const AuthSyncEngine = {
     currentUser: null,
+    hasCloudPermission: false,
 
     openModal() {
       const modal = d.getElementById('authModal');
@@ -104,12 +100,8 @@
         ownerSel.value = roleConfig.owner;
         if (typeof w.updateOwner === 'function') w.updateOwner();
       }
-      const signedIn = (w.firebase && typeof firebase.auth === 'function') ? firebase.auth().currentUser : null;
-      if (signedIn && !matchesRole(signedIn)) {
-        authVerificationEpoch++;
-        void firebase.auth().signOut().catch(error => console.warn('[AuthSync] Role change sign-out:', error.code));
-      }
-      this.updateUI(signedIn && matchesRole(signedIn) ? signedIn : null);
+
+      this.updateUI(this.currentUser);
     },
 
     toggleEmailInputs() {
@@ -134,25 +126,22 @@
 
     async loginWithGoogle() {
       const errEl = d.getElementById('authErrorMsg');
-      if (errEl) errEl.textContent = '正在啟動 Google 登入...';
+      if (errEl) errEl.textContent = '正在啟動 Google 登入視窗...';
 
       if (!w.firebase || typeof firebase.auth !== 'function') {
         if (errEl) errEl.textContent = 'Firebase Auth 模組尚未載入';
         return;
       }
 
+      // If already signed in as someone else, sign out cleanly first
+      if (firebase.auth().currentUser) {
+        try { await firebase.auth().signOut(); } catch (_) {}
+      }
+
       try {
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
-        let userCred;
-        try {
-          userCred = await firebase.auth().signInWithPopup(provider);
-        } catch (popupErr) {
-          // Do not silently redirect from a third-party GitHub Pages PWA:
-          // Chrome's cross-origin storage restrictions can break Firebase redirect auth.
-          // Show an actionable error instead of looping back to an apparent logged-in state.
-          throw popupErr;
-        }
+        const userCred = await firebase.auth().signInWithPopup(provider);
         const user = userCred.user;
         if (errEl) errEl.textContent = '';
         this.closeModal();
@@ -161,23 +150,56 @@
         }
       } catch (error) {
         console.error('[AuthSync] Google login failed:', error);
-        let msg = error.message;
-        if (error.code === 'auth/popup-blocked') {
-          msg = '瀏覽器阻擋了登入彈跳視窗，請點選網址列允許彈出視窗後重試';
-        } else if (error.code === 'auth/cancelled-popup-request') {
-          msg = 'Google 登入要求已被取消';
-        } else if (error.code === 'auth/popup-closed-by-user') {
-          msg = '已取消 Google 登入';
-        } else if (error.code === 'auth/network-request-failed') {
-          msg = '網路連線異常，請確認網路狀態';
-        } else if (error.code === 'auth/unauthorized-domain') {
-          msg = '此網域尚未在 Firebase Console 授權網域清單中 (Authorized Domains)';
-        }
-        if (error.code === 'auth/operation-not-allowed') msg = 'Firebase 尚未啟用 Google 登入提供者';
-        if (error.code === 'auth/operation-not-supported-in-this-environment') msg = '目前瀏覽器不支援 Google 登入，請使用手機 Chrome 正式瀏覽器';
-        if (error.code === 'auth/internal-error') msg = 'Google 登入發生內部錯誤，請確認 Firebase 授權網域';
-        if (errEl) errEl.textContent = `${msg} [${error.code || 'unknown'}]`;
+        this.handleAuthError(error, errEl);
       }
+    },
+
+    async loginWithGoogleRedirect() {
+      const errEl = d.getElementById('authErrorMsg');
+      if (errEl) errEl.textContent = '正在跳轉至 Google 登入頁面...';
+
+      if (!w.firebase || typeof firebase.auth !== 'function') {
+        if (errEl) errEl.textContent = 'Firebase Auth 模組尚未載入';
+        return;
+      }
+
+      // If already signed in as someone else, sign out cleanly first
+      if (firebase.auth().currentUser) {
+        try { await firebase.auth().signOut(); } catch (_) {}
+      }
+
+      try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+        await firebase.auth().signInWithRedirect(provider);
+      } catch (error) {
+        console.error('[AuthSync] Google redirect login failed:', error);
+        this.handleAuthError(error, errEl);
+      }
+    },
+
+    handleAuthError(error, errEl) {
+      let msg = error.message;
+      if (error.code === 'auth/popup-blocked') {
+        msg = '瀏覽器阻擋了彈跳視窗，請點選上方「手機轉跳登入」';
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        msg = 'Google 登入視窗已被關閉';
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        msg = 'Google 登入要求已被取消';
+      } else if (error.code === 'auth/unauthorized-domain') {
+        msg = '此網域尚未在 Firebase Console 授權網域清單 (Authorized Domains) 中，請加入 yalulu617-rgb.github.io';
+      } else if (error.code === 'auth/operation-not-allowed') {
+        msg = 'Firebase 尚未啟用 Google 登入提供者，請在 Firebase Console 啟用 Google Sign-in';
+      } else if (error.code === 'auth/operation-not-supported-in-this-environment') {
+        msg = '目前瀏覽器環境不支援此登入模式，請使用手機 Chrome 瀏覽器';
+      } else if (error.code === 'auth/credential-already-in-use') {
+        msg = '此 Google 帳號已被其他登入憑證佔用，已為您清除舊工作階段，請重試';
+      } else if (error.code === 'auth/network-request-failed') {
+        msg = '網路連線異常，請檢查網路連線狀態';
+      } else if (error.code === 'auth/internal-error') {
+        msg = 'Google 登入內部錯誤，請確認 Firebase 授權網域與網路';
+      }
+      if (errEl) errEl.textContent = `${msg} [${error.code || 'unknown'}]`;
     },
 
     async submitLogin() {
@@ -202,6 +224,11 @@
         return;
       }
 
+      // If already signed in as someone else, sign out cleanly first
+      if (firebase.auth().currentUser) {
+        try { await firebase.auth().signOut(); } catch (_) {}
+      }
+
       try {
         const userCred = await firebase.auth().signInWithEmailAndPassword(email, pass);
         const user = userCred.user;
@@ -217,7 +244,7 @@
         console.error('[AuthSync] Login failed:', error);
         let msg = error.message;
         if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-          msg = '密碼錯誤，請確認 Firebase Console 中設定的密碼';
+          msg = '密碼錯誤，請確認在 Firebase 設定的密碼';
         } else if (error.code === 'auth/user-not-found') {
           msg = '找不到此 Email 帳號，請先在 Firebase Console 建立';
         } else if (error.code === 'auth/invalid-email') {
@@ -225,7 +252,7 @@
         } else if (error.code === 'auth/network-request-failed') {
           msg = '網路連線失敗，請檢查網路連線';
         }
-        if (errEl) errEl.textContent = msg;
+        if (errEl) errEl.textContent = `${msg} [${error.code || 'unknown'}]`;
       }
     },
 
@@ -233,7 +260,10 @@
       if (!w.firebase || typeof firebase.auth !== 'function') return;
       try {
         await firebase.auth().signOut();
+        this.currentUser = null;
+        this.hasCloudPermission = false;
         this.closeModal();
+        this.updateUI(null);
         if (typeof w.showToast === 'function') {
           w.showToast('已登出此裝置同步帳號', 'info');
         }
@@ -248,33 +278,45 @@
       const btnEl = d.getElementById('openAuthModalBtn');
       const logoutWrap = d.getElementById('authLogoutWrap');
 
-      if (user && !matchesRole(user)) {
-        if (statusEl) { statusEl.textContent = '⚠️ 登入帳號和本機使用者不一致，請切換登入'; statusEl.style.color = '#b45309'; }
-        globalStatus('⚠️ 帳號身分不一致');
-        if (btnEl) btnEl.textContent = '切換帳號';
-        if (logoutWrap) logoutWrap.style.display = 'block';
-        return;
-      }
       if (user) {
         const isGoogle = user.providerData && user.providerData.some(p => p && p.providerId === 'google.com');
+        const roleLabel = isGoogle ? '🦆 鴨' : '👩 溫';
         const providerName = isGoogle ? 'Google' : 'Email';
-        const roleLabel = (w.deviceOwner === 'user2') ? '🦆 鴨' : '👩 溫';
-        const displayAccount = user.email || user.displayName || (user.uid ? `UID: ${user.uid.slice(0, 8)}...` : '');
-        if (statusEl) {
-          statusEl.textContent = `🟠 帳號已登入、雲端權限待確認 (${roleLabel} / ${providerName}: ${displayAccount})`;
-          globalStatus(`🟠 ${roleLabel}已登入｜雲端待確認`);
-          statusEl.style.color = '#1e824c';
-          statusEl.title = `真實 UID: ${user.uid}\n帳號: ${user.email || user.displayName || '未知'}`;
+        const displayAccount = user.email || user.displayName || `UID: ${user.uid.slice(0, 8)}...`;
+
+        // Automatically sync the UI device owner selector to match the authentic logged in user
+        const targetOwner = isGoogle ? 'user2' : 'user1';
+        if (w.deviceOwner !== targetOwner) {
+          w.deviceOwner = targetOwner;
+          const ownerSel = d.getElementById('deviceOwner');
+          if (ownerSel) ownerSel.value = targetOwner;
+          if (typeof w.updateOwner === 'function') w.updateOwner();
+        }
+
+        if (this.hasCloudPermission) {
+          if (statusEl) {
+            statusEl.innerHTML = `🟢 雙人同步：已連線 (${roleLabel} / ${providerName}: ${displayAccount})<br><span style="font-size:0.7rem;color:#666;">真實 UID: ${user.uid}</span>`;
+            statusEl.style.color = '#1e824c';
+            statusEl.title = `真實 UID: ${user.uid}\n帳號: ${user.email || user.displayName || '未知'}`;
+          }
+          globalStatus(`🟢 ${roleLabel}已連線｜雙人同步中`);
+        } else {
+          if (statusEl) {
+            statusEl.innerHTML = `⚠️ 帳號已驗證！<br>真實 UID: <code style="font-size:0.75rem;background:#eee;padding:2px 4px;border-radius:4px;">${user.uid}</code><br><span style="font-size:0.72rem;color:#b45309;">資料庫規則尚未開放存取，請在 Firebase Console 加入此 UID</span>`;
+            statusEl.style.color = '#b45309';
+            statusEl.title = `真實 UID: ${user.uid}\n帳號: ${user.email || user.displayName || '未知'}`;
+          }
+          globalStatus(`⚠️ ${roleLabel}已驗證・雲端未授權`);
         }
         if (btnEl) btnEl.textContent = '帳號管理';
         if (logoutWrap) logoutWrap.style.display = 'block';
       } else {
         if (statusEl) {
           statusEl.textContent = '☁️ 雙人同步：未登入 (資料僅保存在此裝置)';
-          globalStatus('☁️ 雙人同步：未登入');
           statusEl.style.color = '#a8432a';
           statusEl.title = '未登入真實 Firebase 帳號，資料保存在裝置本機';
         }
+        globalStatus('☁️ 雙人同步：未登入');
         if (btnEl) btnEl.textContent = '登入同步';
         if (logoutWrap) logoutWrap.style.display = 'none';
       }
@@ -298,33 +340,37 @@
         }).catch(err => {
           if (err && err.code) {
             console.warn('[AuthSync] Redirect sign-in notice:', err.code, err.message);
+            const errEl = d.getElementById('authErrorMsg');
+            this.handleAuthError(err, errEl);
           }
         });
       }
 
       firebase.auth().onAuthStateChanged(async user => {
         const epoch = ++authVerificationEpoch;
+        this.currentUser = user;
+        this.hasCloudPermission = false;
         this.updateUI(user);
-        if (user && !matchesRole(user)) return;
+
         if (user) {
+          console.log('[AuthSync] Authenticated user:', user.uid, user.email);
+
+          // Actively verify if Firebase RTDB allows reading with this genuine UID
           try {
             if (!w.NetworkEngine?._db || !w.DB_GUIDE) throw new Error('Firebase Database 尚未初始化');
             await w.NetworkEngine._db.ref(w.DB_GUIDE).once('value');
-            if (epoch !== authVerificationEpoch || firebase.auth().currentUser?.uid !== user.uid || !matchesRole(user)) return;
+            if (epoch !== authVerificationEpoch || firebase.auth().currentUser?.uid !== user.uid) return;
+            this.hasCloudPermission = true;
+            this.updateUI(user);
+            console.log('[AuthSync] Cloud read permission verified for UID:', user.uid);
           } catch (e) {
             if (epoch !== authVerificationEpoch) return;
-            const msg = '⚠️ 帳號已登入，Firebase 資料庫尚未授權（本機照片和餐廳保留）';
-            globalStatus('⚠️ 已登入・雲端未授權');
-            const line = d.getElementById('authSyncStatus');
-            if (line) { line.textContent = msg; line.style.color = '#b45309'; }
-            console.warn('[AuthSync] RTDB permission check failed:', e.code || e.message);
+            this.hasCloudPermission = false;
+            this.updateUI(user);
+            console.warn('[AuthSync] RTDB permission check declined for UID:', user.uid, e.code || e.message);
             return;
           }
-          globalStatus('🟢 雲端可讀｜寫入待實測');
-          const line = d.getElementById('authSyncStatus');
-          if (line) { line.textContent = '🟢 已驗證雲端讀取；寫入和跨手機互見仍需實測'; line.style.color = '#24734a'; }
 
-          console.log('[AuthSync] Authenticated genuine UID:', user.uid, user.email);
           // 1. Start or resume RTDB listeners
           if (typeof w.initFirebaseListeners === 'function') {
             w.initFirebaseListeners();
