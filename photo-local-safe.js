@@ -681,12 +681,13 @@
   w.uploadMultipleToImgBB=async function(files){
     const selected=Array.from(files||[]);
     if(!selected.length)return;
-    let localSaved=0,cloudSaved=0,failed=0;
+    let localSaved=0,cloudSaved=0,failed=0,gpsFound=0,gpsMissing=0;
     for(const file of selected){
       let entry;
       try{
-        if(!file.type.startsWith('image/'))throw Error('不是圖片');
+        if(!file.type.startsWith('image/') && !/\.(jpe?g|png|webp|hei[cf])$/i.test(file.name || ''))throw Error('不是支援的圖片格式');
         const metadata=await readExif(file);
+        if(metadata.locationStatus==='gps')gpsFound++;else gpsMissing++;
         if(!metadata.capturedAt && Number.isFinite(file.lastModified))metadata.fileModifiedAt=new Date(file.lastModified).toISOString();
         const id='local_photo_'+w.crypto.randomUUID().replace(/-/g,'');
         entry={id,blob:file,filename:file.name,metadata,createdAt:Date.now()};
@@ -697,8 +698,8 @@
     await refreshAlbum();
     const pending=localSaved-cloudSaved;
     if(failed)message(`⚠️ 已在此裝置保存 ${localSaved}/${selected.length} 張；${failed} 張未保存，請勿關閉原始照片。`,'error');
-    else if(pending)message(`📱 已保存 ${localSaved}/${selected.length} 張；其中 ${pending} 張僅在此裝置，尚未同步。`,'warning');
-    else message(`✅ ${cloudSaved}/${selected.length} 張已同步雙人相簿。`,'success');
+    else if(pending)message(`📱 已保存 ${localSaved}/${selected.length} 張；${pending} 張待同步；自動定位 ${gpsFound} 張，未讀到 GPS ${gpsMissing} 張。`,'warning');
+    else message(`✅ ${cloudSaved}/${selected.length} 張已同步雙人相簿；自動定位 ${gpsFound} 張，未讀到 GPS ${gpsMissing} 張。`,'success');
     const picker=d.getElementById('photoImgUpload');if(picker)picker.value='';
   };
   w.PhotoLocalSafety={readExif,refreshAlbum,getPending:all,updateLocation:w.updatePhotoLocation};
