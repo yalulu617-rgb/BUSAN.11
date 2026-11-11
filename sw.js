@@ -8,7 +8,7 @@
 // - Cache-first with network fallback for static media (images, icons)
 // ─────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'busan-trip-v46-photo-gps-v7';
+const CACHE_NAME = 'busan-trip-v46-photo-gps-v8';
 
 const LOCAL_ASSETS = [
     './',

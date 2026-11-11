@@ -102,6 +102,10 @@ test.describe('1. Galaxy S25 Photo GPS Reading & Parsing', () => {
       NetworkEngine.uploadImage = async () => ({ success: false, error: 'synthetic test mode' });
     });
 
+    page.once('dialog', async dialog => {
+      expect(dialog.message()).toContain('未讀到 GPS 1 張');
+      await dialog.accept(); // Explicit owner consent for no-GPS photo.
+    });
     await page.locator('#photoImgUpload').setInputFiles([
       { name: 's25_nangang_chat.jpg', mimeType: 'image/jpeg', buffer: s25ChatJpeg }
     ]);
@@ -295,7 +299,7 @@ test.describe('4. Galaxy S25 Responsive Layout & PWA Freshness', () => {
 
   test('Service Worker cache version bumped and photo-local-safe is precached', async ({ page }) => {
     const release = await (await page.request.get('/data/release.json')).json();
-    expect(release.cacheVersion).toMatch(/^busan-trip-v46-photo-gps-v[67]/);
+    expect(release.cacheVersion).toMatch(/^busan-trip-v46-photo-gps-v[678]/);
     expect(release.appVersion).toMatch(/^V46\.[34]\./);
   });
 });
@@ -426,5 +430,39 @@ test.describe('6. S25 HEIC metadata extraction and safe batch reporting', () => 
     expect(meta.latitude).toBeCloseTo(25.0569,3);
     expect(meta.longitude).toBeCloseTo(121.6174,3);
     expect(meta.capturedAt).toBe('2026-11-08T13:14:00');
+  });
+});
+
+test.describe('7. Android Gallery GPS redaction safe original file picker', () => {
+  test('original Files picker has no image-only accept filter, but keeps multiple selection', async ({ page }) => {
+    const photo = page.locator('#photoImgUpload');
+    const original = page.locator('#photoOriginalFileUpload');
+    await expect(photo).toHaveAttribute('accept','image/*');
+    await expect(original).toHaveCount(1);
+    await expect(original).not.toHaveAttribute('accept');
+    await expect(original).toHaveAttribute('multiple', '');
+    await expect(page.locator('label[for="photoOriginalFileUpload"]')).toContainText('我的檔案');
+  });
+
+  test('GPS-free batch prompts before writing; cancel leaves original and cloud records unchanged', async ({ page }) => {
+    await page.evaluate(() => {
+      window._photoUploadCalled = 0;
+      window.NetworkEngine.uploadImage = async () => { window._photoUploadCalled++; return {success:false,error:'not expected'}; };
+    });
+    const noGps = buildJpegWithExif({dateTime:'2026:11:08 13:14:00'});
+    let dialogs = 0;
+    page.on('dialog', async dialog => {
+      dialogs++;
+      expect(dialog.message()).toContain('未讀到 GPS 1 張');
+      await dialog.dismiss();
+    });
+    await page.locator('#photoOriginalFileUpload').setInputFiles({
+      name:'s25-gallery-gps-redacted.jpg',mimeType:'image/jpeg',buffer:noGps
+    });
+    await expect(page.locator('#photoUploadStatus')).toContainText('已取消上傳');
+    expect(dialogs).toBe(1);
+    const saved = await page.evaluate(async () => (await PhotoLocalSafety.getPending()).length);
+    expect(saved).toBe(0);
+    expect(await page.evaluate(() => window._photoUploadCalled)).toBe(0);
   });
 });

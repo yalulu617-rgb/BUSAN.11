@@ -640,6 +640,10 @@
                 <p style="font-size:0.85rem; color:#888; font-weight:900;">支援多張批次上傳。點擊放大照片可點擊左上角刪除。</p>
                 <label for="photoImgUpload" class="btn-action" style="text-align:center; display:block;"><i class="fa-solid fa-wand-magic-sparkles"></i> 批次上傳美照 / GIF</label>
                 <input type="file" id="photoImgUpload" multiple style="display:none;" accept="image/*" onchange="uploadMultipleToImgBB(this.files, 'photo')">
+                <label for="photoOriginalFileUpload" class="btn-action" style="display:block; text-align:center; margin-top:8px; background:#fff2d8; color:#74481c; border:1px solid #e0bc89;"><i class="fa-solid fa-folder-open"></i> 保留 GPS：從「我的檔案」選原始照片（可多選）</label>
+                <!-- No accept=image/*: Android Chrome then offers Files instead of privacy-redacting Photo Picker. Validate MIME in JS. -->
+                <input type="file" id="photoOriginalFileUpload" multiple style="display:none;" onchange="uploadMultipleToImgBB(this.files, 'photo')">
+                <p style="font-size:0.72rem; color:#777; line-height:1.5; margin:6px 0 8px;">手機相簿選取器可能隱藏 GPS。遇到「無定位」時，改用上方「我的檔案」入口，從內部儲存空間 → DCIM → Camera 選取。上傳前會檢查定位，沒讀到 GPS 會先提醒你。</p>
                 <div id="photoUploadStatus" style="font-size: 0.85rem; color: var(--primary); margin-top: 10px; text-align: center; font-weight:900;"></div>
                 <input type="text" id="memorySearchInput" class="input-box" placeholder="🔍 搜尋日期或城市 (例: 11/13、釜山)" style="margin-bottom:10px;" oninput="renderMemoryAlbum()">
                 <div id="albumContainer" style="margin-top: 15px;"></div>
@@ -775,7 +779,7 @@
 <script src="components/renderers.js?v=v46-owner-light-restaurant-20261109"></script>
 <script src="js/app.js?v=v46-owner-light-restaurant-20261109"></script>
 <script src="restaurant-save-guard.js?v=20261109-safe1"></script>
-<script src="photo-local-safe.js?v=20261111-photo-gpsfix"></script>
+<script src="photo-local-safe.js?v=20261111-gps-original-files-v8"></script>
 <script src="owner-budget-settings.js?v=20261109-edit1"></script>
 </body>
 </html>
