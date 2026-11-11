@@ -295,7 +295,95 @@ test.describe('4. Galaxy S25 Responsive Layout & PWA Freshness', () => {
 
   test('Service Worker cache version bumped and photo-local-safe is precached', async ({ page }) => {
     const release = await (await page.request.get('/data/release.json')).json();
-    expect(release.cacheVersion).toBe('busan-trip-v46-photo-gps-v5');
-    expect(release.appVersion).toBe('V46.3');
+    expect(release.cacheVersion).toBe('busan-trip-v46-photo-gps-v6');
+    expect(release.appVersion).toBe('V46.3.1');
+  });
+});
+
+// V46.3.1 regression: blank manual coordinates must never become Null Island.
+test.describe('5. Null-safe manual photo location regression', () => {
+  test('cloud photo: name only persists no GPS, maps searches the name, preserves image and key', async ({ page }) => {
+    await page.evaluate(() => showV37Tab('photo'));
+    await page.evaluate(async () => {
+      await window.NetworkEngine._db.ref(`${window.DB_PHOTOS}/photo_name_only`).set({
+        url: 'https://i.ibb.co/synthetic/name-only.jpg', date: '2026-11-08', city: '無定位'
+      });
+    });
+    await page.evaluate(() => window.openPhotoLocationModal('photo_name_only'));
+    await page.locator('#photoLocNameInput').fill('南港展覽館');
+    await page.locator('#savePhotoLocBtn').click();
+    await expect(page.locator('#photoLocationModal')).not.toBeVisible();
+    const row = await page.evaluate(async () =>
+      (await window.NetworkEngine._db.ref(`${window.DB_PHOTOS}/photo_name_only`).once('value')).val()
+    );
+    expect(row.url).toBe('https://i.ibb.co/synthetic/name-only.jpg');
+    expect(row.placeName).toBe('南港展覽館');
+    expect(row.latitude).toBeUndefined();
+    expect(row.longitude).toBeUndefined();
+    expect(row.location).toBeUndefined();
+    const mapLink = page.locator('#albumContainer a[href*="google.com/maps"]').first();
+    await expect(mapLink).toHaveAttribute('href', new RegExp(encodeURIComponent('南港展覽館')));
+    expect(await mapLink.getAttribute('href')).not.toContain('query=0,0');
+  });
+
+  test('cloud photo: clearing stale (0,0) also removes stale GPS instead of linking to Null Island', async ({ page }) => {
+    await page.evaluate(() => showV37Tab('photo'));
+    await page.evaluate(async () => {
+      await window.NetworkEngine._db.ref(`${window.DB_PHOTOS}/photo_legacy_zero`).set({
+        url: 'https://i.ibb.co/synthetic/legacy.jpg', date: '2026-11-08',
+        city: '無定位', latitude: 0, longitude: 0,
+        location: { latitude: 0, longitude: 0 }
+      });
+    });
+    await page.evaluate(() => window.openPhotoLocationModal('photo_legacy_zero'));
+    await page.locator('#photoLocNameInput').fill('南港展覽館');
+    await page.locator('#photoLocLatInput').fill('');
+    await page.locator('#photoLocLngInput').fill('');
+    await page.locator('#savePhotoLocBtn').click();
+    await expect(page.locator('#photoLocationModal')).not.toBeVisible();
+    const row = await page.evaluate(async () =>
+      (await window.NetworkEngine._db.ref(`${window.DB_PHOTOS}/photo_legacy_zero`).once('value')).val()
+    );
+    expect(row.url).toBe('https://i.ibb.co/synthetic/legacy.jpg');
+    expect(row.latitude).toBeUndefined();
+    expect(row.longitude).toBeUndefined();
+    expect(row.location).toBeUndefined();
+    const links = await page.locator('#albumContainer a[href*="google.com/maps"]').evaluateAll(nodes => nodes.map(n => n.href));
+    expect(links.join(' ')).not.toContain('query=0,0');
+  });
+
+  test('one-sided coordinates reject save and leave Firebase record unchanged', async ({ page }) => {
+    await page.evaluate(() => showV37Tab('photo'));
+    await page.evaluate(async () => {
+      await window.NetworkEngine._db.ref(`${window.DB_PHOTOS}/photo_partial`).set({
+        url: 'https://i.ibb.co/synthetic/partial.jpg', city: '無定位'
+      });
+    });
+    await page.evaluate(() => window.openPhotoLocationModal('photo_partial'));
+    await page.locator('#photoLocNameInput').fill('南港展覽館');
+    await page.locator('#photoLocLatInput').fill('25.0569');
+    await page.locator('#photoLocLngInput').fill('');
+    await page.locator('#savePhotoLocBtn').click();
+    await expect(page.locator('#photoLocError')).toContainText('同時填寫');
+    await expect(page.locator('#photoLocationModal')).toBeVisible();
+    const row = await page.evaluate(async () =>
+      (await window.NetworkEngine._db.ref(`${window.DB_PHOTOS}/photo_partial`).once('value')).val()
+    );
+    expect(row.city).toBe('無定位');
+    expect(row.placeName).toBeUndefined();
+    expect(row.url).toBe('https://i.ibb.co/synthetic/partial.jpg');
+  });
+
+  test('direct API rejects missing, partial, and invented zero coordinates', async ({ page }) => {
+    const cases = await page.evaluate(async () => ({
+      partial: await window.PhotoLocalSafety.updateLocation('any', {placeName:'南港展覽館',latitude:25.0569,longitude:null}),
+      zero: await window.PhotoLocalSafety.updateLocation('any', {placeName:'南港展覽館',latitude:0,longitude:0}),
+      empty: await window.PhotoLocalSafety.updateLocation('any', {placeName:'南港展覽館',latitude:'',longitude:' '})
+    }));
+    expect(cases.partial.success).toBe(false);
+    expect(cases.zero.success).toBe(false);
+    // Empty pair is valid input (name-only); this call should not fabricate GPS.
+    // Cloud write may fail if key is absent, but it must not be rejected for the pair.
+    expect(cases.empty.error || '').not.toMatch(/經緯度|0,0/);
   });
 });
