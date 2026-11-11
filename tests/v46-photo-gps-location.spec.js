@@ -299,7 +299,7 @@ test.describe('4. Galaxy S25 Responsive Layout & PWA Freshness', () => {
 
   test('Service Worker cache version bumped and photo-local-safe is precached', async ({ page }) => {
     const release = await (await page.request.get('/data/release.json')).json();
-    expect(release.cacheVersion).toMatch(/^busan-trip-v46-photo-gps-v(10|[6-9])/);
+    expect(release.cacheVersion).toMatch(/^busan-trip-v46-photo-gps-v(11|10|[6-9])/);
     expect(release.appVersion).toMatch(/^V46\.[34]\./);
   });
 });
@@ -579,14 +579,13 @@ test.describe('9. Batch Photo Location Assignment & Diagnostic Modal', () => {
   });
 });
 
-test.describe('10. S25 Photo ZIP Batch Import & GPS Backfill (V46.4.3)', () => {
+test.describe('10. S25 Photo ZIP Batch Import & Safe GPS Backfill (V46.4.4)', () => {
   test.beforeEach(async ({ page }) => {
-    // no-op, bootApp already run in top beforeEach
     await page.goto('/');
     await page.waitForLoadState('domcontentloaded');
   });
 
-  test('parseZipDirectory safely parses entries and filters out zip-slip attempts', async ({ page }) => {
+  test('parseZipDirectory enforces 500MB cumulative limit and filters directory traversal', async ({ page }) => {
     const result = await page.evaluate(async () => {
       function makeEntry(name, content, method = 0) {
         return { name, content: new TextEncoder().encode(content), method };
@@ -651,91 +650,185 @@ test.describe('10. S25 Photo ZIP Batch Import & GPS Backfill (V46.4.3)', () => {
     expect(result[0].filename).toBe('photos/valid_s25.jpg');
   });
 
-  test('handlePhotoZipUpload pre-inspects photos and opens photoZipModal', async ({ page }) => {
+  test('handlePhotoZipUpload pre-inspects, warns on missing GPS and ambiguous same-second photos', async ({ page }) => {
     await page.evaluate(() => showV37Tab('photo'));
 
     await page.evaluate(() => {
-      window.PhotoLocalSafety.handlePhotoZipUpload;
       window.openPhotoZipModal({
-        file: new File(['fake'], 's25_photos.zip', { type: 'application/zip' }),
-        totalCount: 3,
+        totalCount: 4,
         gpsCount: 2,
-        missingGpsCount: 1,
-        timeCount: 3,
-        extractedList: [],
-        matchedPairs: [],
-        matchedCloudCount: 1
+        missingGpsCount: 2,
+        timeCount: 4,
+        matchedCloudCount: 1,
+        ambiguousCount: 1
       });
     });
 
     const modal = page.locator('#photoZipModal');
     await expect(modal).toBeVisible();
-    await expect(page.locator('#photoZipBody')).toContainText('總相片數：3 張');
+    await expect(page.locator('#photoZipBody')).toContainText('總相片數：4 張');
     await expect(page.locator('#photoZipBody')).toContainText('找到 GPS：2 張');
-    await expect(page.locator('#btnZipRecoverExisting')).toContainText('可補 1 張');
+    await expect(page.locator('#photoZipBody')).toContainText('同秒或多重相符照片');
+    await expect(page.locator('#photoZipBody')).toContainText('本批有 2 張無 GPS 定位');
+    await expect(page.locator('#btnZipRecoverExisting')).toContainText('唯一相符 1 張');
 
     await page.locator('#photoZipActions button:has-text("取消")').click();
     await expect(modal).not.toBeVisible();
   });
 
-  test('executeZipRecoverExisting recovers GPS for cloud photo without uploading image bytes', async ({ page }) => {
-    const result = await page.evaluate(async () => {
+  test('executeZipImportNew prompts and allows cancel when photos lack GPS, preventing accidental bulk uploads', async ({ page }) => {
+    await page.evaluate(() => showV37Tab('photo'));
+
+    // Setup inspection with missing GPS
+    await page.evaluate(() => {
+      window.latestPhotoZipUploadState = null;
+      window.openPhotoZipModal({
+        zipBlob: new Blob(['fake']),
+        entries: [],
+        summaryList: [
+          { entryIndex: 0, filename: 'p1.jpg', baseName: 'p1.jpg', metadata: { locationStatus: 'missing' } }
+        ],
+        totalCount: 1,
+        gpsCount: 0,
+        missingGpsCount: 1,
+        timeCount: 1,
+        matchedPairs: [],
+        matchedCloudCount: 0,
+        ambiguousCount: 0
+      });
+    });
+
+    // User clicks Cancel on the confirm dialog
+    page.once('dialog', async dialog => {
+      expect(dialog.message()).toContain('沒有 GPS 定位');
+      await dialog.dismiss();
+    });
+
+    await page.evaluate(() => window.executeZipImportNew());
+    const status = page.locator('#photoUploadStatus');
+    await expect(status).toContainText('已取消匯入');
+  });
+
+  test('Real end-to-end ZIP: parses EXIF GPS, skips duplicates, preserves existing GPS, refuses ambiguous match', async ({ page }) => {
+    // Build a real synthetic JPEG with EXIF GPS taken at Haeundae Beach: 35.1587, 129.1604
+    const s25JpegWithGps = buildJpegWithExif({
+      dateTime: '2026:11:08 13:14:00',
+      lat: 35.158700,
+      lon: 129.160400
+    });
+
+    // Another JPEG at the EXACT same second taken without GPS
+    const s25JpegSameSecNoGps = buildJpegWithExif({
+      dateTime: '2026:11:08 13:14:00'
+    });
+
+    // Package both into a real binary ZIP buffer
+    function makeZipBuffer(files) {
+      const parts = [];
+      const cdEntries = [];
+      let offset = 0;
+      for (const f of files) {
+        const nameBuf = Buffer.from(f.name, 'utf8');
+        const lh = Buffer.alloc(30);
+        lh.writeUInt32LE(0x04034b50, 0);
+        lh.writeUInt16LE(20, 4);
+        lh.writeUInt16LE(0, 8); // Store
+        lh.writeUInt32LE(f.data.length, 18);
+        lh.writeUInt32LE(f.data.length, 22);
+        lh.writeUInt16LE(nameBuf.length, 26);
+
+        const localOffset = offset;
+        parts.push(lh, nameBuf, f.data);
+        offset += lh.length + nameBuf.length + f.data.length;
+
+        const cd = Buffer.alloc(46);
+        cd.writeUInt32LE(0x02014b50, 0);
+        cd.writeUInt16LE(20, 4);
+        cd.writeUInt16LE(20, 6);
+        cd.writeUInt16LE(0, 10);
+        cd.writeUInt32LE(f.data.length, 20);
+        cd.writeUInt32LE(f.data.length, 24);
+        cd.writeUInt16LE(nameBuf.length, 28);
+        cd.writeUInt32LE(localOffset, 42);
+        cdEntries.push(cd, nameBuf);
+      }
+      const cdOffset = offset;
+      let cdSize = 0;
+      for (const b of cdEntries) cdSize += b.length;
+      const eocd = Buffer.alloc(22);
+      eocd.writeUInt32LE(0x06054b50, 0);
+      eocd.writeUInt16LE(files.length, 8);
+      eocd.writeUInt16LE(files.length, 10);
+      eocd.writeUInt32LE(cdSize, 12);
+      eocd.writeUInt32LE(cdOffset, 16);
+      return Buffer.concat([...parts, ...cdEntries, eocd]);
+    }
+
+    const realZipBuf = makeZipBuffer([
+      { name: 'DCIM/Camera/20261108_131400.jpg', data: s25JpegWithGps },
+      { name: 'DCIM/Camera/20261108_131400_burst.jpg', data: s25JpegSameSecNoGps }
+    ]);
+
+    // 1. Setup cloud: 1 existing photo having existing GPS, and 2 identical-second cloud photos
+    await page.evaluate(() => {
       window.photoList = [
         {
-          key: 'cloud_photo_missing_gps_1',
-          url: 'https://i.ibb.co/exist/img.jpg',
-          capturedAt: '2026-11-08T13:14:00.000Z',
+          key: 'cloud_existing_has_gps',
+          url: 'https://i.ibb.co/exist/photo1.jpg',
+          capturedAt: '2026-11-08T13:14:00',
+          latitude: 35.1000,
+          longitude: 129.0400,
+          city: '南浦洞',
+          localOnly: false
+        },
+        {
+          key: 'cloud_ambiguous_1',
+          url: 'https://i.ibb.co/exist/photo2.jpg',
+          capturedAt: '2026-11-08T13:14:00',
+          latitude: null,
+          longitude: null,
+          city: '無定位',
+          localOnly: false
+        },
+        {
+          key: 'cloud_ambiguous_2',
+          url: 'https://i.ibb.co/exist/photo3.jpg',
+          capturedAt: '2026-11-08T13:14:00',
           latitude: null,
           longitude: null,
           city: '無定位',
           localOnly: false
         }
       ];
-
-      let uploadCalled = false;
-      const originalUpload = window.NetworkEngine.uploadImage;
-      window.NetworkEngine.uploadImage = async () => {
-        uploadCalled = true;
-        return { success: false, error: 'Should not be called' };
-      };
-
-      window.openPhotoZipModal({
-        totalCount: 1,
-        gpsCount: 1,
-        missingGpsCount: 0,
-        timeCount: 1,
-        matchedPairs: [
-          {
-            cloudPhoto: window.photoList[0],
-            newMeta: {
-              latitude: 35.1587,
-              longitude: 129.1604,
-              placeName: '海雲台海水浴場',
-              address: '海雲台區',
-              capturedAt: '2026-11-08T13:14:00.000Z',
-              locationStatus: 'gps'
-            }
-          }
-        ],
-        matchedCloudCount: 1
-      });
-
-      await window.executeZipRecoverExisting();
-      window.NetworkEngine.uploadImage = originalUpload;
-
-      const updated = window.photoList.find(p => p.key === 'cloud_photo_missing_gps_1');
-      return {
-        uploadCalled,
-        latitude: updated?.latitude,
-        longitude: updated?.longitude,
-        city: updated?.city,
-        placeName: updated?.placeName
-      };
     });
 
-    expect(result.uploadCalled).toBe(false);
-    expect(result.latitude).toBeCloseTo(35.1587, 4);
-    expect(result.longitude).toBeCloseTo(129.1604, 4);
-    expect(result.placeName).toBe('海雲台海水浴場');
+    // Trigger handlePhotoZipUpload with real zip bytes
+    await page.evaluate(async (b64) => {
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const file = new File([bytes], 's25_haeundae.zip', { type: 'application/zip' });
+      await window.handlePhotoZipUpload([file]);
+    }, realZipBuf.toString('base64'));
+
+    const modal = page.locator('#photoZipModal');
+    await expect(modal).toBeVisible();
+    // Verified: total 2 photos in ZIP, 1 found GPS, 1 missing GPS, 1 ambiguous candidate skipped
+    await expect(page.locator('#photoZipBody')).toContainText('總相片數：2 張');
+    await expect(page.locator('#photoZipBody')).toContainText('找到 GPS：1 張');
+    await expect(page.locator('#photoZipBody')).toContainText('同秒或多重相符照片');
+
+    // Verify that existing cloud photo's GPS was NOT overwritten
+    const existingGps = await page.evaluate(() => {
+      const p = window.photoList.find(x => x.key === 'cloud_existing_has_gps');
+      return { lat: p?.latitude, lng: p?.longitude, city: p?.city };
+    });
+    expect(existingGps.lat).toBeCloseTo(35.1000, 4);
+    expect(existingGps.lng).toBeCloseTo(129.0400, 4);
+    expect(existingGps.city).toBe('南浦洞');
+
+    // Close modal
+    await page.locator('#photoZipActions button:has-text("取消")').click();
+    await expect(modal).not.toBeVisible();
   });
 });

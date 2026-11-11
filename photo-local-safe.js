@@ -1178,8 +1178,11 @@
   };
 
   // =========================================================================
-  // S25 原始照片 ZIP 批次匯入與既有照片 GPS 恢復機制 (V46.4.3)
   // =========================================================================
+  // S25 原始照片 ZIP 批次匯入與既有照片 GPS 恢復安全機制 (V46.4.4)
+  // =========================================================================
+  const MAX_ZIP_UNCOMP_TOTAL = 500 * 1024 * 1024; // 累計解壓上限 500MB
+  const MAX_ZIP_SINGLE_ENTRY = 80 * 1024 * 1024;  // 單張解壓上限 80MB
   let latestZipInspection = null;
 
   async function parseZipDirectory(blob) {
@@ -1207,6 +1210,7 @@
     let p = 0;
     const entries = [];
     const textDec = new TextDecoder("utf-8");
+    let totalDeclaredUncomp = 0;
 
     while (p + 46 <= cdSize) {
       if (cdView.getUint32(p, true) !== 0x02014b50) break;
@@ -1225,6 +1229,10 @@
       // Zip-Slip security check: prevent directory traversal
       const safe = !filename.includes("..") && !filename.startsWith("/") && !filename.startsWith("\\\\");
       if (safe && !filename.endsWith("/") && /\.(jpe?g|png|webp|hei[cf])$/i.test(filename)) {
+        totalDeclaredUncomp += uncompSize;
+        if (totalDeclaredUncomp > MAX_ZIP_UNCOMP_TOTAL) {
+          throw new Error("ZIP 累計解壓大小超過安全上限 500MB，防止記憶體耗盡");
+        }
         entries.push({ filename, method, compSize, uncompSize, localOffset });
       }
       p += 46 + nameLen + extraLen + commentLen;
@@ -1233,7 +1241,7 @@
   }
 
   async function extractZipEntry(blob, entry) {
-    if (entry.uncompSize > 80 * 1024 * 1024) {
+    if (entry.uncompSize > MAX_ZIP_SINGLE_ENTRY) {
       throw new Error("單張照片解壓大小超過 80MB 上限");
     }
     const headerBuf = await blob.slice(entry.localOffset, entry.localOffset + 30).arrayBuffer();
@@ -1259,6 +1267,10 @@
       throw new Error("不支援的壓縮格式代碼: " + entry.method);
     }
 
+    if (uncompBlob.size > MAX_ZIP_SINGLE_ENTRY) {
+      throw new Error("解壓後實際大小超過 80MB 上限 (宣告不實)");
+    }
+
     const lowerName = entry.filename.toLowerCase();
     const mime = (lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg")) ? "image/jpeg" :
                  (lowerName.endsWith(".png") ? "image/png" :
@@ -1273,25 +1285,30 @@
     if (!modal) return;
     const body = d.getElementById("photoZipBody");
     if (body) {
-      const { totalCount, gpsCount, missingGpsCount, timeCount, matchedCloudCount } = inspection;
+      const { totalCount, gpsCount, missingGpsCount, timeCount, matchedCloudCount, ambiguousCount } = inspection;
+      const ambiguousNotice = ambiguousCount > 0 ?
+        '<div style="background:#fef9e7; border-radius:8px; padding:6px 10px; margin-top:6px; font-size:0.75rem; color:#b7791f; font-weight:700;">⚠️ 另有 ' + ambiguousCount + ' 張同秒或多重相符照片，為確保資料絕對正確已嚴格跳過（拒絕猜測配對）。</div>' : '';
+      const missingGpsWarning = missingGpsCount > 0 ?
+        '<div style="background:#fdf2e9; border-radius:8px; padding:6px 10px; margin-top:6px; font-size:0.75rem; color:#c0392b; font-weight:700;">⚠️ 本批有 ' + missingGpsCount + ' 張無 GPS 定位。匯入時會進行防護確認。</div>' : '';
       body.innerHTML = '<div style="background:#e8f4fd; border-radius:12px; padding:12px; margin-bottom:12px; font-size:0.78rem; line-height:1.6; color:#1b4f72;">' +
-        '<div style="font-weight:900; margin-bottom:4px; color:#2980b9;"><i class="fa-solid fa-file-zipper"></i> ZIP 檔案本機解壓解析完成</div>' +
-        '<div>成功讀取 ZIP 壓縮包中的原始照片二進位資料。直接由瀏覽器內核解析 EXIF/XMP，未經 Android 相簿轉發，保留完整相機資訊。</div></div>' +
-        '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; font-size:0.82rem;">' +
+        '<div style="font-weight:900; margin-bottom:4px; color:#2980b9;"><i class="fa-solid fa-file-zipper"></i> ZIP 檔案本機串流預檢完成</div>' +
+        '<div>採用分批串流解壓與 EXIF/XMP 解析，記憶體已即時釋放。未經 Android 相簿轉發，保留相機真實定位。</div></div>' +
+        '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; font-size:0.82rem;">' +
         '<div style="background:#f8f9fa; border-radius:10px; padding:8px 10px;">📦 總相片數：<b>' + totalCount + '</b> 張</div>' +
         '<div style="background:#e8f8f5; border-radius:10px; padding:8px 10px; color:#27ae60;">📍 找到 GPS：<b>' + gpsCount + '</b> 張</div>' +
         '<div style="background:#fef9e7; border-radius:10px; padding:8px 10px; color:#d35400;">⏰ 拍攝時間：<b>' + timeCount + '</b> 張</div>' +
-        '<div style="background:#eaf2f8; border-radius:10px; padding:8px 10px; color:#2980b9;">🔄 可補齊雲端：<b>' + matchedCloudCount + '</b> 張</div></div>' +
-        '<div style="font-size:0.75rem; color:#7f8c8d; line-height:1.5;">' +
-        '• <b>📥 批次匯入為新照片</b>：將這批照片逐張上傳至相簿並同步雙人資料庫。<br>' +
-        '• <b>🔄 比對並補齊既有照片 GPS</b>：比對雲端已有的無定位照片（依照拍攝秒數/檔名比對），僅更新 GPS/地點，<b>不重複上傳照片圖檔</b>。</div>';
+        '<div style="background:#eaf2f8; border-radius:10px; padding:8px 10px; color:#2980b9;">🔄 唯一相符：<b>' + matchedCloudCount + '</b> 張</div></div>' +
+        ambiguousNotice + missingGpsWarning +
+        '<div style="font-size:0.75rem; color:#7f8c8d; line-height:1.5; margin-top:8px;">' +
+        '• <b>📥 批次匯入為新照片</b>：逐張從本機 ZIP 解壓並串流上傳至相簿。<br>' +
+        '• <b>🔄 比對並補齊既有照片 GPS</b>：僅針對「唯一 1-to-1 配對」的雲端無定位照片補齊 GPS，<b>零圖檔重複上傳</b>。</div>';
     }
     const btnRecover = d.getElementById("btnZipRecoverExisting");
     if (btnRecover) {
       btnRecover.disabled = inspection.matchedCloudCount === 0;
       btnRecover.textContent = inspection.matchedCloudCount > 0 ?
-        ("🔄 比對並補齊既有照片 GPS (可補 " + inspection.matchedCloudCount + " 張)") :
-        "🔄 比對並補齊既有照片 GPS (雲端無相符照片)";
+        ("🔄 比對並補齊既有照片 GPS (唯一相符 " + inspection.matchedCloudCount + " 張)") :
+        "🔄 比對並補齊既有照片 GPS (無唯一相符照片)";
     }
     modal.style.display = "flex";
   };
@@ -1315,69 +1332,97 @@
         if (input) input.value = "";
         return;
       }
-      message("正在解壓並預檢 " + entries.length + " 張照片拍攝資訊…");
+      message("正在分批解壓預檢 " + entries.length + " 張照片拍攝資訊…");
       let gpsCount = 0, timeCount = 0;
-      const extractedList = [];
+      const summaryList = [];
 
+      // Memory-safe inspection: read EXIF then let File be garbage-collected
       for (let i = 0; i < entries.length; i++) {
         const ent = entries[i];
-        if (i > 0 && i % 5 === 0) {
-          message("預檢中 (" + (i + 1) + "/" + entries.length + ")…");
-          await new Promise(r => setTimeout(r, 10));
+        if (i > 0 && i % 3 === 0) {
+          message("分批預檢中 (" + (i + 1) + "/" + entries.length + ")…");
+          await new Promise(r => setTimeout(r, 10)); // Memory yield
         }
         try {
           const photoFile = await extractZipEntry(file, ent);
           const meta = await readExif(photoFile);
           if (meta.locationStatus === "gps") gpsCount++;
           if (meta.capturedAt) timeCount++;
-          extractedList.push({ file: photoFile, metadata: meta, zipPath: ent.filename });
+          summaryList.push({
+            entryIndex: i,
+            filename: ent.filename,
+            baseName: photoFile.name,
+            fileSize: photoFile.size,
+            metadata: meta
+          });
         } catch (e) {
-          console.warn("[PhotoZip] Extracting " + ent.filename + " failed:", e);
+          console.warn("[PhotoZip] Pre-inspecting " + ent.filename + " failed:", e);
         }
       }
 
-      if (!extractedList.length) {
+      if (!summaryList.length) {
         message("ZIP 內照片解壓失敗，請確認檔案格式", "error");
         if (input) input.value = "";
         return;
       }
 
+      // Strict 1-to-1 Identity Matching (Prevent Wrong Pairing Risk)
       const cloudList = Array.isArray(w.photoList) ? w.photoList : [];
-      let matchedCloudCount = 0;
       const matchedPairs = [];
+      let ambiguousCount = 0;
 
-      for (const item of extractedList) {
+      for (const item of summaryList) {
         if (item.metadata?.locationStatus !== "gps") continue;
         const captured = item.metadata.capturedAt;
         if (!captured) continue;
+        const itemBaseName = (item.baseName || "").toLowerCase();
+
+        // Candidates in cloud missing GPS
         const candidates = cloudList.filter(cp => {
           if (cp.localOnly) return false;
+          // NEVER overwrite existing GPS
           if (cp.latitude !== null && cp.latitude !== undefined && cp.longitude !== null && cp.longitude !== undefined) {
             return false;
           }
+          // 1. Exact capture timestamp match
           if (cp.capturedAt && cp.capturedAt === captured) return true;
+          // 2. Exact filename match if available
+          if (cp.filename && itemBaseName && cp.filename.toLowerCase() === itemBaseName) return true;
           return false;
         });
-        for (const cand of candidates) {
-          if (!matchedPairs.some(p => p.cloudPhoto.key === cand.key)) {
-            matchedPairs.push({ cloudPhoto: cand, newMeta: item.metadata });
-            matchedCloudCount++;
+
+        // Strict Rule: ONLY allow 1-to-1 match. If multiple cloud photos match the same second,
+        // or multiple zip photos match the same cloud photo, reject guessing and skip!
+        if (candidates.length === 1) {
+          const cand = candidates[0];
+          // Check if this cloud photo was already paired with another zip photo
+          const alreadyPaired = matchedPairs.some(p => p.cloudPhoto.key === cand.key);
+          if (!alreadyPaired) {
+            matchedPairs.push({ cloudPhoto: cand, newMeta: item.metadata, zipSummary: item });
+          } else {
+            // Multiple zip photos claim the same cloud photo -> ambiguous!
+            ambiguousCount++;
           }
+        } else if (candidates.length > 1) {
+          // Ambiguous: multiple cloud photos at the exact same second
+          ambiguousCount++;
         }
       }
 
       const inspection = {
-        file,
-        totalCount: extractedList.length,
+        zipBlob: file,
+        entries,
+        totalCount: summaryList.length,
         gpsCount,
-        missingGpsCount: extractedList.length - gpsCount,
+        missingGpsCount: summaryList.length - gpsCount,
         timeCount,
-        extractedList,
+        summaryList,
         matchedPairs,
-        matchedCloudCount
+        matchedCloudCount: matchedPairs.length,
+        ambiguousCount
       };
 
-      message("ZIP 預檢完成：共 " + extractedList.length + " 張，" + gpsCount + " 張含 GPS 定位。", "success");
+      message("ZIP 預檢完成：共 " + summaryList.length + " 張，" + gpsCount + " 張含 GPS 定位。", "success");
       w.openPhotoZipModal(inspection);
     } catch (err) {
       console.error("[PhotoZip] Parse error:", err);
@@ -1387,25 +1432,69 @@
   };
 
   w.executeZipImportNew = async function() {
-    if (!latestZipInspection || !latestZipInspection.extractedList) {
+    if (!latestZipInspection || !latestZipInspection.summaryList || !latestZipInspection.zipBlob) {
       message("無可匯入的解壓照片", "error");
       return;
     }
-    const { extractedList } = latestZipInspection;
-    w.closePhotoZipModal();
-    message("開始批次匯入 " + extractedList.length + " 張照片…");
+    const { zipBlob, entries, summaryList, missingGpsCount, totalCount, gpsCount } = latestZipInspection;
 
-    let localSaved = 0, cloudSaved = 0, failed = 0, gpsFound = 0, gpsMissing = 0;
-    for (let i = 0; i < extractedList.length; i++) {
-      const item = extractedList[i];
-      if (item.metadata?.locationStatus === "gps") gpsFound++; else gpsMissing++;
+    // Prevent Unintended No-GPS Photo Upload: Prompt & allow user cancellation
+    if (missingGpsCount > 0) {
+      const ok = w.confirm(
+        "⚠️ 這批 ZIP 照片中，有 " + missingGpsCount + " 張「沒有 GPS 定位」（共 " + totalCount + " 張，含定位 " + gpsCount + " 張）。\n\n" +
+        "若不想將無定位照片上傳至相簿，請按「取消」。\n\n" +
+        "確定仍要匯入這批照片嗎？"
+      );
+      if (!ok) {
+        message("已取消匯入；未上傳任何照片，雲端資料完整保留。", "warning");
+        w.closePhotoZipModal();
+        return;
+      }
+    }
+
+    w.closePhotoZipModal();
+    message("開始分批解壓匯入 " + summaryList.length + " 張照片…");
+
+    let localSaved = 0, cloudSaved = 0, failed = 0, gpsFound = 0, gpsMissing = 0, skippedDuplicate = 0;
+    const existingList = Array.isArray(w.photoList) ? w.photoList : [];
+
+    // Extract and process one photo at a time to keep RAM bounded
+    for (let i = 0; i < summaryList.length; i++) {
+      const sumItem = summaryList[i];
+      const ent = entries[sumItem.entryIndex];
+      if (!ent) continue;
+
+      // Deduplication check: if photo with exact capturedAt and filename already exists in album, skip duplicate
+      const isDup = existingList.some(ep => {
+        if (ep.localOnly) return false;
+        if (sumItem.metadata.capturedAt && ep.capturedAt === sumItem.metadata.capturedAt) {
+          if (ep.filename && sumItem.baseName && ep.filename.toLowerCase() === sumItem.baseName.toLowerCase()) return true;
+          if (!ep.filename) return true;
+        }
+        return false;
+      });
+      if (isDup) {
+        skippedDuplicate++;
+        continue;
+      }
+
+      let photoFile = null;
+      try {
+        photoFile = await extractZipEntry(zipBlob, ent);
+      } catch (ex) {
+        failed++;
+        console.warn("[PhotoZip] Re-extracting " + ent.filename + " failed:", ex);
+        continue;
+      }
+
+      if (sumItem.metadata?.locationStatus === "gps") gpsFound++; else gpsMissing++;
       try {
         const id = "local_photo_" + w.crypto.randomUUID().replace(/-/g, "");
         const entry = {
           id,
-          blob: item.file,
-          filename: item.file.name,
-          metadata: item.metadata,
+          blob: photoFile,
+          filename: photoFile.name,
+          metadata: sumItem.metadata,
           createdAt: Date.now()
         };
         await put(entry);
@@ -1413,16 +1502,19 @@
         if (await syncEntry(entry)) cloudSaved++;
       } catch (e) {
         failed++;
-        console.error("[PhotoZip] Import entry failed:", e);
+        console.error("[PhotoZip] Import entry save failed:", e);
       }
-      if (i % 2 === 0) await new Promise(r => setTimeout(r, 50));
+      photoFile = null; // explicit GC help
+      if (i % 2 === 0) await new Promise(r => setTimeout(r, 40)); // Memory yield
     }
 
     await refreshAlbum();
     const pending = localSaved - cloudSaved;
-    if (failed) message("⚠️ 已匯入 " + localSaved + "/" + extractedList.length + " 張；" + failed + " 張失敗。", "error");
-    else if (pending) message("📱 已匯入 " + localSaved + "/" + extractedList.length + " 張；" + pending + " 張待同步；自動定位 " + gpsFound + " 張。", "warning");
-    else message("✅ " + cloudSaved + "/" + extractedList.length + " 張已同步雙人相簿；自動定位 " + gpsFound + " 張。", "success");
+    let resMsg = "✅ 已匯入 " + cloudSaved + "/" + summaryList.length + " 張（定位 " + gpsFound + " 張）";
+    if (skippedDuplicate > 0) resMsg += "；已略過 " + skippedDuplicate + " 張重複照片";
+    if (pending > 0) resMsg += "；" + pending + " 張待背景同步";
+    if (failed > 0) resMsg += "；" + failed + " 張失敗（原圖未受損）";
+    message(resMsg, failed > 0 ? "warning" : "success");
   };
 
   w.executeZipRecoverExisting = async function() {
@@ -1432,11 +1524,11 @@
     }
     const { matchedPairs } = latestZipInspection;
     if (!matchedPairs.length) {
-      message("目前雲端無可比對補齊的相符照片", "warning");
+      message("目前無唯一確定的雲端照片可補齊 GPS", "warning");
       return;
     }
     w.closePhotoZipModal();
-    message("正在為 " + matchedPairs.length + " 張既有雲端照片補齊 GPS…");
+    message("正在為 " + matchedPairs.length + " 張唯一相符的既有雲端照片補齊 GPS…");
 
     let updatedCount = 0;
     const errors = [];
@@ -1460,7 +1552,7 @@
 
     if (typeof w.renderMemoryAlbum === "function") w.renderMemoryAlbum();
     if (updatedCount > 0) {
-      message("✅ 成功為 " + updatedCount + " 張既有雲端照片恢復 GPS 定位！無需重傳圖檔。", "success");
+      message("✅ 成功為 " + updatedCount + " 張既有雲端照片恢復 GPS 定位！零圖檔重複上傳。", "success");
     } else {
       message("既有照片 GPS 恢復失敗：" + (errors[0] || "未知錯誤"), "error");
     }
