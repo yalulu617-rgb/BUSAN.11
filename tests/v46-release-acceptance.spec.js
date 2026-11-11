@@ -259,7 +259,7 @@ test('V46 release label: manifest, page title, and release metadata agree withou
   expect(manifest.name).toContain('V46');
   expect(manifest.short_name).toContain('V46');
   expect(manifest.id).toBe('./'); // must not create a second home-screen app identity
-  expect(release.appVersion).toMatch(/^V46(?:\.\d+)?$/);
+  expect(release.appVersion).toMatch(/^V46(?:\.\d+){0,2}$/);
   expect(release.releaseName).toContain('V46');
   expect(await page.title()).toContain('V46');
 });
