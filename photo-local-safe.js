@@ -96,6 +96,122 @@
 
   // Enhanced bounded JPEG EXIF & XMP reader; no external library, network, or geocoder.
   // Capture date and GPS come from original photo, BEFORE Canvas compression.
+
+  // HEIC/HEIF stores Exif as an ISO-BMFF item, rather than a JPEG APP1 segment.
+  // Locate the Exif item (iinf/infe) and its extent (iloc), then reuse the
+  // existing bounded JPEG/TIFF parser. Nothing is uploaded to inspect metadata.
+  async function readHeifExif(file) {
+    const out = {capturedAt:null, latitude:null, longitude:null, locationStatus:'missing', shareGps:true, missingReason:'HEIC 檔案中沒有可讀取的 GPS 資訊'};
+    const header = await file.slice(0, Math.min(file.size, 8 * 1024 * 1024)).arrayBuffer();
+    const v = new DataView(header), n = v.byteLength;
+    const u16 = p => v.getUint16(p), u32 = p => v.getUint32(p);
+    const str = (p,l) => String.fromCharCode(...new Uint8Array(header,p,l));
+    const boxes = (start,end) => {
+      const list = [];
+      for (let p=start; p+8<=end;) {
+        let sz=u32(p), head=8;
+        if (sz===1) {if(p+16>end) break; sz=Number(v.getBigUint64(p+8));head=16;}
+        else if(sz===0) sz=end-p;
+        if (!Number.isSafeInteger(sz)||sz<head||p+sz>end) break;
+        list.push({type:str(p+4,4),start:p+head,end:p+sz});
+        p+=sz;
+      }
+      return list;
+    };
+    const meta=boxes(0,n).find(b=>b.type==='meta');
+    if (!meta || meta.start+4>meta.end) return out;
+    const children=boxes(meta.start+4,meta.end);
+    const iinf=children.find(b=>b.type==='iinf');
+    const iloc=children.find(b=>b.type==='iloc');
+    if (!iinf || !iloc) return out;
+    const inf=boxes(iinf.start+6,iinf.end);
+    let exifId=null;
+    for (const b of inf) {
+      if(b.type!=='infe'||b.start+12>b.end)continue;
+      const version=v.getUint8(b.start);
+      if(version===2 && str(b.start+8,4)==='Exif') exifId=u16(b.start+4);
+      if(version===3 && b.start+14<=b.end && str(b.start+10,4)==='Exif') exifId=u32(b.start+4);
+    }
+    if (exifId===null) return out;
+    let p=iloc.start,version=v.getUint8(p);p+=4;
+    if(p+2>iloc.end)return out;
+    const sizes=u16(p);p+=2;
+    const os=sizes>>12, ls=(sizes>>8)&15, bs=(sizes>>4)&15, ix=(version===1||version===2)?sizes&15:0;
+    const number = (size) => {
+      if(size>8 || p+size>iloc.end)throw Error('HEIF iloc bounds');
+      let x=0;for(let i=0;i<size;i++)x=x*256+v.getUint8(p++);
+      if(!Number.isSafeInteger(x))throw Error('HEIF offset too large');
+      return x;
+    };
+    try {
+      const count=number(version<2?2:4);
+      if(count>65536)return out;
+      for(let i=0;i<count;i++){
+        const id=number(version<2?2:4);
+        let method=0;
+        if(version===1||version===2)method=number(2)&15;
+        number(2); // data_reference_index
+        const base=number(bs), extents=number(2);
+        if(extents>4096)return out;
+        for(let j=0;j<extents;j++){
+          if(ix)number(ix);
+          const off=number(os), len=number(ls);
+          if(id!==exifId||j!==0||!len||len>8*1024*1024)continue;
+          let location=base+off;
+          if(method===1){
+            const idat=children.find(b=>b.type==='idat');
+            if(!idat)continue;
+            location=idat.start+location;
+          }else if(method!==0)continue;
+          if(location<0||location+len>file.size)continue;
+          const raw=new Uint8Array(await file.slice(location,location+len).arrayBuffer());
+          if(raw.length<12)continue;
+          // HEIF Exif item begins with a 4-byte TIFF-header offset.
+          const tiffAt=4+new DataView(raw.buffer).getUint32(0,false);
+          if(tiffAt+8>raw.length)continue;
+          const tiff=raw.slice(tiffAt,Math.min(raw.length,tiffAt+65000));
+          const payload=new Uint8Array(6+tiff.length);
+          payload.set([69,120,105,102,0,0]);payload.set(tiff,6);
+          const jpeg=new Uint8Array(payload.length+8);
+          jpeg.set([255,216,255,225,(payload.length+2)>>8,(payload.length+2)&255],0);
+          jpeg.set(payload,6);jpeg.set([255,217],6+payload.length);
+          const parsed=await readExif(new File([jpeg],'heif-exif.jpg',{type:'image/jpeg'}));
+          if(parsed.locationStatus==='gps'||parsed.capturedAt)return parsed;
+        }
+      }
+    }catch(e){console.warn('[PhotoLocal] HEIF metadata parsing:',e.message);}
+
+    // Fallback: bounded scan for embedded TIFF Exif header in the first 8MB
+    try {
+      const u8 = new Uint8Array(header);
+      const nBytes = u8.length;
+      for (let i = 0; i <= nBytes - 16; i++) {
+        const b0 = u8[i], b1 = u8[i+1], b2 = u8[i+2], b3 = u8[i+3];
+        let le = false;
+        if (b0 === 0x49 && b1 === 0x49 && b2 === 0x2a && b3 === 0x00) le = true;
+        else if (b0 === 0x4d && b1 === 0x4d && b2 === 0x00 && b3 === 0x2a) le = false;
+        else continue;
+
+        const ifd0 = v.getUint32(i + 4, le);
+        if (ifd0 >= 8 && ifd0 < 65536 && i + ifd0 + 2 <= nBytes) {
+          const numEntries = v.getUint16(i + ifd0, le);
+          if (numEntries > 0 && numEntries < 256) {
+            const tiff = u8.slice(i, Math.min(nBytes, i + 65536));
+            const payload = new Uint8Array(6 + tiff.length);
+            payload.set([69, 120, 105, 102, 0, 0]); payload.set(tiff, 6);
+            const jpeg = new Uint8Array(payload.length + 8);
+            jpeg.set([255, 216, 255, 225, (payload.length + 2) >> 8, (payload.length + 2) & 255], 0);
+            jpeg.set(payload, 6); jpeg.set([255, 217], 6 + payload.length);
+            const parsed = await readExif(new File([jpeg], 'heif-fallback.jpg', { type: 'image/jpeg' }));
+            if (parsed.locationStatus === 'gps' || parsed.capturedAt) return parsed;
+          }
+        }
+      }
+    } catch(e) { console.warn('[PhotoLocal] HEIF TIFF scan fallback:', e.message); }
+
+    return out;
+  }
+
   async function readExif(file) {
     const out = {capturedAt:null, latitude:null, longitude:null, locationStatus:'missing', shareGps:true, missingReason:null};
     if (!file) {
@@ -105,9 +221,8 @@
     const isJpeg = /image\/jpeg/i.test(file.type) || /\.jpe?g$/i.test(file.name || '');
     if (!isJpeg) {
       const isHeic = /image\/hei[cf]/i.test(file.type) || /\.hei[cf]$/i.test(file.name || '');
-      out.missingReason = isHeic
-        ? 'HEIC/HEIF 格式相片暫不支援直接解析 EXIF 定位，可手動補充拍攝地點'
-        : '此圖片格式不含 EXIF GPS 資訊，可手動補充拍攝地點';
+      if (isHeic) return readHeifExif(file);
+      out.missingReason = '此圖片格式不支援 EXIF GPS 讀取';
       return out;
     }
     let buf;
@@ -595,12 +710,13 @@
   w.uploadMultipleToImgBB=async function(files){
     const selected=Array.from(files||[]);
     if(!selected.length)return;
-    let localSaved=0,cloudSaved=0,failed=0;
+    let localSaved=0,cloudSaved=0,failed=0,gpsFound=0,gpsMissing=0;
     for(const file of selected){
       let entry;
       try{
-        if(!file.type.startsWith('image/'))throw Error('不是圖片');
+        if(!file.type.startsWith('image/') && !/\.(jpe?g|png|webp|hei[cf])$/i.test(file.name || ''))throw Error('不是支援的圖片格式');
         const metadata=await readExif(file);
+        if(metadata.locationStatus==='gps')gpsFound++;else gpsMissing++;
         if(!metadata.capturedAt && Number.isFinite(file.lastModified))metadata.fileModifiedAt=new Date(file.lastModified).toISOString();
         const id='local_photo_'+w.crypto.randomUUID().replace(/-/g,'');
         entry={id,blob:file,filename:file.name,metadata,createdAt:Date.now()};
@@ -611,8 +727,8 @@
     await refreshAlbum();
     const pending=localSaved-cloudSaved;
     if(failed)message(`⚠️ 已在此裝置保存 ${localSaved}/${selected.length} 張；${failed} 張未保存，請勿關閉原始照片。`,'error');
-    else if(pending)message(`📱 已保存 ${localSaved}/${selected.length} 張；其中 ${pending} 張僅在此裝置，尚未同步。`,'warning');
-    else message(`✅ ${cloudSaved}/${selected.length} 張已同步雙人相簿。`,'success');
+    else if(pending)message(`📱 已保存 ${localSaved}/${selected.length} 張；${pending} 張待同步；自動定位 ${gpsFound} 張，未讀到 GPS ${gpsMissing} 張。`,'warning');
+    else message(`✅ ${cloudSaved}/${selected.length} 張已同步雙人相簿；自動定位 ${gpsFound} 張，未讀到 GPS ${gpsMissing} 張。`,'success');
     const picker=d.getElementById('photoImgUpload');if(picker)picker.value='';
   };
   w.PhotoLocalSafety={readExif,refreshAlbum,getPending:all,updateLocation:w.updatePhotoLocation};
