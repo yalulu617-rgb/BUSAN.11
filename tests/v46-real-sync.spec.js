@@ -198,6 +198,11 @@ test.describe('V46 Dual-User Sync & Cross-Device Repair', () => {
       return items.length;
     }).toBe(1);
 
+    // The batch preflight now runs before uploads; wait for the hosted URL to be durably cached, not only the initial IndexedDB enqueue.
+    await expect.poll(async () => {
+      const row = await page.evaluate(async () => (await PhotoLocalSafety.getPending())[0]);
+      return row?.hostedUrl ?? null;
+    }).toBe('https://i.ibb.co/synthetic-host/photo1.jpg');
     const pendingPhoto = await page.evaluate(async () => (await PhotoLocalSafety.getPending())[0]);
     expect(pendingPhoto.metadata.capturedAt).toBe('2026-11-09T12:00:00');
     expect(pendingPhoto.metadata.latitude).toBeCloseTo(35.158, 3);
