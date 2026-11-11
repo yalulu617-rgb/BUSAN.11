@@ -1,0 +1,33 @@
+{
+  "id": "./",
+  "name": "釜山採買簿｜BUSAN SNACK LIST",
+  "short_name": "釜山採買簿",
+  "description": "釜山零食採買17件、同事分帳、實際韓幣、離線自動儲存與JSON備份",
+  "lang": "zh-TW",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fff7eb",
+  "theme_color": "#fff7eb",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./icons/snacks.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
