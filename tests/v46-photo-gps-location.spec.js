@@ -295,7 +295,7 @@ test.describe('4. Galaxy S25 Responsive Layout & PWA Freshness', () => {
 
   test('Service Worker cache version bumped and photo-local-safe is precached', async ({ page }) => {
     const release = await (await page.request.get('/data/release.json')).json();
-    expect(release.cacheVersion).toMatch(/^busan-trip-v46-photo-gps-v[67]/);
+    expect(release.cacheVersion).toMatch(/^busan-trip-v46-photo-gps-v[678]/);
     expect(release.appVersion).toMatch(/^V46\.[34]\./);
   });
 });
