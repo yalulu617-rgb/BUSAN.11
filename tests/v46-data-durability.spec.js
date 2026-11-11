@@ -99,7 +99,7 @@ test('V46 image upload with failed Firebase write never reports a stored photo',
     await window.uploadMultipleToImgBB([f],'photo');
   });
   await expect(page.locator('#photoUploadStatus')).toContainText('已保存 1/1');
-  await expect(page.locator('#photoUploadStatus')).toContainText('僅在此裝置');
+  await expect(page.locator('#photoUploadStatus')).toContainText('待同步');
   const result=await page.evaluate(async()=>({
     remote:(await window.NetworkEngine._db.ref(window.DB_PHOTOS).once('value')).val(),
     local:(window.photoList||[]).map(x=>x.desc),
