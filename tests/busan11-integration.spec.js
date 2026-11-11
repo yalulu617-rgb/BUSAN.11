@@ -179,6 +179,10 @@ test.describe('C. Photos: EXIF + local-first', () => {
     const plain = TINY_JPEG;
     const corrupt = Buffer.from('not really a jpeg');
     await page.evaluate(() => { NetworkEngine.uploadImage = async () => ({ success: false, error: 'imgbb down (synthetic)' }); });
+    page.once('dialog', async dialog => {
+      expect(dialog.message()).toContain('未讀到 GPS 2 張');
+      await dialog.accept(); // Explicitly allow missing-metadata fixtures.
+    });
     await page.locator('#photoImgUpload').setInputFiles([
       { name: 'gps.jpg', mimeType: 'image/jpeg', buffer: gps },
       { name: 'plain.jpg', mimeType: 'image/jpeg', buffer: plain },
