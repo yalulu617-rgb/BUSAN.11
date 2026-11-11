@@ -84,6 +84,10 @@ test('V46 failed photo deletion keeps the remote photo and does not claim succes
 });
 
 test('V46 image upload with failed Firebase write never reports a stored photo',async({page})=>{
+  page.once('dialog', async dialog => {
+    expect(dialog.message()).toContain('未讀到 GPS 1 張');
+    await dialog.accept(); // Deliberate consent to upload a location-free fixture.
+  });
   await page.evaluate(async()=>{
     const db=window.NetworkEngine._db;
     await db.ref(window.DB_PHOTOS).set({
