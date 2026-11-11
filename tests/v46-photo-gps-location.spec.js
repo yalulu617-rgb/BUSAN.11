@@ -387,3 +387,44 @@ test.describe('5. Null-safe manual photo location regression', () => {
     expect(cases.empty.error || '').not.toMatch(/經緯度|0,0/);
   });
 });
+
+
+test.describe('6. S25 HEIC metadata extraction and safe batch reporting', () => {
+  function box(type, content) {
+    const b=Buffer.alloc(content.length+8);
+    b.writeUInt32BE(b.length,0);b.write(type,4,4,'ascii');
+    content.copy(b,8);return b;
+  }
+  function buildHeicWithExif(jpeg) {
+    const p=jpeg.indexOf(Buffer.from('Exif\\0\\0','ascii'));
+    if(p<0)throw Error('no Exif in source fixture');
+    const app1length=jpeg.readUInt16BE(p-2);
+    const tiff=jpeg.subarray(p+6,p+app1length-2);
+    const exif=Buffer.concat([Buffer.alloc(4),tiff]);
+    const infe=box('infe',Buffer.concat([Buffer.from([2,0,0,0,0,1,0,0]),Buffer.from('Exif','ascii'),Buffer.from([0])]));
+    const iinf=box('iinf',Buffer.concat([Buffer.alloc(4),Buffer.from([0,1]),infe]));
+    const iloc=box('iloc',Buffer.concat([
+      Buffer.from([1,0,0,0,0x44,0,0,1]), // version 1, offsetSize=4,lengthSize=4, 1 item
+      Buffer.from([0,1,0,1,0,0]), // item_id, method=idat, data ref
+      Buffer.alloc(4),Buffer.from([0,1]), // base offset, one extent
+      Buffer.alloc(4),Buffer.alloc(4)
+    ]));
+    iloc.writeUInt32BE(exif.length,iloc.length-4);
+    const idat=box('idat',exif);
+    const meta=box('meta',Buffer.concat([Buffer.alloc(4),iinf,iloc,idat]));
+    return Buffer.concat([box('ftyp',Buffer.from('heic\\0\\0\\0\\0heic','binary')),meta]);
+  }
+
+  test('HEIC embedded Exif GPS and capture time are extracted without uploading', async ({ page }) => {
+    const jpeg=buildJpegWithExif({dateTime:'2026:11:08 13:14:00',lat:25.0569,lon:121.6174});
+    const heic=buildHeicWithExif(jpeg);
+    const meta=await page.evaluate(async b64=>{
+      const bytes=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+      return window.PhotoLocalSafety.readExif(new File([bytes],'s25-original.heic',{type:'image/heic'}));
+    },heic.toString('base64'));
+    expect(meta.locationStatus).toBe('gps');
+    expect(meta.latitude).toBeCloseTo(25.0569,3);
+    expect(meta.longitude).toBeCloseTo(121.6174,3);
+    expect(meta.capturedAt).toBe('2026-11-08T13:14:00');
+  });
+});
