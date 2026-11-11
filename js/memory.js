@@ -52,6 +52,69 @@ window.downloadImage = function () {
         const c = validCoordinates(a, b);
         return c ? `${c.lat.toFixed(5)}, ${c.lng.toFixed(5)}` : '';
     };
+    window.batchMode = false;
+    window.selectedBatchPhotoKeys = new Set();
+
+    window.toggleBatchLocationMode = function(forceState) {
+        window.batchMode = (typeof forceState === 'boolean') ? forceState : !window.batchMode;
+        if (!window.batchMode) {
+            window.selectedBatchPhotoKeys.clear();
+        }
+        const bar = document.getElementById('batchActionBar');
+        if (bar) {
+            bar.style.display = window.batchMode ? 'flex' : 'none';
+        }
+        const text = document.getElementById('batchSelectedText');
+        if (text) {
+            text.textContent = `已選取 ${window.selectedBatchPhotoKeys.size} 張`;
+        }
+        window.renderMemoryAlbum();
+    };
+
+    window.exitBatchMode = function() {
+        window.toggleBatchLocationMode(false);
+    };
+
+    window.togglePhotoSelection = function(key, isSelected) {
+        if (isSelected) {
+            window.selectedBatchPhotoKeys.add(key);
+        } else {
+            window.selectedBatchPhotoKeys.delete(key);
+        }
+        const text = document.getElementById('batchSelectedText');
+        if (text) {
+            text.textContent = `已選取 ${window.selectedBatchPhotoKeys.size} 張`;
+        }
+    };
+
+    window.selectAllNoGpsPhotos = function() {
+        const list = Array.isArray(window.photoList) ? window.photoList : [];
+        list.forEach(p => {
+            const hasGps = p.location?.latitude && p.location?.longitude;
+            const hasPlace = p.placeName || (p.city && p.city !== '無定位');
+            if (!hasGps && (!hasPlace || p.city === '無定位')) {
+                window.selectedBatchPhotoKeys.add(p.key);
+            }
+        });
+        const text = document.getElementById('batchSelectedText');
+        if (text) {
+            text.textContent = `已選取 ${window.selectedBatchPhotoKeys.size} 張`;
+        }
+        window.renderMemoryAlbum();
+    };
+
+    window.applyBatchLocationToSelected = function() {
+        const keys = Array.from(window.selectedBatchPhotoKeys);
+        if (!keys.length) {
+            if (typeof window.showToast === 'function') window.showToast('請先勾選欲設定地點的照片', 'warning');
+            else alert('請先勾選欲設定地點的照片');
+            return;
+        }
+        if (typeof window.openBatchLocationModal === 'function') {
+            window.openBatchLocationModal(keys);
+        }
+    };
+
     window.renderMemoryAlbum = function() {
         const grid = document.getElementById('albumContainer');
         if (!grid) return;
@@ -94,7 +157,13 @@ window.downloadImage = function () {
             const mapsUrl = mapsUrlOf(p);
             const hasLocation = (place !== '無定位');
             grid.innerHTML += `
-                <div class="polaroid fade-scale-in" onclick="openLightbox('${esc(p.url)}', '${esc(p.key)}')">
+                ${window.batchMode ?
+                    `<div class="polaroid fade-scale-in ${window.selectedBatchPhotoKeys.has(p.key) ? 'batch-selected' : ''}" style="${window.selectedBatchPhotoKeys.has(p.key) ? 'outline:3px solid #27ae60; background:#f0fff4;' : ''}" onclick="window.togglePhotoSelection('${esc(p.key)}', !window.selectedBatchPhotoKeys.has('${esc(p.key)}')); window.renderMemoryAlbum();">
+                        <div style="position:absolute; top:8px; right:8px; z-index:5;" onclick="event.stopPropagation()">
+                            <input type="checkbox" class="batch-photo-checkbox" ${window.selectedBatchPhotoKeys.has(p.key) ? 'checked' : ''} onchange="window.togglePhotoSelection('${esc(p.key)}', this.checked); window.renderMemoryAlbum();" style="width:18px; height:18px; accent-color:#27ae60; cursor:pointer;">
+                        </div>` :
+                    `<div class="polaroid fade-scale-in" onclick="openLightbox('${esc(p.url)}', '${esc(p.key)}')">`
+                }
                     <img src="${esc(p.url)}" loading="lazy" alt="拍立得照片">
                     <div style="font-size:0.65rem; color:#7f8c8d; font-weight:900; margin-top:6px; display:flex; justify-content:space-between; align-items:center; gap:4px; flex-wrap:wrap;">
                         <span>📅 ${esc(p.date || '日期待補')}${time ? ' ' + esc(time) : ''}</span>

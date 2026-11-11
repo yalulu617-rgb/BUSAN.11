@@ -98,6 +98,59 @@
     </div>
 </div>
 
+<div id="photoBatchLocationModal" role="dialog" aria-modal="true" aria-labelledby="batchLocTitle" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10002; justify-content:center; align-items:center; backdrop-filter:blur(15px); padding:20px; box-sizing:border-box;">
+    <div class="pin-box" style="max-width:400px; width:100%; background:#fff; border-radius:24px; padding:22px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+        <h3 id="batchLocTitle" style="color:var(--primary, #c0392b); margin:0 0 6px 0; font-size:1.05rem; font-weight:900;">
+            <i class="fa-solid fa-location-dot"></i> 批次設定拍攝地點
+        </h3>
+        <div id="batchLocCount" style="font-size:0.75rem; color:#e67e22; font-weight:900; margin-bottom:10px;">已選取 0 張照片</div>
+        <div style="font-size:0.75rem; color:#555; font-weight:800; margin-bottom:6px;">📍 常用釜山景點快選（點擊直接帶入）：</div>
+        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;">
+            <button type="button" onclick="applyBatchPreset('海雲台海水浴場', '釜山廣域市海雲台區海雲台海邊路264', 35.1587, 129.1604)" style="font-size:0.7rem; padding:4px 8px; border-radius:8px; border:1px solid #d0d7de; background:#f6f8fa; cursor:pointer; font-weight:800;">海雲台</button>
+            <button type="button" onclick="applyBatchPreset('甘川洞文化村', '釜山廣域市沙下區甘內2路203', 35.0975, 129.0106)" style="font-size:0.7rem; padding:4px 8px; border-radius:8px; border:1px solid #d0d7de; background:#f6f8fa; cursor:pointer; font-weight:800;">甘川洞</button>
+            <button type="button" onclick="applyBatchPreset('西面商圈', '釜山廣域市釜山鎮區中央大路', 35.1578, 129.0594)" style="font-size:0.7rem; padding:4px 8px; border-radius:8px; border:1px solid #d0d7de; background:#f6f8fa; cursor:pointer; font-weight:800;">西面</button>
+            <button type="button" onclick="applyBatchPreset('南浦洞 BIFF 廣場', '釜山廣域市中區BIFF廣場路', 35.0986, 129.0305)" style="font-size:0.7rem; padding:4px 8px; border-radius:8px; border:1px solid #d0d7de; background:#f6f8fa; cursor:pointer; font-weight:800;">南浦洞</button>
+            <button type="button" onclick="applyBatchPreset('廣安里海水浴場', '釜山廣域市水營區廣安海邊路219', 35.1532, 129.1186)" style="font-size:0.7rem; padding:4px 8px; border-radius:8px; border:1px solid #d0d7de; background:#f6f8fa; cursor:pointer; font-weight:800;">廣安里</button>
+            <button type="button" onclick="applyBatchPreset('釜山站', '釜山廣域市東區中央大路206', 35.1152, 129.0422)" style="font-size:0.7rem; padding:4px 8px; border-radius:8px; border:1px solid #d0d7de; background:#f6f8fa; cursor:pointer; font-weight:800;">釜山站</button>
+            <button type="button" onclick="applyBatchPreset('扎嘎其市場', '釜山廣域市中區扎嘎其海岸路52', 35.0966, 129.0306)" style="font-size:0.7rem; padding:4px 8px; border-radius:8px; border:1px solid #d0d7de; background:#f6f8fa; cursor:pointer; font-weight:800;">扎嘎其</button>
+            <button type="button" onclick="applyBatchPreset('松島天空步道', '釜山廣域市西區岩南洞129-4', 35.0763, 129.0232)" style="font-size:0.7rem; padding:4px 8px; border-radius:8px; border:1px solid #d0d7de; background:#f6f8fa; cursor:pointer; font-weight:800;">松島</button>
+        </div>
+        <div style="margin-bottom:10px;">
+            <label for="batchLocNameInput" style="display:block; font-size:0.75rem; font-weight:800; color:#444; margin-bottom:4px;">地點名稱</label>
+            <input type="text" id="batchLocNameInput" class="input-box" placeholder="例：海雲台海水浴場" style="width:100%; box-sizing:border-box;">
+        </div>
+        <div style="margin-bottom:10px;">
+            <label for="batchLocAddressInput" style="display:block; font-size:0.75rem; font-weight:800; color:#444; margin-bottom:4px;">地址（可選）</label>
+            <input type="text" id="batchLocAddressInput" class="input-box" placeholder="例：釜山廣域市海雲台區" style="width:100%; box-sizing:border-box;">
+        </div>
+        <div style="display:flex; gap:8px; margin-bottom:14px;">
+            <div style="flex:1;">
+                <label for="batchLocLatInput" style="display:block; font-size:0.75rem; font-weight:800; color:#444; margin-bottom:4px;">緯度（可選）</label>
+                <input type="number" step="any" id="batchLocLatInput" class="input-box" placeholder="例：35.1587" style="width:100%; box-sizing:border-box;">
+            </div>
+            <div style="flex:1;">
+                <label for="batchLocLngInput" style="display:block; font-size:0.75rem; font-weight:800; color:#444; margin-bottom:4px;">經度（可選）</label>
+                <input type="number" step="any" id="batchLocLngInput" class="input-box" placeholder="例：129.1604" style="width:100%; box-sizing:border-box;">
+            </div>
+        </div>
+        <div id="batchLocError" style="color:#e74c3c; font-size:0.75rem; font-weight:800; margin-bottom:10px; display:none;"></div>
+        <div style="display:flex; gap:10px;">
+            <button type="button" onclick="closeBatchLocationModal()" style="flex:1; padding:10px; border-radius:14px; border:none; background:#ecf0f1; color:#7f8c8d; font-weight:800; font-size:0.9rem; cursor:pointer;">取消</button>
+            <button type="button" id="saveBatchLocBtn" onclick="saveBatchLocation()" style="flex:1; padding:10px; border-radius:14px; border:none; background:var(--primary, #c0392b); color:white; font-weight:800; font-size:0.9rem; cursor:pointer;">一鍵套用</button>
+        </div>
+    </div>
+</div>
+
+<div id="photoDiagnosticModal" role="dialog" aria-modal="true" aria-labelledby="photoDiagTitle" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10002; justify-content:center; align-items:center; backdrop-filter:blur(15px); padding:20px; box-sizing:border-box;">
+    <div class="pin-box" style="max-width:440px; width:100%; max-height:85vh; display:flex; flex-direction:column; background:#fff; border-radius:24px; padding:22px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+        <h3 id="photoDiagTitle" style="color:var(--primary, #c0392b); margin:0 0 10px 0; font-size:1.05rem; font-weight:900;">
+            <i class="fa-solid fa-microscope"></i> 照片 GPS 讀取診斷詳情
+        </h3>
+        <div id="photoDiagBody" style="flex:1; overflow-y:auto; margin-bottom:14px;"></div>
+        <button type="button" onclick="closePhotoDiagnosticModal()" style="width:100%; padding:10px; border-radius:14px; border:none; background:#ecf0f1; color:#2c3e50; font-weight:800; font-size:0.9rem; cursor:pointer;">關閉診斷</button>
+    </div>
+</div>
+
 <div id="flashcardModal" role="dialog" aria-modal="true" aria-label="韓語翻譯字卡" onclick="if(event.target.id === 'flashcardModal') closeFlashcard()">
     <div class="fc-box">
         <div class="fc-tw" id="fc-tw">中文</div>
@@ -645,6 +698,20 @@
                 <input type="file" id="photoOriginalFileUpload" multiple style="display:none;" onchange="uploadMultipleToImgBB(this.files, 'photo')">
                 <p style="font-size:0.72rem; color:#777; line-height:1.5; margin:6px 0 8px;">手機相簿選取器可能隱藏 GPS。遇到「無定位」時，改用上方「我的檔案」入口，從內部儲存空間 → DCIM → Camera 選取。上傳前會檢查定位，沒讀到 GPS 會先提醒你。</p>
                 <div id="photoUploadStatus" style="font-size: 0.85rem; color: var(--primary); margin-top: 10px; text-align: center; font-weight:900;"></div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin:8px 0; gap:8px; flex-wrap:wrap;">
+                    <div style="display:flex; gap:6px;">
+                        <button id="btnToggleBatchLocation" type="button" onclick="toggleBatchLocationMode()" style="font-size:0.75rem; padding:6px 12px; border-radius:10px; border:1px solid #c9a26b; background:#fff8ee; color:#7a4a1c; font-weight:900; cursor:pointer;"><i class="fa-solid fa-list-check"></i> 📍 批次補地點</button>
+                        <button id="btnOpenPhotoDiag" type="button" onclick="openPhotoDiagnosticModal()" style="font-size:0.75rem; padding:6px 12px; border-radius:10px; border:1px solid #7f8c8d; background:#f8f9fa; color:#2c3e50; font-weight:900; cursor:pointer;"><i class="fa-solid fa-microscope"></i> 🔍 GPS 診斷</button>
+                    </div>
+                </div>
+                <div id="batchActionBar" style="display:none; background:#2c3e50; color:#fff; border-radius:12px; padding:10px 14px; margin-bottom:10px; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
+                    <span id="batchSelectedText" style="font-size:0.8rem; font-weight:900;">已選取 0 張</span>
+                    <div style="display:flex; gap:6px;">
+                        <button type="button" onclick="selectAllNoGpsPhotos()" style="font-size:0.72rem; padding:4px 8px; border-radius:8px; border:none; background:#f39c12; color:#fff; font-weight:900; cursor:pointer;">全選無定位</button>
+                        <button type="button" onclick="applyBatchLocationToSelected()" style="font-size:0.72rem; padding:4px 8px; border-radius:8px; border:none; background:#27ae60; color:#fff; font-weight:900; cursor:pointer;">📍 設定地點</button>
+                        <button type="button" onclick="toggleBatchLocationMode(false)" style="font-size:0.72rem; padding:4px 8px; border-radius:8px; border:none; background:#7f8c8d; color:#fff; font-weight:900; cursor:pointer;">離開</button>
+                    </div>
+                </div>
                 <input type="text" id="memorySearchInput" class="input-box" placeholder="🔍 搜尋日期或城市 (例: 11/13、釜山)" style="margin-bottom:10px;" oninput="renderMemoryAlbum()">
                 <div id="albumContainer" style="margin-top: 15px;"></div>
             </div>

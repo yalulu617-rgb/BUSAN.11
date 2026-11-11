@@ -9,7 +9,7 @@
   'use strict';
   const NAME = 'busan11_photo_local_v1';
   const STORE = 'pendingPhotos';
-  const BYTES_LIMIT = 1024 * 1024;
+  const BYTES_LIMIT = 4 * 1024 * 1024;
   const urlById = new Map();
   let refreshGeneration = 0;
   const htmlSafe = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -44,13 +44,36 @@
   const all = () => tx('readonly', store => store.getAll());
   const remove = id => tx('readwrite', store => store.delete(id));
 
-  function parseCoordinateStr(str, isLon) {
+  function parseCoordinateStr(str, isLon, explicitRef) {
     if (!str) return null;
-    const s = String(str).trim();
-    const mDec = /^([+-]?\d+(?:\.\d+)?)\s*([NSEW])?$/i.exec(s);
-    if (mDec) {
-      let val = parseFloat(mDec[1]);
-      const ref = (mDec[2] || '').toUpperCase();
+    let s = String(str).trim();
+    // Clean special characters: degree, minute, second symbols, quotes, etc.
+    s = s.replace(/[°ºddeg]/gi, ' ')
+         .replace(/['′min]/gi, ' ')
+         .replace(/["″sec]/gi, ' ')
+         .replace(/\s+/g, ' ')
+         .trim();
+
+    // Extract trailing or leading direction letter if present
+    let ref = (explicitRef || '').trim().toUpperCase();
+    const dirMatch = /([NSEW])$/i.exec(s) || /^([NSEW])/i.exec(s);
+    if (dirMatch) {
+      ref = dirMatch[1].toUpperCase();
+      s = s.replace(/^[NSEW]\s*/i, '').replace(/\s*[NSEW]$/i, '').trim();
+    }
+
+    const parsePart = p => {
+      if (!p) return 0;
+      if (p.includes('/')) {
+        const parts = p.split('/').map(Number);
+        return parts[1] ? parts[0] / parts[1] : 0;
+      }
+      return parseFloat(p) || 0;
+    };
+
+    // 1. Plain decimal format: "35.179038" or "+35.179038" or "-35.179038"
+    if (/^[+-]?\d+(?:\.\d+)?$/.test(s)) {
+      let val = parseFloat(s);
       if (ref === 'S' || ref === 'W') val = -Math.abs(val);
       else if (ref === 'N' || ref === 'E') val = Math.abs(val);
       const max = isLon ? 180 : 90;
@@ -58,27 +81,22 @@
         return Number(val.toFixed(6));
       }
     }
-    const mDms = /^(\d+(?:\.\d+)?|\d+\/\d+)[,\s]+(\d+(?:\.\d+)?|\d+\/\d+)(?:[,\s]+(\d+(?:\.\d+)?|\d+\/\d+))?\s*([NSEW])?$/i.exec(s);
-    if (mDms) {
-      const parsePart = p => {
-        if (!p) return 0;
-        if (p.includes('/')) {
-          const [num, den] = p.split('/').map(Number);
-          return den ? num / den : 0;
-        }
-        return parseFloat(p) || 0;
-      };
-      const deg = parsePart(mDms[1]);
-      const min = parsePart(mDms[2]);
-      const sec = parsePart(mDms[3]);
+
+    // 2. Comma or space separated parts: "35,10.7423" or "35 10.7423" or "35, 10, 44.536" or "35/1, 10/1, 4453/100"
+    const tokens = s.split(/[,;\s]+/).filter(Boolean);
+    if (tokens.length >= 2 && tokens.length <= 3) {
+      const deg = parsePart(tokens[0]);
+      const min = parsePart(tokens[1]);
+      const sec = tokens.length === 3 ? parsePart(tokens[2]) : 0;
       let val = deg + min / 60 + sec / 3600;
-      const ref = (mDms[4] || '').toUpperCase();
       if (ref === 'S' || ref === 'W') val = -Math.abs(val);
+      else if (ref === 'N' || ref === 'E') val = Math.abs(val);
       const max = isLon ? 180 : 90;
       if (Number.isFinite(val) && Math.abs(val) <= max && Math.abs(val) > 0.000001) {
         return Number(val.toFixed(6));
       }
     }
+
     return null;
   }
 
@@ -101,7 +119,15 @@
   // Locate the Exif item (iinf/infe) and its extent (iloc), then reuse the
   // existing bounded JPEG/TIFF parser. Nothing is uploaded to inspect metadata.
   async function readHeifExif(file) {
-    const out = {capturedAt:null, latitude:null, longitude:null, locationStatus:'missing', shareGps:true, missingReason:'HEIC 檔案中沒有可讀取的 GPS 資訊'};
+    const out = {
+      capturedAt: null,
+      latitude: null,
+      longitude: null,
+      locationStatus: 'missing',
+      shareGps: true,
+      missingReason: 'HEIC 檔案中沒有可讀取的 GPS 資訊',
+      diagnostic: null
+    };
     const header = await file.slice(0, Math.min(file.size, 8 * 1024 * 1024)).arrayBuffer();
     const v = new DataView(header), n = v.byteLength;
     const u16 = p => v.getUint16(p), u32 = p => v.getUint32(p);
@@ -119,20 +145,73 @@
       return list;
     };
     const meta=boxes(0,n).find(b=>b.type==='meta');
-    if (!meta || meta.start+4>meta.end) return out;
+    if (!meta || meta.start+4>meta.end) {
+      out.diagnostic = {
+        fileName: file.name || 'unnamed',
+        fileType: file.type || 'image/heic',
+        fileSize: file.size || 0,
+        fileSizeKB: Math.round((file.size || 0) / 1024),
+        formatDetected: 'HEIC/HEIF',
+        hasExifHeader: false,
+        hasXmpHeader: false,
+        hasGpsFields: false,
+        hasCaptureTime: false,
+        locationStatus: 'missing',
+        statusLabel: '無定位資訊',
+        detailReason: 'HEIC 檔案缺少 meta box'
+      };
+      return out;
+    }
     const children=boxes(meta.start+4,meta.end);
     const iinf=children.find(b=>b.type==='iinf');
     const iloc=children.find(b=>b.type==='iloc');
-    if (!iinf || !iloc) return out;
+    if (!iinf || !iloc) {
+      out.diagnostic = {
+        fileName: file.name || 'unnamed',
+        fileType: file.type || 'image/heic',
+        fileSize: file.size || 0,
+        fileSizeKB: Math.round((file.size || 0) / 1024),
+        formatDetected: 'HEIC/HEIF',
+        hasExifHeader: false,
+        hasXmpHeader: false,
+        hasGpsFields: false,
+        hasCaptureTime: false,
+        locationStatus: 'missing',
+        statusLabel: '無定位資訊',
+        detailReason: 'HEIC 檔案缺少 iinf 或 iloc 中繼資料'
+      };
+      return out;
+    }
     const inf=boxes(iinf.start+6,iinf.end);
     let exifId=null;
     for (const b of inf) {
-      if(b.type!=='infe'||b.start+12>b.end)continue;
+      if(b.type!=='infe'||b.start+8>b.end)continue;
       const version=v.getUint8(b.start);
-      if(version===2 && str(b.start+8,4)==='Exif') exifId=u16(b.start+4);
-      if(version===3 && b.start+14<=b.end && str(b.start+10,4)==='Exif') exifId=u32(b.start+4);
+      if((version===0||version===1) && b.start+12<=b.end) {
+        if(str(b.start+8,Math.min(4,b.end-(b.start+8)))==='Exif') exifId=u16(b.start+4);
+      } else if(version===2 && b.start+12<=b.end && str(b.start+8,4)==='Exif') {
+        exifId=u16(b.start+4);
+      } else if(version===3 && b.start+14<=b.end && str(b.start+10,4)==='Exif') {
+        exifId=u32(b.start+4);
+      }
     }
-    if (exifId===null) return out;
+    if (exifId===null) {
+      out.diagnostic = {
+        fileName: file.name || 'unnamed',
+        fileType: file.type || 'image/heic',
+        fileSize: file.size || 0,
+        fileSizeKB: Math.round((file.size || 0) / 1024),
+        formatDetected: 'HEIC/HEIF',
+        hasExifHeader: false,
+        hasXmpHeader: false,
+        hasGpsFields: false,
+        hasCaptureTime: false,
+        locationStatus: 'missing',
+        statusLabel: '無定位資訊',
+        detailReason: 'HEIC 項目列表中無 Exif 類型項目'
+      };
+      return out;
+    }
     let p=iloc.start,version=v.getUint8(p);p+=4;
     if(p+2>iloc.end)return out;
     const sizes=u16(p);p+=2;
@@ -166,9 +245,25 @@
           if(location<0||location+len>file.size)continue;
           const raw=new Uint8Array(await file.slice(location,location+len).arrayBuffer());
           if(raw.length<12)continue;
-          // HEIF Exif item begins with a 4-byte TIFF-header offset.
-          const tiffAt=4+new DataView(raw.buffer).getUint32(0,false);
-          if(tiffAt+8>raw.length)continue;
+
+          // Locate TIFF header dynamically (II\x2a\x00 or MM\x00\x2a) within first 64 bytes
+          let tiffAt = -1;
+          for (let t = 0; t <= Math.min(64, raw.length - 8); t++) {
+            const b0 = raw[t], b1 = raw[t+1], b2 = raw[t+2], b3 = raw[t+3];
+            if ((b0 === 0x49 && b1 === 0x49 && b2 === 0x2a && b3 === 0x00) ||
+                (b0 === 0x4d && b1 === 0x4d && b2 === 0x00 && b3 === 0x2a)) {
+              tiffAt = t;
+              break;
+            }
+          }
+          if (tiffAt === -1 && raw.length >= 8) {
+            const declaredOffset = new DataView(raw.buffer, raw.byteOffset, raw.byteLength).getUint32(0, false);
+            if (declaredOffset >= 0 && declaredOffset + 4 + 8 <= raw.length) {
+              tiffAt = 4 + declaredOffset;
+            }
+          }
+          if (tiffAt === -1 || tiffAt + 8 > raw.length) continue;
+
           const tiff=raw.slice(tiffAt,Math.min(raw.length,tiffAt+65000));
           const payload=new Uint8Array(6+tiff.length);
           payload.set([69,120,105,102,0,0]);payload.set(tiff,6);
@@ -176,7 +271,23 @@
           jpeg.set([255,216,255,225,(payload.length+2)>>8,(payload.length+2)&255],0);
           jpeg.set(payload,6);jpeg.set([255,217],6+payload.length);
           const parsed=await readExif(new File([jpeg],'heif-exif.jpg',{type:'image/jpeg'}));
-          if(parsed.locationStatus==='gps'||parsed.capturedAt)return parsed;
+          if(parsed.locationStatus==='gps'||parsed.capturedAt) {
+            parsed.diagnostic = {
+              fileName: file.name || 'unnamed',
+              fileType: file.type || 'image/heic',
+              fileSize: file.size || 0,
+              fileSizeKB: Math.round((file.size || 0) / 1024),
+              formatDetected: 'HEIC/HEIF',
+              hasExifHeader: true,
+              hasXmpHeader: false,
+              hasGpsFields: parsed.latitude !== null && parsed.longitude !== null,
+              hasCaptureTime: Boolean(parsed.capturedAt),
+              locationStatus: parsed.locationStatus,
+              statusLabel: parsed.locationStatus === 'gps' ? '已讀取到 GPS 定位' : '無定位資訊',
+              detailReason: parsed.locationStatus === 'gps' ? 'HEIC Exif 座標解析成功' : (parsed.missingReason || 'HEIC Exif 中未包含 GPS 座標')
+            };
+            return parsed;
+          }
         }
       }
     }catch(e){console.warn('[PhotoLocal] HEIF metadata parsing:',e.message);}
@@ -203,11 +314,42 @@
             jpeg.set([255, 216, 255, 225, (payload.length + 2) >> 8, (payload.length + 2) & 255], 0);
             jpeg.set(payload, 6); jpeg.set([255, 217], 6 + payload.length);
             const parsed = await readExif(new File([jpeg], 'heif-fallback.jpg', { type: 'image/jpeg' }));
-            if (parsed.locationStatus === 'gps' || parsed.capturedAt) return parsed;
+            if (parsed.locationStatus === 'gps' || parsed.capturedAt) {
+              parsed.diagnostic = {
+                fileName: file.name || 'unnamed',
+                fileType: file.type || 'image/heic',
+                fileSize: file.size || 0,
+                fileSizeKB: Math.round((file.size || 0) / 1024),
+                formatDetected: 'HEIC/HEIF',
+                hasExifHeader: true,
+                hasXmpHeader: false,
+                hasGpsFields: parsed.latitude !== null && parsed.longitude !== null,
+                hasCaptureTime: Boolean(parsed.capturedAt),
+                locationStatus: parsed.locationStatus,
+                statusLabel: parsed.locationStatus === 'gps' ? '已讀取到 GPS 定位' : '無定位資訊',
+                detailReason: parsed.locationStatus === 'gps' ? 'HEIC TIFF 掃描還原成功' : (parsed.missingReason || 'HEIC 中未包含 GPS 座標')
+              };
+              return parsed;
+            }
           }
         }
       }
     } catch(e) { console.warn('[PhotoLocal] HEIF TIFF scan fallback:', e.message); }
+
+    out.diagnostic = {
+      fileName: file.name || 'unnamed',
+      fileType: file.type || 'image/heic',
+      fileSize: file.size || 0,
+      fileSizeKB: Math.round((file.size || 0) / 1024),
+      formatDetected: 'HEIC/HEIF',
+      hasExifHeader: exifId !== null,
+      hasXmpHeader: false,
+      hasGpsFields: false,
+      hasCaptureTime: Boolean(out.capturedAt),
+      locationStatus: 'missing',
+      statusLabel: '無定位資訊',
+      detailReason: out.missingReason || 'HEIC 檔案未包含 GPS 座標'
+    };
 
     return out;
   }
@@ -238,6 +380,7 @@
       return out;
     }
     let hadExifHeader = false;
+    let hadXmpHeader = false;
     let pos = 2;
     while (pos + 4 <= n && view.getUint8(pos) === 0xff) {
       const marker = view.getUint8(pos+1);
@@ -320,25 +463,48 @@
       if (marker === 0xe1 && len >= 32) {
         const xmpSig = String.fromCharCode(...new Uint8Array(buf, pos+4, 29));
         if (xmpSig.startsWith('http://ns.adobe.com/xap/1.0/')) {
+          hadXmpHeader = true;
           try {
             const xmpBytes = new Uint8Array(buf, pos + 4 + 29, len - 2 - 29);
             const xmpStr = new TextDecoder('utf-8', {fatal:false}).decode(xmpBytes);
             if (!out.capturedAt) {
-              const dtMatch = /(?:exif:DateTimeOriginal|photoshop:DateCreated|xmp:CreateDate)=["']([^"']+)["']|<(?:exif:DateTimeOriginal|photoshop:DateCreated|xmp:CreateDate)>([^<]+)<\//i.exec(xmpStr);
+              const dtMatch = /(?:exif:DateTimeOriginal|photoshop:DateCreated|xmp:CreateDate|tiff:DateTime)=["']([^"']+)["']|<(?:exif:DateTimeOriginal|photoshop:DateCreated|xmp:CreateDate|tiff:DateTime)>([^<]+)<\//i.exec(xmpStr);
               if (dtMatch) {
                 const normXmpDt = normalizeCapturedAt(dtMatch[1] || dtMatch[2]);
                 if (normXmpDt) out.capturedAt = normXmpDt;
               }
             }
             if (out.latitude === null || out.longitude === null) {
-              const latMatch = /exif:GPSLatitude=["']([^"']+)["']|<exif:GPSLatitude>([^<]+)<\/exif:GPSLatitude>/i.exec(xmpStr);
-              const lonMatch = /exif:GPSLongitude=["']([^"']+)["']|<exif:GPSLongitude>([^<]+)<\/exif:GPSLongitude>/i.exec(xmpStr);
+              const latMatch = /(?:exif:)?GPSLatitude=["']([^"']+)["']|<(?:exif:)?GPSLatitude>([^<]+)<\/(?:exif:)?GPSLatitude>/i.exec(xmpStr);
+              const lonMatch = /(?:exif:)?GPSLongitude=["']([^"']+)["']|<(?:exif:)?GPSLongitude>([^<]+)<\/(?:exif:)?GPSLongitude>/i.exec(xmpStr);
+              const latRefMatch = /(?:exif:)?GPSLatitudeRef=["']([^"']+)["']|<(?:exif:)?GPSLatitudeRef>([^<]+)<\/(?:exif:)?GPSLatitudeRef>/i.exec(xmpStr);
+              const lonRefMatch = /(?:exif:)?GPSLongitudeRef=["']([^"']+)["']|<(?:exif:)?GPSLongitudeRef>([^<]+)<\/(?:exif:)?GPSLongitudeRef>/i.exec(xmpStr);
+
+              const latRef = (latRefMatch ? (latRefMatch[1] || latRefMatch[2]) : '').trim();
+              const lonRef = (lonRefMatch ? (lonRefMatch[1] || lonRefMatch[2]) : '').trim();
+
               if (latMatch && lonMatch) {
-                const xLat = parseCoordinateStr(latMatch[1] || latMatch[2], false);
-                const xLon = parseCoordinateStr(lonMatch[1] || lonMatch[2], true);
+                const xLat = parseCoordinateStr(latMatch[1] || latMatch[2], false, latRef);
+                const xLon = parseCoordinateStr(lonMatch[1] || lonMatch[2], true, lonRef);
                 if (xLat !== null && xLon !== null) {
                   out.latitude = xLat;
                   out.longitude = xLon;
+                }
+              }
+
+              if (out.latitude === null || out.longitude === null) {
+                const posMatch = /(?:exif:)?GPSPosition=["']([^"']+)["']|<(?:exif:)?GPSPosition>([^<]+)<\/(?:exif:)?GPSPosition>/i.exec(xmpStr);
+                if (posMatch) {
+                  const posStr = (posMatch[1] || posMatch[2] || '').trim();
+                  const parts = posStr.split(/\s*,\s*|\s+/);
+                  if (parts.length >= 2) {
+                    const pLat = parseCoordinateStr(parts[0], false);
+                    const pLon = parseCoordinateStr(parts[1], true);
+                    if (pLat !== null && pLon !== null) {
+                      out.latitude = pLat;
+                      out.longitude = pLon;
+                    }
+                  }
                 }
               }
             }
@@ -356,10 +522,31 @@
       out.missingReason = null;
     } else {
       out.locationStatus = 'missing';
-      out.missingReason = hadExifHeader
-        ? '照片未包含 GPS 座標（可能拍攝時未開啟定位、通訊軟體壓縮轉發抹除或相機設定隱私保護）'
-        : '照片無 EXIF 資訊（可能經通訊軟體或社群轉發已抹除中繼資料）';
+      if (hadExifHeader && hadXmpHeader) {
+        out.missingReason = '照片包含 EXIF 與 XMP 但無 GPS 欄位（可能拍攝時相機未開啟位置標籤或受隱私保護）';
+      } else if (hadExifHeader) {
+        out.missingReason = '照片包含 EXIF 但未包含 GPS 座標（可能拍攝時未開啟定位、通訊軟體壓縮轉發抹除或相機設定隱私保護）';
+      } else if (hadXmpHeader) {
+        out.missingReason = '照片僅有 XMP 描述但無 GPS 座標';
+      } else {
+        out.missingReason = '照片無 EXIF 資訊（可能經通訊軟體或社群轉發已抹除中繼資料）';
+      }
     }
+
+    out.diagnostic = {
+      fileName: file.name || 'unnamed',
+      fileType: file.type || 'image/jpeg',
+      fileSize: file.size || 0,
+      fileSizeKB: Math.round((file.size || 0) / 1024),
+      formatDetected: 'JPEG',
+      hasExifHeader: hadExifHeader,
+      hasXmpHeader: hadXmpHeader,
+      hasGpsFields: out.latitude !== null && out.longitude !== null,
+      hasCaptureTime: Boolean(out.capturedAt),
+      locationStatus: out.locationStatus,
+      statusLabel: out.locationStatus === 'gps' ? '已讀取到 GPS 定位' : '無定位資訊',
+      detailReason: out.missingReason || 'JPEG EXIF/XMP 座標解析成功'
+    };
 
     return out;
   }
@@ -694,6 +881,226 @@
     }
   };
 
+  w.batchUpdatePhotoLocation = async function(keys, locData) {
+    if (!Array.isArray(keys) || keys.length === 0) {
+      return { success: false, error: '未選取任何照片' };
+    }
+    locData = locData || {};
+    const placeName = String(locData.placeName || '').trim() || null;
+    const address = String(locData.address || '').trim() || null;
+    const latProvided = coordinateProvided(locData.latitude);
+    const lngProvided = coordinateProvided(locData.longitude);
+    if (latProvided !== lngProvided) return { success: false, error: '經緯度必須同時填寫，或同時留空' };
+    const lat = manualCoordinate(locData.latitude, 90);
+    const lng = manualCoordinate(locData.longitude, 180);
+    if (latProvided && (lat === null || lng === null)) return { success: false, error: '經緯度不正確' };
+    if (lat === 0 && lng === 0) return { success: false, error: '0,0 不是有效的拍攝定位，請填寫實際座標或只填地點名稱' };
+    if (!placeName && !address && lat === null) return { success: false, error: '請至少輸入地點名稱、地址或經緯度' };
+    const cityName = placeName || address || (lat !== null ? `${lat}, ${lng}` : '自訂地點');
+
+    let updatedCount = 0;
+    const errors = [];
+
+    for (const key of keys) {
+      const res = await w.updatePhotoLocation(key, {
+        placeName,
+        address,
+        latitude: lat,
+        longitude: lng,
+        city: cityName
+      });
+      if (res && res.success) {
+        updatedCount++;
+      } else {
+        errors.push(`${key}: ${res?.error || '更新失敗'}`);
+      }
+    }
+
+    if (typeof w.renderMemoryAlbum === 'function') w.renderMemoryAlbum();
+    return {
+      success: updatedCount > 0,
+      updatedCount,
+      failedCount: keys.length - updatedCount,
+      errors
+    };
+  };
+
+  w.openBatchLocationModal = function(selectedKeys) {
+    if (!Array.isArray(selectedKeys) || selectedKeys.length === 0) {
+      message('請先勾選欲設定地點的照片', 'warning');
+      return;
+    }
+    w.batchSelectedKeys = selectedKeys;
+    const modal = d.getElementById('photoBatchLocationModal');
+    if (!modal) return;
+    const countEl = d.getElementById('batchLocCount');
+    if (countEl) countEl.textContent = `已選取 ${selectedKeys.length} 張照片`;
+    const nameInput = d.getElementById('batchLocNameInput');
+    const addrInput = d.getElementById('batchLocAddressInput');
+    const latInput = d.getElementById('batchLocLatInput');
+    const lngInput = d.getElementById('batchLocLngInput');
+    const errEl = d.getElementById('batchLocError');
+    if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
+    if (nameInput) nameInput.value = '';
+    if (addrInput) addrInput.value = '';
+    if (latInput) latInput.value = '';
+    if (lngInput) lngInput.value = '';
+    modal.style.display = 'flex';
+  };
+
+  w.closeBatchLocationModal = function() {
+    const modal = d.getElementById('photoBatchLocationModal');
+    if (modal) modal.style.display = 'none';
+  };
+
+  w.applyBatchPreset = function(name, address, lat, lng) {
+    const nameInput = d.getElementById('batchLocNameInput');
+    const addrInput = d.getElementById('batchLocAddressInput');
+    const latInput = d.getElementById('batchLocLatInput');
+    const lngInput = d.getElementById('batchLocLngInput');
+    if (nameInput) nameInput.value = name || '';
+    if (addrInput) addrInput.value = address || '';
+    if (latInput) latInput.value = (lat !== null && lat !== undefined) ? lat : '';
+    if (lngInput) lngInput.value = (lng !== null && lng !== undefined) ? lng : '';
+  };
+
+  w.saveBatchLocation = async function() {
+    const keys = w.batchSelectedKeys;
+    if (!Array.isArray(keys) || keys.length === 0) return;
+    const nameInput = d.getElementById('batchLocNameInput');
+    const addrInput = d.getElementById('batchLocAddressInput');
+    const latInput = d.getElementById('batchLocLatInput');
+    const lngInput = d.getElementById('batchLocLngInput');
+    const errEl = d.getElementById('batchLocError');
+    const btn = d.getElementById('saveBatchLocBtn');
+
+    if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
+    const placeName = (nameInput?.value || '').trim();
+    const address = (addrInput?.value || '').trim();
+    const latStr = (latInput?.value || '').trim();
+    const lngStr = (lngInput?.value || '').trim();
+
+    let lat = null, lng = null;
+    if ((latStr === '') !== (lngStr === '')) {
+      if (errEl) { errEl.textContent = '經緯度必須同時填寫，或同時留空'; errEl.style.display = 'block'; }
+      return;
+    }
+    if (latStr !== '') {
+      const nLat = Number(latStr), nLng = Number(lngStr);
+      if (!Number.isFinite(nLat) || nLat < -90 || nLat > 90) {
+        if (errEl) { errEl.textContent = '請輸入有效緯度 (-90 到 90)'; errEl.style.display = 'block'; }
+        return;
+      }
+      if (!Number.isFinite(nLng) || nLng < -180 || nLng > 180) {
+        if (errEl) { errEl.textContent = '請輸入有效經度 (-180 到 180)'; errEl.style.display = 'block'; }
+        return;
+      }
+      lat = Number(nLat.toFixed(6));
+      lng = Number(nLng.toFixed(6));
+      if (lat === 0 && lng === 0) {
+        if (errEl) { errEl.textContent = '0,0 不是有效座標，請輸入實際座標或只填地點名稱'; errEl.style.display = 'block'; }
+        return;
+      }
+    }
+
+    if (!placeName && !address && lat === null) {
+      if (errEl) { errEl.textContent = '請至少輸入地點名稱、地址或經緯度'; errEl.style.display = 'block'; }
+      return;
+    }
+
+    if (btn) { btn.disabled = true; btn.textContent = '批次套用中...'; }
+    try {
+      const res = await w.batchUpdatePhotoLocation(keys, {
+        placeName,
+        address,
+        latitude: lat,
+        longitude: lng
+      });
+      if (res && res.success) {
+        w.closeBatchLocationModal();
+        if (typeof w.exitBatchMode === 'function') w.exitBatchMode();
+        message(`✅ 已成功為 ${res.updatedCount} 張照片更新拍攝地點！`, 'success');
+      } else {
+        const msg = res?.error || '批次設定失敗，原照片保留';
+        if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
+        message(msg, 'error');
+      }
+    } catch(err) {
+      const msg = err.message || '批次設定出錯，原照片保留';
+      if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
+      message(msg, 'error');
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = '一鍵套用至選取照片'; }
+    }
+  };
+
+  w.openPhotoDiagnosticModal = function(diagnostics) {
+    const list = diagnostics || w.latestPhotoDiagnostics || [];
+    const modal = d.getElementById('photoDiagnosticModal');
+    if (!modal) return;
+    const body = d.getElementById('photoDiagBody');
+    if (body) {
+      if (!list.length) {
+        body.innerHTML = `
+          <div style="text-align:center; padding:20px; color:#7f8c8d; font-size:0.85rem;">
+            <p>目前尚無最近上傳的 GPS 診斷紀錄。</p>
+            <p style="font-size:0.75rem; color:#95a5a6; margin-top:6px;">從下方選取照片後，系統將自動進行 EXIF/XMP 安全預檢並記錄診斷。</p>
+          </div>
+        `;
+      } else {
+        let html = `
+          <div style="background:#f8f9fa; border-radius:12px; padding:12px; margin-bottom:12px; font-size:0.78rem; line-height:1.6; color:#2c3e50;">
+            <div style="font-weight:900; margin-bottom:4px; color:#2980b9;">
+              <i class="fa-solid fa-circle-info"></i> Android 相簿選取器隱私保護機制說明
+            </div>
+            <div>Android 系統相簿（Photo Picker）在傳送照片給網頁瀏覽器時，為了隱私會主動過濾並抹除 GPS 座標。這就是為什麼手機本機相簿中看得到定位，但上傳純網頁時卻顯示無定位。</div>
+            <div style="margin-top:4px; font-weight:800; color:#27ae60;">
+              💡 解決方案：改用「從我的檔案選原始照片」（內部儲存空間 → DCIM → Camera），或在相簿使用「📍 批次補地點」一鍵套用。
+            </div>
+          </div>
+          <div style="font-size:0.8rem; font-weight:900; margin-bottom:8px; color:#34495e;">
+            📋 最近預檢診斷清單（共 ${list.length} 張，嚴格保護隱私，不顯示實際座標）：
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; padding-right:4px;">
+        `;
+        list.forEach((diag, idx) => {
+          const hasGps = diag.hasGpsFields;
+          const statusBg = hasGps ? '#e8f8f5' : '#fef9e7';
+          const statusBorder = hasGps ? '#27ae60' : '#f39c12';
+          const statusColor = hasGps ? '#1e8449' : '#b9770e';
+          const statusIcon = hasGps ? 'fa-circle-check' : 'fa-circle-exclamation';
+          html += `
+            <div style="background:${statusBg}; border:1px solid ${statusBorder}; border-radius:10px; padding:10px; font-size:0.74rem;">
+              <div style="display:flex; justify-content:space-between; align-items:center; font-weight:900;">
+                <span style="color:#2c3e50; word-break:break-all;">#${idx+1} ${htmlSafe(diag.fileName)}</span>
+                <span style="color:${statusColor}; white-space:nowrap; margin-left:8px;">
+                  <i class="fa-solid ${statusIcon}"></i> ${htmlSafe(diag.statusLabel)}
+                </span>
+              </div>
+              <div style="display:flex; gap:12px; margin-top:4px; color:#555; flex-wrap:wrap;">
+                <span>格式：<b>${htmlSafe(diag.formatDetected)}</b> (${diag.fileSizeKB} KB)</span>
+                <span>EXIF：<b>${diag.hasExifHeader ? '✅ 存在' : '❌ 無'}</b></span>
+                <span>XMP：<b>${diag.hasXmpHeader ? '✅ 存在' : '❌ 無'}</b></span>
+                <span>拍攝時間：<b>${diag.hasCaptureTime ? '✅ 已識別' : '❌ 無'}</b></span>
+              </div>
+              <div style="margin-top:4px; color:#7f8c8d; font-size:0.7rem;">
+                診斷細節：${htmlSafe(diag.detailReason)}
+              </div>
+            </div>
+          `;
+        });
+        html += `</div>`;
+        body.innerHTML = html;
+      }
+    }
+    modal.style.display = 'flex';
+  };
+
+  w.closePhotoDiagnosticModal = function() {
+    const modal = d.getElementById('photoDiagnosticModal');
+    if (modal) modal.style.display = 'none';
+  };
+
   w.retryPendingPhotos=async function(){
     let stored;
     try{stored=await all();}catch(e){message('本機照片讀取失敗；原資料保留','error');return;}
@@ -736,6 +1143,10 @@
         console.warn('[PhotoLocal] Photo metadata precheck failed, file not uploaded:',e);
       }
     }
+
+    // Save diagnostic results safely without disclosing coordinates
+    w.latestPhotoDiagnostics = ready.map(r => r.metadata?.diagnostic).filter(Boolean);
+
     if(gpsMissing){
       const ok=w.confirm(
         '這次選取 '+selected.length+' 張照片，已讀到 GPS '+gpsFound+' 張，未讀到 GPS '+gpsMissing+' 張。\n\n'+
@@ -765,7 +1176,16 @@
     else message('✅ '+cloudSaved+'/'+selected.length+' 張已同步雙人相簿；自動定位 '+gpsFound+' 張，未讀到 GPS '+gpsMissing+' 張。','success');
     resetPickers();
   };
-  w.PhotoLocalSafety={readExif,refreshAlbum,getPending:all,updateLocation:w.updatePhotoLocation};
+
+  w.PhotoLocalSafety={
+    readExif,
+    refreshAlbum,
+    getPending:all,
+    updateLocation:w.updatePhotoLocation,
+    batchUpdateLocation:w.batchUpdatePhotoLocation,
+    getDiagnostics:() => (w.latestPhotoDiagnostics || [])
+  };
+
   const initialize=()=>{
     const status=d.getElementById('photoUploadStatus');
     if(status && !d.getElementById('photoLocalCount')){

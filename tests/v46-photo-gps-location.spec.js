@@ -299,7 +299,7 @@ test.describe('4. Galaxy S25 Responsive Layout & PWA Freshness', () => {
 
   test('Service Worker cache version bumped and photo-local-safe is precached', async ({ page }) => {
     const release = await (await page.request.get('/data/release.json')).json();
-    expect(release.cacheVersion).toMatch(/^busan-trip-v46-photo-gps-v[678]/);
+    expect(release.cacheVersion).toMatch(/^busan-trip-v46-photo-gps-v[6789]/);
     expect(release.appVersion).toMatch(/^V46\.[34]\./);
   });
 });
@@ -464,5 +464,117 @@ test.describe('7. Android Gallery GPS redaction safe original file picker', () =
     const saved = await page.evaluate(async () => (await PhotoLocalSafety.getPending()).length);
     expect(saved).toBe(0);
     expect(await page.evaluate(() => window._photoUploadCalled)).toBe(0);
+  });
+});
+
+test.describe('8. S25 XMP DDD,MM.mmmmk format parsing & diagnostic privacy', () => {
+  function buildJpegWithXmp({ dateTime, latStr, lonStr }) {
+    const xmp = `http://ns.adobe.com/xap/1.0/\0<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description xmlns:exif="http://ns.adobe.com/exif/1.0/" exif:DateTimeOriginal="${dateTime}" exif:GPSLatitude="${latStr}" exif:GPSLongitude="${lonStr}"/></rdf:RDF></x:xmpmeta>`;
+    const body = Buffer.from(xmp, 'utf8');
+    const len = Buffer.alloc(2); len.writeUInt16BE(body.length + 2);
+    return Buffer.concat([TINY_JPEG.subarray(0, 2), Buffer.from([0xff, 0xe1]), len, body, TINY_JPEG.subarray(2)]);
+  }
+
+  test('Adobe / Samsung XMP format "35,10.7423N" parses accurately and diagnostic masks coordinates', async ({ page }) => {
+    const xmpJpeg = buildJpegWithXmp({
+      dateTime: '2026-11-08T13:14:00',
+      latStr: '35,10.7423N',
+      lonStr: '129,04.5678E'
+    });
+
+    const parsed = await page.evaluate(async b64 => {
+      const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+      return await window.PhotoLocalSafety.readExif(new File([bytes], 's25_xmp.jpg', { type: 'image/jpeg' }));
+    }, xmpJpeg.toString('base64'));
+
+    expect(parsed.locationStatus).toBe('gps');
+    expect(parsed.latitude).toBeCloseTo(35.1790, 3);
+    expect(parsed.longitude).toBeCloseTo(129.0761, 3);
+    expect(parsed.capturedAt).toBe('2026-11-08T13:14:00');
+
+    // Verify diagnostic structure never reveals raw coordinates
+    expect(parsed.diagnostic).toBeDefined();
+    expect(parsed.diagnostic.hasGpsFields).toBe(true);
+    expect(parsed.diagnostic.formatDetected).toBe('JPEG');
+    expect(parsed.diagnostic.hasXmpHeader).toBe(true);
+    expect(parsed.diagnostic.statusLabel).toBe('已讀取到 GPS 定位');
+    const diagStr = JSON.stringify(parsed.diagnostic);
+    expect(diagStr).not.toContain('35.1790');
+    expect(diagStr).not.toContain('129.0761');
+  });
+});
+
+test.describe('9. Batch Photo Location Assignment & Diagnostic Modal', () => {
+  test('batchUpdateLocation updates multiple cloud photos without duplicate keys or re-uploading bytes', async ({ page }) => {
+    await page.evaluate(() => showV37Tab('photo'));
+
+    // Seed two cloud photos
+    await page.evaluate(async () => {
+      await window.NetworkEngine._db.ref(`${window.DB_PHOTOS}/photo_batch_1`).set({
+        url: 'https://i.ibb.co/synthetic/batch1.jpg',
+        date: '2026-11-08',
+        city: '無定位',
+        timestamp: Date.now()
+      });
+      await window.NetworkEngine._db.ref(`${window.DB_PHOTOS}/photo_batch_2`).set({
+        url: 'https://i.ibb.co/synthetic/batch2.jpg',
+        date: '2026-11-08',
+        city: '無定位',
+        timestamp: Date.now()
+      });
+    });
+
+    // Track uploadImage calls
+    await page.evaluate(() => {
+      window._batchUploadImageCalled = 0;
+      const orig = window.NetworkEngine.uploadImage;
+      window.NetworkEngine.uploadImage = async function() {
+        window._batchUploadImageCalled++;
+        return orig ? orig.apply(this, arguments) : { success: true };
+      };
+    });
+
+    const res = await page.evaluate(async () => {
+      return await window.PhotoLocalSafety.batchUpdateLocation(['photo_batch_1', 'photo_batch_2'], {
+        placeName: '海雲台海水浴場',
+        address: '釜山廣域市海雲台區海雲台海邊路264',
+        latitude: 35.1587,
+        longitude: 129.1604
+      });
+    });
+
+    expect(res.success).toBe(true);
+    expect(res.updatedCount).toBe(2);
+    expect(await page.evaluate(() => window._batchUploadImageCalled)).toBe(0);
+
+    const rtdb = await page.evaluate(async () => {
+      const snap = await window.NetworkEngine._db.ref(window.DB_PHOTOS).once('value');
+      return snap.val() || {};
+    });
+
+    expect(rtdb.photo_batch_1.placeName).toBe('海雲台海水浴場');
+    expect(rtdb.photo_batch_1.location.latitude).toBeCloseTo(35.1587, 4);
+    expect(rtdb.photo_batch_2.placeName).toBe('海雲台海水浴場');
+    expect(rtdb.photo_batch_2.location.latitude).toBeCloseTo(35.1587, 4);
+  });
+
+  test('batch UI controls and diagnostic modal open and close properly', async ({ page }) => {
+    await page.evaluate(() => showV37Tab('photo'));
+
+    // Open diagnostic modal
+    await page.evaluate(() => window.openPhotoDiagnosticModal());
+    const diagModal = page.locator('#photoDiagnosticModal');
+    await expect(diagModal).toBeVisible();
+    await page.locator('#photoDiagnosticModal button:has-text("關閉診斷")').click();
+    await expect(diagModal).not.toBeVisible();
+
+    // Toggle batch selection mode
+    await page.locator('#btnToggleBatchLocation').click();
+    const batchBar = page.locator('#batchActionBar');
+    await expect(batchBar).toBeVisible();
+
+    // Exit batch mode
+    await page.locator('#batchActionBar button:has-text("離開")').click();
+    await expect(batchBar).not.toBeVisible();
   });
 });
