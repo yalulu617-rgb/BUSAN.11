@@ -102,6 +102,10 @@ test.describe('1. Galaxy S25 Photo GPS Reading & Parsing', () => {
       NetworkEngine.uploadImage = async () => ({ success: false, error: 'synthetic test mode' });
     });
 
+    page.once('dialog', async dialog => {
+      expect(dialog.message()).toContain('未讀到 GPS 1 張');
+      await dialog.accept(); // Explicit owner consent for no-GPS photo.
+    });
     await page.locator('#photoImgUpload').setInputFiles([
       { name: 's25_nangang_chat.jpg', mimeType: 'image/jpeg', buffer: s25ChatJpeg }
     ]);
