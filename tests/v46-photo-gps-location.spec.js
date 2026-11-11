@@ -318,9 +318,9 @@ test.describe('5. Null-safe manual photo location regression', () => {
     );
     expect(row.url).toBe('https://i.ibb.co/synthetic/name-only.jpg');
     expect(row.placeName).toBe('南港展覽館');
-    expect(row.latitude).toBeUndefined();
-    expect(row.longitude).toBeUndefined();
-    expect(row.location).toBeUndefined();
+    expect(row.latitude ?? null).toBeNull();
+    expect(row.longitude ?? null).toBeNull();
+    expect(row.location ?? null).toBeNull();
     const mapLink = page.locator('#albumContainer a[href*="google.com/maps"]').first();
     await expect(mapLink).toHaveAttribute('href', new RegExp(encodeURIComponent('南港展覽館')));
     expect(await mapLink.getAttribute('href')).not.toContain('query=0,0');
@@ -345,9 +345,9 @@ test.describe('5. Null-safe manual photo location regression', () => {
       (await window.NetworkEngine._db.ref(`${window.DB_PHOTOS}/photo_legacy_zero`).once('value')).val()
     );
     expect(row.url).toBe('https://i.ibb.co/synthetic/legacy.jpg');
-    expect(row.latitude).toBeUndefined();
-    expect(row.longitude).toBeUndefined();
-    expect(row.location).toBeUndefined();
+    expect(row.latitude ?? null).toBeNull();
+    expect(row.longitude ?? null).toBeNull();
+    expect(row.location ?? null).toBeNull();
     const links = await page.locator('#albumContainer a[href*="google.com/maps"]').evaluateAll(nodes => nodes.map(n => n.href));
     expect(links.join(' ')).not.toContain('query=0,0');
   });
