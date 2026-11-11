@@ -412,7 +412,7 @@ test.describe('6. S25 HEIC metadata extraction and safe batch reporting', () => 
     iloc.writeUInt32BE(exif.length,iloc.length-4);
     const idat=box('idat',exif);
     const meta=box('meta',Buffer.concat([Buffer.alloc(4),iinf,iloc,idat]));
-    return Buffer.concat([box('ftyp',Buffer.from('heic\\0\\0\\0\\0heic','binary')),meta]);
+    return Buffer.concat([box('ftyp',Buffer.from('heic\0\0\0\0heic','binary')),meta]);
   }
 
   test('HEIC embedded Exif GPS and capture time are extracted without uploading', async ({ page }) => {
