@@ -299,7 +299,7 @@ test.describe('4. Galaxy S25 Responsive Layout & PWA Freshness', () => {
 
   test('Service Worker cache version bumped and photo-local-safe is precached', async ({ page }) => {
     const release = await (await page.request.get('/data/release.json')).json();
-    expect(release.cacheVersion).toMatch(/^busan-trip-v46-photo-gps-v[6789]/);
+    expect(release.cacheVersion).toMatch(/^busan-trip-v46-photo-gps-v(10|[6-9])/);
     expect(release.appVersion).toMatch(/^V46\.[34]\./);
   });
 });
@@ -576,5 +576,166 @@ test.describe('9. Batch Photo Location Assignment & Diagnostic Modal', () => {
     // Exit batch mode
     await page.locator('#batchActionBar button:has-text("離開")').click();
     await expect(batchBar).not.toBeVisible();
+  });
+});
+
+test.describe('10. S25 Photo ZIP Batch Import & GPS Backfill (V46.4.3)', () => {
+  test.beforeEach(async ({ page }) => {
+    // no-op, bootApp already run in top beforeEach
+    await page.goto('/');
+    await page.waitForLoadState('domcontentloaded');
+  });
+
+  test('parseZipDirectory safely parses entries and filters out zip-slip attempts', async ({ page }) => {
+    const result = await page.evaluate(async () => {
+      function makeEntry(name, content, method = 0) {
+        return { name, content: new TextEncoder().encode(content), method };
+      }
+      const files = [
+        makeEntry('photos/valid_s25.jpg', 'fake-jpeg-data'),
+        makeEntry('../../../evil.sh', 'rm -rf /'),
+        makeEntry('notes.txt', 'some notes')
+      ];
+
+      const parts = [];
+      const cdEntries = [];
+      let offset = 0;
+
+      for (const f of files) {
+        const nameBuf = new TextEncoder().encode(f.name);
+        const lh = new Uint8Array(30);
+        const dvLh = new DataView(lh.buffer);
+        dvLh.setUint32(0, 0x04034b50, true);
+        dvLh.setUint16(4, 20, true);
+        dvLh.setUint16(8, f.method, true);
+        dvLh.setUint32(18, f.content.length, true);
+        dvLh.setUint32(22, f.content.length, true);
+        dvLh.setUint16(26, nameBuf.length, true);
+
+        const localOffset = offset;
+        parts.push(lh, nameBuf, f.content);
+        offset += lh.length + nameBuf.length + f.content.length;
+
+        const cd = new Uint8Array(46);
+        const dvCd = new DataView(cd.buffer);
+        dvCd.setUint32(0, 0x02014b50, true);
+        dvCd.setUint16(4, 20, true);
+        dvCd.setUint16(6, 20, true);
+        dvCd.setUint16(10, f.method, true);
+        dvCd.setUint32(20, f.content.length, true);
+        dvCd.setUint32(24, f.content.length, true);
+        dvCd.setUint16(28, nameBuf.length, true);
+        dvCd.setUint32(42, localOffset, true);
+
+        cdEntries.push(cd, nameBuf);
+      }
+
+      const cdOffset = offset;
+      let cdSize = 0;
+      for (const b of cdEntries) cdSize += b.length;
+
+      const eocd = new Uint8Array(22);
+      const dvEocd = new DataView(eocd.buffer);
+      dvEocd.setUint32(0, 0x06054b50, true);
+      dvEocd.setUint16(8, files.length, true);
+      dvEocd.setUint16(10, files.length, true);
+      dvEocd.setUint32(12, cdSize, true);
+      dvEocd.setUint32(16, cdOffset, true);
+
+      const zipBlob = new Blob([...parts, ...cdEntries, eocd], { type: 'application/zip' });
+      const entries = await window.PhotoLocalSafety.parseZipDirectory(zipBlob);
+      return entries;
+    });
+
+    expect(result.length).toBe(1);
+    expect(result[0].filename).toBe('photos/valid_s25.jpg');
+  });
+
+  test('handlePhotoZipUpload pre-inspects photos and opens photoZipModal', async ({ page }) => {
+    await page.evaluate(() => showV37Tab('photo'));
+
+    await page.evaluate(() => {
+      window.PhotoLocalSafety.handlePhotoZipUpload;
+      window.openPhotoZipModal({
+        file: new File(['fake'], 's25_photos.zip', { type: 'application/zip' }),
+        totalCount: 3,
+        gpsCount: 2,
+        missingGpsCount: 1,
+        timeCount: 3,
+        extractedList: [],
+        matchedPairs: [],
+        matchedCloudCount: 1
+      });
+    });
+
+    const modal = page.locator('#photoZipModal');
+    await expect(modal).toBeVisible();
+    await expect(page.locator('#photoZipBody')).toContainText('總相片數：3 張');
+    await expect(page.locator('#photoZipBody')).toContainText('找到 GPS：2 張');
+    await expect(page.locator('#btnZipRecoverExisting')).toContainText('可補 1 張');
+
+    await page.locator('#photoZipActions button:has-text("取消")').click();
+    await expect(modal).not.toBeVisible();
+  });
+
+  test('executeZipRecoverExisting recovers GPS for cloud photo without uploading image bytes', async ({ page }) => {
+    const result = await page.evaluate(async () => {
+      window.photoList = [
+        {
+          key: 'cloud_photo_missing_gps_1',
+          url: 'https://i.ibb.co/exist/img.jpg',
+          capturedAt: '2026-11-08T13:14:00.000Z',
+          latitude: null,
+          longitude: null,
+          city: '無定位',
+          localOnly: false
+        }
+      ];
+
+      let uploadCalled = false;
+      const originalUpload = window.NetworkEngine.uploadImage;
+      window.NetworkEngine.uploadImage = async () => {
+        uploadCalled = true;
+        return { success: false, error: 'Should not be called' };
+      };
+
+      window.openPhotoZipModal({
+        totalCount: 1,
+        gpsCount: 1,
+        missingGpsCount: 0,
+        timeCount: 1,
+        matchedPairs: [
+          {
+            cloudPhoto: window.photoList[0],
+            newMeta: {
+              latitude: 35.1587,
+              longitude: 129.1604,
+              placeName: '海雲台海水浴場',
+              address: '海雲台區',
+              capturedAt: '2026-11-08T13:14:00.000Z',
+              locationStatus: 'gps'
+            }
+          }
+        ],
+        matchedCloudCount: 1
+      });
+
+      await window.executeZipRecoverExisting();
+      window.NetworkEngine.uploadImage = originalUpload;
+
+      const updated = window.photoList.find(p => p.key === 'cloud_photo_missing_gps_1');
+      return {
+        uploadCalled,
+        latitude: updated?.latitude,
+        longitude: updated?.longitude,
+        city: updated?.city,
+        placeName: updated?.placeName
+      };
+    });
+
+    expect(result.uploadCalled).toBe(false);
+    expect(result.latitude).toBeCloseTo(35.1587, 4);
+    expect(result.longitude).toBeCloseTo(129.1604, 4);
+    expect(result.placeName).toBe('海雲台海水浴場');
   });
 });
