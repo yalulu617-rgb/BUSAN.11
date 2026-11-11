@@ -180,6 +180,35 @@
         }
       }
     }catch(e){console.warn('[PhotoLocal] HEIF metadata parsing:',e.message);}
+
+    // Fallback: bounded scan for embedded TIFF Exif header in the first 8MB
+    try {
+      const u8 = new Uint8Array(header);
+      const nBytes = u8.length;
+      for (let i = 0; i <= nBytes - 16; i++) {
+        const b0 = u8[i], b1 = u8[i+1], b2 = u8[i+2], b3 = u8[i+3];
+        let le = false;
+        if (b0 === 0x49 && b1 === 0x49 && b2 === 0x2a && b3 === 0x00) le = true;
+        else if (b0 === 0x4d && b1 === 0x4d && b2 === 0x00 && b3 === 0x2a) le = false;
+        else continue;
+
+        const ifd0 = v.getUint32(i + 4, le);
+        if (ifd0 >= 8 && ifd0 < 65536 && i + ifd0 + 2 <= nBytes) {
+          const numEntries = v.getUint16(i + ifd0, le);
+          if (numEntries > 0 && numEntries < 256) {
+            const tiff = u8.slice(i, Math.min(nBytes, i + 65536));
+            const payload = new Uint8Array(6 + tiff.length);
+            payload.set([69, 120, 105, 102, 0, 0]); payload.set(tiff, 6);
+            const jpeg = new Uint8Array(payload.length + 8);
+            jpeg.set([255, 216, 255, 225, (payload.length + 2) >> 8, (payload.length + 2) & 255], 0);
+            jpeg.set(payload, 6); jpeg.set([255, 217], 6 + payload.length);
+            const parsed = await readExif(new File([jpeg], 'heif-fallback.jpg', { type: 'image/jpeg' }));
+            if (parsed.locationStatus === 'gps' || parsed.capturedAt) return parsed;
+          }
+        }
+      }
+    } catch(e) { console.warn('[PhotoLocal] HEIF TIFF scan fallback:', e.message); }
+
     return out;
   }
 

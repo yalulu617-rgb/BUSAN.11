@@ -404,7 +404,7 @@ test.describe('6. S25 HEIC metadata extraction and safe batch reporting', () => 
     const infe=box('infe',Buffer.concat([Buffer.from([2,0,0,0,0,1,0,0]),Buffer.from('Exif','ascii'),Buffer.from([0])]));
     const iinf=box('iinf',Buffer.concat([Buffer.alloc(4),Buffer.from([0,1]),infe]));
     const iloc=box('iloc',Buffer.concat([
-      Buffer.from([1,0,0,0,0x44,0,0,1]), // version 1, offsetSize=4,lengthSize=4, 1 item
+      Buffer.from([1,0,0,0,0x44,0x40,0,1]), // version 1, offsetSize=4,lengthSize=4, baseOffsetSize=4, indexSize=0, 1 item
       Buffer.from([0,1,0,1,0,0]), // item_id, method=idat, data ref
       Buffer.alloc(4),Buffer.from([0,1]), // base offset, one extent
       Buffer.alloc(4),Buffer.alloc(4)
