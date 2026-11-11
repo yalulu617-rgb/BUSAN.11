@@ -36,6 +36,22 @@ window.downloadImage = function () {
 
 
 (function() {
+    // Reject missing/blank/out-of-range/legacy accidental (0,0) coordinates.
+    // Preserve valid equator and prime-meridian points with one zero component.
+    const validCoordinates = (rawLat, rawLng) => {
+        if ([rawLat, rawLng].some(v => v === null || v === undefined || String(v).trim() === '')) return null;
+        const lat = Number(rawLat), lng = Number(rawLng);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng) ||
+            Math.abs(lat) > 90 || Math.abs(lng) > 180 || (lat === 0 && lng === 0)) return null;
+        return { lat, lng };
+    };
+    const coordinatesOf = p =>
+        validCoordinates(p.location?.latitude, p.location?.longitude) ||
+        validCoordinates(p.latitude, p.longitude);
+    const fmtPoint = (a, b) => {
+        const c = validCoordinates(a, b);
+        return c ? `${c.lat.toFixed(5)}, ${c.lng.toFixed(5)}` : '';
+    };
     window.renderMemoryAlbum = function() {
         const grid = document.getElementById('albumContainer');
         if (!grid) return;
@@ -60,19 +76,14 @@ window.downloadImage = function () {
             const m = /T(\d{2}:\d{2})/.exec(String(p.capturedAt || ''));
             return m ? m[1] : '';
         };
-        const fmtPt = (a, b) => (Number.isFinite(Number(a)) && Number.isFinite(Number(b)) && a !== null && b !== null && a !== '' && b !== '')
-            ? `${Number(a).toFixed(5)}, ${Number(b).toFixed(5)}` : '';
-        const coordsOf = p => {
-            const lat = p.location?.latitude ?? p.latitude;
-            const lng = p.location?.longitude ?? p.longitude;
-            return (Number.isFinite(Number(lat)) && Number.isFinite(Number(lng)) && lat !== null && lng !== null) ? { lat: Number(lat), lng: Number(lng) } : null;
-        };
+        const fmtPt = fmtPoint;
+        const coordsOf = coordinatesOf;
         const isCoordStr = s => /^[+-]?\d+(?:\.\d+)?[,\s]+[+-]?\d+(?:\.\d+)?$/.test(String(s || '').trim());
         const placeOf = p => p.placeName || (p.city && p.city !== '無定位' && !isCoordStr(p.city) ? p.city : null) || fmtPt(p.location?.latitude, p.location?.longitude) || fmtPt(p.latitude, p.longitude) || '無定位';
         const mapsUrlOf = p => {
             const c = coordsOf(p);
             if (c) return `https://www.google.com/maps/search/?api=1&query=${c.lat},${c.lng}`;
-            const q = p.address || p.placeName || (p.city && p.city !== '無定位' ? p.city : null);
+            const q = p.address || p.placeName || (p.city && p.city !== '無定位' && !isCoordStr(p.city) ? p.city : null);
             if (q) return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
             return null;
         };
@@ -112,17 +123,15 @@ window.downloadImage = function () {
         const time = timeMatch ? timeMatch[1] : '';
         const dateText = photo.date ? `${photo.date}${time ? ' ' + time : ''}` : (photo.capturedAt ? photo.capturedAt.replace('T', ' ') : '日期待補');
         
-        const fmtPt = (a, b) => (Number.isFinite(Number(a)) && Number.isFinite(Number(b)) && a !== null && b !== null && a !== '' && b !== '') ? `${Number(a).toFixed(5)}, ${Number(b).toFixed(5)}` : '';
+        const fmtPt = fmtPoint;
         const isCoordStr = s => /^[+-]?\d+(?:\.\d+)?[,\s]+[+-]?\d+(?:\.\d+)?$/.test(String(s || '').trim());
         const place = photo.placeName || (photo.city && photo.city !== '無定位' && !isCoordStr(photo.city) ? photo.city : null) || fmtPt(photo.location?.latitude, photo.location?.longitude) || fmtPt(photo.latitude, photo.longitude) || '無定位';
         const isMissing = (place === '無定位');
         
-        const lat = photo.location?.latitude ?? photo.latitude;
-        const lng = photo.location?.longitude ?? photo.longitude;
-        const hasCoords = Number.isFinite(Number(lat)) && Number.isFinite(Number(lng)) && lat !== null && lng !== null;
+        const coords = coordinatesOf(photo);
         let mapsUrl = null;
-        if (hasCoords) {
-            mapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+        if (coords) {
+            mapsUrl = `https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lng}`;
         } else if (photo.address || (photo.placeName && photo.placeName !== '無定位')) {
             mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(photo.address || photo.placeName)}`;
         }

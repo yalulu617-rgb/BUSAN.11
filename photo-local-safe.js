@@ -393,33 +393,48 @@
     return false;
   }
 
+  // Null/empty input means "no GPS", NOT (0,0). Also reject partial/invalid pairs.
+  function manualCoordinate(raw, max) {
+    if (raw === null || raw === undefined || typeof raw === 'boolean' ||
+        (typeof raw === 'string' && raw.trim() === '')) return null;
+    const n = Number(raw);
+    return Number.isFinite(n) && Math.abs(n) <= max ? Number(n.toFixed(6)) : null;
+  }
+  const coordinateProvided = raw => raw !== null && raw !== undefined &&
+    typeof raw !== 'boolean' && !(typeof raw === 'string' && raw.trim() === '');
+
   w.updatePhotoLocation = async function(key, locData) {
     if (!key) return { success: false, error: '缺少照片識別碼' };
-    const placeName = (locData.placeName || '').trim() || null;
-    const address = (locData.address || '').trim() || null;
-    const lat = Number.isFinite(Number(locData.latitude)) ? Number(Number(locData.latitude).toFixed(6)) : null;
-    const lng = Number.isFinite(Number(locData.longitude)) ? Number(Number(locData.longitude).toFixed(6)) : null;
-    const cityName = placeName || address || (lat !== null && lng !== null ? `${lat}, ${lng}` : '自訂地點');
+    locData = locData || {};
+    const placeName = String(locData.placeName || '').trim() || null;
+    const address = String(locData.address || '').trim() || null;
+    const latProvided = coordinateProvided(locData.latitude);
+    const lngProvided = coordinateProvided(locData.longitude);
+    if (latProvided !== lngProvided) return { success: false, error: '經緯度必須同時填寫，或同時留空' };
+    const lat = manualCoordinate(locData.latitude, 90);
+    const lng = manualCoordinate(locData.longitude, 180);
+    if (latProvided && (lat === null || lng === null)) return { success: false, error: '經緯度不正確' };
+    if (lat === 0 && lng === 0) return { success: false, error: '0,0 不是有效的拍攝定位，請填寫實際座標或只填地點名稱' };
+    if (!placeName && !address && lat === null) return { success: false, error: '請至少輸入地點名稱、地址或經緯度' };
+    const cityName = placeName || address || (lat !== null ? `${lat}, ${lng}` : '自訂地點');
 
     if (String(key).startsWith('local_photo_')) {
       try {
         const stored = await all();
         const entry = stored.find(x => x.id === key);
-        if (entry) {
-          entry.metadata = entry.metadata || {};
-          entry.metadata.placeName = placeName;
-          entry.metadata.address = address;
-          entry.metadata.city = cityName;
-          if (lat !== null && lng !== null) {
-            entry.metadata.latitude = lat;
-            entry.metadata.longitude = lng;
-            entry.metadata.locationStatus = 'gps';
-          }
-          entry.metadata.missingReason = null;
-          await put(entry);
-        }
+        if (!entry) return { success: false, error: '找不到本機照片；原資料保留' };
+        entry.metadata = entry.metadata || {};
+        entry.metadata.placeName = placeName;
+        entry.metadata.address = address;
+        entry.metadata.city = cityName;
+        entry.metadata.latitude = lat;
+        entry.metadata.longitude = lng;
+        entry.metadata.locationStatus = lat !== null ? 'gps' : 'missing';
+        entry.metadata.missingReason = null;
+        await put(entry);
       } catch (err) {
         console.warn('[PhotoLocal] Local update error:', err);
+        return { success: false, error: '本機地點更新失敗；原照片保留' };
       }
     } else {
       if (!w.NetworkEngine?._db) {
@@ -430,13 +445,12 @@
         placeName: placeName,
         address: address,
         manualLocation: true,
-        updatedAt: Date.now()
+        updatedAt: Date.now(),
+        // Explicitly clear stale coordinates if user removes both GPS fields.
+        location: lat !== null ? { latitude: lat, longitude: lng } : null,
+        latitude: lat,
+        longitude: lng
       };
-      if (lat !== null && lng !== null) {
-        updatePayload.location = { latitude: lat, longitude: lng };
-        updatePayload.latitude = lat;
-        updatePayload.longitude = lng;
-      }
       let res;
       if (typeof w.NetworkEngine.firebaseUpdate === 'function') {
         res = await w.NetworkEngine.firebaseUpdate(`${w.DB_PHOTOS}/${key}`, updatePayload);
@@ -455,11 +469,9 @@
       item.city = cityName;
       item.placeName = placeName;
       item.address = address;
-      if (lat !== null && lng !== null) {
-        item.latitude = lat;
-        item.longitude = lng;
-        item.location = { latitude: lat, longitude: lng };
-      }
+      item.latitude = lat;
+      item.longitude = lng;
+      item.location = lat !== null ? { latitude: lat, longitude: lng } : null;
       item.manualLocation = true;
     }
 
@@ -511,7 +523,11 @@
     const lngStr = (lngInput?.value || '').trim();
 
     let lat = null, lng = null;
-    if (latStr !== '' || lngStr !== '') {
+    if ((latStr === '') !== (lngStr === '')) {
+      if (errEl) { errEl.textContent = '經緯度必須同時填寫，或同時留空'; errEl.style.display = 'block'; }
+      return;
+    }
+    if (latStr !== '') {
       const nLat = Number(latStr), nLng = Number(lngStr);
       if (!Number.isFinite(nLat) || nLat < -90 || nLat > 90) {
         if (errEl) { errEl.textContent = '請輸入有效緯度 (-90 到 90)'; errEl.style.display = 'block'; }
@@ -523,6 +539,10 @@
       }
       lat = Number(nLat.toFixed(6));
       lng = Number(nLng.toFixed(6));
+      if (lat === 0 && lng === 0) {
+        if (errEl) { errEl.textContent = '0,0 不是有效的拍攝定位，請填寫實際座標或只填地點名稱'; errEl.style.display = 'block'; }
+        return;
+      }
     }
 
     if (!placeName && !address && lat === null) {

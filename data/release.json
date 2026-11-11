@@ -1,9 +1,9 @@
 {
-  "appVersion": "V46.3",
-  "releaseName": "BUSAN.11 V46.3 Photo GPS Location & Cloud In-Place Repair",
+  "appVersion": "V46.3.1",
+  "releaseName": "BUSAN.11 V46.3.1 Photo GPS Null-Safe Hotfix",
   "buildDate": "2026-11-11T08:50:00+08:00",
   "gitCommit": "production-release",
-  "cacheVersion": "busan-trip-v46-photo-gps-v5",
+  "cacheVersion": "busan-trip-v46-photo-gps-v6",
   "travelDates": "2026/11/13 - 2026/11/17",
   "destination": "Busan & Gyeongju, South Korea"
 }
