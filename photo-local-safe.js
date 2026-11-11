@@ -722,7 +722,7 @@
     const ready=[];
     message('正在檢查 '+selected.length+' 張原始照片的日期與 GPS…');
     for(const file of selected){
-      if(!file.type.startsWith('image/') && !/\\.(jpe?g|png|webp|hei[cf])$/i.test(file.name || '')) {
+      if(!file.type.startsWith('image/') && !/\.(jpe?g|png|webp|hei[cf])$/i.test(file.name || '')) {
         failed++;continue;
       }
       try{
@@ -738,8 +738,8 @@
     }
     if(gpsMissing){
       const ok=w.confirm(
-        '這次選取 '+selected.length+' 張照片，已讀到 GPS '+gpsFound+' 張，未讀到 GPS '+gpsMissing+' 張。\\n\\n'+
-        'Android 相簿選取器可能隱藏原始 GPS。若不想讓照片變成「無定位」，請按「取消」，改用「從我的檔案選原始照片」重新選取。\\n\\n'+
+        '這次選取 '+selected.length+' 張照片，已讀到 GPS '+gpsFound+' 張，未讀到 GPS '+gpsMissing+' 張。\n\n'+
+        'Android 相簿選取器可能隱藏原始 GPS。若不想讓照片變成「無定位」，請按「取消」，改用「從我的檔案選原始照片」重新選取。\n\n'+
         '仍要上傳這批照片嗎？'
       );
       if(!ok){
