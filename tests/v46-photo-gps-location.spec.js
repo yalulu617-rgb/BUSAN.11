@@ -396,7 +396,7 @@ test.describe('6. S25 HEIC metadata extraction and safe batch reporting', () => 
     content.copy(b,8);return b;
   }
   function buildHeicWithExif(jpeg) {
-    const p=jpeg.indexOf(Buffer.from('Exif\\0\\0','ascii'));
+    const p=jpeg.indexOf(Buffer.from('Exif\0\0','ascii'));
     if(p<0)throw Error('no Exif in source fixture');
     const app1length=jpeg.readUInt16BE(p-2);
     const tiff=jpeg.subarray(p+6,p+app1length-2);
