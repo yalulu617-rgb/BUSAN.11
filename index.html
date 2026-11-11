@@ -61,6 +61,41 @@
     <div class="lightbox-controls-left"><button class="btn-lb del" aria-label="刪除照片" onclick="deleteCurrentPhoto()"><i class="fa-solid fa-trash" aria-hidden="true"></i> 刪除</button></div>
     <div class="lightbox-controls"><button class="btn-lb dl" aria-label="下載原圖" onclick="downloadImage()"><i class="fa-solid fa-download" aria-hidden="true"></i> 原圖</button><button class="btn-lb" aria-label="關閉照片預覽" onclick="closeLightbox()"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div>
     <img id="lightbox-img" src="" alt="全螢幕照片預覽">
+    <div id="lightbox-details" style="position:absolute; bottom:20px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.78); backdrop-filter:blur(10px); color:white; padding:10px 16px; border-radius:16px; font-size:0.8rem; max-width:92%; width:max-content; text-align:center; z-index:10; box-shadow:0 4px 20px rgba(0,0,0,0.4);"></div>
+</div>
+
+<div id="photoLocationModal" role="dialog" aria-modal="true" aria-labelledby="photoLocTitle" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10002; justify-content:center; align-items:center; backdrop-filter:blur(15px); padding:20px; box-sizing:border-box;">
+    <div class="pin-box" style="max-width:380px; width:100%; background:#fff; border-radius:24px; padding:22px; box-shadow:0 12px 40px rgba(0,0,0,0.25);">
+        <h3 id="photoLocTitle" style="color:var(--primary, #c0392b); margin:0 0 8px 0; font-size:1.05rem; font-weight:900;">
+            <i class="fa-solid fa-location-dot"></i> 補充／修改拍攝地點
+        </h3>
+        <p style="font-size:0.75rem; color:#7f8c8d; font-weight:700; margin:0 0 14px 0; line-height:1.4;">
+            直接更新雲端照片位置，不重新上傳圖片，不產生重複紀錄。
+        </p>
+        <div style="margin-bottom:10px;">
+            <label for="photoLocNameInput" style="display:block; font-size:0.75rem; font-weight:800; color:#444; margin-bottom:4px;">地點名稱</label>
+            <input type="text" id="photoLocNameInput" class="input-box" placeholder="例：南港展覽館、海雲台海水浴場" style="width:100%; box-sizing:border-box;">
+        </div>
+        <div style="margin-bottom:10px;">
+            <label for="photoLocAddressInput" style="display:block; font-size:0.75rem; font-weight:800; color:#444; margin-bottom:4px;">地址（可選）</label>
+            <input type="text" id="photoLocAddressInput" class="input-box" placeholder="例：台北市南港區經貿二路1號" style="width:100%; box-sizing:border-box;">
+        </div>
+        <div style="display:flex; gap:8px; margin-bottom:14px;">
+            <div style="flex:1;">
+                <label for="photoLocLatInput" style="display:block; font-size:0.75rem; font-weight:800; color:#444; margin-bottom:4px;">緯度（可選）</label>
+                <input type="number" step="any" id="photoLocLatInput" class="input-box" placeholder="例：25.0569" style="width:100%; box-sizing:border-box;">
+            </div>
+            <div style="flex:1;">
+                <label for="photoLocLngInput" style="display:block; font-size:0.75rem; font-weight:800; color:#444; margin-bottom:4px;">經度（可選）</label>
+                <input type="number" step="any" id="photoLocLngInput" class="input-box" placeholder="例：121.6174" style="width:100%; box-sizing:border-box;">
+            </div>
+        </div>
+        <div id="photoLocError" style="color:#e74c3c; font-size:0.75rem; font-weight:800; margin-bottom:10px; display:none;"></div>
+        <div style="display:flex; gap:10px;">
+            <button type="button" onclick="closePhotoLocationModal()" style="flex:1; padding:10px; border-radius:14px; border:none; background:#ecf0f1; color:#7f8c8d; font-weight:800; font-size:0.9rem; cursor:pointer;">取消</button>
+            <button type="button" id="savePhotoLocBtn" onclick="savePhotoLocation()" style="flex:1; padding:10px; border-radius:14px; border:none; background:var(--primary, #c0392b); color:white; font-weight:800; font-size:0.9rem; cursor:pointer;">儲存地點</button>
+        </div>
+    </div>
 </div>
 
 <div id="flashcardModal" role="dialog" aria-modal="true" aria-label="韓語翻譯字卡" onclick="if(event.target.id === 'flashcardModal') closeFlashcard()">
@@ -732,15 +767,15 @@
 
 <script src="js/firebase.js?v=45.6-owner-b"></script>
 <script src="js/auth-sync.js?v=20261109-auth1"></script>
-<script src="js/ui.js?v=v46-owner-light-restaurant-20261109"></script>
+<script src="js/ui.js?v=20261111-photo-gps"></script>
 <script src="js/wallet.js?v=45.6-owner-b"></script>
-<script src="js/memory.js?v=45.4"></script>
+<script src="js/memory.js?v=20261111-photo-gps"></script>
 <script src="js/itinerary.js?v=45.4"></script>
 <script src="components/v46-home.js?v=46.0-dev"></script>
 <script src="components/renderers.js?v=v46-owner-light-restaurant-20261109"></script>
 <script src="js/app.js?v=v46-owner-light-restaurant-20261109"></script>
 <script src="restaurant-save-guard.js?v=20261109-safe1"></script>
-<script src="photo-local-safe.js?v=20261109-safe1"></script>
+<script src="photo-local-safe.js?v=20261111-photo-gps"></script>
 <script src="owner-budget-settings.js?v=20261109-edit1"></script>
 </body>
 </html>

@@ -44,80 +44,208 @@
   const all = () => tx('readonly', store => store.getAll());
   const remove = id => tx('readwrite', store => store.delete(id));
 
-  // Minimal bounded JPEG EXIF/TIFF reader; no library, network, or geocoder.
-  // Capture date and GPS come from original photo, BEFORE Canvas removes EXIF.
+  function parseCoordinateStr(str, isLon) {
+    if (!str) return null;
+    const s = String(str).trim();
+    const mDec = /^([+-]?\d+(?:\.\d+)?)\s*([NSEW])?$/i.exec(s);
+    if (mDec) {
+      let val = parseFloat(mDec[1]);
+      const ref = (mDec[2] || '').toUpperCase();
+      if (ref === 'S' || ref === 'W') val = -Math.abs(val);
+      else if (ref === 'N' || ref === 'E') val = Math.abs(val);
+      const max = isLon ? 180 : 90;
+      if (Number.isFinite(val) && Math.abs(val) <= max && Math.abs(val) > 0.000001) {
+        return Number(val.toFixed(6));
+      }
+    }
+    const mDms = /^(\d+(?:\.\d+)?|\d+\/\d+)[,\s]+(\d+(?:\.\d+)?|\d+\/\d+)(?:[,\s]+(\d+(?:\.\d+)?|\d+\/\d+))?\s*([NSEW])?$/i.exec(s);
+    if (mDms) {
+      const parsePart = p => {
+        if (!p) return 0;
+        if (p.includes('/')) {
+          const [num, den] = p.split('/').map(Number);
+          return den ? num / den : 0;
+        }
+        return parseFloat(p) || 0;
+      };
+      const deg = parsePart(mDms[1]);
+      const min = parsePart(mDms[2]);
+      const sec = parsePart(mDms[3]);
+      let val = deg + min / 60 + sec / 3600;
+      const ref = (mDms[4] || '').toUpperCase();
+      if (ref === 'S' || ref === 'W') val = -Math.abs(val);
+      const max = isLon ? 180 : 90;
+      if (Number.isFinite(val) && Math.abs(val) <= max && Math.abs(val) > 0.000001) {
+        return Number(val.toFixed(6));
+      }
+    }
+    return null;
+  }
+
+  function normalizeCapturedAt(raw) {
+    if (!raw) return null;
+    const s = String(raw).trim();
+    const m1 = /^(\d{4}):(\d{2}):(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/.exec(s);
+    if (m1) return `${m1[1]}-${m1[2]}-${m1[3]}T${m1[4]}:${m1[5]}:${m1[6]}`;
+    const m2 = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/.exec(s);
+    if (m2) return `${m2[1]}-${m2[2]}-${m2[3]}T${m2[4]}:${m2[5]}:${m2[6]}`;
+    const m3 = /^(\d{4})[-:](\d{2})[-:](\d{2})[ T](\d{2}):(\d{2})$/.exec(s);
+    if (m3) return `${m3[1]}-${m3[2]}-${m3[3]}T${m3[4]}:${m3[5]}:00`;
+    return null;
+  }
+
+  // Enhanced bounded JPEG EXIF & XMP reader; no external library, network, or geocoder.
+  // Capture date and GPS come from original photo, BEFORE Canvas compression.
   async function readExif(file) {
-    const out = {capturedAt:null, latitude:null, longitude:null, locationStatus:'missing', shareGps:true};
-    if (!file || !(/image\/jpeg/i.test(file.type) || /\.jpe?g$/i.test(file.name || ''))) return out;
-    const buf = await file.slice(0, BYTES_LIMIT).arrayBuffer();
+    const out = {capturedAt:null, latitude:null, longitude:null, locationStatus:'missing', shareGps:true, missingReason:null};
+    if (!file) {
+      out.missingReason = '無有效相片檔案';
+      return out;
+    }
+    const isJpeg = /image\/jpeg/i.test(file.type) || /\.jpe?g$/i.test(file.name || '');
+    if (!isJpeg) {
+      const isHeic = /image\/hei[cf]/i.test(file.type) || /\.hei[cf]$/i.test(file.name || '');
+      out.missingReason = isHeic
+        ? 'HEIC/HEIF 格式相片暫不支援直接解析 EXIF 定位，可手動補充拍攝地點'
+        : '此圖片格式不含 EXIF GPS 資訊，可手動補充拍攝地點';
+      return out;
+    }
+    let buf;
+    try {
+      buf = await file.slice(0, BYTES_LIMIT).arrayBuffer();
+    } catch (e) {
+      out.missingReason = '讀取相片二進位資料失敗';
+      return out;
+    }
     const view = new DataView(buf); const n = view.byteLength;
-    if (n < 4 || view.getUint16(0) !== 0xffd8) return out;
-    let pos=2;
+    if (n < 4 || view.getUint16(0) !== 0xffd8) {
+      out.missingReason = '不是標準 JPEG 格式或檔案已損毀';
+      return out;
+    }
+    let hadExifHeader = false;
+    let pos = 2;
     while (pos + 4 <= n && view.getUint8(pos) === 0xff) {
       const marker = view.getUint8(pos+1);
       if (marker === 0xda || marker === 0xd9) break;
-      const len=view.getUint16(pos+2);
+      const len = view.getUint16(pos+2);
       if (len < 2 || pos+2+len > n) break;
+
+      // 1. EXIF APP1
       if (marker === 0xe1 && len >= 8 &&
           String.fromCharCode(...new Uint8Array(buf,pos+4,6)) === 'Exif\0\0') {
-        const base=pos+10, max=pos+2+len;
-        if (base+8 > max) break;
-        const order=view.getUint16(base), le=order===0x4949;
-        if (!le && order!==0x4d4d) break;
-        const u16=p => { if(p<base||p+2>max) throw Error('EXIF bounds'); return view.getUint16(p,le); };
-        const u32=p => { if(p<base||p+4>max) throw Error('EXIF bounds'); return view.getUint32(p,le); };
-        if (u16(base+2)!==42) break;
-        const readEntries = offset => {
-          const at=base+offset;
-          if (at<base+8 || at+2>max) return new Map();
-          const ct=u16(at); if(ct>256 || at+2+ct*12+4>max)return new Map();
-          const entries=new Map();
-          for(let i=0;i<ct;i++){
-            const p=at+2+i*12, tag=u16(p), type=u16(p+2), count=u32(p+4), offsetOrValue=u32(p+8);
-            entries.set(tag,{p,type,count,offset:offsetOrValue});
+        hadExifHeader = true;
+        const base = pos + 10, max = pos + 2 + len;
+        if (base + 8 <= max) {
+          const order = view.getUint16(base), le = order === 0x4949;
+          if (le || order === 0x4d4d) {
+            const u16 = p => { if(p<base||p+2>max) throw Error('EXIF bounds'); return view.getUint16(p,le); };
+            const u32 = p => { if(p<base||p+4>max) throw Error('EXIF bounds'); return view.getUint32(p,le); };
+            if (u16(base+2) === 42) {
+              const readEntries = offset => {
+                const at = base + offset;
+                if (at < base + 8 || at + 2 > max) return new Map();
+                const ct = u16(at); if (ct > 256 || at + 2 + ct * 12 + 4 > max) return new Map();
+                const entries = new Map();
+                for (let i = 0; i < ct; i++) {
+                  const p = at + 2 + i * 12, tag = u16(p), type = u16(p+2), count = u32(p+4), offsetOrValue = u32(p+8);
+                  entries.set(tag, {p, type, count, offset: offsetOrValue});
+                }
+                return entries;
+              };
+              const valueBytes = entry => {
+                if (!entry) return null;
+                const width = ({1:1, 2:1, 3:2, 4:4, 5:8, 7:1, 9:4, 10:8})[entry.type];
+                if (!width || entry.count < 1 || entry.count > 2048) return null;
+                const size = width * entry.count;
+                const at = size <= 4 ? entry.p + 8 : base + entry.offset;
+                if (at < base || at + size > max) return null;
+                return {at, size};
+              };
+              const ascii = entry => {
+                const r = valueBytes(entry); if (!r) return null;
+                return Array.from(new Uint8Array(buf, r.at, r.size)).map(x => String.fromCharCode(x)).join('').replace(/\0.*$/, '').trim();
+              };
+              const rational = (entry, i) => {
+                const r = valueBytes(entry); if (!r || entry.type !== 5 || i >= entry.count) return NaN;
+                const num = u32(r.at + i * 8), den = u32(r.at + i * 8 + 4); return den ? num / den : NaN;
+              };
+              try {
+                const main = readEntries(u32(base + 4));
+                const extEntry = main.get(0x8769);
+                const exif = extEntry && extEntry.type === 4 ? readEntries(extEntry.offset) : new Map();
+                const rawDt = ascii(exif.get(0x9003)) || ascii(exif.get(0x9004)) || ascii(main.get(0x0132));
+                const normDt = normalizeCapturedAt(rawDt);
+                if (normDt) out.capturedAt = normDt;
+
+                const gpsEntry = main.get(0x8825);
+                const gps = gpsEntry && gpsEntry.type === 4 ? readEntries(gpsEntry.offset) : new Map();
+                const coord = (tag, refTag, allow) => {
+                  const e = gps.get(tag), ref = ascii(gps.get(refTag))?.toUpperCase();
+                  if (!e || e.type !== 5 || e.count !== 3 || !allow.includes(ref)) return null;
+                  const parts = [rational(e,0), rational(e,1), rational(e,2)];
+                  if (!parts.every(Number.isFinite) || parts[1] >= 60 || parts[2] >= 60) return null;
+                  const v = parts[0] + parts[1]/60 + parts[2]/3600;
+                  return v * (ref === allow[1] ? -1 : 1);
+                };
+                const latitude = coord(2, 1, ['N', 'S']);
+                const longitude = coord(4, 3, ['E', 'W']);
+                if (latitude !== null && longitude !== null && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180 && (Math.abs(latitude) > 0.0001 || Math.abs(longitude) > 0.0001)) {
+                  out.latitude = Number(latitude.toFixed(6));
+                  out.longitude = Number(longitude.toFixed(6));
+                }
+              } catch (exifError) {
+                console.warn('[PhotoLocal] EXIF parsing notice:', exifError.message);
+              }
+            }
           }
-          return entries;
-        };
-        const valueBytes = entry => {
-          if(!entry) return null;
-          const width=({1:1,2:1,3:2,4:4,5:8,7:1,9:4,10:8})[entry.type];
-          if(!width || entry.count<1 || entry.count>2048)return null;
-          const size=width*entry.count;
-          const at=size<=4?entry.p+8:base+entry.offset;
-          if(at<base || at+size>max)return null;
-          return {at,size};
-        };
-        const ascii=entry=>{const r=valueBytes(entry);if(!r)return null;
-          return Array.from(new Uint8Array(buf,r.at,r.size)).map(x=>String.fromCharCode(x)).join('').replace(/\0.*$/,'').trim();};
-        const rational=(entry,i)=>{const r=valueBytes(entry);if(!r||entry.type!==5||i>=entry.count)return NaN;
-          const num=u32(r.at+i*8),den=u32(r.at+i*8+4);return den?num/den:NaN;};
-        try {
-          const main=readEntries(u32(base+4));
-          const extEntry=main.get(0x8769);
-          const exif=extEntry&&extEntry.type===4?readEntries(extEntry.offset):new Map();
-          const dt=ascii(exif.get(0x9003)) || ascii(main.get(0x0132));
-          if(dt && /^\d{4}:\d{2}:\d{2} \d{2}:\d{2}:\d{2}$/.test(dt)){
-            out.capturedAt=dt.slice(0,4)+'-'+dt.slice(5,7)+'-'+dt.slice(8,10)+'T'+dt.slice(11);
-          }
-          const gpsEntry=main.get(0x8825);
-          const gps=gpsEntry&&gpsEntry.type===4?readEntries(gpsEntry.offset):new Map();
-          const coord=(tag,refTag,allow)=>{
-            const e=gps.get(tag),ref=ascii(gps.get(refTag))?.toUpperCase();
-            if(!e||e.type!==5||e.count!==3||!allow.includes(ref)) return null;
-            const parts=[rational(e,0),rational(e,1),rational(e,2)];
-            if(!parts.every(Number.isFinite)||parts[1]>=60||parts[2]>=60)return null;
-            const v=parts[0]+parts[1]/60+parts[2]/3600;
-            return v*(ref===allow[1]?-1:1);
-          };
-          const latitude=coord(2,1,['N','S']),longitude=coord(4,3,['E','W']);
-          if(latitude!==null&&longitude!==null&&Math.abs(latitude)<=90&&Math.abs(longitude)<=180){
-            out.latitude=Number(latitude.toFixed(6));out.longitude=Number(longitude.toFixed(6));out.locationStatus='gps';
-          }
-        }catch(exifError){console.warn('[PhotoLocal] Invalid EXIF data; photo still preserved',exifError.message);}
-        break;
+        }
       }
-      pos+=2+len;
+
+      // 2. XMP APP1 (Adobe / Samsung / Google Photos)
+      if (marker === 0xe1 && len >= 32) {
+        const xmpSig = String.fromCharCode(...new Uint8Array(buf, pos+4, 29));
+        if (xmpSig.startsWith('http://ns.adobe.com/xap/1.0/')) {
+          try {
+            const xmpBytes = new Uint8Array(buf, pos + 4 + 29, len - 2 - 29);
+            const xmpStr = new TextDecoder('utf-8', {fatal:false}).decode(xmpBytes);
+            if (!out.capturedAt) {
+              const dtMatch = /(?:exif:DateTimeOriginal|photoshop:DateCreated|xmp:CreateDate)=["']([^"']+)["']|<(?:exif:DateTimeOriginal|photoshop:DateCreated|xmp:CreateDate)>([^<]+)<\//i.exec(xmpStr);
+              if (dtMatch) {
+                const normXmpDt = normalizeCapturedAt(dtMatch[1] || dtMatch[2]);
+                if (normXmpDt) out.capturedAt = normXmpDt;
+              }
+            }
+            if (out.latitude === null || out.longitude === null) {
+              const latMatch = /exif:GPSLatitude=["']([^"']+)["']|<exif:GPSLatitude>([^<]+)<\/exif:GPSLatitude>/i.exec(xmpStr);
+              const lonMatch = /exif:GPSLongitude=["']([^"']+)["']|<exif:GPSLongitude>([^<]+)<\/exif:GPSLongitude>/i.exec(xmpStr);
+              if (latMatch && lonMatch) {
+                const xLat = parseCoordinateStr(latMatch[1] || latMatch[2], false);
+                const xLon = parseCoordinateStr(lonMatch[1] || lonMatch[2], true);
+                if (xLat !== null && xLon !== null) {
+                  out.latitude = xLat;
+                  out.longitude = xLon;
+                }
+              }
+            }
+          } catch (xmpErr) {
+            console.warn('[PhotoLocal] XMP parsing notice:', xmpErr.message);
+          }
+        }
+      }
+
+      pos += 2 + len;
     }
+
+    if (out.latitude !== null && out.longitude !== null) {
+      out.locationStatus = 'gps';
+      out.missingReason = null;
+    } else {
+      out.locationStatus = 'missing';
+      out.missingReason = hadExifHeader
+        ? '照片未包含 GPS 座標（可能拍攝時未開啟定位、通訊軟體壓縮轉發抹除或相機設定隱私保護）'
+        : '照片無 EXIF 資訊（可能經通訊軟體或社群轉發已抹除中繼資料）';
+    }
+
     return out;
   }
 
@@ -125,9 +253,22 @@
     if(typeof w.showToast==='function')w.showToast(msg,kind);};
   const localRow=record=>{
     if(!urlById.has(record.id)) urlById.set(record.id,w.URL.createObjectURL(record.blob));
-    return {key:record.id,url:urlById.get(record.id),date:record.metadata.capturedAt?.slice(0,10) || '拍攝日期待補',
-      capturedAt:record.metadata.capturedAt,latitude:record.metadata.latitude,longitude:record.metadata.longitude,
-      localOnly:true,pendingSync:true};
+    const meta = record.metadata || {};
+    return {
+      key: record.id,
+      url: urlById.get(record.id),
+      date: meta.capturedAt?.slice(0,10) || '拍攝日期待補',
+      capturedAt: meta.capturedAt || null,
+      latitude: meta.latitude || null,
+      longitude: meta.longitude || null,
+      location: (meta.latitude && meta.longitude) ? { latitude: meta.latitude, longitude: meta.longitude } : null,
+      placeName: meta.placeName || null,
+      address: meta.address || null,
+      city: meta.placeName || null,
+      missingReason: meta.missingReason || null,
+      localOnly: true,
+      pendingSync: true
+    };
   };
   const upstreamRender=w.renderMemoryAlbum;
   async function refreshAlbum(){
@@ -196,8 +337,17 @@
         url: hostedUrl,
         date: entry.metadata.capturedAt?.slice(0,10) || '',
         capturedAt: entry.metadata.capturedAt || null,
+        city: (entry.metadata.locationStatus === 'gps' && entry.metadata.shareGps !== false) ?
+          `${entry.metadata.latitude}, ${entry.metadata.longitude}` : (entry.metadata.placeName || '無定位'),
         location: (entry.metadata.locationStatus === 'gps' && entry.metadata.shareGps !== false) ?
           { latitude: entry.metadata.latitude, longitude: entry.metadata.longitude } : null,
+        latitude: (entry.metadata.locationStatus === 'gps' && entry.metadata.shareGps !== false) ?
+          entry.metadata.latitude : null,
+        longitude: (entry.metadata.locationStatus === 'gps' && entry.metadata.shareGps !== false) ?
+          entry.metadata.longitude : null,
+        placeName: entry.metadata.placeName || null,
+        address: entry.metadata.address || null,
+        missingReason: entry.metadata.locationStatus !== 'gps' ? (entry.metadata.missingReason || '無 EXIF GPS 資訊') : null,
         timestamp: Date.now()
       };
 
@@ -209,10 +359,14 @@
             key: stableKey,
             url: hostedUrl,
             date: entry.metadata.capturedAt?.slice(0,10) || '拍攝日期待補',
-            capturedAt: entry.metadata.capturedAt,
-            latitude: entry.metadata.latitude,
-            longitude: entry.metadata.longitude,
-            city: entry.metadata.locationStatus === 'gps' ? `${entry.metadata.latitude}, ${entry.metadata.longitude}` : '無定位'
+            capturedAt: entry.metadata.capturedAt || null,
+            latitude: entry.metadata.latitude || null,
+            longitude: entry.metadata.longitude || null,
+            location: (entry.metadata.latitude && entry.metadata.longitude) ? { latitude: entry.metadata.latitude, longitude: entry.metadata.longitude } : null,
+            city: entry.metadata.locationStatus === 'gps' ? `${entry.metadata.latitude}, ${entry.metadata.longitude}` : (entry.metadata.placeName || '無定位'),
+            placeName: entry.metadata.placeName || null,
+            address: entry.metadata.address || null,
+            missingReason: entry.metadata.missingReason || null
           });
         }
         await remove(entry.id);
@@ -238,6 +392,172 @@
     finally { syncing.delete(entry.id); }
     return false;
   }
+
+  w.updatePhotoLocation = async function(key, locData) {
+    if (!key) return { success: false, error: '缺少照片識別碼' };
+    const placeName = (locData.placeName || '').trim() || null;
+    const address = (locData.address || '').trim() || null;
+    const lat = Number.isFinite(Number(locData.latitude)) ? Number(Number(locData.latitude).toFixed(6)) : null;
+    const lng = Number.isFinite(Number(locData.longitude)) ? Number(Number(locData.longitude).toFixed(6)) : null;
+    const cityName = placeName || address || (lat !== null && lng !== null ? `${lat}, ${lng}` : '自訂地點');
+
+    if (String(key).startsWith('local_photo_')) {
+      try {
+        const stored = await all();
+        const entry = stored.find(x => x.id === key);
+        if (entry) {
+          entry.metadata = entry.metadata || {};
+          entry.metadata.placeName = placeName;
+          entry.metadata.address = address;
+          entry.metadata.city = cityName;
+          if (lat !== null && lng !== null) {
+            entry.metadata.latitude = lat;
+            entry.metadata.longitude = lng;
+            entry.metadata.locationStatus = 'gps';
+          }
+          entry.metadata.missingReason = null;
+          await put(entry);
+        }
+      } catch (err) {
+        console.warn('[PhotoLocal] Local update error:', err);
+      }
+    } else {
+      if (!w.NetworkEngine?._db) {
+        return { success: false, error: '資料庫未連線或尚未登入' };
+      }
+      const updatePayload = {
+        city: cityName,
+        placeName: placeName,
+        address: address,
+        manualLocation: true,
+        updatedAt: Date.now()
+      };
+      if (lat !== null && lng !== null) {
+        updatePayload.location = { latitude: lat, longitude: lng };
+        updatePayload.latitude = lat;
+        updatePayload.longitude = lng;
+      }
+      let res;
+      if (typeof w.NetworkEngine.firebaseUpdate === 'function') {
+        res = await w.NetworkEngine.firebaseUpdate(`${w.DB_PHOTOS}/${key}`, updatePayload);
+      } else {
+        await w.NetworkEngine._db.ref(`${w.DB_PHOTOS}/${key}`).update(updatePayload);
+        res = { success: true };
+      }
+      if (res && res.success !== true) {
+        return { success: false, error: res?.error || '更新雲端照片地點失敗，原照片保留' };
+      }
+    }
+
+    w.photoList = Array.isArray(w.photoList) ? w.photoList : [];
+    const item = w.photoList.find(x => x.key === key);
+    if (item) {
+      item.city = cityName;
+      item.placeName = placeName;
+      item.address = address;
+      if (lat !== null && lng !== null) {
+        item.latitude = lat;
+        item.longitude = lng;
+        item.location = { latitude: lat, longitude: lng };
+      }
+      item.manualLocation = true;
+    }
+
+    if (typeof w.renderMemoryAlbum === 'function') w.renderMemoryAlbum();
+    if (typeof w.renderLightboxDetails === 'function') w.renderLightboxDetails(key);
+    return { success: true };
+  };
+
+  w.openPhotoLocationModal = function(key) {
+    w.editingPhotoKey = key;
+    const photo = (w.photoList || []).find(p => p.key === key);
+    const modal = d.getElementById('photoLocationModal');
+    if (!modal) return;
+    const nameInput = d.getElementById('photoLocNameInput');
+    const addrInput = d.getElementById('photoLocAddressInput');
+    const latInput = d.getElementById('photoLocLatInput');
+    const lngInput = d.getElementById('photoLocLngInput');
+    const errEl = d.getElementById('photoLocError');
+    if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
+    if (nameInput) nameInput.value = photo?.placeName || (photo?.city && photo?.city !== '無定位' && !photo?.city.includes(',') ? photo.city : '') || '';
+    if (addrInput) addrInput.value = photo?.address || '';
+    const lat = photo?.location?.latitude ?? photo?.latitude ?? '';
+    const lng = photo?.location?.longitude ?? photo?.longitude ?? '';
+    if (latInput) latInput.value = (lat !== null && lat !== undefined && lat !== '') ? lat : '';
+    if (lngInput) lngInput.value = (lng !== null && lng !== undefined && lng !== '') ? lng : '';
+    modal.style.display = 'flex';
+  };
+
+  w.closePhotoLocationModal = function() {
+    const modal = d.getElementById('photoLocationModal');
+    if (modal) modal.style.display = 'none';
+    w.editingPhotoKey = null;
+  };
+
+  w.savePhotoLocation = async function() {
+    const key = w.editingPhotoKey;
+    if (!key) return;
+    const nameInput = d.getElementById('photoLocNameInput');
+    const addrInput = d.getElementById('photoLocAddressInput');
+    const latInput = d.getElementById('photoLocLatInput');
+    const lngInput = d.getElementById('photoLocLngInput');
+    const errEl = d.getElementById('photoLocError');
+    const btn = d.getElementById('savePhotoLocBtn');
+
+    if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
+    const placeName = (nameInput?.value || '').trim();
+    const address = (addrInput?.value || '').trim();
+    const latStr = (latInput?.value || '').trim();
+    const lngStr = (lngInput?.value || '').trim();
+
+    let lat = null, lng = null;
+    if (latStr !== '' || lngStr !== '') {
+      const nLat = Number(latStr), nLng = Number(lngStr);
+      if (!Number.isFinite(nLat) || nLat < -90 || nLat > 90) {
+        if (errEl) { errEl.textContent = '請輸入有效緯度 (-90 到 90)'; errEl.style.display = 'block'; }
+        return;
+      }
+      if (!Number.isFinite(nLng) || nLng < -180 || nLng > 180) {
+        if (errEl) { errEl.textContent = '請輸入有效經度 (-180 到 180)'; errEl.style.display = 'block'; }
+        return;
+      }
+      lat = Number(nLat.toFixed(6));
+      lng = Number(nLng.toFixed(6));
+    }
+
+    if (!placeName && !address && lat === null) {
+      if (errEl) { errEl.textContent = '請至少輸入地點名稱、地址或經緯度'; errEl.style.display = 'block'; }
+      return;
+    }
+
+    const cityName = placeName || address || (lat !== null ? `${lat}, ${lng}` : '自訂地點');
+    if (btn) { btn.disabled = true; btn.textContent = '儲存中...'; }
+
+    try {
+      const res = await w.updatePhotoLocation(key, {
+        placeName,
+        address,
+        latitude: lat,
+        longitude: lng,
+        city: cityName
+      });
+      if (res && res.success) {
+        w.closePhotoLocationModal();
+        message('已成功更新拍攝地點！', 'success');
+      } else {
+        const msg = res?.error || '儲存地點失敗，原照片保留';
+        if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
+        message(msg, 'error');
+      }
+    } catch(err) {
+      console.error('[PhotoLocation] Save error:', err);
+      const msg = err.message || '儲存地點失敗，原照片保留';
+      if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
+      message(msg, 'error');
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = '儲存地點'; }
+    }
+  };
 
   w.retryPendingPhotos=async function(){
     let stored;
@@ -275,7 +595,7 @@
     else message(`✅ ${cloudSaved}/${selected.length} 張已同步雙人相簿。`,'success');
     const picker=d.getElementById('photoImgUpload');if(picker)picker.value='';
   };
-  w.PhotoLocalSafety={readExif,refreshAlbum,getPending:all};
+  w.PhotoLocalSafety={readExif,refreshAlbum,getPending:all,updateLocation:w.updatePhotoLocation};
   const initialize=()=>{
     const status=d.getElementById('photoUploadStatus');
     if(status && !d.getElementById('photoLocalCount')){

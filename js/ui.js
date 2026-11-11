@@ -62,6 +62,9 @@ window.openLightbox = function(url, key) {
     window.currentLightboxKey = key;
     img.src = url;
     lb.style.display = 'flex';
+    if (typeof window.renderLightboxDetails === 'function') {
+        window.renderLightboxDetails(key);
+    }
     setTimeout(() => {
         lb.style.opacity = '1';
         img.style.transform = 'scale(1)';
@@ -77,6 +80,8 @@ window.closeLightbox = function() {
     img.style.transform = 'scale(0.9)';
     setTimeout(() => {
         lb.style.display = 'none';
+        const details = document.getElementById('lightbox-details');
+        if (details) details.innerHTML = '';
     }, 300);
 };
 

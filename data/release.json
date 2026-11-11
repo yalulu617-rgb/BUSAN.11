@@ -1,9 +1,9 @@
 {
-  "appVersion": "V46.2",
-  "releaseName": "BUSAN.11 V46.2 Real Dual-User Sync Release",
-  "buildDate": "2026-11-10T10:55:00+08:00",
+  "appVersion": "V46.3",
+  "releaseName": "BUSAN.11 V46.3 Photo GPS Location & Cloud In-Place Repair",
+  "buildDate": "2026-11-11T08:50:00+08:00",
   "gitCommit": "production-release",
-  "cacheVersion": "busan-trip-v46-budget-photo-restaurant-v4",
+  "cacheVersion": "busan-trip-v46-photo-gps-v5",
   "travelDates": "2026/11/13 - 2026/11/17",
   "destination": "Busan & Gyeongju, South Korea"
 }
