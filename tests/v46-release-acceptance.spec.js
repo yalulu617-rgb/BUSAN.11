@@ -152,6 +152,10 @@ test('V46 legacy data: shopping owners, bought marks, tickets, photos, bills and
 // Test the actual multiple-file upload loop while replacing only the external ImgBB API.
 // The Firebase write destination is the CI-only in-memory database.
 test('V46 existing album: two images upload as distinct records without replacing existing photos', async ({ page }) => {
+  page.once('dialog', async dialog => {
+    expect(dialog.message()).toContain('未讀到 GPS 2 張');
+    await dialog.accept(); // Owner explicitly proceeds with PNGs lacking EXIF GPS.
+  });
   await page.evaluate(async () => {
     if (!window.NetworkEngine?._db?.__testOnly) throw new Error('Unsafe test database');
     await window.NetworkEngine._db.ref(window.DB_PHOTOS).set({
