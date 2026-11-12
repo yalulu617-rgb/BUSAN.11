@@ -299,7 +299,7 @@ test.describe('4. Galaxy S25 Responsive Layout & PWA Freshness', () => {
 
   test('Service Worker cache version bumped and photo-local-safe is precached', async ({ page }) => {
     const release = await (await page.request.get('/data/release.json')).json();
-    expect(release.cacheVersion).toMatch(/^busan-trip-v46-photo-gps-v(13|12|11|10|[6-9])/);
+    expect(release.cacheVersion).toMatch(/^busan-trip-v46-photo-gps-v(14|13|12|11|10|[6-9])/);
     expect(release.appVersion).toMatch(/^V46\.[34]\./);
   });
 });
@@ -869,5 +869,92 @@ test.describe('10. S25 Photo ZIP Batch Import & Safe GPS Backfill (V46.4.5)', ()
     // cloud_exact_dual has GPS restored
     expect(result.exactDualLat).toBeCloseTo(35.1650, 4);
     expect(result.exactDualLng).toBeCloseTo(129.1750, 4);
+  });
+});
+
+test.describe('11. PWA Web Share Target for Samsung S25 Direct Photo Sharing (V46.4.7)', () => {
+  test('manifest.json declares valid multipart share_target supporting JPEG, PNG, WEBP, and HEIC', async ({ page }) => {
+    const manifest = await (await page.request.get('/manifest.json')).json();
+    expect(manifest.share_target).toBeDefined();
+    expect(manifest.share_target.method).toBe('POST');
+    expect(manifest.share_target.enctype).toBe('multipart/form-data');
+    expect(manifest.share_target.action).toMatch(/^\.\/\?shared=photo/);
+    const filesDef = manifest.share_target.params?.files?.[0];
+    expect(filesDef).toBeDefined();
+    expect(filesDef.name).toBe('photos');
+    expect(filesDef.accept).toContain('image/jpeg');
+    expect(filesDef.accept).toContain('image/heic');
+    expect(filesDef.accept).toContain('.jpg');
+    expect(filesDef.accept).toContain('.heic');
+  });
+
+  test('Shared photos stored in IndexedDB are automatically retrieved, prechecked for GPS, and handed to batch pipeline', async ({ page }) => {
+    // Generate an S25 JPEG photo with EXIF GPS
+    const s25SharedJpeg = buildJpegWithExif({
+      dateTime: '2026:11:08 17:45:00',
+      lat: 35.1587,
+      lon: 129.1604
+    });
+
+    await page.goto('/?incoming_share=photo');
+
+    // Simulate Service Worker saving incoming shared file into 'busan11_share_target_v1'
+    await page.evaluate(async (base64Jpeg) => {
+      const byteChars = atob(base64Jpeg);
+      const byteNums = new Array(byteChars.length);
+      for (let i = 0; i < byteChars.length; i++) {
+        byteNums[i] = byteChars.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNums);
+      const fakeFile = new File([byteArray], 'S25_20261108_Haeundae.jpg', { type: 'image/jpeg' });
+
+      // Put into share DB
+      await new Promise((resolve, reject) => {
+        const req = indexedDB.open('busan11_share_target_v1', 1);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains('sharedIncomingPhotos')) {
+            db.createObjectStore('sharedIncomingPhotos', { keyPath: 'id' });
+          }
+        };
+        req.onsuccess = (e) => {
+          const db = e.target.result;
+          const tx = db.transaction('sharedIncomingPhotos', 'readwrite');
+          const store = tx.objectStore('sharedIncomingPhotos');
+          store.put({
+            id: 'share_test_1',
+            file: fakeFile,
+            name: fakeFile.name,
+            type: fakeFile.type,
+            size: fakeFile.size,
+            receivedAt: Date.now()
+          });
+          tx.oncomplete = () => {
+            db.close();
+            resolve();
+          };
+          tx.onerror = () => reject(tx.error);
+        };
+        req.onerror = () => reject(req.error);
+      });
+    }, s25SharedJpeg.toString('base64'));
+
+    // Trigger checkIncomingSharedPhotos
+    await page.evaluate(async () => {
+      await window.checkIncomingSharedPhotos();
+    });
+
+    // Verify UI switched to Photos tab and precheck / upload processed the file
+    await page.waitForTimeout(500);
+    const photoCountText = await page.locator('#photoUploadStatus').textContent().catch(() => '');
+    // Diagnostic / state verification
+    const diag = await page.evaluate(() => window.latestPhotoDiagnostics || []);
+    expect(diag.length).toBeGreaterThan(0);
+    expect(diag[0].hasGpsFields).toBe(true);
+    expect(diag[0].formatDetected).toBe('JPEG');
+
+    // Verify URL bar cleaned up query parameter (no stale duplicate prompt on refresh)
+    const currentUrl = page.url();
+    expect(currentUrl).not.toContain('incoming_share=photo');
   });
 });

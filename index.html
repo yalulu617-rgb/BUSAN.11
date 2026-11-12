@@ -705,14 +705,19 @@
             <div class="card" style="margin-bottom: 20px; background: #ffffff; border-radius: 24px; padding: 20px;">
                 <h3 class="card-title" style="font-weight: 900;"><i class="fa-solid fa-camera-retro"></i> 每日拍立得回憶庫</h3>
                 <p style="font-size:0.85rem; color:#888; font-weight:900;">支援多張批次上傳。點擊放大照片可點擊左上角刪除。</p>
+                <div style="background:#eafaf1; border:1.5px solid #a3e4d7; border-radius:14px; padding:10px 12px; margin-bottom:10px; font-size:0.75rem; color:#145a32; line-height:1.5;">
+                    <div style="font-weight:900; font-size:0.82rem; margin-bottom:3px;"><i class="fa-solid fa-share-nodes"></i> 🌟 Samsung S25 免壓縮直傳推薦方式：</div>
+                    在三星相簿中勾選照片 ➔ 點擊<b>「分享」</b> ➔ 點選<b>「釜山V46」</b>。<br>
+                    APP 將自動接收原檔、解析拍攝時間與 GPS 並喚起確認上傳！（請確保分享面板未勾選「移除位置資訊」）。
+                </div>
                 <label for="photoImgUpload" class="btn-action" style="text-align:center; display:block;"><i class="fa-solid fa-wand-magic-sparkles"></i> 批次上傳美照 / GIF</label>
                 <input type="file" id="photoImgUpload" multiple style="display:none;" accept="image/*" onchange="uploadMultipleToImgBB(this.files, 'photo')">
-                <label for="photoOriginalFileUpload" class="btn-action" style="display:block; text-align:center; margin-top:8px; background:#fff2d8; color:#74481c; border:1px solid #e0bc89;"><i class="fa-solid fa-folder-open"></i> 保留 GPS：從「我的檔案」選原始照片（可多選）</label>
+                <label for="photoOriginalFileUpload" class="btn-action" style="display:block; text-align:center; margin-top:8px; background:#fff2d8; color:#74481c; border:1px solid #e0bc89;"><i class="fa-solid fa-folder-open"></i> 從「我的檔案」選原始照片（備用入口）</label>
                 <!-- No accept=image/*: Android Chrome then offers Files instead of privacy-redacting Photo Picker. Validate MIME in JS. -->
                 <input type="file" id="photoOriginalFileUpload" multiple style="display:none;" onchange="uploadMultipleToImgBB(this.files, 'photo')">
-                <label for="photoZipUpload" class="btn-action" style="display:block; text-align:center; margin-top:8px; background:#e8f4fd; color:#1b4f72; border:1px solid #aed6f1; font-weight:900;"><i class="fa-solid fa-file-zipper"></i> 📦 匯入原始照片 ZIP（保留拍攝資訊）</label>
+                <label for="photoZipUpload" class="btn-action" style="display:block; text-align:center; margin-top:8px; background:#f4f6f7; color:#5d6d7e; border:1px solid #d5dbdb; font-weight:800; font-size:0.8rem;"><i class="fa-solid fa-file-zipper"></i> 📦 匯入照片 ZIP（備用保底方案）</label>
                 <input type="file" id="photoZipUpload" accept=".zip,application/zip,application/x-zip-compressed" style="display:none;" onchange="handlePhotoZipUpload(this.files)">
-                <p style="font-size:0.72rem; color:#555; line-height:1.5; margin:6px 0 8px;"><b>S25 原始 GPS 推薦方案：</b>在三星「我的檔案」選取照片壓縮成 ZIP 匯入。瀏覽器本機解壓縮直接讀取 EXIF，100% 避開 Android 相簿抹除定位問題。</p>
+                <p style="font-size:0.72rem; color:#555; line-height:1.5; margin:6px 0 8px;"><b>S25 原始 GPS 免壓縮直傳：</b>在三星相簿中勾選照片 ➔ 點「分享」至「釜山V46」，APP 自動解析拍攝時間與 GPS！若使用檔案選取遇到「無定位」，亦可改用備用 ZIP 匯入。</p>
                 <p style="font-size:0.72rem; color:#777; line-height:1.5; margin:6px 0 8px;">手機相簿選取器可能隱藏 GPS。遇到「無定位」時，改用上方「我的檔案」入口，從內部儲存空間 → DCIM → Camera 選取。上傳前會檢查定位，沒讀到 GPS 會先提醒你。</p>
                 <div id="photoUploadStatus" style="font-size: 0.85rem; color: var(--primary); margin-top: 10px; text-align: center; font-weight:900;"></div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin:8px 0; gap:8px; flex-wrap:wrap;">

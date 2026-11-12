@@ -8,7 +8,7 @@
 // - Cache-first with network fallback for static media (images, icons)
 // ─────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'busan-trip-v46-photo-gps-v13';
+const CACHE_NAME = 'busan-trip-v46-photo-gps-v14';
 
 const LOCAL_ASSETS = [
     './',
@@ -116,9 +116,87 @@ self.addEventListener('activate', event => {
     );
 });
 
+// ── Helper: IndexedDB for Web Share Target (Zero Network, 100% Local) ──
+const SHARE_DB_NAME = 'busan11_share_target_v1';
+const SHARE_STORE_NAME = 'sharedIncomingPhotos';
+
+function openShareDB() {
+    return new Promise((resolve, reject) => {
+        if (!self.indexedDB) {
+            reject(new Error('IndexedDB not supported in Service Worker'));
+            return;
+        }
+        const req = self.indexedDB.open(SHARE_DB_NAME, 1);
+        req.onupgradeneeded = event => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains(SHARE_STORE_NAME)) {
+                db.createObjectStore(SHARE_STORE_NAME, { keyPath: 'id' });
+            }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error || new Error('Failed to open share DB'));
+    });
+}
+
+async function saveSharedPhotos(files) {
+    const db = await openShareDB();
+    try {
+        await new Promise((resolve, reject) => {
+            const tx = db.transaction(SHARE_STORE_NAME, 'readwrite');
+            const store = tx.objectStore(SHARE_STORE_NAME);
+            const now = Date.now();
+            files.forEach((file, index) => {
+                const id = 'share_' + now + '_' + index + '_' + Math.random().toString(36).slice(2, 7);
+                store.put({
+                    id,
+                    file,
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    lastModified: file.lastModified,
+                    receivedAt: now
+                });
+            });
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+            tx.onabort = () => reject(tx.error);
+        });
+    } finally {
+        db.close();
+    }
+}
+
 // ── Fetch strategy ──
 self.addEventListener('fetch', event => {
     const url = event.request.url;
+
+    // 0. Web Share Target Handler (POST multipart/form-data)
+    // Intercepted completely inside SW so GitHub Pages static server never sees POST (prevents 405 error)
+    if (event.request.method === 'POST') {
+        const parsed = new URL(url);
+        if (parsed.searchParams.get('shared') === 'photo' || parsed.pathname.endsWith('/share-target')) {
+            event.respondWith(
+                (async () => {
+                    try {
+                        const formData = await event.request.formData();
+                        const photos = formData.getAll('photos');
+                        // Also check potential alternative keys in various OEM share implementations
+                        const altPhotos = photos.length ? photos : (formData.getAll('photo') || formData.getAll('files') || formData.getAll('media'));
+                        const validFiles = altPhotos.filter(f => f && typeof f.size === 'number' && f.size > 0);
+                        if (validFiles.length > 0) {
+                            await saveSharedPhotos(validFiles);
+                        }
+                        // 303 Redirect converts POST navigation into GET navigation within PWA scope
+                        return Response.redirect('./?incoming_share=photo', 303);
+                    } catch (err) {
+                        console.error('[SW] Web Share Target handling failed:', err);
+                        return Response.redirect('./?incoming_share=error', 303);
+                    }
+                })()
+            );
+            return;
+        }
+    }
 
     // 1. External APIs: Network only
     if (isNetworkOnly(url)) {
