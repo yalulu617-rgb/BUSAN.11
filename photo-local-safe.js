@@ -564,6 +564,7 @@
       latitude: meta.latitude || null,
       longitude: meta.longitude || null,
       location: (meta.latitude && meta.longitude) ? { latitude: meta.latitude, longitude: meta.longitude } : null,
+      filename: record.filename || null,
       placeName: meta.placeName || null,
       address: meta.address || null,
       city: meta.placeName || null,
@@ -649,6 +650,7 @@
           entry.metadata.longitude : null,
         placeName: entry.metadata.placeName || null,
         address: entry.metadata.address || null,
+        filename: entry.filename || null,
         missingReason: entry.metadata.locationStatus !== 'gps' ? (entry.metadata.missingReason || '無 EXIF GPS 資訊') : null,
         timestamp: Date.now()
       };
@@ -667,6 +669,7 @@
             location: (entry.metadata.latitude && entry.metadata.longitude) ? { latitude: entry.metadata.latitude, longitude: entry.metadata.longitude } : null,
             city: entry.metadata.locationStatus === 'gps' ? `${entry.metadata.latitude}, ${entry.metadata.longitude}` : (entry.metadata.placeName || '無定位'),
             placeName: entry.metadata.placeName || null,
+            filename: entry.filename || null,
             address: entry.metadata.address || null,
             missingReason: entry.metadata.missingReason || null
           });
@@ -1408,26 +1411,21 @@
           const cloudCaptured = cp.capturedAt || null;
           const cloudFilename = cp.filename ? String(cp.filename).toLowerCase() : null;
 
-          // Strict Multi-Evidence Identity Verification:
-          // Must have BOTH matching timestamp AND matching filename,
-          // OR timestamp match where both are explicit identical seconds and cloud has no conflicting filename.
+          // Strict Multi-Evidence Identity Verification (V46.4.6):
+          // Both captured timestamp AND filename MUST be present and match identically.
+          // No exceptions: if cloud lacks filename or timestamp, cannot confirm identity -> strictly skip.
           let matches = false;
           if (cloudCaptured && cloudFilename) {
-            // Both pieces of identity info exist: BOTH MUST MATCH (Strict AND)
             if (cloudCaptured === captured && cloudFilename === itemBaseName) {
               matches = true;
-            } else if (cloudCaptured === captured || cloudFilename === itemBaseName) {
-              // Only one matched, the other conflicted -> strictly skip
+            } else {
+              // Timestamp or filename mismatch -> strictly skip
               strictSkippedCount++;
             }
-          } else if (cloudCaptured && !cloudFilename) {
-            // Historical cloud record with timestamp but no recorded filename
-            // Only consider if timestamp is exact down to the second
-            if (cloudCaptured === captured) {
-              matches = true;
-            }
+          } else {
+            // Cloud record lacks filename or timestamp -> cannot confirm photo identity; skip without altering original record
+            strictSkippedCount++;
           }
-          // Note: If cloud has NO timestamp (cloudCaptured == null), never guess by filename alone
 
           if (matches) {
             candidatePairs.push({ zipItem: item, cloudPhoto: cp });

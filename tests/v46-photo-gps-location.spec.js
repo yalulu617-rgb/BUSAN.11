@@ -299,7 +299,7 @@ test.describe('4. Galaxy S25 Responsive Layout & PWA Freshness', () => {
 
   test('Service Worker cache version bumped and photo-local-safe is precached', async ({ page }) => {
     const release = await (await page.request.get('/data/release.json')).json();
-    expect(release.cacheVersion).toMatch(/^busan-trip-v46-photo-gps-v(12|11|10|[6-9])/);
+    expect(release.cacheVersion).toMatch(/^busan-trip-v46-photo-gps-v(13|12|11|10|[6-9])/);
     expect(release.appVersion).toMatch(/^V46\.[34]\./);
   });
 });
@@ -735,11 +735,11 @@ test.describe('10. S25 Photo ZIP Batch Import & Safe GPS Backfill (V46.4.5)', ()
     expect(result).toContain('80MB 上限');
   });
 
-  test('Strict Pairing Verification: same-sec diff-name, same-name diff-sec, and multi-zip to 1-cloud are completely revoked', async ({ page }) => {
-    // Build 2 JPEGs at Haeundae Beach: 35.1587, 129.1604
+  test('Strict Pairing: cloud lacking filename or timestamp is strictly skipped, only identical dual-factor matches', async ({ page }) => {
     const s25Jpeg1 = buildJpegWithExif({ dateTime: '2026:11:08 13:14:00', lat: 35.158700, lon: 129.160400 });
     const s25Jpeg2 = buildJpegWithExif({ dateTime: '2026:11:08 13:14:00', lat: 35.158800, lon: 129.160500 });
     const s25JpegDiffSec = buildJpegWithExif({ dateTime: '2026:11:08 14:00:00', lat: 35.160000, lon: 129.170000 });
+    const s25JpegDualMatch = buildJpegWithExif({ dateTime: '2026:11:08 16:30:00', lat: 35.165000, lon: 129.175000 });
 
     function makeZipBuffer(files) {
       const parts = [];
@@ -781,20 +781,23 @@ test.describe('10. S25 Photo ZIP Batch Import & Safe GPS Backfill (V46.4.5)', ()
       return Buffer.concat([...parts, ...cdEntries, eocd]);
     }
 
-    // ZIP contains 3 photos:
+    // ZIP contains 4 photos:
     // 1. photoA.jpg at 13:14:00 (has GPS)
     // 2. photoB.jpg at 13:14:00 (has GPS, same second)
     // 3. same_name.jpg at 14:00:00 (has GPS)
+    // 4. exact_dual.jpg at 16:30:00 (has GPS)
     const realZipBuf = makeZipBuffer([
       { name: 'DCIM/Camera/photoA.jpg', data: s25Jpeg1 },
       { name: 'DCIM/Camera/photoB.jpg', data: s25Jpeg2 },
-      { name: 'DCIM/Camera/same_name.jpg', data: s25JpegDiffSec }
+      { name: 'DCIM/Camera/same_name.jpg', data: s25JpegDiffSec },
+      { name: 'DCIM/Camera/exact_dual.jpg', data: s25JpegDualMatch }
     ]);
 
-    // Setup Cloud with 3 tricky photos:
-    // A: 13:14:00 but filename is 'different_name.jpg' (Same second, diff name -> MUST NOT MATCH)
-    // B: 15:00:00 and filename 'same_name.jpg' (Same name, diff second -> MUST NOT MATCH)
-    // C: 13:14:00 with no filename (Both photoA and photoB match same cloud record -> CONFLICT! MUST REVOKE BOTH)
+    // Setup Cloud with 4 photos:
+    // 1: Same second, different filename -> SKIPPED
+    // 2: Same filename, different second -> SKIPPED
+    // 3: Same second, but NO filename in cloud -> STRICTLY SKIPPED (no filename = cannot confirm)
+    // 4: Exact same second AND exact same filename 'exact_dual.jpg' -> VALID 1-to-1 MATCH!
     await page.evaluate(() => {
       window.photoList = [
         {
@@ -812,10 +815,17 @@ test.describe('10. S25 Photo ZIP Batch Import & Safe GPS Backfill (V46.4.5)', ()
           latitude: null, longitude: null, city: '無定位', localOnly: false
         },
         {
-          key: 'cloud_multi_target',
+          key: 'cloud_no_filename',
           url: 'https://i.ibb.co/exist/p3.jpg',
           filename: null,
           capturedAt: '2026-11-08T13:14:00',
+          latitude: null, longitude: null, city: '無定位', localOnly: false
+        },
+        {
+          key: 'cloud_exact_dual',
+          url: 'https://i.ibb.co/exist/p4.jpg',
+          filename: 'exact_dual.jpg',
+          capturedAt: '2026-11-08T16:30:00',
           latitude: null, longitude: null, city: '無定位', localOnly: false
         }
       ];
@@ -833,13 +843,31 @@ test.describe('10. S25 Photo ZIP Batch Import & Safe GPS Backfill (V46.4.5)', ()
     const modal = page.locator('#photoZipModal');
     await expect(modal).toBeVisible();
 
-    // Verify: Zero false pairings! Everything conflicting is completely revoked
-    await expect(page.locator('#photoZipBody')).toContainText('唯一相符：0 張');
-    await expect(page.locator('#btnZipRecoverExisting')).toContainText('無唯一相符照片');
-    await expect(page.locator('#photoZipBody')).toContainText('配對衝突或多重相符');
+    // Verify: Exactly 1 valid match (exact_dual.jpg), all other 3 non-dual evidence photos are strictly skipped!
+    await expect(page.locator('#photoZipBody')).toContainText('唯一相符：1 張');
+    await expect(page.locator('#btnZipRecoverExisting')).toContainText('唯一相符 1 張');
+    await expect(page.locator('#photoZipBody')).toContainText('僅單項符合（缺少時間與檔名雙重證據），已依最高安全規則跳過');
 
-    // Close modal
-    await page.locator('#photoZipActions button:has-text("取消")').click();
-    await expect(modal).not.toBeVisible();
+    // Verify recovery updates the exact dual-matched cloud photo, and leaves cloud_no_filename untouched
+    await page.locator('#btnZipRecoverExisting').click();
+
+    const result = await page.evaluate(() => {
+      const pNoFilename = window.photoList.find(x => x.key === 'cloud_no_filename');
+      const pExactDual = window.photoList.find(x => x.key === 'cloud_exact_dual');
+      return {
+        noFilenameLat: pNoFilename ? (pNoFilename.latitude ?? null) : null,
+        noFilenameLng: pNoFilename ? (pNoFilename.longitude ?? null) : null,
+        exactDualLat: pExactDual?.latitude,
+        exactDualLng: pExactDual?.longitude
+      };
+    });
+
+    // cloud_no_filename remains strictly untouched (null GPS)
+    expect(result.noFilenameLat).toBeNull();
+    expect(result.noFilenameLng).toBeNull();
+
+    // cloud_exact_dual has GPS restored
+    expect(result.exactDualLat).toBeCloseTo(35.1650, 4);
+    expect(result.exactDualLng).toBeCloseTo(129.1750, 4);
   });
 });

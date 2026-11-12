@@ -1,9 +1,9 @@
 {
-  "appVersion": "V46.4.5",
-  "releaseName": "BUSAN.11 V46.4.5 Strict 1-to-1 Photo Pairing & Streaming Output Limit",
-  "buildDate": "2026-11-12T08:15:00+08:00",
+  "appVersion": "V46.4.6",
+  "releaseName": "BUSAN.11 V46.4.6 Require Both Filename and Timestamp Strict Pairing",
+  "buildDate": "2026-11-12T09:55:00+08:00",
   "gitCommit": "production-release",
-  "cacheVersion": "busan-trip-v46-photo-gps-v12",
+  "cacheVersion": "busan-trip-v46-photo-gps-v13",
   "travelDates": "2026/11/13 - 2026/11/17",
   "destination": "Busan & Gyeongju, South Korea"
 }
