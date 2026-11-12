@@ -1179,7 +1179,8 @@
 
   // =========================================================================
   // =========================================================================
-  // S25 原始照片 ZIP 批次匯入與既有照片 GPS 恢復安全機制 (V46.4.4)
+  // =========================================================================
+  // S25 原始照片 ZIP 批次匯入與既有照片 GPS 恢復安全機制 (V46.4.5)
   // =========================================================================
   const MAX_ZIP_UNCOMP_TOTAL = 500 * 1024 * 1024; // 累計解壓上限 500MB
   const MAX_ZIP_SINGLE_ENTRY = 80 * 1024 * 1024;  // 單張解壓上限 80MB
@@ -1255,20 +1256,35 @@
 
     let uncompBlob;
     if (entry.method === 0) {
+      if (compressedBlob.size > MAX_ZIP_SINGLE_ENTRY) {
+        throw new Error("單張照片解壓大小超過 80MB 上限");
+      }
       uncompBlob = compressedBlob;
     } else if (entry.method === 8) {
       if (typeof DecompressionStream === "undefined") {
         throw new Error("此裝置瀏覽器不支援本機解壓縮串流 (DecompressionStream)");
       }
       const stream = compressedBlob.stream().pipeThrough(new DecompressionStream("deflate-raw"));
-      const resp = new Response(stream);
-      uncompBlob = await resp.blob();
+      const reader = stream.getReader();
+      const chunks = [];
+      let streamBytes = 0;
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          streamBytes += value.byteLength;
+          if (streamBytes > MAX_ZIP_SINGLE_ENTRY) {
+            await reader.cancel("Single photo uncompressed size exceeded 80MB");
+            throw new Error("解壓串流超過 80MB 安全上限 (防止 ZIP Bomb 或宣告不實)");
+          }
+          chunks.push(value);
+        }
+      } catch (streamErr) {
+        throw streamErr;
+      }
+      uncompBlob = new Blob(chunks);
     } else {
       throw new Error("不支援的壓縮格式代碼: " + entry.method);
-    }
-
-    if (uncompBlob.size > MAX_ZIP_SINGLE_ENTRY) {
-      throw new Error("解壓後實際大小超過 80MB 上限 (宣告不實)");
     }
 
     const lowerName = entry.filename.toLowerCase();
@@ -1285,9 +1301,11 @@
     if (!modal) return;
     const body = d.getElementById("photoZipBody");
     if (body) {
-      const { totalCount, gpsCount, missingGpsCount, timeCount, matchedCloudCount, ambiguousCount } = inspection;
+      const { totalCount, gpsCount, missingGpsCount, timeCount, matchedCloudCount, ambiguousCount, strictSkippedCount } = inspection;
       const ambiguousNotice = ambiguousCount > 0 ?
-        '<div style="background:#fef9e7; border-radius:8px; padding:6px 10px; margin-top:6px; font-size:0.75rem; color:#b7791f; font-weight:700;">⚠️ 另有 ' + ambiguousCount + ' 張同秒或多重相符照片，為確保資料絕對正確已嚴格跳過（拒絕猜測配對）。</div>' : '';
+        '<div style="background:#fef9e7; border-radius:8px; padding:6px 10px; margin-top:6px; font-size:0.75rem; color:#b7791f; font-weight:700;">⚠️ 另有 ' + ambiguousCount + ' 筆配對衝突或多重相符，為確保資料絕對安全已撤銷並嚴格跳過（拒絕猜測配對）。</div>' : '';
+      const strictNotice = strictSkippedCount > 0 ?
+        '<div style="background:#f4f6f7; border-radius:8px; padding:6px 10px; margin-top:6px; font-size:0.75rem; color:#5d6d7e; font-weight:700;">ℹ️ 另有 ' + strictSkippedCount + ' 張照片僅單項符合（缺少時間與檔名雙重證據），已依最高安全規則跳過。</div>' : '';
       const missingGpsWarning = missingGpsCount > 0 ?
         '<div style="background:#fdf2e9; border-radius:8px; padding:6px 10px; margin-top:6px; font-size:0.75rem; color:#c0392b; font-weight:700;">⚠️ 本批有 ' + missingGpsCount + ' 張無 GPS 定位。匯入時會進行防護確認。</div>' : '';
       body.innerHTML = '<div style="background:#e8f4fd; border-radius:12px; padding:12px; margin-bottom:12px; font-size:0.78rem; line-height:1.6; color:#1b4f72;">' +
@@ -1298,10 +1316,10 @@
         '<div style="background:#e8f8f5; border-radius:10px; padding:8px 10px; color:#27ae60;">📍 找到 GPS：<b>' + gpsCount + '</b> 張</div>' +
         '<div style="background:#fef9e7; border-radius:10px; padding:8px 10px; color:#d35400;">⏰ 拍攝時間：<b>' + timeCount + '</b> 張</div>' +
         '<div style="background:#eaf2f8; border-radius:10px; padding:8px 10px; color:#2980b9;">🔄 唯一相符：<b>' + matchedCloudCount + '</b> 張</div></div>' +
-        ambiguousNotice + missingGpsWarning +
+        ambiguousNotice + strictNotice + missingGpsWarning +
         '<div style="font-size:0.75rem; color:#7f8c8d; line-height:1.5; margin-top:8px;">' +
         '• <b>📥 批次匯入為新照片</b>：逐張從本機 ZIP 解壓並串流上傳至相簿。<br>' +
-        '• <b>🔄 比對並補齊既有照片 GPS</b>：僅針對「唯一 1-to-1 配對」的雲端無定位照片補齊 GPS，<b>零圖檔重複上傳</b>。</div>';
+        '• <b>🔄 比對並補齊既有照片 GPS</b>：僅針對「唯一 1-to-1 雙重身分吻合」的雲端無定位照片補齊 GPS，<b>零圖檔重複上傳</b>。</div>';
     }
     const btnRecover = d.getElementById("btnZipRecoverExisting");
     if (btnRecover) {
@@ -1366,10 +1384,13 @@
         return;
       }
 
-      // Strict 1-to-1 Identity Matching (Prevent Wrong Pairing Risk)
+      // =========================================================================
+      // Strict 1-to-1 Identity Matching (V46.4.5)
+      // Two-pass bidirectional conflict detection & full revocation
+      // =========================================================================
       const cloudList = Array.isArray(w.photoList) ? w.photoList : [];
-      const matchedPairs = [];
-      let ambiguousCount = 0;
+      const candidatePairs = []; // all raw candidate edges
+      let strictSkippedCount = 0;
 
       for (const item of summaryList) {
         if (item.metadata?.locationStatus !== "gps") continue;
@@ -1377,34 +1398,64 @@
         if (!captured) continue;
         const itemBaseName = (item.baseName || "").toLowerCase();
 
-        // Candidates in cloud missing GPS
-        const candidates = cloudList.filter(cp => {
-          if (cp.localOnly) return false;
+        for (const cp of cloudList) {
+          if (cp.localOnly) continue;
           // NEVER overwrite existing GPS
           if (cp.latitude !== null && cp.latitude !== undefined && cp.longitude !== null && cp.longitude !== undefined) {
-            return false;
+            continue;
           }
-          // 1. Exact capture timestamp match
-          if (cp.capturedAt && cp.capturedAt === captured) return true;
-          // 2. Exact filename match if available
-          if (cp.filename && itemBaseName && cp.filename.toLowerCase() === itemBaseName) return true;
-          return false;
-        });
 
-        // Strict Rule: ONLY allow 1-to-1 match. If multiple cloud photos match the same second,
-        // or multiple zip photos match the same cloud photo, reject guessing and skip!
-        if (candidates.length === 1) {
-          const cand = candidates[0];
-          // Check if this cloud photo was already paired with another zip photo
-          const alreadyPaired = matchedPairs.some(p => p.cloudPhoto.key === cand.key);
-          if (!alreadyPaired) {
-            matchedPairs.push({ cloudPhoto: cand, newMeta: item.metadata, zipSummary: item });
-          } else {
-            // Multiple zip photos claim the same cloud photo -> ambiguous!
-            ambiguousCount++;
+          const cloudCaptured = cp.capturedAt || null;
+          const cloudFilename = cp.filename ? String(cp.filename).toLowerCase() : null;
+
+          // Strict Multi-Evidence Identity Verification:
+          // Must have BOTH matching timestamp AND matching filename,
+          // OR timestamp match where both are explicit identical seconds and cloud has no conflicting filename.
+          let matches = false;
+          if (cloudCaptured && cloudFilename) {
+            // Both pieces of identity info exist: BOTH MUST MATCH (Strict AND)
+            if (cloudCaptured === captured && cloudFilename === itemBaseName) {
+              matches = true;
+            } else if (cloudCaptured === captured || cloudFilename === itemBaseName) {
+              // Only one matched, the other conflicted -> strictly skip
+              strictSkippedCount++;
+            }
+          } else if (cloudCaptured && !cloudFilename) {
+            // Historical cloud record with timestamp but no recorded filename
+            // Only consider if timestamp is exact down to the second
+            if (cloudCaptured === captured) {
+              matches = true;
+            }
           }
-        } else if (candidates.length > 1) {
-          // Ambiguous: multiple cloud photos at the exact same second
+          // Note: If cloud has NO timestamp (cloudCaptured == null), never guess by filename alone
+
+          if (matches) {
+            candidatePairs.push({ zipItem: item, cloudPhoto: cp });
+          }
+        }
+      }
+
+      // Two-pass conflict detection: check degrees of all nodes
+      const zipCandidateCounts = new Map();
+      const cloudCandidateCounts = new Map();
+
+      for (const { zipItem, cloudPhoto } of candidatePairs) {
+        zipCandidateCounts.set(zipItem.entryIndex, (zipCandidateCounts.get(zipItem.entryIndex) || 0) + 1);
+        cloudCandidateCounts.set(cloudPhoto.key, (cloudCandidateCounts.get(cloudPhoto.key) || 0) + 1);
+      }
+
+      // Filter out ANY pair where zipItem has multiple cloud candidates OR cloudPhoto has multiple zip candidates
+      const matchedPairs = [];
+      let ambiguousCount = 0;
+
+      for (const { zipItem, cloudPhoto } of candidatePairs) {
+        const zipDegree = zipCandidateCounts.get(zipItem.entryIndex) || 0;
+        const cloudDegree = cloudCandidateCounts.get(cloudPhoto.key) || 0;
+
+        if (zipDegree === 1 && cloudDegree === 1) {
+          matchedPairs.push({ cloudPhoto, newMeta: zipItem.metadata, zipSummary: zipItem });
+        } else {
+          // Full Revocation: All conflicting 1-to-N, N-to-1 candidates are forbidden from updating
           ambiguousCount++;
         }
       }
@@ -1419,7 +1470,8 @@
         summaryList,
         matchedPairs,
         matchedCloudCount: matchedPairs.length,
-        ambiguousCount
+        ambiguousCount,
+        strictSkippedCount
       };
 
       message("ZIP 預檢完成：共 " + summaryList.length + " 張，" + gpsCount + " 張含 GPS 定位。", "success");
