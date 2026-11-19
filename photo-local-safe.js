@@ -1,4 +1,3 @@
-Attempting to perform the InitializeDefaultDrives operation on the 'FileSystem' provider failed.
 /* BUSAN.11 Photo-local-safety patch. Revision 2026-11-09.
  * Purpose: preserve selected original photo before any remote upload;
  * extract EXIF capture time/GPS (when supplied), show pending photos locally,

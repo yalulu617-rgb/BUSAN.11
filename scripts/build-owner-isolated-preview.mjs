@@ -1,4 +1,3 @@
-Attempting to perform the InitializeDefaultDrives operation on the 'FileSystem' provider failed.
 // OWNER-only disposable VISUAL / interaction preview build. NEVER use for production.
 import { mkdir, cp, readFile, writeFile, rm } from 'node:fs/promises';
 import { resolve, join } from 'node:path';

@@ -1,4 +1,3 @@
-Attempting to perform the InitializeDefaultDrives operation on the 'FileSystem' provider failed.
 import { test, expect } from '@playwright/test';
 import { bootApp } from './helpers/boot.js';
 
