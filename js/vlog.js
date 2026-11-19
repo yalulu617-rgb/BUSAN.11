@@ -3,6 +3,7 @@
 (function () {
     'use strict';
     let picks = [];
+    let localUrls = [];
     let processing = false;
     let activeRecorder = null;
     let activeFrame = null;
@@ -17,6 +18,17 @@
             if (btn) btn.disabled = value;
         });
         if ($('vlogCancelBtn')) $('vlogCancelBtn').hidden = !value || !activeRecorder;
+    }
+    function releaseLocalFiles() {
+        localUrls.forEach(url => URL.revokeObjectURL(url));
+        localUrls = [];
+    }
+    function fileDate(file) {
+        const match = file.name.match(/(20\d{2})(0[1-9]|1[0-2])([0-3]\d)(?:[_-]?([0-2]\d)([0-5]\d))?/);
+        if (match) return match[1] + '-' + match[2] + '-' + match[3] +
+            'T' + (match[4] || '12') + ':' + (match[5] || '00') + ':00';
+        // File modification time is only a fallback, not guaranteed EXIF capture time.
+        return new Date(file.lastModified || Date.now()).toISOString();
     }
     function notifyError(err) {
         console.error('[VLOG]', err);
@@ -64,6 +76,7 @@
             return;
         }
         busy(true);
+        releaseLocalFiles();
         picks = [];
         if ($('vlogDownloadBtn')) $('vlogDownloadBtn').hidden = true;
         if ($('vlogStoryboard')) $('vlogStoryboard').innerHTML = '';
@@ -85,6 +98,46 @@
         } catch (error) {
             notifyError(error);
         } finally { busy(false); }
+    };
+
+    // Optional on-device fallback if an image host blocks cross-origin canvas
+    // access. No cloud upload; the files stay in this browser session.
+    window.prepareVlogFromFiles = async function (fileList) {
+        if (processing) return;
+        const files = Array.from(fileList || []).filter(f =>
+            /^image\//.test(f.type) || /\.(jpe?g|png|webp|heic|heif)$/i.test(f.name));
+        if (!files.length) {
+            message('請選擇照片原始檔，這個入口不支援影片或 ZIP。');
+            return;
+        }
+        busy(true);
+        releaseLocalFiles();
+        picks = [];
+        if ($('vlogStoryboard')) $('vlogStoryboard').innerHTML = '';
+        if ($('vlogDownloadBtn')) $('vlogDownloadBtn').hidden = true;
+        try {
+            const pictures = files.map((file, i) => {
+                const url = URL.createObjectURL(file);
+                localUrls.push(url);
+                const capturedAt = fileDate(file);
+                return { key: 'local-vlog-' + i, url, capturedAt,
+                    date: capturedAt.slice(0, 10), city: '旅途紀錄' };
+            });
+            const result = await window.VlogSelectionEngine.pickHighlights(pictures, (done, total) => {
+                message('正在從手機原圖選片 ' + done + ' / ' + total);
+            });
+            picks = result.selected;
+            drawStoryboard();
+            message(picks.length
+                ? ('已從手機原圖選出 ' + picks.length + ' 張。僅在本機製作，不會重新上傳或更改原檔。注意：檔名未含日期時依檔案修改日期分類，請確認每天的日期。')
+                : '沒有找到可用的照片。');
+        } catch (error) {
+            notifyError(error);
+        } finally {
+            const input = $('vlogLocalFiles');
+            if (input) input.value = '';
+            busy(false);
+        }
     };
 
     function makeSlide(img) {
@@ -239,7 +292,7 @@
         } catch (error) {
             if (!cancelled) {
                 if (/跨網域|照片站|影像/.test(String(error?.message || ''))) {
-                    message('照片來源不允許瀏覽器擷取影片畫面；原圖仍安全保存。需要改用可本機讀取的原始照片。');
+                    message('照片來源不允許瀏覽器擷取影片畫面；原圖仍安全保存。可使用下方「改用手機原圖」入口在本機製作。');
                 } else notifyError(error);
             }
         } finally {
