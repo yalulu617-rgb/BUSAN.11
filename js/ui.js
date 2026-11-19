@@ -53,37 +53,125 @@ window.showToast = function(msg, type = 'info') {
 };
 
 
-window.openLightbox = function(url, key) {
-    const lb = document.getElementById('lightbox');
-    const img = document.getElementById('lightbox-img');
-    if (!lb || !img) return;
-    
-    window.currentLightboxUrl = url;
-    window.currentLightboxKey = key;
-    img.src = url;
-    lb.style.display = 'flex';
-    if (typeof window.renderLightboxDetails === 'function') {
-        window.renderLightboxDetails(key);
-    }
-    setTimeout(() => {
-        lb.style.opacity = '1';
-        img.style.transform = 'scale(1)';
-    }, 50);
-};
+// The lightbox follows the currently visible (possibly search-filtered) album.
+// It never mutates photo records, original URLs, EXIF data, or cloud storage.
+(function () {
+    let photos = [];
+    let position = -1;
+    let closeTimer = null;
+    let openTimer = null;
+    let touchStart = null;
+    let previouslyFocused = null;
 
-window.closeLightbox = function() {
-    const lb = document.getElementById('lightbox');
-    const img = document.getElementById('lightbox-img');
-    if (!lb || !img) return;
-    
-    lb.style.opacity = '0';
-    img.style.transform = 'scale(0.9)';
-    setTimeout(() => {
-        lb.style.display = 'none';
-        const details = document.getElementById('lightbox-details');
-        if (details) details.innerHTML = '';
-    }, 300);
-};
+    const el = id => document.getElementById(id);
+    const isOpen = () => el('lightbox')?.style.display === 'flex';
+
+    function displayAt(nextPosition) {
+        if (nextPosition < 0 || nextPosition >= photos.length) return;
+        const photo = photos[nextPosition];
+        const img = el('lightbox-img');
+        if (!img) return;
+        position = nextPosition;
+        window.currentLightboxUrl = photo.url;
+        window.currentLightboxKey = photo.key;
+        img.src = photo.url;
+        img.alt = '旅行照片 ' + (position + 1) + '／' + photos.length;
+        const counter = el('lightbox-counter');
+        if (counter) counter.textContent = (position + 1) + ' / ' + photos.length;
+        const previous = el('lightbox-prev');
+        const next = el('lightbox-next');
+        if (previous) { previous.disabled = position === 0; previous.hidden = photos.length < 2; }
+        if (next) { next.disabled = position === photos.length - 1; next.hidden = photos.length < 2; }
+        if (typeof window.renderLightboxDetails === 'function') {
+            window.renderLightboxDetails(photo.key);
+        }
+        // Warm only immediate neighbors, rather than downloading the full album.
+        [-1, 1].forEach(offset => {
+            const neighbor = photos[position + offset];
+            if (neighbor && typeof Image === 'function') {
+                const preload = new Image();
+                preload.src = neighbor.url;
+            }
+        });
+    }
+
+    window.openLightbox = function (url, key) {
+        const lb = el('lightbox');
+        const img = el('lightbox-img');
+        if (!lb || !img || !url) return;
+        clearTimeout(closeTimer);
+        clearTimeout(openTimer);
+        const visible = Array.isArray(window.memoryVisiblePhotos) ? window.memoryVisiblePhotos : [];
+        const match = visible.findIndex(p => p.key === key && p.url === url);
+        photos = match >= 0 ? visible.slice() : [{ key: key || '', url: url }];
+        previouslyFocused = document.activeElement;
+        lb.style.display = 'flex';
+        lb.setAttribute('aria-hidden', 'false');
+        displayAt(match >= 0 ? match : 0);
+        openTimer = setTimeout(() => {
+            lb.style.opacity = '1';
+            img.style.transform = 'scale(1)';
+            lb.setAttribute('tabindex', '-1');
+            lb.focus({ preventScroll: true });
+        }, 20);
+    };
+
+    window.moveLightbox = function (delta) {
+        if (!isOpen() || !Number.isInteger(delta) || delta === 0) return;
+        displayAt(position + delta);
+    };
+
+    window.closeLightbox = function () {
+        const lb = el('lightbox');
+        const img = el('lightbox-img');
+        if (!lb || !img || !isOpen()) return;
+        clearTimeout(openTimer);
+        clearTimeout(closeTimer);
+        lb.style.opacity = '0';
+        lb.setAttribute('aria-hidden', 'true');
+        img.style.transform = 'scale(0.95)';
+        closeTimer = setTimeout(() => {
+            if (lb.style.opacity !== '0') return;
+            lb.style.display = 'none';
+            const details = el('lightbox-details');
+            if (details) details.innerHTML = '';
+            if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
+                previouslyFocused.focus({ preventScroll: true });
+            }
+        }, 300);
+    };
+
+    document.addEventListener('keydown', event => {
+        if (!isOpen()) return;
+        if (event.key === 'Escape') { event.preventDefault(); window.closeLightbox(); }
+        if (event.key === 'ArrowLeft') { event.preventDefault(); window.moveLightbox(-1); }
+        if (event.key === 'ArrowRight') { event.preventDefault(); window.moveLightbox(1); }
+    });
+
+    const lightbox = el('lightbox');
+    if (lightbox) {
+        lightbox.addEventListener('touchstart', event => {
+            touchStart = null;
+            if (!isOpen() || event.touches.length !== 1 ||
+                event.target.closest('button, a, input, textarea')) return;
+            touchStart = {
+                x: event.touches[0].clientX,
+                y: event.touches[0].clientY,
+                time: Date.now()
+            };
+        }, { passive: true });
+        lightbox.addEventListener('touchend', event => {
+            if (!touchStart || !isOpen() || event.changedTouches.length !== 1) return;
+            const deltaX = event.changedTouches[0].clientX - touchStart.x;
+            const deltaY = event.changedTouches[0].clientY - touchStart.y;
+            touchStart = null;
+            if (Math.abs(deltaX) >= 45 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+                window.moveLightbox(deltaX < 0 ? 1 : -1);
+            }
+        }, { passive: true });
+        lightbox.addEventListener('touchcancel', () => { touchStart = null; }, { passive: true });
+    }
+})();
 
 window.openCardLightbox = function(title, korean, roman, audio) {
     const modal = document.getElementById('flashcardModal');
