@@ -705,6 +705,8 @@
                 <button type="button" id="vlogPickBtn" class="btn-action" style="width:100%;margin:4px 0 8px;" onclick="prepareVlog()"><i class="fa-solid fa-wand-magic-sparkles"></i> 自動挑選每天精選</button>
                 <div id="vlogStatus" role="status" aria-live="polite" style="color:#7e6558;font-size:.75rem;line-height:1.55;margin:4px 0 8px;">準備好後，按一下就會從已上傳的旅行照片建立精選清單。</div>
                 <div id="vlogStoryboard" style="margin-bottom:8px;"></div>
+                <label for="vlogLocalFiles" style="display:block;text-align:center;border:1px solid #c9a26b;border-radius:12px;padding:9px;margin:8px 0;background:#fff8ee;color:#7a4a1c;cursor:pointer;font-size:.75rem;font-weight:800;"><i class="fa-solid fa-folder-open"></i> 備用：改用手機原始照片製作（不重新上傳）</label>
+                <input type="file" id="vlogLocalFiles" multiple accept="image/*,.heic,.heif" style="display:none;" onchange="prepareVlogFromFiles(this.files)">
                 <button type="button" id="vlogDownloadBtn" class="btn-action" style="width:100%;background:#c46f49;margin-top:8px;" onclick="exportVlog()" hidden><i class="fa-solid fa-file-video"></i> 生成並下載約 1 分鐘短片</button>
                 <button type="button" id="vlogCancelBtn" style="width:100%;background:#f8e7e1;color:#8b3a26;border:0;padding:10px;border-radius:12px;margin-top:8px;font-weight:800;" onclick="cancelVlogExport()" hidden>取消製作</button>
                 <p style="font-size:.69rem;color:#9a877f;line-height:1.5;margin:8px 0 0;">在手機 Chrome 製作時請保持畫面開啟。會使用瀏覽器支援的 MP4 或 WebM 格式；相片來源不允許影片畫布存取時將提示，不會更改原圖。</p>
@@ -853,7 +855,7 @@
 <script src="ute/ute_budget.js?v=45.4"></script>
 <script src="ute/ute_ai.js?v=45.4"></script>
 <script src="ute/ute_context.js?v=45.4"></script>
-<script src="ute/ute_vlog.js?v=20261119-vlog1"></script>
+<script src="ute/ute_vlog.js?v=20261119-vlog2"></script>
 <script src="ute/ute_home_v46.js?v=46.0-dev"></script>
 <script src="ute/ute_main.js?v=46.0-dev"></script>
 <script src="ute/ute_shopping_photo.js?v=45.5-image2"></script>
@@ -869,7 +871,7 @@
 <script src="js/ui.js?v=20261119-swipe1"></script>
 <script src="js/wallet.js?v=45.6-owner-b"></script>
 <script src="js/memory.js?v=20261119-swipe1"></script>
-<script src="js/vlog.js?v=20261119-vlog1"></script>
+<script src="js/vlog.js?v=20261119-vlog2"></script>
 <script src="js/itinerary.js?v=45.4"></script>
 <script src="components/v46-home.js?v=46.0-dev"></script>
 <script src="components/renderers.js?v=v46-owner-light-restaurant-20261109"></script>
