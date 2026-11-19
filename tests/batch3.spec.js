@@ -1,3 +1,4 @@
+Attempting to perform the InitializeDefaultDrives operation on the 'FileSystem' provider failed.
 // ──────────────────────────────────────────────────────────────────────────
 // BATCH 3 Targeted Test Suite
 // Tests: rain toggle, 6 portal structure, product state, radar filters,
@@ -592,3 +593,4 @@ test.describe('BATCH 3 - Owner Visual Corrections', () => {
     expect(states.combo['combo-1']).toBe(true);
   });
 });
+

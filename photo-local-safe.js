@@ -1,3 +1,4 @@
+Attempting to perform the InitializeDefaultDrives operation on the 'FileSystem' provider failed.
 /* BUSAN.11 Photo-local-safety patch. Revision 2026-11-09.
  * Purpose: preserve selected original photo before any remote upload;
  * extract EXIF capture time/GPS (when supplied), show pending photos locally,
@@ -43,6 +44,15 @@
   const put = record => tx('readwrite', store => store.put(record));
   const all = () => tx('readonly', store => store.getAll());
   const remove = id => tx('readwrite', store => store.delete(id));
+  // WebKit can reject picker Files and Blob objects in IndexedDB with
+  // "Error preparing Blob/File data". Store the exact bytes as an ArrayBuffer;
+  // keep MIME type, filename and EXIF/GPS metadata in separate record fields.
+  const persistablePhotoBytes = async file => ({
+    blob: await file.arrayBuffer(),
+    mimeType: file.type || 'application/octet-stream'
+  });
+  const photoBlob = record => record.blob instanceof Blob ? record.blob :
+    new Blob([record.blob], { type: record.mimeType || 'application/octet-stream' });
 
   function parseCoordinateStr(str, isLon, explicitRef) {
     if (!str) return null;
@@ -554,7 +564,7 @@
   const message=(msg,kind='info')=>{const el=d.getElementById('photoUploadStatus');if(el)el.textContent=msg;
     if(typeof w.showToast==='function')w.showToast(msg,kind);};
   const localRow=record=>{
-    if(!urlById.has(record.id)) urlById.set(record.id,w.URL.createObjectURL(record.blob));
+    if(!urlById.has(record.id)) urlById.set(record.id,w.URL.createObjectURL(photoBlob(record)));
     const meta = record.metadata || {};
     return {
       key: record.id,
@@ -623,7 +633,7 @@
       let hostedUrl = entry.hostedUrl;
       if (!hostedUrl) {
         // Send a compressed image to ImgBB without exposing original EXIF payload.
-        const compressed = await w.compressImage(entry.blob);
+        const compressed = await w.compressImage(photoBlob(entry));
         const uploaded = await w.NetworkEngine.uploadImage(compressed);
         if (uploaded?.success !== true || !uploaded?.data?.url) {
           entry.lastError = uploaded?.error || '圖片上傳至相簿主機失敗';
@@ -1165,7 +1175,7 @@
       let entry;
       try{
         const id='local_photo_'+w.crypto.randomUUID().replace(/-/g,'');
-        entry={id,blob:file,filename:file.name,metadata,createdAt:Date.now()};
+        entry={id,...await persistablePhotoBytes(file),filename:file.name,metadata,createdAt:Date.now()};
         await put(entry);localSaved++;
       }catch(e){
         failed++;console.error('[PhotoLocal] Local save failed',e);continue;
@@ -1542,7 +1552,7 @@
         const id = "local_photo_" + w.crypto.randomUUID().replace(/-/g, "");
         const entry = {
           id,
-          blob: photoFile,
+          ...(await persistablePhotoBytes(photoFile)),
           filename: photoFile.name,
           metadata: sumItem.metadata,
           createdAt: Date.now()
@@ -1691,7 +1701,16 @@
     }
 
     message('📱 偵測到 Samsung 相簿分享的 ' + sharedRecords.length + ' 張照片，正在自動檢查拍攝時間與 GPS…');
-    const files = sharedRecords.map(r => r.file).filter(Boolean);
+    const files = sharedRecords.map(record => {
+      // Keep compatibility with share records written by the earlier File-based format.
+      if (record.file instanceof Blob) return record.file;
+      if (record.fileBytes instanceof ArrayBuffer && typeof w.File === 'function') {
+        return new w.File([record.fileBytes], record.name || 'shared-photo', {
+          type: record.type || 'image/jpeg', lastModified: Number(record.lastModified) || Date.now()
+        });
+      }
+      return null;
+    }).filter(Boolean);
     if (!files.length) {
       message('⚠️ 收到分享項目但無法讀取檔案內容。', 'error');
       return;
@@ -1733,3 +1752,4 @@
   };
   if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',initialize,{once:true}); else initialize();
 })(window,document);
+

@@ -1,3 +1,4 @@
+Attempting to perform the InitializeDefaultDrives operation on the 'FileSystem' provider failed.
 // OWNER-only disposable VISUAL / interaction preview build. NEVER use for production.
 import { mkdir, cp, readFile, writeFile, rm } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
@@ -37,6 +38,8 @@ html=html.replace('<body>',`<body>
 </div>`);
 await writeFile(join(target,'index.html'),html);
 let sw=await readFile(join(target,'sw.js'),'utf8');
+// Keep the preview-only install patch independent of source checkout line endings.
+sw=sw.replace(/\r\n/g,'\n');
 sw=sw.replace(/const CACHE_NAME = '[^']+';/,"const CACHE_NAME = 'busan-v46-owner-sandbox-20261020-anti-autodark-v3';");
 sw=sw.replace("    event.waitUntil(\n        caches.open(CACHE_NAME)", "    self.skipWaiting();\n    event.waitUntil(\n        caches.open(CACHE_NAME)");
 if (!sw.includes("self.skipWaiting();\n    event.waitUntil(")) throw Error('STOP: preview SW did not get immediate activation');
@@ -58,3 +61,4 @@ const assertions={
 };
 if(Object.values(assertions).some(v=>!v))throw Error('STOP unsafe sandbox build '+JSON.stringify(assertions));
 console.log('[OWNER_SANDBOX_BUILD]',JSON.stringify(assertions));
+

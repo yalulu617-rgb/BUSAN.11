@@ -1,3 +1,4 @@
+Attempting to perform the InitializeDefaultDrives operation on the 'FileSystem' provider failed.
 // @ts-check
 import { test, expect } from '@playwright/test';
 import { bootApp } from './helpers/boot.js';
@@ -118,3 +119,4 @@ test.describe('Owner Fix Batch 2 Repair 3 — truthful reservations and credenti
     expect(travel.inbound).toMatchObject({ flightNo: 'KE2085', date: '2026-11-17', departureTime: '14:50', arrivalTime: '16:30' });
   });
 });
+

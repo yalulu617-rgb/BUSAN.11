@@ -1,3 +1,4 @@
+Attempting to perform the InitializeDefaultDrives operation on the 'FileSystem' provider failed.
 // ─────────────────────────────────────────────────────────────────────────
 // V45 Production Service Worker
 // ─────────────────────────────────────────────────────────────────────────
@@ -8,7 +9,7 @@
 // - Cache-first with network fallback for static media (images, icons)
 // ─────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'busan-trip-v46-memory-vlog-v15';
+const CACHE_NAME = 'busan-trip-v46-memory-vlog-v16';
 
 const LOCAL_ASSETS = [
     './',
@@ -141,24 +142,22 @@ function openShareDB() {
 }
 
 async function saveSharedPhotos(files) {
+    const now = Date.now();
+    const rows = await Promise.all(files.map(async (file, index) => ({
+        id: 'share_' + now + '_' + index + '_' + Math.random().toString(36).slice(2, 7),
+        fileBytes: await file.arrayBuffer(),
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        lastModified: file.lastModified,
+        receivedAt: now
+    })));
     const db = await openShareDB();
     try {
         await new Promise((resolve, reject) => {
             const tx = db.transaction(SHARE_STORE_NAME, 'readwrite');
             const store = tx.objectStore(SHARE_STORE_NAME);
-            const now = Date.now();
-            files.forEach((file, index) => {
-                const id = 'share_' + now + '_' + index + '_' + Math.random().toString(36).slice(2, 7);
-                store.put({
-                    id,
-                    file,
-                    name: file.name,
-                    type: file.type,
-                    size: file.size,
-                    lastModified: file.lastModified,
-                    receivedAt: now
-                });
-            });
+            rows.forEach(row => store.put(row));
             tx.oncomplete = () => resolve();
             tx.onerror = () => reject(tx.error);
             tx.onabort = () => reject(tx.error);
@@ -258,3 +257,4 @@ self.addEventListener('message', event => {
         self.skipWaiting();
     }
 });
+

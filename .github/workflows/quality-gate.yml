@@ -1,3 +1,4 @@
+Attempting to perform the InitializeDefaultDrives operation on the 'FileSystem' provider failed.
 name: V45 Quality Gate & Deploy
 
 on:
@@ -335,6 +336,60 @@ jobs:
             playwright-report/
           retention-days: 14
 
+  # Build and test a disposable preview with no production Firebase/ImgBB
+  # configuration. The artifact is for QA only and never deploys to Pages.
+  isolated-owner-preview:
+    name: 🧪 Firebase-isolated candidate preview
+    needs: static-validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: 'npm'
+      - run: npm ci
+      - name: Build the disposable preview and reject live credentials
+        run: |
+          node scripts/build-owner-isolated-preview.mjs
+          node --input-type=module -e "
+          import fs from 'node:fs';
+          const html=fs.readFileSync('public/index.html','utf8');
+          const firebase=fs.readFileSync('public/js/firebase.js','utf8');
+          if(!html.includes('v46-sandbox-notice')||!firebase.includes('__testOnly:true')||
+             /busan-trip-2026-4148f|AIzaSy|8a4c0f3b5d2e7a9b1c6f/.test(firebase)||
+             fs.existsSync('public/services/network.js'))process.exit(1);
+          console.log('Isolated preview verified; no production Firebase, ImgBB or network adapter');
+          "
+      - run: npx playwright install --with-deps chromium
+      - name: Serve only the isolated preview build
+        run: |
+          npx serve -s public -l 8080 > /tmp/busan-owner-preview.log 2>&1 &
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            if curl -fsS http://localhost:8080/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/busan-owner-preview.log
+          exit 1
+      - name: Validate safe preview and mobile layouts
+        run: npx playwright test tests/v46-owner-sandbox.spec.js tests/v46-owner-preview-mobile.spec.js --project=chromium --workers=1 --retries=0 --reporter=html,list
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
+          BUSAN_CI_FIREBASE_ISOLATED: '1'
+          V46_SANDBOX_BUILD: '1'
+          CI: true
+          PLAYWRIGHT_HTML_OPEN: never
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: busan-v46.4.8-isolated-preview
+          path: |
+            public/
+            test-results/
+            playwright-report/
+          retention-days: 14
+
   # ─────────────────────────────────────────────────────
   # JOB 3: Accessibility, UX & Travel Data Checks
   # ─────────────────────────────────────────────────────
@@ -385,7 +440,7 @@ jobs:
   # ─────────────────────────────────────────────────────
   deploy:
     name: 🚀 Deploy to GitHub Pages
-    needs: [static-validation, e2e-tests, accessibility-ux-travel, v46-mobile-acceptance, firefox-mobile-zoom-qa, vlog-media-export]
+    needs: [static-validation, e2e-tests, accessibility-ux-travel, v46-mobile-acceptance, firefox-mobile-zoom-qa, vlog-media-export, isolated-owner-preview]
     runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     environment:
@@ -434,3 +489,4 @@ jobs:
           echo "- E2E Tests (Chromium, Firefox, WebKit): PASS" >> $GITHUB_STEP_SUMMARY
           echo "- Accessibility, UX & Travel Safety: PASS" >> $GITHUB_STEP_SUMMARY
           echo "- Live Production Site Verification: PASS" >> $GITHUB_STEP_SUMMARY
+

@@ -1,9 +1,11 @@
+Attempting to perform the InitializeDefaultDrives operation on the 'FileSystem' provider failed.
 {
   "appVersion": "V46.4.8",
   "releaseName": "BUSAN.11 V46.4.8 Memory Album and Local VLOG",
   "buildDate": "2026-11-19",
   "gitCommit": "candidate",
-  "cacheVersion": "busan-trip-v46-memory-vlog-v15",
+  "cacheVersion": "busan-trip-v46-memory-vlog-v16",
   "travelDates": "2026/11/13 - 2026/11/17",
   "destination": "Busan & Gyeongju, South Korea"
 }
+
