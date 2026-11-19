@@ -105,7 +105,7 @@
 
     async function pickHighlights(input, progress) {
         const pictures = (Array.isArray(input) ? input : [])
-            .filter(p => p && typeof p.url === 'string' && /^https:\/\//.test(p.url) && dateOf(p));
+            .filter(p => p && typeof p.url === 'string' && /^(https:\/\/|blob:)/.test(p.url) && dateOf(p));
         const byDate = new Map();
         const seenUrls = new Set();
         pictures.forEach(p => {
