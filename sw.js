@@ -8,7 +8,7 @@
 // - Cache-first with network fallback for static media (images, icons)
 // ─────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'busan-trip-v46-photo-gps-v13';
+const CACHE_NAME = 'busan-trip-v46-memory-vlog-v14';
 
 const LOCAL_ASSETS = [
     './',
@@ -45,6 +45,7 @@ const LOCAL_ASSETS = [
     './ute/ute_budget.js',
     './ute/ute_ai.js',
     './ute/ute_context.js',
+    './ute/ute_vlog.js',
     './ute/ute_home_v46.js',
     './ute/ute_main.js',
     './ute/ute_shopping_photo.js',
@@ -58,6 +59,7 @@ const LOCAL_ASSETS = [
     './js/ui.js',
     './js/wallet.js',
     './js/memory.js',
+    './js/vlog.js',
     './js/itinerary.js',
     './components/v46-home.js',
     './components/renderers.js',
