@@ -378,14 +378,18 @@ test.describe('BATCH 3 - Owner Visual Corrections', () => {
   });
 
   test('Home does not present K-ETA as required/pending and shows exemption to 2026/12/31', async ({ page }) => {
+    // This assertion describes the active pre-trip reminder. Keep its date
+    // deterministic; after Nov 17 the live home correctly switches to memories.
+    await page.clock.install({ time: new Date('2026-11-12T15:00:00Z') });
     await bootApp(page);
+    await page.evaluate(() => window.setV46HomePreview('before'));
     await page.evaluate(() => window.showV37Tab('home'));
     await page.waitForSelector('#v37HomeDashboard', { timeout: 5000 });
     // V46 correctly uses a compact reminder on Home; the detailed
     // immigration rules are still available from the canonical Wallet docs.
     await expect(page.locator('#liveTravelCard')).toBeVisible();
     const text = await page.locator('#v37HomeDashboard').innerText();
-    expect(text).toContain('韓國入境申報核對');
+    expect(text).toContain('K-ETA：');
     expect(text).not.toContain('待辦：K-ETA');
     await page.evaluate(() => {
       window.showV37Tab('wallet');
@@ -399,6 +403,14 @@ test.describe('BATCH 3 - Owner Visual Corrections', () => {
     expect(text).not.toContain('請務必申請 K-ETA');
     expect(text).not.toContain('Q-Code 必填');
     expect(text).not.toContain('Q-CODE 必填');
+  });
+
+  test('Home switches to post-trip memories after the final travel date', async ({ page }) => {
+    await page.clock.install({ time: new Date('2026-11-18T00:00:00+09:00') });
+    await bootApp(page);
+    await page.evaluate(() => window.showV37Tab('home'));
+    await expect(page.locator('#v37HomeDashboard .v46-home')).toHaveAttribute('data-v46-mode', 'after');
+    await expect(page.locator('#v37HomeDashboard')).not.toContainText('待辦：K-ETA');
   });
 
   test('Home weather summary is visible directly without opening a separate page', async ({ page }) => {

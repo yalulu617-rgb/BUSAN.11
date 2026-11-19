@@ -4,7 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    # PR #9 targets the currently deployed source branch; run the same quality
+    # gate there while keeping deploy gated to main pushes below.
+    branches: [main, pages-seq13-public-shell]
   workflow_dispatch:
 
 # Prevent concurrent deployments
@@ -293,6 +295,46 @@ jobs:
             test-results/
           retention-days: 14
 
+  # Real recorder/export validation using a synthetic local fixture. This job
+  # runs only on the isolated CI server and never touches Firebase or real photos.
+  vlog-media-export:
+    name: 🎬 VLOG MP4/WebM export (mobile Chromium)
+    needs: static-validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: 'npm'
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: |
+          npx serve -s . -l 8080 > /tmp/busan-vlog-preview.log 2>&1 &
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            if curl -fsS http://localhost:8080/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/busan-vlog-preview.log
+          exit 1
+      - name: Generate, download and decode a real video file
+        run: npx playwright test tests/vlog-media.spec.js --project=mobile-chrome --workers=1 --retries=0 --reporter=html,list
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
+          BUSAN_CI_FIREBASE_ISOLATED: '1'
+          VLOG_MEDIA_E2E: '1'
+          CI: true
+          PLAYWRIGHT_HTML_OPEN: never
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: vlog-media-export-evidence
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14
+
   # ─────────────────────────────────────────────────────
   # JOB 3: Accessibility, UX & Travel Data Checks
   # ─────────────────────────────────────────────────────
@@ -343,7 +385,7 @@ jobs:
   # ─────────────────────────────────────────────────────
   deploy:
     name: 🚀 Deploy to GitHub Pages
-    needs: [static-validation, e2e-tests, accessibility-ux-travel, v46-mobile-acceptance, firefox-mobile-zoom-qa]
+    needs: [static-validation, e2e-tests, accessibility-ux-travel, v46-mobile-acceptance, firefox-mobile-zoom-qa, vlog-media-export]
     runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     environment:
