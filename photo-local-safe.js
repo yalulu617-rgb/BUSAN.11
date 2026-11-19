@@ -1607,6 +1607,105 @@
       message("既有照片 GPS 恢復失敗：" + (errors[0] || "未知錯誤"), "error");
     }
   };
+  // =========================================================================
+  // Web Share Target: Handle Photos Shared from Samsung Gallery / Files (V46.4.7)
+  // =========================================================================
+  const SHARE_DB_NAME = 'busan11_share_target_v1';
+  const SHARE_STORE_NAME = 'sharedIncomingPhotos';
+
+  function openShareDB() {
+    return new Promise((resolve, reject) => {
+      if (!w.indexedDB) {
+        reject(new Error('此瀏覽器不支援 IndexedDB'));
+        return;
+      }
+      const req = w.indexedDB.open(SHARE_DB_NAME, 1);
+      req.onupgradeneeded = event => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains(SHARE_STORE_NAME)) {
+          db.createObjectStore(SHARE_STORE_NAME, { keyPath: 'id' });
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error || new Error('開啟分享照片資料庫失敗'));
+    });
+  }
+
+  async function getSharedPhotosAndClear() {
+    let db;
+    try {
+      db = await openShareDB();
+    } catch (e) {
+      console.warn('[ShareTarget] Cannot open share DB:', e);
+      return [];
+    }
+    try {
+      return await new Promise((resolve, reject) => {
+        const tx = db.transaction(SHARE_STORE_NAME, 'readwrite');
+        const store = tx.objectStore(SHARE_STORE_NAME);
+        const getAllReq = store.getAll();
+        getAllReq.onsuccess = () => {
+          const records = getAllReq.result || [];
+          if (records.length > 0) {
+            store.clear();
+          }
+          resolve(records);
+        };
+        getAllReq.onerror = () => reject(getAllReq.error);
+        tx.onerror = () => reject(tx.error);
+      });
+    } finally {
+      db.close();
+    }
+  }
+
+  w.checkIncomingSharedPhotos = async function() {
+    const urlParams = new URLSearchParams(w.location.search);
+    const isShareTarget = urlParams.get('incoming_share') === 'photo';
+    if (urlParams.get('incoming_share') === 'error') {
+      message('⚠️ 接收系統分享照片時發生錯誤，請確認照片格式是否受支援。', 'error');
+      const cleanUrl = w.location.origin + w.location.pathname;
+      w.history.replaceState({}, d.title, cleanUrl);
+      return;
+    }
+
+    // Check shared records in IndexedDB
+    let sharedRecords = [];
+    try {
+      sharedRecords = await getSharedPhotosAndClear();
+    } catch (e) {
+      console.error('[ShareTarget] Failed to retrieve shared photos:', e);
+    }
+
+    if (isShareTarget) {
+      // Clean query parameter from URL bar to prevent duplicate executions on manual refresh
+      const cleanUrl = w.location.origin + w.location.pathname;
+      w.history.replaceState({}, d.title, cleanUrl);
+    }
+
+    if (!sharedRecords.length) {
+      if (isShareTarget) {
+        message('ℹ️ 系統已開啟，但未接收到任何分享的照片檔案。若使用三星相簿，請確認勾選照片後點擊分享。', 'warning');
+      }
+      return;
+    }
+
+    message('📱 偵測到 Samsung 相簿分享的 ' + sharedRecords.length + ' 張照片，正在自動檢查拍攝時間與 GPS…');
+    const files = sharedRecords.map(r => r.file).filter(Boolean);
+    if (!files.length) {
+      message('⚠️ 收到分享項目但無法讀取檔案內容。', 'error');
+      return;
+    }
+
+    // Switch to Photos Tab so the owner can clearly view the precheck and upload flow
+    if (typeof w.showSection === 'function') {
+      w.showSection('tabPhotos');
+    }
+
+    // Direct handoff to the safe precheck and batch upload pipeline
+    await w.uploadMultipleToImgBB(files);
+  };
+
   w.PhotoLocalSafety={
     readExif,
     refreshAlbum,
@@ -1618,7 +1717,8 @@
     extractZipEntry,
     handlePhotoZipUpload:w.handlePhotoZipUpload,
     executeZipImportNew:w.executeZipImportNew,
-    executeZipRecoverExisting:w.executeZipRecoverExisting
+    executeZipRecoverExisting:w.executeZipRecoverExisting,
+    checkIncomingSharedPhotos:w.checkIncomingSharedPhotos
   };
 
   const initialize=()=>{
@@ -1629,6 +1729,7 @@
       status.insertAdjacentElement('afterend',label);
     }
     void refreshAlbum();
+    void w.checkIncomingSharedPhotos();
   };
   if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',initialize,{once:true}); else initialize();
 })(window,document);

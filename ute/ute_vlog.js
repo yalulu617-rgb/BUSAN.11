@@ -3,6 +3,7 @@
 (function (root) {
     'use strict';
     const PHOTO_SAMPLE_PER_DAY = 12;
+    const TRIP_DAYS = ['2026-11-13', '2026-11-14', '2026-11-15', '2026-11-16', '2026-11-17'];
 
     function dateOf(p) {
         const raw = String(p.capturedAt || p.date || '');
@@ -78,7 +79,7 @@
             const i = Math.floor((row + 0.5) * 36 / 8) * 36 + Math.floor((col + 0.5) * 36 / 9);
             hash.push(gray[i] > gray[i + 1] ? 1 : 0);
         }
-        return { score, hash };
+        return { score, hash, average, sharpness };
     }
     function similar(a, b) {
         if (!a || !b) return false;
@@ -105,7 +106,8 @@
 
     async function pickHighlights(input, progress) {
         const pictures = (Array.isArray(input) ? input : [])
-            .filter(p => p && typeof p.url === 'string' && /^(https:\/\/|blob:)/.test(p.url) && dateOf(p));
+            .filter(p => p && typeof p.url === 'string' && /^(https:\/\/|blob:)/.test(p.url) &&
+                TRIP_DAYS.includes(dateOf(p)));
         const byDate = new Map();
         const seenUrls = new Set();
         pictures.forEach(p => {
@@ -116,7 +118,7 @@
             byDate.get(day).push(p);
         });
         const days = [...byDate.keys()].sort();
-        if (!days.length) return { selected: [], qualityChecked: 0, dates: [] };
+        if (!days.length) return { selected: [], candidates: [], qualityChecked: 0, qualityRejected: 0, dates: [] };
         const candidates = days.flatMap(day => sampleEvenly(
             byDate.get(day).slice().sort((a, b) => captureOrder(a).localeCompare(captureOrder(b))),
             PHOTO_SAMPLE_PER_DAY
@@ -134,6 +136,10 @@
                     const data = metrics(img);
                     photo._vlogScore = data.score;
                     photo._vlogHash = data.hash;
+                    photo._vlogAnalyzed = true;
+                    // Conservative hard-failure gates: reject near-black/white
+                    // frames and extremely soft images; quality remains heuristic.
+                    photo._vlogUsable = data.average >= 20 && data.average <= 242 && data.sharpness >= 1.5;
                     checked++;
                 } catch (_) {
                     // When a CDN denies CORS, fall back to temporal diversity.
@@ -143,27 +149,34 @@
             }
         }
         await Promise.all(Array.from({ length: Math.min(3, candidates.length) }, () => worker()));
-        const maxPicks = Math.min(20, candidates.length);
+        const eligible = candidates.filter(photo => !photo._vlogAnalyzed || photo._vlogUsable);
+        const pickDays = days.filter(day => eligible.some(photo => photo._vlogDate === day));
+        const maxPicks = Math.min(20, eligible.length);
         const selected = [];
-        const perDay = Math.floor(maxPicks / days.length);
-        let spare = maxPicks % days.length;
-        days.forEach(day => {
-            const amount = perDay + (spare > 0 ? 1 : 0);
-            if (spare > 0) spare--;
-            selected.push(...bestSpreadAcrossDay(candidates.filter(p => p._vlogDate === day), amount));
-        });
-        // Refill days with extra photos if other days ran out.
-        if (selected.length < maxPicks) {
-            for (const extra of candidates.sort((a, b) => b._vlogScore - a._vlogScore)) {
-                if (selected.length >= maxPicks) break;
-                if (!selected.some(p => p.url === extra.url) &&
-                    !selected.some(p => p._vlogDate === extra._vlogDate && similar(p._vlogHash, extra._vlogHash))) {
-                    selected.push(extra);
-                }
+        const baseQuota = Math.floor(maxPicks / Math.max(pickDays.length, 1));
+        const quotas = new Map(pickDays.map(day => [day,
+            Math.min(baseQuota, eligible.filter(photo => photo._vlogDate === day).length)]));
+        let spare = maxPicks - [...quotas.values()].reduce((sum, quota) => sum + quota, 0);
+        while (spare > 0) {
+            let allocated = false;
+            for (const day of pickDays) {
+                const count = eligible.filter(photo => photo._vlogDate === day).length;
+                const quota = quotas.get(day) || 0;
+                if (quota >= count) continue;
+                quotas.set(day, quota + 1);
+                spare--;
+                allocated = true;
+                if (!spare) break;
             }
+            if (!allocated) break;
         }
+        pickDays.forEach(day => {
+            const amount = quotas.get(day) || 0;
+            selected.push(...bestSpreadAcrossDay(eligible.filter(p => p._vlogDate === day), amount));
+        });
         selected.sort((a, b) => (a._vlogDate + captureOrder(a)).localeCompare(b._vlogDate + captureOrder(b)));
-        return { selected, qualityChecked: checked, dates: days };
+        return { selected, candidates: eligible, qualityChecked: checked,
+            qualityRejected: candidates.length - eligible.length, dates: days };
     }
-    root.VlogSelectionEngine = { pickHighlights, dateOf, loadImage };
+    root.VlogSelectionEngine = { pickHighlights, dateOf, loadImage, tripDays: TRIP_DAYS.slice() };
 })(window);

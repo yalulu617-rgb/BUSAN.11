@@ -20,5 +20,32 @@
       "type": "image/png",
       "purpose": "any"
     }
-  ]
+  ],
+  "share_target": {
+    "action": "./?shared=photo",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "files": [
+        {
+          "name": "photos",
+          "accept": [
+            "image/jpeg",
+            ".jpg",
+            ".jpeg",
+            "image/png",
+            ".png",
+            "image/webp",
+            ".webp",
+            "image/heic",
+            ".heic",
+            "image/heif",
+            ".heif"
+          ]
+        }
+      ]
+    }
+  }
 }

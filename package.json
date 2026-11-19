@@ -5,7 +5,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "playwright test",
+    "test": "playwright test && node --test tests/vlog-selection.unit.mjs",
     "test:critical": "playwright test tests/critical.spec.js",
     "test:ux": "playwright test tests/ux.spec.js",
     "test:travel": "playwright test tests/travel.spec.js",

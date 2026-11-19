@@ -1,9 +1,9 @@
 {
-  "appVersion": "V46.4.6",
-  "releaseName": "BUSAN.11 V46.4.6 Require Both Filename and Timestamp Strict Pairing",
-  "buildDate": "2026-11-12T09:55:00+08:00",
-  "gitCommit": "production-release",
-  "cacheVersion": "busan-trip-v46-photo-gps-v13",
+  "appVersion": "V46.4.8",
+  "releaseName": "BUSAN.11 V46.4.8 Memory Album and Local VLOG",
+  "buildDate": "2026-11-19",
+  "gitCommit": "candidate",
+  "cacheVersion": "busan-trip-v46-memory-vlog-v15",
   "travelDates": "2026/11/13 - 2026/11/17",
   "destination": "Busan & Gyeongju, South Korea"
 }

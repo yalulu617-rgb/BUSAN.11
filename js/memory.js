@@ -121,7 +121,15 @@ window.downloadImage = function () {
         
         grid.innerHTML = '';
         
-        let filtered = [...window.photoList || []];
+        // Newest captured photo first. Upload/server timestamps are deliberately
+        // ignored so slow uploads cannot change the real travel chronology.
+        const captureTime = photo => {
+            const captured = Date.parse(String(photo?.capturedAt || ''));
+            if (Number.isFinite(captured)) return captured;
+            const dated = Date.parse(String(photo?.date || ''));
+            return Number.isFinite(dated) ? dated : Number.NEGATIVE_INFINITY;
+        };
+        let filtered = [...(window.photoList || [])].sort((a, b) => captureTime(b) - captureTime(a));
         const searchInput = document.getElementById('memorySearchInput');
         if (searchInput && searchInput.value.trim() !== '') {
             const query = searchInput.value.trim().toLowerCase();
