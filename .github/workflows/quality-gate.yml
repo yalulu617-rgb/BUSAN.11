@@ -153,7 +153,7 @@ jobs:
           serve -s . -l 8080 &
           echo "Waiting for server..."
           sleep 3
-          curl -f http://localhost:8080/ || (echo "❌ Server failed to start" && exit 1)
+          curl -fsS -o /dev/null http://localhost:8080/ || (echo "❌ Server failed to start" && exit 1)
           echo "✅ Server running on port 8080"
 
       - name: Run Playwright E2E tests (${{ matrix.project }})
