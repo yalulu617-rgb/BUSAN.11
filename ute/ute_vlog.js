@@ -2,7 +2,7 @@
 // Read-only input: the existing photoList from the app. No uploads or photo edits.
 (function (root) {
     'use strict';
-    const PHOTO_SAMPLE_PER_DAY = 16;
+    const PHOTO_SAMPLE_PER_DAY = 12;
 
     function dateOf(p) {
         const raw = String(p.capturedAt || p.date || '');
@@ -30,7 +30,7 @@
         return new Promise((resolve, reject) => {
             const img = new Image();
             let done = false;
-            const timeout = setTimeout(() => finish(new Error('影像讀取逾時')), 15000);
+            const timeout = setTimeout(() => finish(new Error('影像讀取逾時')), 9000);
             function finish(error) {
                 if (done) return;
                 done = true;
@@ -122,21 +122,27 @@
             PHOTO_SAMPLE_PER_DAY
         ).map(p => ({ ...p, _vlogDate: day, _vlogScore: 0, _vlogHash: null })));
         let checked = 0;
-        // Sequential loads deliberately cap mobile memory pressure.
-        for (let i = 0; i < candidates.length; i++) {
-            const photo = candidates[i];
-            try {
-                const img = await loadImage(photo.thumbnailUrl || photo.thumbUrl || photo.url);
-                const data = metrics(img);
-                photo._vlogScore = data.score;
-                photo._vlogHash = data.hash;
-                checked++;
-            } catch (_) {
-                // Cross-origin image checks may be blocked. Metadata/time-spread
-                // remains a deterministic fallback; never pretend this was AI judging.
+        // At most three concurrent downloads balance mobile memory and speed.
+        let cursor = 0;
+        let completed = 0;
+        async function worker() {
+            while (cursor < candidates.length) {
+                const i = cursor++;
+                const photo = candidates[i];
+                try {
+                    const img = await loadImage(photo.thumbnailUrl || photo.thumbUrl || photo.url);
+                    const data = metrics(img);
+                    photo._vlogScore = data.score;
+                    photo._vlogHash = data.hash;
+                    checked++;
+                } catch (_) {
+                    // When a CDN denies CORS, fall back to temporal diversity.
+                }
+                completed++;
+                if (typeof progress === 'function') progress(completed, candidates.length);
             }
-            if (typeof progress === 'function') progress(i + 1, candidates.length);
         }
+        await Promise.all(Array.from({ length: Math.min(3, candidates.length) }, () => worker()));
         const maxPicks = Math.min(20, candidates.length);
         const selected = [];
         const perDay = Math.floor(maxPicks / days.length);
