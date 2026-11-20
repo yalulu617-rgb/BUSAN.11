@@ -686,37 +686,16 @@
         
         <!-- Memory Tab -->
         <div id="walletMemorySection" style="display:none;">
-            <!-- Google Drive card -->
-            <div class="card" style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(252,239,225,0.9)); border-left: 6px solid var(--dora); margin-bottom: 20px; border-radius: 24px;">
-                <h3 class="card-title" style="color:var(--dora); border-bottom:none; margin-bottom:10px;"><i class="fa-brands fa-google-drive"></i> 雲端原檔金庫</h3>
-                <p style="font-size:0.9rem; color:#555; font-weight:700; margin-top:0;">需後製的高畫質影片、無損原圖，請存放於此專屬資料夾。</p>
-                <a href="https://drive.google.com/drive/folders/1eYv4GX8vMQvVNHPSwrp3zfZGb9YNkpsZ" target="_blank" class="btn-action" style="background: linear-gradient(135deg, var(--dora), #3498DB); text-decoration: none; display: block; text-align: center; margin-top: 15px;"><i class="fa-solid fa-cloud-arrow-up"></i> 開啟 Google Drive</a>
-            </div>
-
-            <!-- 今日照片 Section -->
-            <div class="card" style="margin-bottom: 20px; background: #ffffff; border-radius: 24px; padding: 20px;">
-                <h3 class="card-title" style="font-weight: 900;"><i class="fa-solid fa-image"></i> 今日精選照片</h3>
-                <div id="todayPhotosContainer" class="photo-grid" style="margin-top: 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;"></div>
-            </div>
-            <!-- 今日影片 Section -->
-            <div class="card" style="margin-bottom: 12px; background: #ffffff; border-radius: 16px; padding: 12px;">
-                <h3 class="card-title" style="font-weight:900;font-size:1.05rem;margin-bottom:8px;"><i class="fa-solid fa-film"></i> 60 秒旅行精選 VLOG</h3>
-                <p style="font-size:.78rem;color:#6e5a50;line-height:1.6;">從回憶錄依拍攝日期平均挑選各天的精彩照片，優先考量清晰度、曝光和避免相似畫面。製作直式 9:16、約 60 秒無配樂短片；不壓縮或修改相簿裡的原圖。</p>
-                <button type="button" id="vlogPickBtn" class="btn-action" style="width:100%;margin:4px 0 8px;" onclick="prepareVlog()"><i class="fa-solid fa-wand-magic-sparkles"></i> 自動挑選每天精選</button>
-                <div id="vlogStatus" role="status" aria-live="polite" style="color:#7e6558;font-size:.75rem;line-height:1.55;margin:4px 0 8px;">準備好後，按一下就會從已上傳的旅行照片建立精選清單。</div>
-                <div id="vlogStoryboard" style="margin-bottom:8px;"></div>
-                <label for="vlogLocalFiles" style="display:block;text-align:center;border:1px solid #c9a26b;border-radius:12px;padding:9px;margin:8px 0;background:#fff8ee;color:#7a4a1c;cursor:pointer;font-size:.75rem;font-weight:800;"><i class="fa-solid fa-folder-open"></i> 備用：改用手機原始照片製作（不重新上傳）</label>
-                <input type="file" id="vlogLocalFiles" multiple accept="image/*,.heic,.heif" style="display:none;" onchange="prepareVlogFromFiles(this.files)">
-                <button type="button" id="vlogDownloadBtn" class="btn-action" style="width:100%;background:#c46f49;margin-top:8px;" onclick="exportVlog()" hidden><i class="fa-solid fa-file-video"></i> 生成並下載約 1 分鐘短片</button>
-                <button type="button" id="vlogCancelBtn" style="width:100%;background:#f8e7e1;color:#8b3a26;border:0;padding:10px;border-radius:12px;margin-top:8px;font-weight:800;" onclick="cancelVlogExport()" hidden>取消製作</button>
-                <p style="font-size:.69rem;color:#9a877f;line-height:1.5;margin:8px 0 0;">在手機 Chrome 製作時請保持畫面開啟。會使用瀏覽器支援的 MP4 或 WebM 格式；相片來源不允許影片畫布存取時將提示，不會更改原圖。</p>
-                <a href="https://drive.google.com/drive/folders/1eYv4GX8vMQvVNHPSwrp3zfZGb9YNkpsZ" target="_blank" class="btn-action" style="background: #27ae60; text-decoration: none; display: block; text-align: center; padding: 8px; font-size:0.75rem;"><i class="fa-solid fa-video"></i> 前往影片金庫</a>
-            </div>
-
             <!-- 旅行相簿 Section -->
             <div class="card" style="margin-bottom: 20px; background: #ffffff; border-radius: 24px; padding: 20px;">
                 <h3 class="card-title" style="font-weight: 900;"><i class="fa-solid fa-camera-retro"></i> 每日拍立得回憶庫</h3>
-                <p style="font-size:0.85rem; color:#888; font-weight:900;">支援多張批次上傳。點擊放大照片可點擊左上角刪除。</p>
+                <p style="font-size:0.85rem; color:#888; font-weight:900;">已上傳照片自動依拍攝日期分相簿，點開即可左右滑動。</p>
+                <button type="button" class="memory-upload-shortcut" onclick="document.getElementById('memoryUploadTools').scrollIntoView({behavior:'smooth',block:'start'})">＋ 上傳照片／定位工具</button>
+                <div id="memoryDayTabs" class="memory-day-filter" role="group" aria-label="依拍攝日期選擇旅行相簿"></div>
+                <input type="text" id="memorySearchInput" class="input-box" placeholder="🔍 搜尋當天日期或地點" style="margin-bottom:8px;" oninput="window.memoryAlbumDay='all'; renderMemoryAlbum()">
+                <div id="memoryAlbumSummary" class="memory-album-summary" role="status" aria-live="polite"></div>
+                <div id="albumContainer" class="memory-photo-grid" style="margin-top:12px;"></div>
+                <div id="memoryUploadTools" class="memory-upload-tools"><h4>＋ 上傳照片與定位工具</h4>
                 <div style="background:#eafaf1; border:1.5px solid #a3e4d7; border-radius:14px; padding:10px 12px; margin-bottom:10px; font-size:0.75rem; color:#145a32; line-height:1.5;">
                     <div style="font-weight:900; font-size:0.82rem; margin-bottom:3px;"><i class="fa-solid fa-share-nodes"></i> 🌟 Samsung S25 免壓縮直傳推薦方式：</div>
                     在三星相簿中勾選照片 ➔ 點擊<b>「分享」</b> ➔ 點選<b>「釜山V46」</b>。<br>
@@ -746,8 +725,34 @@
                         <button type="button" onclick="toggleBatchLocationMode(false)" style="font-size:0.72rem; padding:4px 8px; border-radius:8px; border:none; background:#7f8c8d; color:#fff; font-weight:900; cursor:pointer;">離開</button>
                     </div>
                 </div>
-                <input type="text" id="memorySearchInput" class="input-box" placeholder="🔍 搜尋日期或城市 (例: 11/13、釜山)" style="margin-bottom:10px;" oninput="renderMemoryAlbum()">
-                <div id="albumContainer" style="margin-top: 15px;"></div>
+                </div>
+            </div>
+
+            <!-- Google Drive card -->
+            <div class="card" style="background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(252,239,225,0.9)); border-left: 6px solid var(--dora); margin-bottom: 20px; border-radius: 24px;">
+                <h3 class="card-title" style="color:var(--dora); border-bottom:none; margin-bottom:10px;"><i class="fa-brands fa-google-drive"></i> 雲端原檔金庫</h3>
+                <p style="font-size:0.9rem; color:#555; font-weight:700; margin-top:0;">需後製的高畫質影片、無損原圖，請存放於此專屬資料夾。</p>
+                <a href="https://drive.google.com/drive/folders/1eYv4GX8vMQvVNHPSwrp3zfZGb9YNkpsZ" target="_blank" class="btn-action" style="background: linear-gradient(135deg, var(--dora), #3498DB); text-decoration: none; display: block; text-align: center; margin-top: 15px;"><i class="fa-solid fa-cloud-arrow-up"></i> 開啟 Google Drive</a>
+            </div>
+
+            <!-- 今日照片 Section -->
+            <div class="card" style="margin-bottom: 20px; background: #ffffff; border-radius: 24px; padding: 20px;">
+                <h3 class="card-title" style="font-weight: 900;"><i class="fa-solid fa-image"></i> 今日精選照片</h3>
+                <div id="todayPhotosContainer" class="photo-grid" style="margin-top: 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;"></div>
+            </div>
+            <!-- 今日影片 Section -->
+            <div class="card" style="margin-bottom: 12px; background: #ffffff; border-radius: 16px; padding: 12px;">
+                <h3 class="card-title" style="font-weight:900;font-size:1.05rem;margin-bottom:8px;"><i class="fa-solid fa-film"></i> 60 秒旅行精選 VLOG</h3>
+                <p style="font-size:.78rem;color:#6e5a50;line-height:1.6;">從回憶錄依拍攝日期平均挑選各天的精彩照片，優先考量清晰度、曝光和避免相似畫面。製作直式 9:16、約 60 秒無配樂短片；不壓縮或修改相簿裡的原圖。</p>
+                <button type="button" id="vlogPickBtn" class="btn-action" style="width:100%;margin:4px 0 8px;" onclick="prepareVlog()"><i class="fa-solid fa-wand-magic-sparkles"></i> 自動挑選每天精選</button>
+                <div id="vlogStatus" role="status" aria-live="polite" style="color:#7e6558;font-size:.75rem;line-height:1.55;margin:4px 0 8px;">準備好後，按一下就會從已上傳的旅行照片建立精選清單。</div>
+                <div id="vlogStoryboard" style="margin-bottom:8px;"></div>
+                <label for="vlogLocalFiles" style="display:block;text-align:center;border:1px solid #c9a26b;border-radius:12px;padding:9px;margin:8px 0;background:#fff8ee;color:#7a4a1c;cursor:pointer;font-size:.75rem;font-weight:800;"><i class="fa-solid fa-folder-open"></i> 備用：改用手機原始照片製作（不重新上傳）</label>
+                <input type="file" id="vlogLocalFiles" multiple accept="image/*,.heic,.heif" style="display:none;" onchange="prepareVlogFromFiles(this.files)">
+                <button type="button" id="vlogDownloadBtn" class="btn-action" style="width:100%;background:#c46f49;margin-top:8px;" onclick="exportVlog()" hidden><i class="fa-solid fa-file-video"></i> 生成並下載約 1 分鐘短片</button>
+                <button type="button" id="vlogCancelBtn" style="width:100%;background:#f8e7e1;color:#8b3a26;border:0;padding:10px;border-radius:12px;margin-top:8px;font-weight:800;" onclick="cancelVlogExport()" hidden>取消製作</button>
+                <p style="font-size:.69rem;color:#9a877f;line-height:1.5;margin:8px 0 0;">在手機 Chrome 製作時請保持畫面開啟。會使用瀏覽器支援的 MP4 或 WebM 格式；相片來源不允許影片畫布存取時將提示，不會更改原圖。</p>
+                <a href="https://drive.google.com/drive/folders/1eYv4GX8vMQvVNHPSwrp3zfZGb9YNkpsZ" target="_blank" class="btn-action" style="background: #27ae60; text-decoration: none; display: block; text-align: center; padding: 8px; font-size:0.75rem;"><i class="fa-solid fa-video"></i> 前往影片金庫</a>
             </div>
 
             <!-- 精選回憶 Section -->
@@ -875,7 +880,7 @@
 <script src="js/auth-sync.js?v=20261109-auth1"></script>
 <script src="js/ui.js?v=20261119-swipe1"></script>
 <script src="js/wallet.js?v=45.6-owner-b"></script>
-<script src="js/memory.js?v=20261119-swipe1"></script>
+<script src="js/memory.js?v=20261120-day-album1"></script>
 <script src="js/vlog.js?v=20261119-vlog2"></script>
 <script src="js/itinerary.js?v=45.4"></script>
 <script src="components/v46-home.js?v=46.0-dev"></script>
