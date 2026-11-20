@@ -8,7 +8,7 @@
 // - Cache-first with network fallback for static media (images, icons)
 // ─────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'busan-trip-v46-memory-vlog-v16';
+const CACHE_NAME = 'busan-trip-v46-date-albums-v17';
 
 const LOCAL_ASSETS = [
     './',
