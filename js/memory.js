@@ -212,6 +212,17 @@ window.downloadImage = function () {
             });
         }
 
+        // In "All photos", group each trip date once; put unrelated/undated
+        // photos in a single safe fallback group at the end.
+        if (selectedDay === 'all') {
+            filtered = [...TRIP_ALBUM_DAYS].reverse().concat('other').flatMap(folder =>
+                filtered.filter(p => {
+                    const day = photoDay(p);
+                    return folder === 'other' ? !TRIP_ALBUM_DAYS.includes(day) : day === folder;
+                })
+            );
+        }
+
         // Lightbox navigates only the visible date/search subset.
         window.memoryVisiblePhotos = filtered.map(p => ({ key: p.key, url: p.url }));
         const summary = document.getElementById('memoryAlbumSummary');
