@@ -188,15 +188,12 @@
         const record = await downloadOne(photo);
         session.cursor++;
         attempted++;
-        if (record && bytes + record.blob.byteLength > MAX_BATCH_BYTES && archived.length) {
-          // Defer the overflow record to the next ZIP without re-fetching.
-          session.cursor--;
-          photo._nextRecord = record;
-          break;
-        }
         if (record) {
           archived.push(record);
           bytes += record.blob.byteLength;
+          // Never mark a file as downloaded unless included in the ZIP.
+          // A final file may cross the soft limit by at most MAX_FILE_BYTES.
+          if (bytes >= MAX_BATCH_BYTES) break;
         }
         if (attempted % 5 === 0 || session.cursor === total) {
           status('嘗試取回可顯示照片檔案：' + session.cursor + ' / ' + total +
