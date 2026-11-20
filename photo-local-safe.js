@@ -1156,7 +1156,7 @@
     for(let i=0;i<bytes.length;i++)crc=crcTable[(crc ^ bytes[i]) & 0xff] ^ (crc>>>8);
     return (crc^0xffffffff)>>>0;
   }
-  async function createOriginalsZip(records) {
+  async function createOriginalsZip(records, source = 'device-original') {
     const entries=[];
     const encoder=new TextEncoder();
     const manifest=[];
@@ -1176,7 +1176,8 @@
       await new Promise(resolve=>setTimeout(resolve,0));
     }
     entries.push({name:'backup-manifest.json',data:encoder.encode(JSON.stringify({
-      note:'BUSAN.11 exact original files retained on this device. Includes EXIF/GPS; keep private.',
+      note:source === 'cloud-hosted' ? 'BUSAN.11 existing cloud image file copies from ImgBB. These are NOT the Samsung original files; metadata/EXIF may have been stripped before ImgBB upload. No cloud records were modified. Keep this archive private.' : 'BUSAN.11 exact original files retained on this device. Includes EXIF/GPS; keep private.',
+      source,
       exportedAt:new Date().toISOString(),photos:manifest
     },null,2))});
     const local=[],central=[];
@@ -1868,6 +1869,7 @@
     getPending:async()=> (await all()).filter(x=>!x.synced),
     getBackupState:async()=> {const rows=await all();return {retained:rows.filter(x=>x.synced).length,pending:rows.filter(x=>!x.synced).length};},
     downloadOriginalsZip:w.downloadPhotoBackupsZip,
+    createCloudPhotosZip:records=>createOriginalsZip(records, 'cloud-hosted'),
     getRetainedOriginalUrl,
     updateLocation:w.updatePhotoLocation,
     batchUpdateLocation:w.batchUpdatePhotoLocation,

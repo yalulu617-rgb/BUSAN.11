@@ -168,6 +168,7 @@ window.downloadImage = function () {
             const day = photoDay(photo);
             return day === 'other' ? Number.NEGATIVE_INFINITY : Date.parse(day + 'T12:00:00');
         };
+        window.CloudPhotoRescue?.refreshCount?.();
         const photos = (Array.isArray(window.photoList) ? window.photoList : [])
             .filter(p => p && p.key && p.url)
             .slice().sort((a, b) => captureTime(b) - captureTime(a));
