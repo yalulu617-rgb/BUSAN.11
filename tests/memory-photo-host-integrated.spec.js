@@ -39,6 +39,7 @@ test('real memory tab shows daily highlights for existing pictures without re-up
   // Simulate ImgBB's HTTP 200 blue error picture deterministically.
   await page.evaluate(() => {
     const img = document.getElementById('lightbox-img');
+    img.onerror = () => {}; // Prevent a late real network error overwriting the synthetic successful decode.
     Object.defineProperty(img, 'naturalWidth', { configurable:true, value:185 });
     Object.defineProperty(img, 'naturalHeight', { configurable:true, value:185 });
     img.onload();
