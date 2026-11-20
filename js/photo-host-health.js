@@ -4,10 +4,8 @@
 (function (root) {
   'use strict';
   function isImgBB(url) {
-    try {
-      const parsed = new URL(String(url || ''), root.location?.href || 'https://example.invalid/');
-      return /^(?:i\.)?ibb\.co$|^(?:www\.)?imgbb\.com$|^image\.ibb\.co$/.test(parsed.hostname.toLowerCase());
-    } catch (_) { return false; }
+    return /^https?:\/\/(?:i\.ibb\.co|ibb\.co|(?:www\.)?imgbb\.com|image\.ibb\.co)(?=[:\/?#]|$)/i
+      .test(String(url || ''));
   }
   function inspect(url, image) {
     const width = Number(image?.naturalWidth || 0);
