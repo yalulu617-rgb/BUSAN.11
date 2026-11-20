@@ -42,7 +42,14 @@
                 else resolve(img);
             }
             img.crossOrigin = 'anonymous';
-            img.onload = () => finish(null);
+            img.onload = () => {
+                const health = root.PhotoHostHealth?.inspect(url, img);
+                if (health?.status === 'suspect') {
+                    const error = new Error('ImgBB 回傳疑似已失效的錯誤佔位圖');
+                    error.code = 'IMAGE_HOST_PLACEHOLDER';
+                    finish(error);
+                } else finish(null);
+            };
             img.onerror = () => finish(new Error('照片站未允許影片畫布讀取'));
             img.src = url;
         });
@@ -141,8 +148,15 @@
                     // frames and extremely soft images; quality remains heuristic.
                     photo._vlogUsable = data.average >= 20 && data.average <= 242 && data.sharpness >= 1.5;
                     checked++;
-                } catch (_) {
-                    // When a CDN denies CORS, fall back to temporal diversity.
+                } catch (error) {
+                    if (error?.code === 'IMAGE_HOST_PLACEHOLDER') {
+                        // Do not treat a successfully decoded ImgBB error tile
+                        // as a valid candidate for highlight reels or export.
+                        photo._vlogAnalyzed = true;
+                        photo._vlogUsable = false;
+                        checked++;
+                    }
+                    // Other failures (including CDN CORS) retain time-based fallback.
                 }
                 completed++;
                 if (typeof progress === 'function') progress(completed, candidates.length);

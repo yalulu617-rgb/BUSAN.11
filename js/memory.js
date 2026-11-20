@@ -26,6 +26,14 @@ window.deleteCurrentPhoto = async function () {
 window.downloadImage = function () {
     const url = window.currentLightboxUrl;
     if (!url) { showToast('無圖片可下載', 'warning'); return; }
+    if (window.currentPhotoHostState === 'unavailable') {
+        showToast('圖片來源目前無法讀取，沒有可下載的原圖；相簿紀錄仍保留', 'warning');
+        return;
+    }
+    if (window.currentPhotoHostState === 'suspect') {
+        showToast('這個 ImgBB 連結疑似失效，下載可能只是錯誤提示圖', 'warning');
+        return;
+    }
     const a    = document.createElement('a');
     a.href     = url;
     a.download = `busan_photo_${Date.now()}.jpg`;
@@ -299,6 +307,34 @@ window.downloadImage = function () {
                 </div>
             `;
         });
+
+        // Inspect the images already being displayed. ImgBB may serve a blue
+        // "image not found" picture with HTTP 200, which does not raise onerror.
+        // These visual flags are strictly local and never mutate source data.
+        if (window.PhotoHostHealth) {
+            const imageNodes = [...grid.querySelectorAll('.polaroid img')];
+            imageNodes.forEach((img, index) => {
+                const photo = filtered[index];
+                if (!photo) return;
+                const warn = status => {
+                    const tile = img.closest('.polaroid');
+                    if (!tile || status === 'ok') return;
+                    tile.classList.add('photo-host-issue');
+                    tile.classList.toggle('photo-host-suspect', status === 'suspect');
+                    if (!tile.querySelector('.photo-host-issue-tag')) {
+                        const tag = document.createElement('span');
+                        tag.className = 'photo-host-issue-tag';
+                        tag.textContent = status === 'suspect' ? '⚠️ 來源可能異常' : '⚠️ 原圖無法載入';
+                        tile.appendChild(tag);
+                    }
+                };
+                img.addEventListener('error', () => warn('unavailable'), { once:true });
+                img.addEventListener('load', () => {
+                    warn(window.PhotoHostHealth.inspect(photo.url, img).status);
+                }, { once:true });
+                if (img.complete) warn(window.PhotoHostHealth.inspect(photo.url, img).status);
+            });
+        }
     };
 
     window.renderLightboxDetails = function(key) {

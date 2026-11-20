@@ -3,12 +3,12 @@
 // ─────────────────────────────────────────────────────────────────────────
 // Rules:
 // - Cache ONLY local files that physically exist in this repository
-// - Do NOT cache CDN URLs (Firebase, FontAwesome, Google Fonts, wttr.in, etc.)
+// - Do NOT cache CDN URLs (including i.ibb.co ImgBB photo files).
 // - Network-first for Critical App Shell (HTML, JS, CSS, JSON) to ensure instant updates
 // - Cache-first with network fallback for static media (images, icons)
 // ─────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'busan-trip-v46-date-albums-v18';
+const CACHE_NAME = 'busan-trip-v46-date-albums-v19';
 
 const LOCAL_ASSETS = [
     './',
@@ -60,6 +60,7 @@ const LOCAL_ASSETS = [
     './js/wallet.js',
     './js/memory.js',
     './js/memory-highlights.js',
+    './js/photo-host-health.js',
     './js/vlog.js',
     './js/itinerary.js',
     './components/v46-home.js',
@@ -77,6 +78,7 @@ const NETWORK_ONLY_DOMAINS = [
     'gstatic.com',
     'googleapis.com',
     'imgbb.com',
+    'ibb.co', // ImgBB API returns direct files on i.ibb.co; never cache error tiles.
     'exchangerate-api.com',
     'api.open-meteo.com',
     'wttr.in',
@@ -201,7 +203,11 @@ self.addEventListener('fetch', event => {
 
     // 1. External APIs: Network only
     if (isNetworkOnly(url)) {
-        event.respondWith(fetch(event.request).catch(() => new Response('', { status: 503 })));
+        // ImgBB can serve temporary failures as an HTTP 200 error image.
+        // Bypass both the Service Worker and browser HTTP cache for direct photos.
+        const imgBBPhoto = /^https?:\/\/(?:i\.)?ibb\.co\//i.test(url);
+        const request = imgBBPhoto ? new Request(event.request, { cache: 'no-store' }) : event.request;
+        event.respondWith(fetch(request).catch(() => new Response('', { status: 503 })));
         return;
     }
 

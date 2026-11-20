@@ -74,8 +74,30 @@ window.showToast = function(msg, type = 'info') {
         position = nextPosition;
         window.currentLightboxUrl = photo.url;
         window.currentLightboxKey = photo.key;
-        img.src = photo.url;
+        window.currentPhotoHostState = 'loading';
+        const warning = el('lightbox-host-status');
+        if (warning) { warning.hidden = true; warning.textContent = ''; }
         img.alt = '旅行照片 ' + (position + 1) + '／' + photos.length;
+        // An ImgBB error tile may decode successfully, so onerror alone is not
+        // enough. Never change Firebase URLs, photo metadata or original bytes.
+        const report = (status, reason) => {
+            if (window.currentLightboxKey !== photo.key ||
+                window.currentLightboxUrl !== photo.url) return;
+            window.currentPhotoHostState = status;
+            if (!warning) return;
+            warning.hidden = status === 'ok';
+            warning.textContent = status === 'unavailable'
+                ? '⚠️ 這張照片的圖片來源無法載入；相簿紀錄及日期仍保留。'
+                : status === 'suspect'
+                    ? '⚠️ 圖片來源疑似回傳 ImgBB 錯誤佔位圖；相簿紀錄未刪除，暫勿刪除這張照片。'
+                    : '';
+        };
+        img.onload = () => {
+            const health = window.PhotoHostHealth?.inspect(photo.url, img) || { status:'ok' };
+            report(health.status, health.reason);
+        };
+        img.onerror = () => report('unavailable', '圖片無法載入');
+        img.src = photo.url;
         const counter = el('lightbox-counter');
         if (counter) counter.textContent = (position + 1) + ' / ' + photos.length;
         const previous = el('lightbox-prev');

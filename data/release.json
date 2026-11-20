@@ -1,9 +1,9 @@
 {
-  "appVersion": "V46.4.10",
-  "releaseName": "BUSAN.11 V46.4.10 Daily Memory Highlights",
+  "appVersion": "V46.4.11",
+  "releaseName": "BUSAN.11 V46.4.11 Photo Host Safety and Visible Highlights",
   "buildDate": "2026-11-20",
-  "gitCommit": "pending-merge",
-  "cacheVersion": "busan-trip-v46-date-albums-v18",
+  "gitCommit": "pending-release",
+  "cacheVersion": "busan-trip-v46-date-albums-v19",
   "travelDates": "2026/11/13 - 2026/11/17",
   "destination": "Busan & Gyeongju, South Korea"
 }

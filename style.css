@@ -154,6 +154,12 @@ body {
         .traffic-tag { background: #f1f2f6; color: #555; padding: 3px 8px; border-radius: 8px; font-size: 0.75rem; display: inline-block; margin-top: 4px; border: 1px solid #e0e0e0;}
         .map-tag { background: #03C75A; color: white; min-height: 44px; padding: 4px 12px; border-radius: 10px; font-size: 0.8rem; text-decoration: none; font-weight: 900; display: inline-flex; align-items: center; justify-content: center; gap: 4px; box-sizing: border-box; box-shadow: 0 4px 10px rgba(3, 199, 90, 0.2); transition: 0.2s;}
 
+        /* Read-only photo host warnings. Never hide/delete the photo record. */
+        #lightbox-host-status.photo-host-warning { position:absolute; z-index:10001; top:125px; left:50%; transform:translateX(-50%); width:max-content; max-width:min(90vw,390px); padding:9px 12px; border-radius:11px; background:rgba(45,34,28,.94); border:1px solid #f0c596; color:#fff0d3; font-size:.78rem; line-height:1.5; font-weight:800; text-align:center; pointer-events:none; }
+        #lightbox-host-status[hidden] { display:none; }
+        #albumContainer .photo-host-issue { outline:2px solid #d99d56; outline-offset:0; }
+        #albumContainer .photo-host-issue-tag { position:absolute; z-index:4; top:9px; left:8px; right:8px; width:max-content; max-width:calc(100% - 16px); border-radius:8px; padding:4px 7px; background:rgba(51,39,31,.93); color:#fff3db; font-size:.68rem; font-weight:900; pointer-events:none; }
+        .memory-highlight-card.memory-highlight-source-warning { border-color:#d7a96a; background:#f5ecdf; }
         /* Existing-photo highlights: never depend on upload, cloud write or CORS. */
         .memory-daily-highlights { background:#fff8ef; border:1px solid #edddc8; border-radius:16px; padding:12px; margin:14px 0; }
         .memory-daily-highlights h4 { margin:0 0 3px; color:#8e4e37; font-size:.9rem; }
