@@ -584,6 +584,7 @@
     };
   };
   const upstreamRender=w.renderMemoryAlbum;
+  let lastMergedList=null;
   async function refreshAlbum(){
     if(typeof upstreamRender!=='function')return;
     const seq=++refreshGeneration;
@@ -597,6 +598,7 @@
     // metadata disappears the owner can still open the preserved original here.
     const visibleLocal=stored.filter(x=>!x.synced || !remoteKeys.has(x.cloudKey)).map(localRow);
     w.photoList=remote.concat(visibleLocal);
+    lastMergedList=w.photoList;
     upstreamRender();
     const pending=stored.filter(x=>!x.synced);
     const saved=stored.filter(x=>x.synced);
@@ -617,7 +619,13 @@
       }
     }
   }
-  w.renderMemoryAlbum=function(){void refreshAlbum();};
+  // Date tab switching/searching uses the already-merged photo list. Do not
+  // pull potentially hundreds of MB of archived bytes from IndexedDB per tap.
+  // Firebase callbacks create a new photoList array, so refresh those normally.
+  w.renderMemoryAlbum=function(){
+    if(lastMergedList && w.photoList===lastMergedList)upstreamRender();
+    else void refreshAlbum();
+  };
   const upstreamDelete=w.deleteCurrentPhoto;
   w.deleteCurrentPhoto=async function(){
     const id=w.currentLightboxKey;
