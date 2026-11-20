@@ -57,3 +57,29 @@ test('tiny non-ImgBB photos are not mislabeled; physical records stay intact', a
   });
   expect(result).toEqual({ recognized:'suspect', unknown:'ok',normal:'ok' });
 });
+
+test('ImgBB direct image URLs bypass the PWA cache, so temporary error tiles cannot remain stuck offline', async ({ page }) => {
+  await page.route('https://i.ibb.co/**', route => route.fulfill({
+    status:200,contentType:'image/svg+xml',headers:{'access-control-allow-origin':'*'},
+    body:validPhoto
+  }));
+  await bootApp(page);
+  const worker = await (await page.request.get('/sw.js')).text();
+  expect(worker).toContain("'ibb.co'");
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready;
+    await new Promise(resolve => {
+      const img = new Image();
+      img.onload = resolve;
+      img.onerror = resolve;
+      img.src = 'https://i.ibb.co/ci-photo-cache-check.jpg';
+    });
+  });
+  const cachedPhotoUrls = await page.evaluate(async () => {
+    const names = await caches.keys();
+    const records = (await Promise.all(names.map(async name =>
+      (await (await caches.open(name)).keys()).map(request => request.url)))).flat();
+    return records.filter(url => url.startsWith('https://i.ibb.co/'));
+  });
+  expect(cachedPhotoUrls, 'ImgBB CDN URLs must never be cached by our PWA').toEqual([]);
+});
