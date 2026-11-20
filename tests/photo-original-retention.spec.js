@@ -60,7 +60,7 @@ test('uploaded original remains in IndexedDB after Firebase success, and downloa
   expect(state.zipSize).toBeGreaterThan(raw.length);
   expect(state.localUrl).toMatch(/^blob:/);
   expect(state.remoteKey).toMatch(/^photo_local_photo_/);
-  await expect(page.locator('#photoBackupStatus')).toContainText('本機');
+  await expect(page.locator('#photoBackupStatus')).toContainText('保留原圖 1 張');
 });
 
 test('cloud-image failure can use archived original without rewriting Firebase or deleting local bytes', async ({ page }) => {
@@ -88,7 +88,7 @@ test('cloud-image failure can use archived original without rewriting Firebase o
   });
   await page.waitForFunction(()=>window.currentPhotoHostState==='local-backup');
   expect(await page.evaluate(()=>document.getElementById('lightbox-img').src)).toMatch(/^blob:/);
-  await expect(page.locator('#lightbox-host-status')).toContainText('本機原圖');
+  await expect(page.locator('#lightbox-host-status')).toContainText('保留的原圖');
   const stored=await page.evaluate(async()=>window.PhotoLocalSafety.getBackupState());
   expect(stored.retained).toBeGreaterThanOrEqual(1);
   expect(stored.pending).toBe(0);
