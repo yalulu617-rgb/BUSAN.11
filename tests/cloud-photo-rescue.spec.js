@@ -54,7 +54,9 @@ async function installIsolatedMocks(page, options = {}) {
       photos[4].url = 'https://example.org/not-imgbb.jpg';
     }
     window.photoList = photos;
-    window.renderMemoryAlbum();
+    // Do not render 301 remote <img> tags: that would contact real ImgBB.
+    // The rescue reads existing photoList directly and all fetches are mocked.
+    window.CloudPhotoRescue.refreshCount();
     return { snapshot: JSON.stringify(photos), hasModule: typeof window.CloudPhotoRescue?.start };
   }, { png: TINY_PNG, count: options.count || 5, corsBlocked: Boolean(options.corsBlocked) });
   expect(result.hasModule).toBe('function');
