@@ -20,7 +20,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 
-    <link rel="stylesheet" href="style.css?v=v46-4-11-photo-health-20261120">
+    <link rel="stylesheet" href="style.css?v=v46-4-12-original-backup-20261120">
     <link rel="stylesheet" href="assets/css/item-images.css?v=45.4-image1">
     <link rel="stylesheet" href="assets/css/v46-home.css?v=46.0-dev">
     <link rel="stylesheet" href="assets/css/v46-owner-rebuild.css?v=owner-rebuild-1">
@@ -692,6 +692,11 @@
                 <h3 class="card-title" style="font-weight: 900;"><i class="fa-solid fa-camera-retro"></i> 每日拍立得回憶庫</h3>
                 <p style="font-size:0.85rem; color:#888; font-weight:900;">已上傳照片自動依拍攝日期分相簿，點開即可左右滑動。</p>
                 <button type="button" class="memory-upload-shortcut" onclick="document.getElementById('memoryUploadTools').scrollIntoView({behavior:'smooth',block:'start'})">＋ 上傳照片／定位工具</button>
+                <div class="memory-backup-card">
+                    <div id="photoBackupStatus" role="status" aria-live="polite">正在確認此裝置保留的原圖數量……</div>
+                    <button id="photoBackupDownload" type="button" class="memory-backup-button" onclick="downloadPhotoBackupsZip()">📦 下載本機原圖 ZIP 備份</button>
+                    <p>只匯出仍留在此裝置的原始照片（含 EXIF／GPS），不會重新上傳。舊版已清除的本機副本無法由此恢復；下載後請另存安全位置。</p>
+                </div>
                 <div id="memoryDayTabs" class="memory-day-filter" role="group" aria-label="依拍攝日期選擇旅行相簿"></div>
                 <input type="text" id="memorySearchInput" class="input-box" placeholder="🔍 搜尋當天日期或地點" style="margin-bottom:8px;" oninput="window.memoryAlbumDay='all'; renderMemoryAlbum()">
                 <div id="memoryAlbumSummary" class="memory-album-summary" role="status" aria-live="polite"></div>
@@ -880,7 +885,7 @@
 <script src="js/firebase.js?v=45.6-owner-b"></script>
 <script src="js/auth-sync.js?v=20261109-auth1"></script>
 <script src="js/photo-host-health.js?v=20261120-1"></script>
-<script src="js/ui.js?v=20261120-photo-health1"></script>
+<script src="js/ui.js?v=20261120-local-recovery1"></script>
 <script src="js/wallet.js?v=45.6-owner-b"></script>
 <script src="js/memory.js?v=20261120-photo-health1"></script>
 <script src="js/memory-highlights.js?v=20261120-photo-health1"></script>
@@ -890,7 +895,7 @@
 <script src="components/renderers.js?v=v46-owner-light-restaurant-20261109"></script>
 <script src="js/app.js?v=v46-owner-light-restaurant-20261109"></script>
 <script src="restaurant-save-guard.js?v=20261109-safe1"></script>
-<script src="photo-local-safe.js?v=20261111-gps-original-files-v8"></script>
+<script src="photo-local-safe.js?v=20261120-retain-originals1"></script>
 <script src="owner-budget-settings.js?v=20261109-edit1"></script>
 </body>
 </html>
