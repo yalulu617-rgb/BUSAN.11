@@ -25,10 +25,18 @@ test('real memory tab shows daily highlights for existing pictures without re-up
   await expect(page.locator('#memoryDailyHighlights')).toBeVisible();
   await expect(page.locator('#todayPhotosContainer .memory-highlight-card')).toHaveCount(2);
   await expect(page.locator('#memoryAlbumSummary')).toContainText('11/17');
+  // Do not depend on real ImgBB / Service Worker route interception in CI.
+  await page.evaluate(() => {
+    const thumb = [...document.querySelectorAll('#todayPhotosContainer img')]
+      .find(img => img.src.startsWith('https://i.ibb.co/broken.jpg'));
+    if (!thumb) throw new Error('Broken ImgBB thumbnail fixture missing');
+    Object.defineProperty(thumb, 'naturalWidth', { configurable:true, value:185 });
+    Object.defineProperty(thumb, 'naturalHeight', { configurable:true, value:185 });
+    thumb.dispatchEvent(new Event('load'));
+  });
   await expect(page.locator('#todayPhotosContainer .memory-highlight-source-warning')).toHaveCount(1);
   await page.evaluate(() => window.openLightbox('https://i.ibb.co/broken.jpg', 'broken'));
-  await expect(page.locator('#lightbox-host-status')).toBeVisible();
-  // Simulate ImgBB's HTTP 200 blue error picture after the CDN load settles.
+  // Simulate ImgBB's HTTP 200 blue error picture deterministically.
   await page.evaluate(() => {
     const img = document.getElementById('lightbox-img');
     Object.defineProperty(img, 'naturalWidth', { configurable:true, value:185 });
