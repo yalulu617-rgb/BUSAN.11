@@ -20,7 +20,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 
-    <link rel="stylesheet" href="style.css?v=v46-4-12-original-backup-20261120">
+    <link rel="stylesheet" href="style.css?v=v46-4-13-cloud-photo-rescue-20261120">
     <link rel="stylesheet" href="assets/css/item-images.css?v=45.4-image1">
     <link rel="stylesheet" href="assets/css/v46-home.css?v=46.0-dev">
     <link rel="stylesheet" href="assets/css/v46-owner-rebuild.css?v=owner-rebuild-1">
@@ -697,6 +697,15 @@
                     <button id="photoBackupDownload" type="button" class="memory-backup-button" onclick="downloadPhotoBackupsZip()">📦 下載本機原圖 ZIP 備份</button>
                     <p>只匯出仍留在此裝置的原始照片（含 EXIF／GPS），不會重新上傳。舊版已清除的本機副本無法由此恢復；下載後請另存安全位置。</p>
                 </div>
+                <section class="memory-cloud-rescue" aria-labelledby="cloudRescueTitle">
+                  <h4 id="cloudRescueTitle">🛟 救援舊版已上傳的照片</h4>
+                  <div id="cloudRescueCount" role="status">正在確認已載入的雲端紀錄數……</div>
+                  <button id="cloudRescueStart" type="button" class="memory-backup-button" onclick="CloudPhotoRescue.start()">檢查全部已上傳照片並下載第一包</button>
+                  <button id="cloudRescueNext" type="button" class="memory-backup-button memory-cloud-rescue-next" onclick="CloudPhotoRescue.downloadNext()" hidden>繼續下載下一包照片</button>
+                  <button id="cloudRescueReport" type="button" class="memory-cloud-rescue-report" onclick="CloudPhotoRescue.downloadReport()" hidden>下載照片狀態報告</button>
+                  <div id="cloudRescueStatus" aria-live="polite">不修改照片、Firebase、日期或 GPS。先盤點，再嘗試將仍可讀取的 ImgBB 圖片存成 ZIP。</div>
+                  <p>雲端取回的是當初上傳到 ImgBB 的圖片副本，<b>不是 Samsung 原始照片</b>。瀏覽器跨網域限制會阻止部分檔案下載；這不代表圖片已遺失。若分多包，請確認上一包已存入「下載」再按下一包。備份與報告只留在你的裝置。</p>
+                </section>
                 <div id="memoryDayTabs" class="memory-day-filter" role="group" aria-label="依拍攝日期選擇旅行相簿"></div>
                 <input type="text" id="memorySearchInput" class="input-box" placeholder="🔍 搜尋當天日期或地點" style="margin-bottom:8px;" oninput="window.memoryAlbumDay='all'; renderMemoryAlbum()">
                 <div id="memoryAlbumSummary" class="memory-album-summary" role="status" aria-live="polite"></div>
@@ -896,6 +905,7 @@
 <script src="js/app.js?v=v46-owner-light-restaurant-20261109"></script>
 <script src="restaurant-save-guard.js?v=20261109-safe1"></script>
 <script src="photo-local-safe.js?v=20261120-retain-originals1"></script>
+<script src="js/cloud-photo-rescue.js?v=20261120-recovery1"></script>
 <script src="owner-budget-settings.js?v=20261109-edit1"></script>
 </body>
 </html>
