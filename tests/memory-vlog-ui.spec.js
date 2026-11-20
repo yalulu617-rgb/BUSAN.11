@@ -21,7 +21,7 @@ test('album uses captured chronology and the search-filtered list at both bounda
     window.renderMemoryAlbum();
   });
   await page.locator('#memorySearchInput').fill('Busan');
-  await page.evaluate(() => window.renderMemoryAlbum());
+  await page.evaluate(() => { window.memoryAlbumDay = 'all'; window.renderMemoryAlbum(); });
   await page.locator('#albumContainer .polaroid').first().click();
   await expect(page.locator('#lightbox-counter')).toHaveText('1 / 2');
   await expect(page.locator('#lightbox-prev')).toBeDisabled();
