@@ -1,9 +1,9 @@
 {
-  "appVersion": "V46.4.12",
-  "releaseName": "BUSAN.11 V46.4.12 Keep Original Photos and ZIP Backup",
+  "appVersion": "V46.4.13",
+  "releaseName": "BUSAN.11 V46.4.13 Existing Cloud Photo Rescue",
   "buildDate": "2026-11-20",
   "gitCommit": "pending-merge",
-  "cacheVersion": "busan-trip-v46-originals-retained-v20",
+  "cacheVersion": "busan-trip-v46-cloud-photo-rescue-v21",
   "travelDates": "2026/11/13 - 2026/11/17",
   "destination": "Busan & Gyeongju, South Korea"
 }
