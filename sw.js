@@ -203,7 +203,11 @@ self.addEventListener('fetch', event => {
 
     // 1. External APIs: Network only
     if (isNetworkOnly(url)) {
-        event.respondWith(fetch(event.request).catch(() => new Response('', { status: 503 })));
+        // ImgBB can serve temporary failures as an HTTP 200 error image.
+        // Bypass both the Service Worker and browser HTTP cache for direct photos.
+        const imgBBPhoto = /^https?:\/\/(?:i\.)?ibb\.co\//i.test(url);
+        const request = imgBBPhoto ? new Request(event.request, { cache: 'no-store' }) : event.request;
+        event.respondWith(fetch(request).catch(() => new Response('', { status: 503 })));
         return;
     }
 
