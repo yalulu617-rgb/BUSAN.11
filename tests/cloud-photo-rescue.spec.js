@@ -130,7 +130,8 @@ test('301 historic cloud photo records are counted and ZIP files are bounded by 
   expect(first.info.downloaded).toBe(45);
   expect(first.info.remainingCandidates).toBe(256);
   expect(first.files).toBe(45);
-  await expect(page.locator('#cloudRescueNext')).toBeVisible();
+  // The memory panel may not be open; check the button's own state, not its hidden ancestor.
+  await expect(page.locator('#cloudRescueNext')).not.toHaveAttribute('hidden');
   await page.evaluate(async () => await window.CloudPhotoRescue.downloadNext());
   const second = await page.evaluate(() => ({info:window.CloudPhotoRescue.getSummary(),zips:window.__rescueArchived.filter(b=>b.type==='application/zip').length}));
   expect(second.info.downloaded).toBe(90);
