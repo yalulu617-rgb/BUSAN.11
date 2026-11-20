@@ -1156,9 +1156,6 @@
     for(let i=0;i<bytes.length;i++)crc=crcTable[(crc ^ bytes[i]) & 0xff] ^ (crc>>>8);
     return (crc^0xffffffff)>>>0;
   }
-  function zipHeader(length) {
-    return {buf:new Uint8Array(length),view:null};
-  }
   async function createOriginalsZip(records) {
     const entries=[];
     const encoder=new TextEncoder();
@@ -1169,7 +1166,7 @@
       if(!(raw instanceof ArrayBuffer))throw new Error('本機第 '+(i+1)+' 張原圖位元組無法讀取，已停止製作備份');
       const data=new Uint8Array(raw);
       if(!data.length)throw new Error('本機第 '+(i+1)+' 張原圖是空檔，未輸出不完整 ZIP');
-      const filename=String(record.filename||'photo.jpg').split(/[\\/]/).pop().replace(/[<>:"|?*\x00-\x1f]/g,'_').slice(0,150)||'photo.jpg';
+      const filename=String(record.filename||'photo.jpg').split(/[\\/]/).pop().replace(/[<>:"|?*\x00-\x1f]/g,'_').replace(/\.\./g,'__').slice(0,150)||'photo.jpg';
       const safeId=String(record.id||i).replace(/[^a-zA-Z0-9_-]/g,'').slice(0,58);
       entries.push({name:'photos/'+safeId+'_'+filename,data});
       manifest.push({archiveFilename:entries[entries.length-1].name,id:record.id,
@@ -1188,13 +1185,13 @@
       const nameBytes=encoder.encode(name),crc=zipCrc32(data);
       const header=new Uint8Array(30+nameBytes.length),v=new DataView(header.buffer);
       v.setUint32(0,0x04034b50,true);v.setUint16(4,20,true);
-      v.setUint16(8,0,true);v.setUint32(14,crc,true);
+      v.setUint16(6,0x0800,true);v.setUint16(8,0,true);v.setUint32(14,crc,true);
       v.setUint32(18,data.byteLength,true);v.setUint32(22,data.byteLength,true);
       v.setUint16(26,nameBytes.length,true);header.set(nameBytes,30);
       local.push(header,data);
       const directory=new Uint8Array(46+nameBytes.length),dv=new DataView(directory.buffer);
       dv.setUint32(0,0x02014b50,true);dv.setUint16(4,20,true);dv.setUint16(6,20,true);
-      dv.setUint32(16,crc,true);dv.setUint32(20,data.byteLength,true);
+      dv.setUint16(8,0x0800,true);dv.setUint32(16,crc,true);dv.setUint32(20,data.byteLength,true);
       dv.setUint32(24,data.byteLength,true);dv.setUint16(28,nameBytes.length,true);
       dv.setUint32(42,offset,true);directory.set(nameBytes,46);central.push(directory);
       offset+=header.length+data.length;
