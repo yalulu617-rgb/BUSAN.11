@@ -92,11 +92,34 @@ window.showToast = function(msg, type = 'info') {
                     ? '⚠️ 圖片來源疑似回傳 ImgBB 錯誤佔位圖；相簿紀錄未刪除，暫勿刪除這張照片。'
                     : '';
         };
+        let backupAttempted = false;
+        const displayHostResult = async (status, reason) => {
+            if (status === 'ok' || backupAttempted) { report(status, reason); return; }
+            backupAttempted = true;
+            let localOriginal = null;
+            try {
+                localOriginal = await window.PhotoLocalSafety?.getRetainedOriginalUrl?.(photo.key);
+            } catch (error) { console.warn('[PhotoBackup] Local original unavailable', error); }
+            if (window.currentLightboxKey !== photo.key ||
+                window.currentLightboxUrl !== photo.url) return;
+            if (!localOriginal) { report(status, reason); return; }
+            img.onload = () => {
+                if (window.currentLightboxKey !== photo.key) return;
+                window.currentLightboxUrl = localOriginal;
+                window.currentPhotoHostState = 'local-backup';
+                if (warning) {
+                    warning.hidden = false;
+                    warning.textContent = '📂 雲端來源異常，已改由這台裝置保留的原圖顯示；請下載 ZIP 做獨立備份。';
+                }
+            };
+            img.onerror = () => report(status, reason);
+            img.src = localOriginal;
+        };
         img.onload = () => {
             const health = window.PhotoHostHealth?.inspect(photo.url, img) || { status:'ok' };
-            report(health.status, health.reason);
+            void displayHostResult(health.status, health.reason);
         };
-        img.onerror = () => report('unavailable', '圖片無法載入');
+        img.onerror = () => { void displayHostResult('unavailable', '圖片無法載入'); };
         img.src = photo.url;
         const counter = el('lightbox-counter');
         if (counter) counter.textContent = (position + 1) + ' / ' + photos.length;
