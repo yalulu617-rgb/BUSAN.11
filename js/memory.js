@@ -225,6 +225,9 @@ window.downloadImage = function () {
 
         // Lightbox navigates only the visible date/search subset.
         window.memoryVisiblePhotos = filtered.map(p => ({ key: p.key, url: p.url }));
+        // The daily highlights consume this same read-only, date-filtered list.
+        if (typeof window.renderMemoryHighlights === 'function')
+            window.renderMemoryHighlights(filtered, selectedDay, photoDay);
         const summary = document.getElementById('memoryAlbumSummary');
         if (summary) summary.textContent = shortDayLabel(selectedDay) + ' · ' + filtered.length + ' 張照片';
 

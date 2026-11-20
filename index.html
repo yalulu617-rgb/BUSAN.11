@@ -20,7 +20,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 
-    <link rel="stylesheet" href="style.css?v=v46-4-9-date-albums-20261120">
+    <link rel="stylesheet" href="style.css?v=v46-4-9-daily-highlights-20261120">
     <link rel="stylesheet" href="assets/css/item-images.css?v=45.4-image1">
     <link rel="stylesheet" href="assets/css/v46-home.css?v=46.0-dev">
     <link rel="stylesheet" href="assets/css/v46-owner-rebuild.css?v=owner-rebuild-1">
@@ -694,6 +694,14 @@
                 <div id="memoryDayTabs" class="memory-day-filter" role="group" aria-label="依拍攝日期選擇旅行相簿"></div>
                 <input type="text" id="memorySearchInput" class="input-box" placeholder="🔍 搜尋當天日期或地點" style="margin-bottom:8px;" oninput="window.memoryAlbumDay='all'; renderMemoryAlbum()">
                 <div id="memoryAlbumSummary" class="memory-album-summary" role="status" aria-live="polite"></div>
+
+                <section id="memoryDailyHighlights" class="memory-daily-highlights" aria-labelledby="dailyHighlightsTitle">
+                    <h4 id="dailyHighlightsTitle">✨ 每日精選照片</h4>
+                    <p id="memoryHighlightStatus" class="memory-highlight-status" role="status" aria-live="polite">自動從已上傳的旅行相簿挑選照片。</p>
+                    <div id="todayPhotosContainer" class="memory-highlight-grid">
+                        <p class="memory-highlight-empty">正在載入既有相簿照片⋯</p>
+                    </div>
+                </section>
                 <div id="albumContainer" class="memory-photo-grid" style="margin-top:12px;"></div>
                 <div id="memoryUploadTools" class="memory-upload-tools"><h4>＋ 上傳照片與定位工具</h4>
                 <div style="background:#eafaf1; border:1.5px solid #a3e4d7; border-radius:14px; padding:10px 12px; margin-bottom:10px; font-size:0.75rem; color:#145a32; line-height:1.5;">
@@ -735,11 +743,6 @@
                 <a href="https://drive.google.com/drive/folders/1eYv4GX8vMQvVNHPSwrp3zfZGb9YNkpsZ" target="_blank" class="btn-action" style="background: linear-gradient(135deg, var(--dora), #3498DB); text-decoration: none; display: block; text-align: center; margin-top: 15px;"><i class="fa-solid fa-cloud-arrow-up"></i> 開啟 Google Drive</a>
             </div>
 
-            <!-- 今日照片 Section -->
-            <div class="card" style="margin-bottom: 20px; background: #ffffff; border-radius: 24px; padding: 20px;">
-                <h3 class="card-title" style="font-weight: 900;"><i class="fa-solid fa-image"></i> 今日精選照片</h3>
-                <div id="todayPhotosContainer" class="photo-grid" style="margin-top: 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;"></div>
-            </div>
             <!-- 今日影片 Section -->
             <div class="card" style="margin-bottom: 12px; background: #ffffff; border-radius: 16px; padding: 12px;">
                 <h3 class="card-title" style="font-weight:900;font-size:1.05rem;margin-bottom:8px;"><i class="fa-solid fa-film"></i> 60 秒旅行精選 VLOG</h3>
@@ -755,11 +758,8 @@
                 <a href="https://drive.google.com/drive/folders/1eYv4GX8vMQvVNHPSwrp3zfZGb9YNkpsZ" target="_blank" class="btn-action" style="background: #27ae60; text-decoration: none; display: block; text-align: center; padding: 8px; font-size:0.75rem;"><i class="fa-solid fa-video"></i> 前往影片金庫</a>
             </div>
 
-            <!-- 精選回憶 Section -->
-            <div class="card" style="margin-bottom: 20px; background: #ffffff; border-radius: 24px; padding: 20px;">
-                <h3 class="card-title" style="font-weight: 900;"><i class="fa-solid fa-wand-magic-sparkles"></i> 精選回憶 Highlights</h3>
-                <div id="highlightMemoriesContainer" style="margin-top:10px;"></div>
-            </div>
+            <!-- Legacy unpopulated Highlights placeholder retained for compatibility, not shown. -->
+            <div id="highlightMemoriesContainer" hidden></div>
         </div>
     </div>
     <!-- 6. 我的旅行 -->
@@ -880,7 +880,8 @@
 <script src="js/auth-sync.js?v=20261109-auth1"></script>
 <script src="js/ui.js?v=20261119-swipe1"></script>
 <script src="js/wallet.js?v=45.6-owner-b"></script>
-<script src="js/memory.js?v=20261120-day-album1"></script>
+<script src="js/memory.js?v=20261120-daily-highlights2"></script>
+<script src="js/memory-highlights.js?v=20261120-daily-highlights2"></script>
 <script src="js/vlog.js?v=20261119-vlog2"></script>
 <script src="js/itinerary.js?v=45.4"></script>
 <script src="components/v46-home.js?v=46.0-dev"></script>

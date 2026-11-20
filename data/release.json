@@ -1,9 +1,9 @@
 {
-  "appVersion": "V46.4.9",
-  "releaseName": "BUSAN.11 V46.4.9 Date Albums and Local VLOG",
+  "appVersion": "V46.4.10",
+  "releaseName": "BUSAN.11 V46.4.10 Daily Memory Highlights",
   "buildDate": "2026-11-20",
-  "gitCommit": "release-page-source",
-  "cacheVersion": "busan-trip-v46-date-albums-v17",
+  "gitCommit": "pending-merge",
+  "cacheVersion": "busan-trip-v46-date-albums-v18",
   "travelDates": "2026/11/13 - 2026/11/17",
   "destination": "Busan & Gyeongju, South Korea"
 }
