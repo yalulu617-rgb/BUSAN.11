@@ -74,10 +74,20 @@
             label.textContent = albumDay === 'all'
                 ? (dayOf(photo) === 'other' ? '日期待分類' : dayOf(photo).slice(5).replace('-', '/'))
                 : ((place && place !== '無定位') ? place : (photo.date || '旅行回憶'));
-            img.addEventListener('error', () => {
-                img.hidden = true;
-                label.textContent = '照片暫時無法載入';
-            }, { once: true });
+            const showSourceIssue = status => {
+                if (status === 'ok') return;
+                button.classList.add('memory-highlight-source-warning');
+                img.style.opacity = '0.12';
+                label.textContent = status === 'suspect'
+                    ? '⚠️ 原圖來源疑似異常'
+                    : '⚠️ 原圖來源無法載入';
+                button.setAttribute('aria-label', '圖片來源異常；查看照片紀錄');
+            };
+            img.addEventListener('error', () => showSourceIssue('unavailable'), { once: true });
+            img.addEventListener('load', () => {
+                const health = root.PhotoHostHealth?.inspect(photo.thumbnailUrl || photo.thumbUrl || photo.url, img);
+                if (health) showSourceIssue(health.status);
+            }, { once:true });
             button.append(img, label);
             button.addEventListener('click', () => {
                 if (typeof root.openLightbox === 'function') root.openLightbox(photo.url, photo.key);
