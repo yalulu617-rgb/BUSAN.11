@@ -1135,6 +1135,108 @@
     if (modal) modal.style.display = 'none';
   };
 
+  // ZIP (stored method) keeps originals byte-for-byte. Exports only files
+  // still present in this device's IndexedDB; it cannot restore old deletions.
+  const BACKUP_ZIP_MAX_BYTES = 300 * 1024 * 1024;
+  const crcTable = Array.from({length:256},(_,i)=>{
+    let x=i;
+    for(let n=0;n<8;n++)x=(x&1)?(0xedb88320^(x>>>1)):(x>>>1);
+    return x>>>0;
+  });
+  function zipCrc32(bytes) {
+    let crc=0xffffffff;
+    for(let i=0;i<bytes.length;i++)crc=crcTable[(crc ^ bytes[i]) & 0xff] ^ (crc>>>8);
+    return (crc^0xffffffff)>>>0;
+  }
+  function zipHeader(length) {
+    return {buf:new Uint8Array(length),view:null};
+  }
+  async function createOriginalsZip(records) {
+    const entries=[];
+    const encoder=new TextEncoder();
+    const manifest=[];
+    for(let i=0;i<records.length;i++){
+      const record=records[i];
+      const raw=record.blob instanceof Blob ? await record.blob.arrayBuffer() : record.blob;
+      if(!(raw instanceof ArrayBuffer))throw new Error('本機第 '+(i+1)+' 張原圖位元組無法讀取，已停止製作備份');
+      const data=new Uint8Array(raw);
+      if(!data.length)throw new Error('本機第 '+(i+1)+' 張原圖是空檔，未輸出不完整 ZIP');
+      const filename=String(record.filename||'photo.jpg').split(/[\\/]/).pop().replace(/[<>:"|?*\x00-\x1f]/g,'_').slice(0,150)||'photo.jpg';
+      const safeId=String(record.id||i).replace(/[^a-zA-Z0-9_-]/g,'').slice(0,58);
+      entries.push({name:'photos/'+safeId+'_'+filename,data});
+      manifest.push({archiveFilename:entries[entries.length-1].name,id:record.id,
+        originalFilename:record.filename||null,synced:Boolean(record.synced),
+        cloudKey:record.cloudKey||null,hostedUrl:record.hostedUrl||null,
+        capturedAt:record.metadata?.capturedAt||null,createdAt:record.createdAt||null});
+      await new Promise(resolve=>setTimeout(resolve,0));
+    }
+    entries.push({name:'backup-manifest.json',data:encoder.encode(JSON.stringify({
+      note:'BUSAN.11 exact original files retained on this device. Includes EXIF/GPS; keep private.',
+      exportedAt:new Date().toISOString(),photos:manifest
+    },null,2))});
+    const local=[],central=[];
+    let offset=0;
+    for(const {name,data} of entries){
+      const nameBytes=encoder.encode(name),crc=zipCrc32(data);
+      const header=new Uint8Array(30+nameBytes.length),v=new DataView(header.buffer);
+      v.setUint32(0,0x04034b50,true);v.setUint16(4,20,true);
+      v.setUint16(8,0,true);v.setUint32(14,crc,true);
+      v.setUint32(18,data.byteLength,true);v.setUint32(22,data.byteLength,true);
+      v.setUint16(26,nameBytes.length,true);header.set(nameBytes,30);
+      local.push(header,data);
+      const directory=new Uint8Array(46+nameBytes.length),dv=new DataView(directory.buffer);
+      dv.setUint32(0,0x02014b50,true);dv.setUint16(4,20,true);dv.setUint16(6,20,true);
+      dv.setUint32(16,crc,true);dv.setUint32(20,data.byteLength,true);
+      dv.setUint32(24,data.byteLength,true);dv.setUint16(28,nameBytes.length,true);
+      dv.setUint32(42,offset,true);directory.set(nameBytes,46);central.push(directory);
+      offset+=header.length+data.length;
+    }
+    const directorySize=central.reduce((sum,x)=>sum+x.length,0);
+    const end=new Uint8Array(22),v=new DataView(end.buffer);
+    v.setUint32(0,0x06054b50,true);
+    v.setUint16(8,entries.length,true);v.setUint16(10,entries.length,true);
+    v.setUint32(12,directorySize,true);v.setUint32(16,offset,true);
+    return new Blob([...local,...central,end],{type:'application/zip'});
+  }
+  let backupExportCursor=0;
+  w.downloadPhotoBackupsZip=async function() {
+    const button=d.getElementById('photoBackupDownload');
+    if(button?.disabled)return;
+    if(button)button.disabled=true;
+    try {
+      const records=(await all()).filter(x=>x?.blob);
+      if(!records.length) {
+        message('這台裝置目前沒有可匯出的 APP 本機原圖。已上傳舊照片不代表仍有本機備份，請保留手機原始照片。','warning');
+        return;
+      }
+      records.sort((a,b)=>String(a.id).localeCompare(String(b.id)));
+      if(backupExportCursor>=records.length)backupExportCursor=0;
+      const start=backupExportCursor,part=[];
+      let bytes=0,index=start;
+      while(index<records.length){
+        const row=records[index],size=row.blob?.byteLength??row.blob?.size??0;
+        if(!size)throw new Error('發現無法讀取的本機原圖，請先保留 APP 資料');
+        if(bytes+size>BACKUP_ZIP_MAX_BYTES && part.length)break;
+        if(size>BACKUP_ZIP_MAX_BYTES)throw new Error('單張原圖超過 300MB，無法以手機 ZIP 備份');
+        part.push(row);bytes+=size;index++;
+      }
+      message('正在本機封裝 '+part.length+' 張原圖（包含 EXIF／GPS），不會重新上傳…');
+      const archive=await createOriginalsZip(part);
+      const url=w.URL.createObjectURL(archive),link=d.createElement('a');
+      const filename='BUSAN11_original_backup_'+new Date().toISOString().slice(0,10)+'_part'+(Math.floor(start/Math.max(part.length,1))+1)+'.zip';
+      link.href=url;link.download=filename;link.style.display='none';
+      d.body.appendChild(link);link.click();link.remove();
+      w.setTimeout(()=>w.URL.revokeObjectURL(url),60000);
+      backupExportCursor=index;
+      message(index<records.length ?
+        '已提出本批 '+part.length+' 張 ZIP 下載；還有 '+(records.length-index)+' 張，確認下載完成後再按一次備份。' :
+        '已提出共 '+records.length+' 張原圖 ZIP 下載；請到手機「下載」確認 ZIP 已保存。', 'success');
+    } catch(error) {
+      console.error('[PhotoBackup] Export failed',error);
+      message('原圖備份未完成：'+(error?.message||error)+'。本機照片仍保留。','error');
+    } finally {if(button)button.disabled=false;}
+  };
+
   w.retryPendingPhotos=async function(){
     let stored;
     try{stored=await all();}catch(e){message('本機照片讀取失敗；原資料保留','error');return;}
@@ -1750,7 +1852,9 @@
   w.PhotoLocalSafety={
     readExif,
     refreshAlbum,
-    getPending:all,
+    getPending:async()=> (await all()).filter(x=>!x.synced),
+    getBackupState:async()=> {const rows=await all();return {retained:rows.filter(x=>x.synced).length,pending:rows.filter(x=>!x.synced).length};},
+    downloadOriginalsZip:w.downloadPhotoBackupsZip,
     updateLocation:w.updatePhotoLocation,
     batchUpdateLocation:w.batchUpdatePhotoLocation,
     getDiagnostics:() => (w.latestPhotoDiagnostics || []),
