@@ -5,8 +5,7 @@
     const el = id => document.getElementById(id);
     const MAX_DAILY = 4;
     let generation = 0;
-    let latestCacheKey = '';
-    let latestCacheResult = null;
+    const qualityCache = new Map(); // Bound cache avoids repeat CDN downloads on tab switching.
 
     function chronological(a, b) {
         const key = p => String(p.capturedAt || p.date || '') + '|' + String(p.key || '');
@@ -107,8 +106,9 @@
         if (!rows.length || !root.VlogSelectionEngine?.pickHighlights || albumDay === 'other') return;
         const key = albumDay + '|' + rows.map(p =>
             [p.key, p.url, p.capturedAt || p.date || ''].join(':')).join('|');
-        if (key === latestCacheKey && latestCacheResult) {
-            draw(rows, albumDay, dayOf, latestCacheResult.candidates, latestCacheResult.qualityChecked);
+        const cached = qualityCache.get(key);
+        if (cached) {
+            if (cached.qualityChecked > 0) draw(rows, albumDay, dayOf, cached.candidates, cached.qualityChecked);
             return;
         }
         // Analyze a small, time-distributed sample so the gallery stays responsive.
@@ -119,13 +119,13 @@
             if (!groups.has(day)) groups.set(day, []);
             groups.get(day).push(p);
         });
-        const sample = [...groups.values()].flatMap(photos => spaced(photos, albumDay === 'all' ? 4 : 12));
+        const sample = [...groups.values()].flatMap(photos => spaced(photos, albumDay === 'all' ? 2 : 6));
         if (!sample.length) return;
         Promise.resolve().then(() => root.VlogSelectionEngine.pickHighlights(sample))
             .then(result => {
                 if (token !== generation || !result || !Array.isArray(result.candidates)) return;
-                latestCacheKey = key;
-                latestCacheResult = result;
+                qualityCache.set(key, result);
+                if (qualityCache.size > 8) qualityCache.delete(qualityCache.keys().next().value);
                 if (result.qualityChecked > 0)
                     draw(rows, albumDay, dayOf, result.candidates, result.qualityChecked);
             })
