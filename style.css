@@ -160,6 +160,14 @@ body {
         #albumContainer .photo-host-issue { outline:2px solid #d99d56; outline-offset:0; }
         #albumContainer .photo-host-issue-tag { position:absolute; z-index:4; top:9px; left:8px; right:8px; width:max-content; max-width:calc(100% - 16px); border-radius:8px; padding:4px 7px; background:rgba(51,39,31,.93); color:#fff3db; font-size:.68rem; font-weight:900; pointer-events:none; }
         .memory-highlight-card.memory-highlight-source-warning { border-color:#d7a96a; background:#f5ecdf; }
+        .memory-cloud-rescue { padding:12px; border:1px solid #cbb68f; border-radius:14px; margin:12px 0; background:#fffdf7; color:#73523d; }
+        .memory-cloud-rescue h4 { font-size:.88rem; margin:0 0 7px; color:#875039; }
+        #cloudRescueCount { font-size:.79rem; font-weight:900; line-height:1.6; }
+        #cloudRescueStatus { font-size:.75rem; line-height:1.6; margin-top:9px; font-weight:800; white-space:pre-wrap; overflow-wrap:anywhere; }
+        .memory-cloud-rescue p { font-size:.7rem; line-height:1.65; margin:8px 0 0; color:#826e61; }
+        .memory-cloud-rescue-next { background:#50704b; }
+        .memory-cloud-rescue-report { font:inherit; font-size:.78rem; font-weight:850; display:block; width:100%; min-height:40px; border-radius:10px; margin-top:8px; background:transparent; border:1px solid #b99573; color:#80553c; cursor:pointer; }
+        .memory-cloud-rescue [hidden] { display:none !important; }
         .memory-backup-card { border:1px solid #ddbd8f; background:#fff8eb; color:#79533b; padding:12px; border-radius:13px; margin:12px 0; }
         .memory-backup-card #photoBackupStatus { font-size:.78rem; font-weight:900; line-height:1.55; }
         .memory-backup-card p { font-size:.69rem; line-height:1.6; color:#826c58; margin:8px 0 0; }
