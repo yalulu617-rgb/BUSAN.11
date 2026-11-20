@@ -121,13 +121,26 @@ window.downloadImage = function () {
         
         grid.innerHTML = '';
         
-        let filtered = [...window.photoList || []];
+        // Newest captured photo first. Upload/server timestamps are deliberately
+        // ignored so slow uploads cannot change the real travel chronology.
+        const captureTime = photo => {
+            const captured = Date.parse(String(photo?.capturedAt || ''));
+            if (Number.isFinite(captured)) return captured;
+            const dated = Date.parse(String(photo?.date || ''));
+            return Number.isFinite(dated) ? dated : Number.NEGATIVE_INFINITY;
+        };
+        let filtered = [...(window.photoList || [])].sort((a, b) => captureTime(b) - captureTime(a));
         const searchInput = document.getElementById('memorySearchInput');
         if (searchInput && searchInput.value.trim() !== '') {
             const query = searchInput.value.trim().toLowerCase();
             filtered = filtered.filter(p => String(p.date || '').toLowerCase().includes(query) || String(p.placeName || p.city || '').toLowerCase().includes(query));
         }
         
+        // Snapshot the exact displayed album order so the lightbox can swipe through
+        // the same photos (including the active search filter) without touching uploads.
+        window.memoryVisiblePhotos = filtered.filter(p => p && p.key && p.url)
+            .map(p => ({ key: p.key, url: p.url }));
+
         if (filtered.length === 0) {
             grid.innerHTML = "<div class='empty-state' style='grid-column: span 2; text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:20px 0;'>📸 尚無拍立得照片，點擊下方按鈕上傳第一張旅行回憶吧！</div>";
             return;

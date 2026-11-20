@@ -4,7 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    # PR #9 targets the currently deployed source branch; run the same quality
+    # gate there while keeping deploy gated to main pushes below.
+    branches: [main, pages-seq13-public-shell]
   workflow_dispatch:
 
 # Prevent concurrent deployments
@@ -42,11 +44,11 @@ jobs:
             'ute/ute_place.js','ute/ute_city.js','ute/ute_weather.js',
             'ute/ute_navigation.js','ute/ute_budget.js','ute/ute_ai.js',
             'ute/ute_context.js','ute/ute_main.js','ute/ute_home_v46.js',
-            'ute/ute_shopping_photo.js','ute/ute_private_ledger.js','ute/ute_pwa_install.js',
+            'ute/ute_shopping_photo.js','ute/ute_private_ledger.js','ute/ute_pwa_install.js','ute/ute_vlog.js',
             'services/nearby.js','services/utils.js','services/item-images.js',
             'data/recommended.js',
             'js/firebase.js','js/ui.js','js/wallet.js',
-            'js/memory.js','js/itinerary.js','js/app.js',
+            'js/memory.js','js/vlog.js','js/itinerary.js','js/app.js',
             'components/v46-home.js','components/renderers.js'
           ];
           let pass = 0; let fail = 0;
@@ -69,6 +71,9 @@ jobs:
 
       - name: Verify release metadata stamping
         run: node tests/release-metadata.test.mjs
+
+      - name: Verify local VLOG highlight selection safeguards
+        run: node --test tests/vlog-selection.unit.mjs
 
       - name: Validate data/places.json
         run: node -e "JSON.parse(require('fs').readFileSync('data/places.json','utf8')); console.log('✅ places.json valid');"
@@ -148,7 +153,7 @@ jobs:
           serve -s . -l 8080 &
           echo "Waiting for server..."
           sleep 3
-          curl -f http://localhost:8080/ || (echo "❌ Server failed to start" && exit 1)
+          curl -fsS -o /dev/null http://localhost:8080/ || (echo "❌ Server failed to start" && exit 1)
           echo "✅ Server running on port 8080"
 
       - name: Run Playwright E2E tests (${{ matrix.project }})
@@ -290,6 +295,100 @@ jobs:
             test-results/
           retention-days: 14
 
+  # Real recorder/export validation using a synthetic local fixture. This job
+  # runs only on the isolated CI server and never touches Firebase or real photos.
+  vlog-media-export:
+    name: 🎬 VLOG MP4/WebM export (mobile Chromium)
+    needs: static-validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: 'npm'
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: |
+          npx serve -s . -l 8080 > /tmp/busan-vlog-preview.log 2>&1 &
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            if curl -fsS http://localhost:8080/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/busan-vlog-preview.log
+          exit 1
+      - name: Generate, download and decode a real video file
+        run: npx playwright test tests/vlog-media.spec.js --project=mobile-chrome --workers=1 --retries=0 --reporter=html,list
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
+          BUSAN_CI_FIREBASE_ISOLATED: '1'
+          VLOG_MEDIA_E2E: '1'
+          CI: true
+          PLAYWRIGHT_HTML_OPEN: never
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: vlog-media-export-evidence
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14
+
+  # Build and test a disposable preview with no production Firebase/ImgBB
+  # configuration. The artifact is for QA only and never deploys to Pages.
+  isolated-owner-preview:
+    name: 🧪 Firebase-isolated candidate preview
+    needs: static-validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: 'npm'
+      - run: npm ci
+      - name: Build the disposable preview and reject live credentials
+        run: |
+          node scripts/build-owner-isolated-preview.mjs
+          node --input-type=module -e "
+          import fs from 'node:fs';
+          const html=fs.readFileSync('public/index.html','utf8');
+          const firebase=fs.readFileSync('public/js/firebase.js','utf8');
+          if(!html.includes('v46-sandbox-notice')||!firebase.includes('__testOnly:true')||
+             /busan-trip-2026-4148f|AIzaSy|8a4c0f3b5d2e7a9b1c6f/.test(firebase)||
+             fs.existsSync('public/services/network.js'))process.exit(1);
+          console.log('Isolated preview verified; no production Firebase, ImgBB or network adapter');
+          "
+      - run: npx playwright install --with-deps chromium
+      - name: Serve only the isolated preview build
+        run: |
+          npx serve -s public -l 8080 > /tmp/busan-owner-preview.log 2>&1 &
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            if curl -fsS http://localhost:8080/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/busan-owner-preview.log
+          exit 1
+      - name: Validate safe preview and mobile layouts
+        run: npx playwright test tests/v46-owner-sandbox.spec.js tests/v46-owner-preview-mobile.spec.js --project=chromium --workers=1 --retries=0 --reporter=html,list
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: http://localhost:8080
+          BUSAN_CI_FIREBASE_ISOLATED: '1'
+          V46_SANDBOX_BUILD: '1'
+          CI: true
+          PLAYWRIGHT_HTML_OPEN: never
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: busan-v46.4.8-isolated-preview
+          path: |
+            public/
+            test-results/
+            playwright-report/
+          retention-days: 14
+
   # ─────────────────────────────────────────────────────
   # JOB 3: Accessibility, UX & Travel Data Checks
   # ─────────────────────────────────────────────────────
@@ -340,7 +439,7 @@ jobs:
   # ─────────────────────────────────────────────────────
   deploy:
     name: 🚀 Deploy to GitHub Pages
-    needs: [static-validation, e2e-tests, accessibility-ux-travel, v46-mobile-acceptance, firefox-mobile-zoom-qa]
+    needs: [static-validation, e2e-tests, accessibility-ux-travel, v46-mobile-acceptance, firefox-mobile-zoom-qa, vlog-media-export, isolated-owner-preview]
     runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     environment:
@@ -389,3 +488,4 @@ jobs:
           echo "- E2E Tests (Chromium, Firefox, WebKit): PASS" >> $GITHUB_STEP_SUMMARY
           echo "- Accessibility, UX & Travel Safety: PASS" >> $GITHUB_STEP_SUMMARY
           echo "- Live Production Site Verification: PASS" >> $GITHUB_STEP_SUMMARY
+

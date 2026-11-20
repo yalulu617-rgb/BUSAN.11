@@ -56,9 +56,9 @@ export default defineConfig({
   // ── Auto-start dev server ──────────────────────────────────────────────────
   // Only active when running against localhost (not a remote/production URL).
   // Set PLAYWRIGHT_TEST_BASE_URL=https://... to bypass this and hit the real site.
-  webServer: BASE_URL.includes('localhost') ? {
+  webServer: BASE_URL === 'http://localhost:8080' ? {
     command: 'npm run serve',
-    url: 'http://localhost:8080',
+    url: BASE_URL,
     timeout: 30000,
     reuseExistingServer: true,
     stdout: 'pipe',
@@ -119,3 +119,4 @@ export default defineConfig({
   // Test timeout
   timeout: 60000,
 });
+

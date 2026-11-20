@@ -299,7 +299,7 @@ test.describe('4. Galaxy S25 Responsive Layout & PWA Freshness', () => {
 
   test('Service Worker cache version bumped and photo-local-safe is precached', async ({ page }) => {
     const release = await (await page.request.get('/data/release.json')).json();
-    expect(release.cacheVersion).toMatch(/^busan-trip-v46-photo-gps-v(14|13|12|11|10|[6-9])/);
+    expect(release.cacheVersion).toMatch(/^busan-trip-v46-(?:photo-gps-v(?:14|13|12|11|10|[6-9])|memory-vlog-v(?:15|16))$/);
     expect(release.appVersion).toMatch(/^V46\.[34]\./);
   });
 });
@@ -907,6 +907,7 @@ test.describe('11. PWA Web Share Target for Samsung S25 Direct Photo Sharing (V4
       }
       const byteArray = new Uint8Array(byteNums);
       const fakeFile = new File([byteArray], 'S25_20261108_Haeundae.jpg', { type: 'image/jpeg' });
+      const fileBytes = await fakeFile.arrayBuffer();
 
       // Put into share DB
       await new Promise((resolve, reject) => {
@@ -923,7 +924,7 @@ test.describe('11. PWA Web Share Target for Samsung S25 Direct Photo Sharing (V4
           const store = tx.objectStore('sharedIncomingPhotos');
           store.put({
             id: 'share_test_1',
-            file: fakeFile,
+            fileBytes,
             name: fakeFile.name,
             type: fakeFile.type,
             size: fakeFile.size,
@@ -958,3 +959,4 @@ test.describe('11. PWA Web Share Target for Samsung S25 Direct Photo Sharing (V4
     expect(currentUrl).not.toContain('incoming_share=photo');
   });
 });
+

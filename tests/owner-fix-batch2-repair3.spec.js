@@ -15,7 +15,12 @@ const reservationStates = {
 };
 
 test.describe('Owner Fix Batch 2 Repair 3 — truthful reservations and credentials', () => {
-  test.beforeEach(async ({ page }) => { await bootApp(page); });
+  test.beforeEach(async ({ page }, testInfo) => {
+    if (testInfo.title.includes('Coupon, Hotel, K-ETA and canonical flights')) {
+      await page.clock.install({ time: new Date('2026-11-12T15:00:00Z') });
+    }
+    await bootApp(page);
+  });
 
   test('Ticket shows all canonical reservations with one truthful state and no fake credential', async ({ page }) => {
     await page.evaluate(() => {
@@ -98,7 +103,10 @@ test.describe('Owner Fix Batch 2 Repair 3 — truthful reservations and credenti
     expect(hotelText.replaceAll('-', '/')).toContain('2026/11/13');
     expect(hotelText.replaceAll('-', '/')).toContain('2026/11/17');
 
-    await page.evaluate(() => window.showV37Tab('home'));
+    await page.evaluate(() => {
+      window.setV46HomePreview('before');
+      window.showV37Tab('home');
+    });
     await page.waitForFunction(() => document.getElementById('v37HomeDashboard')?.textContent?.includes('2026/12/31'));
     await expect(page.locator('#v37HomeDashboard')).toContainText('K-ETA：本次免申請');
 
@@ -110,3 +118,4 @@ test.describe('Owner Fix Batch 2 Repair 3 — truthful reservations and credenti
     expect(travel.inbound).toMatchObject({ flightNo: 'KE2085', date: '2026-11-17', departureTime: '14:50', arrivalTime: '16:30' });
   });
 });
+
