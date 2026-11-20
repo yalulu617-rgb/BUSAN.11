@@ -115,37 +115,116 @@ window.downloadImage = function () {
         }
     };
 
+    // Date albums are display-only: keep all photo keys, original URLs,
+    // EXIF/GPS, Firebase records and upload workflows unchanged.
+    const TRIP_ALBUM_DAYS = ['2026-11-13', '2026-11-14', '2026-11-15', '2026-11-16', '2026-11-17'];
+    const shortDayLabel = day => {
+        if (day === 'all') return '全部照片';
+        if (day === 'other') return '其他日期／待分類';
+        const index = TRIP_ALBUM_DAYS.indexOf(day);
+        const names = ['五', '六', '日', '一', '二'];
+        return 'Day ' + (index + 1) + ' · ' + day.slice(5).replace('-', '/') + '（' + names[index] + '）';
+    };
+    const photoDay = photo => {
+        for (const value of [photo?.capturedAt, photo?.date]) {
+            const raw = String(value || '').trim();
+            const full = /^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/.exec(raw);
+            const short = /^(\d{1,2})[-/](\d{1,2})(?:$|\D)/.exec(raw);
+            const year = full ? Number(full[1]) : short ? 2026 : NaN;
+            const month = full ? Number(full[2]) : short ? Number(short[1]) : NaN;
+            const day = full ? Number(full[3]) : short ? Number(short[2]) : NaN;
+            if (Number.isFinite(year) && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+                const valid = new Date(year, month - 1, day);
+                if (valid.getFullYear() === year && valid.getMonth() === month - 1 && valid.getDate() === day)
+                    return String(year).padStart(4, '0') + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+            }
+        }
+        return 'other';
+    };
+    window.selectMemoryAlbumDay = function(day) {
+        if (!['all', 'other', ...TRIP_ALBUM_DAYS].includes(day)) return;
+        window.memoryAlbumDay = day;
+        window.renderMemoryAlbum();
+    };
+
     window.renderMemoryAlbum = function() {
         const grid = document.getElementById('albumContainer');
         if (!grid) return;
-        
+        grid.classList.add('memory-photo-grid');
         grid.innerHTML = '';
-        
-        // Newest captured photo first. Upload/server timestamps are deliberately
-        // ignored so slow uploads cannot change the real travel chronology.
+
+        // Use original capture chronology, never upload timestamps.
         const captureTime = photo => {
             const captured = Date.parse(String(photo?.capturedAt || ''));
             if (Number.isFinite(captured)) return captured;
-            const dated = Date.parse(String(photo?.date || ''));
-            return Number.isFinite(dated) ? dated : Number.NEGATIVE_INFINITY;
+            const day = photoDay(photo);
+            return day === 'other' ? Number.NEGATIVE_INFINITY : Date.parse(day + 'T12:00:00');
         };
-        let filtered = [...(window.photoList || [])].sort((a, b) => captureTime(b) - captureTime(a));
-        const searchInput = document.getElementById('memorySearchInput');
-        if (searchInput && searchInput.value.trim() !== '') {
-            const query = searchInput.value.trim().toLowerCase();
-            filtered = filtered.filter(p => String(p.date || '').toLowerCase().includes(query) || String(p.placeName || p.city || '').toLowerCase().includes(query));
-        }
-        
-        // Snapshot the exact displayed album order so the lightbox can swipe through
-        // the same photos (including the active search filter) without touching uploads.
-        window.memoryVisiblePhotos = filtered.filter(p => p && p.key && p.url)
-            .map(p => ({ key: p.key, url: p.url }));
+        const photos = (Array.isArray(window.photoList) ? window.photoList : [])
+            .filter(p => p && p.key && p.url)
+            .slice().sort((a, b) => captureTime(b) - captureTime(a));
+        const counts = new Map([...TRIP_ALBUM_DAYS, 'other'].map(day => [day, 0]));
+        photos.forEach(p => {
+            const day = photoDay(p);
+            const folder = counts.has(day) ? day : 'other';
+            counts.set(folder, counts.get(folder) + 1);
+        });
 
-        if (filtered.length === 0) {
-            grid.innerHTML = "<div class='empty-state' style='grid-column: span 2; text-align:center; color:#95a5a6; font-size:0.85rem; font-weight:900; padding:20px 0;'>📸 尚無拍立得照片，點擊下方按鈕上傳第一張旅行回憶吧！</div>";
+        // On first real photo load, show the latest populated travel day instead
+        // of dumping the entire multi-day album into one long scroll.
+        if (!window.memoryAlbumDay && photos.length) {
+            window.memoryAlbumDay = [...TRIP_ALBUM_DAYS].reverse().find(day => counts.get(day) > 0)
+                || (counts.get('other') ? 'other' : 'all');
+        }
+        if (window.memoryAlbumDay === 'other' && !counts.get('other')) window.memoryAlbumDay = 'all';
+        const selectedDay = window.memoryAlbumDay || 'all';
+        const nav = document.getElementById('memoryDayTabs');
+        if (nav) {
+            const options = [
+                ...TRIP_ALBUM_DAYS.map(day => ({ day, label: shortDayLabel(day), count: counts.get(day) })),
+                ...(counts.get('other') ? [{ day: 'other', label: shortDayLabel('other'), count: counts.get('other') }] : []),
+                { day: 'all', label: '全部照片', count: photos.length }
+            ];
+            const escapeText = v => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            nav.innerHTML = options.map(({ day, label, count }) =>
+                '<button type="button" class="memory-day-chip" data-memory-day="' + day + '" aria-pressed="' + (selectedDay === day) +
+                '" onclick="selectMemoryAlbumDay(\'' + day + '\')">' +
+                '<span class="memory-day-chip-label">' + escapeText(label) + '</span>' +
+                '<span class="memory-day-chip-count">' + count + ' 張</span></button>'
+            ).join('');
+        }
+
+        const searchInput = document.getElementById('memorySearchInput');
+        const query = String(searchInput?.value || '').trim().toLowerCase();
+        let filtered = photos;
+        if (query) {
+            filtered = filtered.filter(p => {
+                const day = photoDay(p);
+                const shortDate = day === 'other' ? '' : day.slice(5).replace('-', '/');
+                return [p.date, p.capturedAt, p.placeName, p.city, day, shortDate]
+                    .some(value => String(value || '').toLowerCase().includes(query));
+            });
+        }
+        if (selectedDay !== 'all') {
+            filtered = filtered.filter(p => {
+                const day = photoDay(p);
+                return selectedDay === 'other' ? !TRIP_ALBUM_DAYS.includes(day) : day === selectedDay;
+            });
+        }
+
+        // Lightbox navigates only the visible date/search subset.
+        window.memoryVisiblePhotos = filtered.map(p => ({ key: p.key, url: p.url }));
+        const summary = document.getElementById('memoryAlbumSummary');
+        if (summary) summary.textContent = shortDayLabel(selectedDay) + ' · ' + filtered.length + ' 張照片';
+
+        if (!filtered.length) {
+            const message = !photos.length ? '📸 還沒有旅行照片，已上傳的照片會自動按照拍攝日期分相簿。'
+                : query ? '找不到符合搜尋條件的照片。可以清除搜尋或切換日期。'
+                : '這一天目前沒有照片，請選擇其他日期。';
+            grid.innerHTML = '<div class="memory-empty-state">' + message + '</div>';
             return;
         }
-        
+
         // Original capture time / GPS only; never substitute upload time or a default city.
         const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         const timeOf = p => {
@@ -164,7 +243,21 @@ window.downloadImage = function () {
             return null;
         };
 
+        let previousFolder = '';
         filtered.forEach(p => {
+            if (selectedDay === 'all') {
+                const rawDay = photoDay(p);
+                const folder = TRIP_ALBUM_DAYS.includes(rawDay) ? rawDay : 'other';
+                if (folder !== previousFolder) {
+                    previousFolder = folder;
+                    const count = filtered.filter(item => {
+                        const itemDay = photoDay(item);
+                        return (TRIP_ALBUM_DAYS.includes(itemDay) ? itemDay : 'other') === folder;
+                    }).length;
+                    grid.innerHTML += '<h4 class="memory-album-group-heading">' +
+                        shortDayLabel(folder) + ' · ' + count + ' 張</h4>';
+                }
+            }
             const time = timeOf(p);
             const place = placeOf(p);
             const mapsUrl = mapsUrlOf(p);
