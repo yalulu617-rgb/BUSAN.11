@@ -1198,6 +1198,14 @@
     v.setUint32(12,directorySize,true);v.setUint32(16,offset,true);
     return new Blob([...local,...central,end],{type:'application/zip'});
   }
+  async function getRetainedOriginalUrl(cloudKey) {
+    if(!cloudKey)return null;
+    const row=(await all()).find(x=>x.synced && (x.cloudKey===cloudKey || x.id===cloudKey) && x.blob);
+    if(!row)return null;
+    if(!urlById.has(row.id))urlById.set(row.id,w.URL.createObjectURL(photoBlob(row)));
+    return urlById.get(row.id);
+  }
+
   let backupExportCursor=0;
   w.downloadPhotoBackupsZip=async function() {
     const button=d.getElementById('photoBackupDownload');
@@ -1855,6 +1863,7 @@
     getPending:async()=> (await all()).filter(x=>!x.synced),
     getBackupState:async()=> {const rows=await all();return {retained:rows.filter(x=>x.synced).length,pending:rows.filter(x=>!x.synced).length};},
     downloadOriginalsZip:w.downloadPhotoBackupsZip,
+    getRetainedOriginalUrl,
     updateLocation:w.updatePhotoLocation,
     batchUpdateLocation:w.batchUpdatePhotoLocation,
     getDiagnostics:() => (w.latestPhotoDiagnostics || []),
