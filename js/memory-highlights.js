@@ -19,8 +19,10 @@
             const start = Math.floor(i * ordered.length / amount);
             const end = Math.max(start + 1, Math.floor((i + 1) * ordered.length / amount));
             const block = ordered.slice(start, end);
-            if (preferScore) block.sort((a, b) => (b._vlogScore || 0) - (a._vlogScore || 0));
-            if (block[0]) chosen.push(block[0]);
+            const analyzed = preferScore ? block.filter(p => p._vlogAnalyzed && Number.isFinite(p._vlogScore)) : [];
+            analyzed.sort((a, b) => b._vlogScore - a._vlogScore);
+            const representative = analyzed[0] || block[Math.floor((block.length - 1) / 2)];
+            if (representative) chosen.push(representative);
         }
         return chosen;
     }
@@ -46,7 +48,8 @@
         }
         if (albumDay === 'all') {
             // One representative per distinct day keeps the five-day overview short.
-            return [...group.entries()].sort((a, b) => b[0].localeCompare(a[0]))
+            return [...group.entries()].sort((a, b) =>
+                a[0] === 'other' ? 1 : b[0] === 'other' ? -1 : b[0].localeCompare(a[0]))
                 .map(([, records]) => best(records, 1)[0]).filter(Boolean);
         }
         return best(rows, MAX_DAILY);
