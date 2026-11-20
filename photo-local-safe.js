@@ -1,7 +1,7 @@
-/* BUSAN.11 Photo-local-safety patch. Revision 2026-11-09.
+/* BUSAN.11 Photo-local-safety patch. Revision 2026-11-20.
  * Purpose: preserve selected original photo before any remote upload;
  * extract EXIF capture time/GPS (when supplied), show pending photos locally,
- * distinguish device storage from remote sync. Never clears user data.
+ * distinguish device storage from remote sync. Never auto-delete local originals.
  * Guarantees idempotent stable Firebase path to prevent duplicate photos on retry.
  * Protects GPS privacy by stripping metadata before public image host upload.
  */
@@ -579,7 +579,8 @@
       city: meta.placeName || null,
       missingReason: meta.missingReason || null,
       localOnly: true,
-      pendingSync: true
+      pendingSync: !record.synced,
+      backupOnly: Boolean(record.synced)
     };
   };
   const upstreamRender=w.renderMemoryAlbum;
@@ -590,15 +591,25 @@
     try{stored=await all();}catch(e){console.warn('[PhotoLocal] Cannot read local photos',e);return;}
     if(seq!==refreshGeneration)return;
     const remote=(Array.isArray(w.photoList)?w.photoList:[]).filter(x=>!x.localOnly);
-    w.photoList=remote.concat(stored.map(localRow));
+    const remoteKeys=new Set(remote.map(x=>x.key));
+    // Successful cloud uploads remain archived in this device's IndexedDB.
+    // Hide local duplicate only while its Firebase record is visible; if cloud
+    // metadata disappears the owner can still open the preserved original here.
+    const visibleLocal=stored.filter(x=>!x.synced || !remoteKeys.has(x.cloudKey)).map(localRow);
+    w.photoList=remote.concat(visibleLocal);
     upstreamRender();
-    const localCount=stored.length;
+    const pending=stored.filter(x=>!x.synced);
+    const saved=stored.filter(x=>x.synced);
+    const backupState=d.getElementById('photoBackupStatus');
+    if(backupState) {
+      backupState.textContent=`📂 此裝置保留原圖 ${saved.length} 張；待同步 ${pending.length} 張。這不是跨裝置備份，請另外下載 ZIP 保存。`;
+    }
     const label=d.getElementById('photoLocalCount');
     if(label){
-      const lastErr = stored.find(x => x.lastError)?.lastError;
+      const lastErr = pending.find(x => x.lastError)?.lastError;
       const errNotice = lastErr ? ` (${lastErr})` : '';
-      label.textContent=localCount?`📱 ${localCount} 張照片只保存在此裝置；尚未同步雙人相簿${errNotice}。`:' ';
-      if(localCount){
+      label.textContent=`📂 本機保留 ${saved.length} 張原圖；${pending.length} 張待同步${errNotice}。`;
+      if(pending.length){
         const retry=d.createElement('button');retry.type='button';retry.id='photoRetrySync';retry.textContent='重試同步';
         retry.style.cssText='margin-left:8px;min-height:36px;padding:4px 12px;border-radius:10px;border:1px solid #c9a26b;background:#fff4de;color:#7a4a1c;font-weight:800;';
         retry.addEventListener('click',()=>{void w.retryPendingPhotos();});
@@ -611,7 +622,12 @@
   w.deleteCurrentPhoto=async function(){
     const id=w.currentLightboxKey;
     if(!String(id||'').startsWith('local_photo_'))return upstreamDelete?.apply(this,arguments);
-    if(!w.confirm('確認刪除此裝置上的照片？此操作不可還原。'))return;
+    const current=(await all()).find(x=>x.id===id);
+    if(current?.synced){
+      message('這是留存的本機原圖；請先匯出獨立備份，不允許在照片預覽中刪除','warning');
+      return;
+    }
+    if(!w.confirm('確認刪除此裝置上的待同步照片？此操作不可還原。'))return;
     try{await remove(id); const url=urlById.get(id); if(url)w.URL.revokeObjectURL(url);urlById.delete(id);
       w.photoList=(w.photoList||[]).filter(x=>x.key!==id);w.closeLightbox?.();await refreshAlbum();message('已刪除此裝置照片','success');}
     catch(e){message('本機照片刪除失敗；原資料保留','error');}
@@ -621,6 +637,7 @@
   // Uses stable Firebase path (photo_<id>) so retries are strictly idempotent.
   const syncing=new Set();
   async function syncEntry(entry){
+    if(entry.synced) return true; // Archived originals never upload again.
     if(syncing.has(entry.id))return false;
     syncing.add(entry.id);
     try{
@@ -683,7 +700,12 @@
             missingReason: entry.metadata.missingReason || null
           });
         }
-        await remove(entry.id);
+        // Never discard the sole app-managed original after writing an ImgBB
+        // URL. Retain the exact bytes, EXIF, capture time, GPS and cloud key.
+        entry.synced = true;
+        entry.syncedAt = Date.now();
+        entry.lastError = null;
+        await put(entry);
         const url = urlById.get(entry.id);
         if (url) w.URL.revokeObjectURL(url);
         urlById.delete(entry.id);
@@ -1118,9 +1140,10 @@
     try{stored=await all();}catch(e){message('本機照片讀取失敗；原資料保留','error');return;}
     if(!stored.length){return;}
     let ok=0;
-    for(const entry of stored){if(await syncEntry(entry))ok++;}
+    const unsynced=stored.filter(entry=>!entry.synced);
+    for(const entry of unsynced){if(await syncEntry(entry))ok++;}
     await refreshAlbum();
-    const left=stored.length-ok;
+    const left=unsynced.length-ok;
     if (ok > 0) {
       message(left?`已同步 ${ok} 張；仍有 ${left} 張待同步`:`✅ ${ok} 張已同步雙人相簿`,left?'warning':'success');
     }
