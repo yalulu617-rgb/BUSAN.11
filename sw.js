@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────
 // Rules:
 // - Cache ONLY local files that physically exist in this repository
-// - Do NOT cache CDN URLs (Firebase, FontAwesome, Google Fonts, wttr.in, etc.)
+// - Do NOT cache CDN URLs (including i.ibb.co ImgBB photo files).
 // - Network-first for Critical App Shell (HTML, JS, CSS, JSON) to ensure instant updates
 // - Cache-first with network fallback for static media (images, icons)
 // ─────────────────────────────────────────────────────────────────────────
@@ -78,6 +78,7 @@ const NETWORK_ONLY_DOMAINS = [
     'gstatic.com',
     'googleapis.com',
     'imgbb.com',
+    'ibb.co', // ImgBB API returns direct files on i.ibb.co; never cache error tiles.
     'exchangerate-api.com',
     'api.open-meteo.com',
     'wttr.in',
