@@ -73,8 +73,11 @@
     const list = session?.audit || [];
     const counts = {};
     for (const row of list) counts[row.status] = (counts[row.status] || 0) + 1;
-    const downloaded = list.filter(row => row.downloadStatus === 'bytes-fetched').length;
+    // Only count files actually packaged into ZIPs with a download initiated;
+    // a successful fetch alone is not an independent backup.
+    const downloaded = list.filter(row => row.downloadStatus === 'zip-export-requested').length;
     return { total: list.length, counts, downloaded,
+      zipParts: session?.zipParts?.map(p => ({ filename:p.filename, files:p.files, bytes:p.bytes })) || [],
       attempted: list.filter(row => row.downloadStatus).length,
       nextCursor: session?.cursor || 0,
       remainingCandidates: session ? session.candidates.length - session.cursor : 0
@@ -86,7 +89,7 @@
       status('現在還沒有載入雲端照片清單。請保留原始資料；不會要求重新上傳。');
       return false;
     }
-    session = { audit: new Array(photos.length), candidates: [], cursor: 0, startedAt: Date.now() };
+    session = { audit: new Array(photos.length), candidates: [], cursor: 0, startedAt: Date.now(), zipParts: [] };
     let index = 0, completed = 0;
     await Promise.all(Array.from({ length: Math.min(MAX_PROBES, photos.length) }, async () => {
       while (index < photos.length) {
@@ -133,11 +136,12 @@
       const format = signature(new Uint8Array(buffer, 0, Math.min(buffer.byteLength, 24)));
       if (!format) throw new Error('伺服器未回傳可辨識圖片檔，可能是錯誤頁');
       const safeKey = photo.key.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 70);
-      photo.downloadStatus = 'bytes-fetched';
-      photo.bytes = buffer.byteLength;
+      // SHA-256 allows the ZIP manifest to validate exact bytes later.
+      const digest = await root.crypto.subtle.digest('SHA-256', buffer);
+      const sha256 = [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2,'0')).join('');
       return { id: photo.key, cloudKey: photo.key, filename: safeKey + '.' + format,
         blob: buffer, hostedUrl: photo.url, metadata: { capturedAt: photo.date },
-        synced: true };
+        sha256, synced: true };
     } catch (error) {
       // A CORS-blocked fetch does NOT prove the remote image was deleted.
       photo.downloadStatus = 'unreadable-from-browser';
@@ -166,7 +170,8 @@
         key: p.key, url: p.url, date: p.date, status: p.status,
         imageWidth: p.width, imageHeight: p.height,
         downloadStatus: p.downloadStatus || 'not-attempted',
-        downloadReason: p.downloadReason || null, downloadedBytes: p.bytes || 0
+        downloadReason: p.downloadReason || null, downloadedBytes: p.bytes || 0,
+        packageName: p.packageName || null, sha256: p.sha256 || null
       })) };
     saveDownload(new Blob([JSON.stringify(report, null, 2)], { type:'application/json' }),
       'BUSAN11_existing_photo_audit_' + new Date().toISOString().slice(0, 10) + '.json');
@@ -177,6 +182,7 @@
     running = true;
     const nextButton = el('cloudRescueNext');
     if (nextButton) nextButton.disabled = true;
+    const startCursor = session.cursor;
     try {
       const start = session.cursor;
       const total = session.candidates.length;
@@ -205,11 +211,25 @@
         if (typeof zipBuilder !== 'function') throw new Error('ZIP 產生器尚未載入，沒有下載不完整備份');
         const zip = await zipBuilder(archived);
         const part = String(Math.ceil(start / MAX_BATCH_PHOTOS) + 1).padStart(2, '0');
-        saveDownload(zip, 'BUSAN11_existing_cloud_photo_recovery_part' + part + '.zip');
+        const filename = 'BUSAN11_existing_cloud_photo_recovery_part' + part + '.zip';
+        saveDownload(zip, filename);
+        // Mark only after a real ZIP was created and the browser's save action
+        // was initiated. This does NOT verify the file exists on the phone.
+        for (const record of archived) {
+          const photo = session.audit.find(p => p.key === record.cloudKey);
+          if (photo) {
+            photo.downloadStatus = 'zip-export-requested';
+            photo.packageName = filename;
+            photo.bytes = record.blob.byteLength;
+            photo.sha256 = record.sha256;
+            photo.downloadReason = null;
+          }
+        }
+        session.zipParts.push({filename, files:archived.length, bytes:zip.size});
       }
       const totals = summary();
-      status('已檢查 ' + totals.total + ' 筆雲端紀錄；實際取得圖片位元組 ' +
-        totals.downloaded + ' 張。' + (archived.length ?
+      status('已檢查 ' + totals.total + ' 筆雲端紀錄；已封裝 ZIP 並提出下載 ' +
+        totals.downloaded + ' 張（尚未驗證手機已存檔）。' + (archived.length ?
           '本次已提出 ' + archived.length + ' 張 ZIP 下載（請確認瀏覽器已保存）。' :
           '本次沒有可封裝的圖片，可能受跨網域限制；不能推論照片已遺失。') +
         (totals.remainingCandidates ? ' 還有 ' + totals.remainingCandidates + ' 張可嘗試下一包。' :
@@ -217,8 +237,13 @@
       if (el('cloudRescueNext')) el('cloudRescueNext').hidden = totals.remainingCandidates === 0;
       if (el('cloudRescueReport')) el('cloudRescueReport').hidden = false;
     } catch (error) {
+      // A failed ZIP build or download click must not consume the batch or
+      // count it as rescued. All photo metadata and Firebase remain untouched.
+      if (session) {
+        session.cursor = startCursor;
+      }
       status('雲端照片備份未完成：' + String(error?.message || error) +
-        '。既有雲端照片與 Firebase 紀錄都未修改。');
+        '。沒有把這批計入已封裝備份；既有雲端照片與 Firebase 紀錄未修改。');
     } finally {
       running = false;
       if (nextButton) nextButton.disabled = false;
