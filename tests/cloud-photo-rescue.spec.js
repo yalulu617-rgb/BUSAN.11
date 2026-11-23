@@ -72,6 +72,9 @@ test('existing uploaded photos: read-only ImgBB audit recovers real bytes, not 2
     if (!zip) throw new Error('No actual ZIP blob was created');
     const entries = await window.PhotoLocalSafety.parseZipDirectory(zip);
     const files = entries.filter(entry => entry.filename.endsWith('.png'));
+    const manifestEntry = entries.find(entry => entry.filename === 'backup-manifest.json');
+    const manifestFile = await window.PhotoLocalSafety.extractZipEntry(zip, manifestEntry);
+    const manifest = JSON.parse(await manifestFile.text());
     const contents = [];
     for (const entry of files) {
       const file = await window.PhotoLocalSafety.extractZipEntry(zip, entry);
@@ -79,6 +82,7 @@ test('existing uploaded photos: read-only ImgBB audit recovers real bytes, not 2
       contents.push([...bytes].slice(0, 8));
     }
     return { info, archiveSize: zip.size, entryCount: files.length, signatures: contents,
+      manifest: manifest.photos.map(p => ({sha256:p.sha256,hostedUrl:p.hostedUrl})),
       clicks: window.__rescueClicks };
   });
   expect(result.info.total).toBe(5);
@@ -88,11 +92,13 @@ test('existing uploaded photos: read-only ImgBB audit recovers real bytes, not 2
   expect(result.info.counts['unsupported-link']).toBe(1);
   expect(result.info.downloaded).toBe(2);
   expect(result.entryCount).toBe(2);
+  expect(result.manifest).toHaveLength(2);
+  for (const photo of result.manifest) expect(photo.sha256).toMatch(/^[0-9a-f]{64}$/);
   expect(result.archiveSize).toBeGreaterThan(100);
   for(const signature of result.signatures) expect(signature).toEqual([137,80,78,71,13,10,26,10]);
   expect(result.clicks).toBe(1);
   expect(await page.evaluate(() => JSON.stringify(window.photoList))).toBe(snapshot);
-  await expect(page.locator('#cloudRescueStatus')).toContainText('實際取得圖片位元組 2 張');
+  await expect(page.locator('#cloudRescueStatus')).toContainText('已封裝 ZIP 並提出下載 2 張');
 });
 
 test('ImgBB CORS restriction is reported as unresolved, not mislabeled photo loss', async ({page}) => {
@@ -137,4 +143,26 @@ test('301 historic cloud photo records are counted and ZIP files are bounded by 
   expect(second.info.downloaded).toBe(90);
   expect(second.info.remainingCandidates).toBe(211);
   expect(second.zips).toBe(2);
+});
+
+test('ZIP builder failure must NOT count photos as recovered or skip the whole batch', async ({page}) => {
+  await installIsolatedMocks(page,{count:3});
+  const state = await page.evaluate(async () => {
+    const original = window.PhotoLocalSafety.createCloudPhotosZip;
+    window.PhotoLocalSafety.createCloudPhotosZip = async () => {
+      throw new Error('simulated archive failure');
+    };
+    await window.CloudPhotoRescue.start();
+    const first = window.CloudPhotoRescue.getSummary();
+    window.PhotoLocalSafety.createCloudPhotosZip = original;
+    await window.CloudPhotoRescue.downloadNext();
+    const second = window.CloudPhotoRescue.getSummary();
+    return {first,second,zipCount:window.__rescueArchived.filter(b=>b.type==='application/zip').length};
+  });
+  expect(state.first.downloaded).toBe(0);
+  expect(state.first.nextCursor).toBe(0);
+  expect(state.first.remainingCandidates).toBe(3);
+  expect(state.second.downloaded).toBe(3);
+  expect(state.second.remainingCandidates).toBe(0);
+  expect(state.zipCount).toBe(1);
 });
