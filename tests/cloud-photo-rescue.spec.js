@@ -70,19 +70,25 @@ test('existing uploaded photos: read-only ImgBB audit recovers real bytes, not 2
     const info = window.CloudPhotoRescue.getSummary();
     const zip = window.__rescueArchived.find(blob => blob.type === 'application/zip');
     if (!zip) throw new Error('No actual ZIP blob was created');
-    const entries = await window.PhotoLocalSafety.parseZipDirectory(zip);
+    const entries = await window.PhotoLocalSafety.parseZipDirectory(zip,{includeBackupManifest:true});
     const files = entries.filter(entry => entry.filename.endsWith('.png'));
     const manifestEntry = entries.find(entry => entry.filename === 'backup-manifest.json');
     const manifestFile = await window.PhotoLocalSafety.extractZipEntry(zip, manifestEntry);
     const manifest = JSON.parse(await manifestFile.text());
     const contents = [];
+    const verifiedHashes = [];
     for (const entry of files) {
       const file = await window.PhotoLocalSafety.extractZipEntry(zip, entry);
       const bytes = new Uint8Array(await file.arrayBuffer());
       contents.push([...bytes].slice(0, 8));
+      const hash = await crypto.subtle.digest('SHA-256', bytes);
+      const actual = [...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,'0')).join('');
+      const manifestRow = manifest.photos.find(p=>p.archiveFilename===entry.filename);
+      verifiedHashes.push(actual===manifestRow?.sha256);
     }
     return { info, archiveSize: zip.size, entryCount: files.length, signatures: contents,
       manifest: manifest.photos.map(p => ({sha256:p.sha256,hostedUrl:p.hostedUrl})),
+      verifiedHashes,
       clicks: window.__rescueClicks };
   });
   expect(result.info.total).toBe(5);
@@ -94,6 +100,7 @@ test('existing uploaded photos: read-only ImgBB audit recovers real bytes, not 2
   expect(result.entryCount).toBe(2);
   expect(result.manifest).toHaveLength(2);
   for (const photo of result.manifest) expect(photo.sha256).toMatch(/^[0-9a-f]{64}$/);
+  expect(result.verifiedHashes).toEqual([true,true]);
   expect(result.archiveSize).toBeGreaterThan(100);
   for(const signature of result.signatures) expect(signature).toEqual([137,80,78,71,13,10,26,10]);
   expect(result.clicks).toBe(1);
