@@ -301,7 +301,7 @@ test.describe('4. Galaxy S25 Responsive Layout & PWA Freshness', () => {
     const release = await (await page.request.get('/data/release.json')).json();
     // Each PWA release rotates the cache; validate the release metadata against
     // its actual Service Worker instead of pinning historical version numbers.
-    expect(release.cacheVersion).toMatch(/^busan-trip-v46-(?:photo-gps|memory-vlog|date-albums|originals-retained|cloud-photo-rescue)-v\d+$/);
+    expect(release.cacheVersion).toMatch(/^busan-trip-v46-(?:photo-gps|memory-vlog|date-albums|originals-retained|cloud-photo-rescue|cloud-photo-verified)-v\d+$/);
     const sw = await (await page.request.get('/sw.js')).text();
     expect(sw).toContain(`const CACHE_NAME = '${release.cacheVersion}'`);
     expect(sw).toContain("'./photo-local-safe.js'");
