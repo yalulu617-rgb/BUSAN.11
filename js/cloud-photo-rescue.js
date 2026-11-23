@@ -40,6 +40,7 @@
   function refreshCount() {
     const label = el('cloudRescueCount');
     if (label) label.textContent = '目前相簿已載入 ' + rows().length + ' 筆雲端照片紀錄（並非已備份張數）';
+    root.CloudPhotoBackupVerifier?.render?.();
   }
   function classifyDecoded(photo, width, height) {
     const health = root.PhotoHostHealth?.inspect(photo.url, {

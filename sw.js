@@ -8,7 +8,7 @@
 // - Cache-first with network fallback for static media (images, icons)
 // ─────────────────────────────────────────────────────────────────────────
 
-const CACHE_NAME = 'busan-trip-v46-cloud-photo-verified-v22';
+const CACHE_NAME = 'busan-trip-v46-cloud-saved-verify-v23';
 
 const LOCAL_ASSETS = [
     './',
@@ -69,6 +69,7 @@ const LOCAL_ASSETS = [
     './restaurant-save-guard.js',
     './photo-local-safe.js',
     './js/cloud-photo-rescue.js',
+    './js/cloud-photo-backup-verify.js',
     './owner-budget-settings.js'
 ];
 

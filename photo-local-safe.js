@@ -1368,6 +1368,7 @@
     while (p + 46 <= cdSize) {
       if (cdView.getUint32(p, true) !== 0x02014b50) break;
       const method = cdView.getUint16(p + 10, true);
+      const crc32 = cdView.getUint32(p + 16, true);
       const compSize = cdView.getUint32(p + 20, true);
       const uncompSize = cdView.getUint32(p + 24, true);
       const nameLen = cdView.getUint16(p + 28, true);
@@ -1381,13 +1382,13 @@
 
       // Zip-Slip security check: prevent directory traversal
       const safe = !filename.includes("..") && !filename.startsWith("/") && !filename.startsWith("\\\\");
-      if (safe && !filename.endsWith("/") && (/\.(jpe?g|png|webp|hei[cf])$/i.test(filename) ||
+      if (safe && !filename.endsWith("/") && (/\.(jpe?g|png|gif|avif|webp|hei[cf])$/i.test(filename) ||
           (options.includeBackupManifest === true && filename === 'backup-manifest.json'))) {
         totalDeclaredUncomp += uncompSize;
         if (totalDeclaredUncomp > MAX_ZIP_UNCOMP_TOTAL) {
           throw new Error("ZIP 累計解壓大小超過安全上限 500MB，防止記憶體耗盡");
         }
-        entries.push({ filename, method, compSize, uncompSize, localOffset });
+        entries.push({ filename, method, crc32, compSize, uncompSize, localOffset });
       }
       p += 46 + nameLen + extraLen + commentLen;
     }
@@ -1444,7 +1445,9 @@
     const mime = lowerName === "backup-manifest.json" ? "application/json" :
       (lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg")) ? "image/jpeg" :
                  (lowerName.endsWith(".png") ? "image/png" :
-                 (lowerName.endsWith(".webp") ? "image/webp" : "image/heic"));
+                 (lowerName.endsWith(".webp") ? "image/webp" :
+                  lowerName.endsWith(".gif") ? "image/gif" :
+                  lowerName.endsWith(".avif") ? "image/avif" : "image/heic"));
     const baseName = entry.filename.split("/").pop().split("\\").pop();
     return new File([uncompBlob], baseName, { type: mime });
   }
