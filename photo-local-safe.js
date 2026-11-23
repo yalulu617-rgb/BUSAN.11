@@ -1338,7 +1338,7 @@
   const MAX_ZIP_SINGLE_ENTRY = 80 * 1024 * 1024;  // 單張解壓上限 80MB
   let latestZipInspection = null;
 
-  async function parseZipDirectory(blob) {
+  async function parseZipDirectory(blob, options = {}) {
     const size = blob.size;
     if (size < 22) throw new Error("ZIP 檔案過小或格式不符");
     const readLen = Math.min(size, 65557);
@@ -1381,7 +1381,8 @@
 
       // Zip-Slip security check: prevent directory traversal
       const safe = !filename.includes("..") && !filename.startsWith("/") && !filename.startsWith("\\\\");
-      if (safe && !filename.endsWith("/") && /\.(jpe?g|png|webp|hei[cf])$/i.test(filename)) {
+      if (safe && !filename.endsWith("/") && (/\.(jpe?g|png|webp|hei[cf])$/i.test(filename) ||
+          (options.includeBackupManifest === true && filename === 'backup-manifest.json'))) {
         totalDeclaredUncomp += uncompSize;
         if (totalDeclaredUncomp > MAX_ZIP_UNCOMP_TOTAL) {
           throw new Error("ZIP 累計解壓大小超過安全上限 500MB，防止記憶體耗盡");
@@ -1440,7 +1441,8 @@
     }
 
     const lowerName = entry.filename.toLowerCase();
-    const mime = (lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg")) ? "image/jpeg" :
+    const mime = lowerName === "backup-manifest.json" ? "application/json" :
+      (lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg")) ? "image/jpeg" :
                  (lowerName.endsWith(".png") ? "image/png" :
                  (lowerName.endsWith(".webp") ? "image/webp" : "image/heic"));
     const baseName = entry.filename.split("/").pop().split("\\").pop();
