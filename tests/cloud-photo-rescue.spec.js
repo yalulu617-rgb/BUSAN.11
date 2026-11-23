@@ -173,3 +173,62 @@ test('ZIP builder failure must NOT count photos as recovered or skip the whole b
   expect(state.second.remainingCandidates).toBe(0);
   expect(state.zipCount).toBe(1);
 });
+
+
+test('saved ZIP verification checks each image hash, reports missing photos, then confirms all 3 on the device', async ({page}) => {
+  await installIsolatedMocks(page,{count:3});
+  const state = await page.evaluate(async png => {
+    const bytes = Uint8Array.from(atob(png), c=>c.charCodeAt(0));
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    const sha256=[...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');
+    const records = window.photoList.map((p,i)=>({
+      id:p.key, cloudKey:p.key, filename:p.key+'.png',
+      hostedUrl:p.url, blob:bytes.slice().buffer, sha256, synced:true,
+      metadata:{capturedAt:p.capturedAt}
+    }));
+    const build=async (part,name)=>new File([await window.PhotoLocalSafety.createCloudPhotosZip(part)],
+      name,{type:'application/zip'});
+    const zipA=await build(records.slice(0,2),'rescue-part1.zip');
+    const zipB=await build(records.slice(2),'rescue-part2.zip');
+    const first=await window.CloudPhotoBackupVerifier.verify([zipA]);
+    const second=await window.CloudPhotoBackupVerifier.verify([zipB]);
+    return {first:{...first,missingRecords:first.missingRecords.length},
+      second:{...second,missingRecords:second.missingRecords.length},
+      visibleText:document.getElementById('cloudRescueVerifyStatus').textContent};
+  },TINY_PNG);
+  expect(state.first).toMatchObject({total:3,verified:2,missing:1,complete:false,archives:1,issues:0});
+  expect(state.second).toMatchObject({total:3,verified:3,missing:0,complete:true,archives:2,issues:0});
+  expect(state.visibleText).toContain('已從 ZIP 解開並校驗 3 張');
+});
+
+test('tampered local ZIP is rejected and does not count a photo as safely backed up', async ({page}) => {
+  await installIsolatedMocks(page,{count:1});
+  const result=await page.evaluate(async png=>{
+    const bytes=Uint8Array.from(atob(png), c=>c.charCodeAt(0));
+    const shaBytes=new Uint8Array(await crypto.subtle.digest('SHA-256',bytes));
+    const sha256=[...shaBytes].map(b=>b.toString(16).padStart(2,'0')).join('');
+    const photo=window.photoList[0];
+    const zip=await window.PhotoLocalSafety.createCloudPhotosZip([{
+      id:photo.key,cloudKey:photo.key,filename:photo.key+'.png',
+      hostedUrl:photo.url,blob:bytes.buffer,sha256,synced:true
+    }]);
+    const packed=new Uint8Array(await zip.arrayBuffer());
+    // Corrupt bytes inside the stored PNG without changing manifest or ZIP CRC.
+    const marker=bytes.slice(0,8);
+    let found=-1;
+    for(let i=0;i<packed.length-marker.length;i++){
+      if(marker.every((val,j)=>packed[i+j]===val)){found=i;break;}
+    }
+    if(found<0) throw new Error('PNG fixture absent from ZIP');
+    packed[found+13]^=1;
+    const corrupted=new File([packed],'corrupt-rescue.zip',{type:'application/zip'});
+    const bad=await window.CloudPhotoBackupVerifier.verify([corrupted]);
+    window.CloudPhotoBackupVerifier.reset();
+    const good=new File([zip],'verified-rescue.zip',{type:'application/zip'});
+    const recovered=await window.CloudPhotoBackupVerifier.verify([good]);
+    return {bad:{total:bad.total,verified:bad.verified,issues:bad.issues,complete:bad.complete},
+      recovered:{total:recovered.total,verified:recovered.verified,issues:recovered.issues,complete:recovered.complete}};
+  },TINY_PNG);
+  expect(result.bad).toEqual({total:1,verified:0,issues:1,complete:false});
+  expect(result.recovered).toEqual({total:1,verified:1,issues:0,complete:true});
+});
