@@ -160,6 +160,12 @@ body {
         #albumContainer .photo-host-issue { outline:2px solid #d99d56; outline-offset:0; }
         #albumContainer .photo-host-issue-tag { position:absolute; z-index:4; top:9px; left:8px; right:8px; width:max-content; max-width:calc(100% - 16px); border-radius:8px; padding:4px 7px; background:rgba(51,39,31,.93); color:#fff3db; font-size:.68rem; font-weight:900; pointer-events:none; }
         .memory-highlight-card.memory-highlight-source-warning { border-color:#d7a96a; background:#f5ecdf; }
+        .memory-backup-verification { margin:12px 0 2px; padding:11px; border:1px solid #b9c4a8; background:#f8fbf2; border-radius:11px; color:#4c5943; }
+        .memory-backup-verification h4 { color:#4c5943; margin:0; font-size:.85rem; }
+        #cloudRescueVerifyStatus { font-size:.77rem; font-weight:850; line-height:1.6; padding-top:9px; white-space:pre-wrap; overflow-wrap:anywhere; }
+        .memory-cloud-rescue-issues { max-height:160px; overflow:auto; }
+        .memory-cloud-rescue-issues p { font-size:.69rem; line-height:1.5; margin:5px 0; overflow-wrap:anywhere; }
+        .memory-backup-verification [hidden] { display:none !important; }
         .memory-cloud-rescue { padding:12px; border:1px solid #cbb68f; border-radius:14px; margin:12px 0; background:#fffdf7; color:#73523d; }
         .memory-cloud-rescue h4 { font-size:.88rem; margin:0 0 7px; color:#875039; }
         #cloudRescueCount { font-size:.79rem; font-weight:900; line-height:1.6; }
