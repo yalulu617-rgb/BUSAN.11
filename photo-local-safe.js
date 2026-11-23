@@ -1172,6 +1172,7 @@
       manifest.push({archiveFilename:entries[entries.length-1].name,id:record.id,
         originalFilename:record.filename||null,synced:Boolean(record.synced),
         cloudKey:record.cloudKey||null,hostedUrl:record.hostedUrl||null,
+        sha256:record.sha256||null,
         capturedAt:record.metadata?.capturedAt||null,createdAt:record.createdAt||null});
       await new Promise(resolve=>setTimeout(resolve,0));
     }
