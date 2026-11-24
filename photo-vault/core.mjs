@@ -2,7 +2,7 @@
 // or verification failure. No album/Firebase mutation in this module.
 import { createHash } from 'node:crypto';
 
-export const MAX_PHOTO_BYTES = 24 * 1024 * 1024;
+export const MAX_PHOTO_BYTES = 24_000_000;
 export const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 export class VaultError extends Error {
   constructor(code, status = 503) { super(code); this.code = code; this.status = status; }
