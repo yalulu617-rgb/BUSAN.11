@@ -1,0 +1,29 @@
+name: Photo Vault Isolated Tests
+on:
+  push:
+    branches:
+      - 'feat/private-original-photo-vault-20261124'
+  pull_request:
+    paths:
+      - 'photo-vault/**'
+      - '.github/workflows/photo-vault-isolated.yml'
+permissions:
+  contents: read
+jobs:
+  synthetic-vault:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax checks
+        run: for file in photo-vault/*.mjs; do node --check "$file"; done
+      - name: Test exact bytes, double copies, quotas, authentication and failover
+        run: node --test photo-vault/*.test.mjs
+      - name: Verify official ImageKit SDK can load and generate signed URLs using synthetic credentials
+        working-directory: photo-vault
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          node --input-type=module -e 'import ImageKit from "@imagekit/nodejs"; const sdk=new ImageKit({privateKey:"private_synthetic_test"}); const u=new URL(sdk.helper.buildSrc({src:"/busan11-vault/original/synthetic.bin",urlEndpoint:"https://ik.imagekit.io/synthetic",signed:true,expiresIn:120})); if(!u.searchParams.has("ik-s")||u.origin!=="https://ik.imagekit.io") throw Error("SDK signing contract changed"); console.log("Synthetic signer valid")'
